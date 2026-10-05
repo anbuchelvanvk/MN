@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>MN Family — HR Management Portal</title>
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body>
+
+  <!-- Top Role Switcher / Quick Return Bar -->
+  <div class="role-switcher-banner">
+    <span>Logged in as <strong>Meera Krishnan (Head of HR & People)</strong></span>
+    <a href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      Role Switcher
+    </a>
+  </div>
+
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="portal-header">
+      <div class="portal-brand">
+        <div class="brand-badge">
+          <svg viewBox="0 0 500 500" fill="none">
+            <path d="M250,150 L440,225 L250,425 L60,225 Z" stroke="#D4AF37" stroke-width="36" />
+            <text x="250" y="270" font-family="'Plus Jakarta Sans', sans-serif" font-size="90" font-weight="900" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central">MN</text>
+          </svg>
+        </div>
+        <div class="brand-title">
+          MN Family
+          <span class="brand-sub">Jewel Park</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="role-tag-pill hr">HR Admin</span>
+        <button class="icon-btn" onclick="showToast('3 documents pending review')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="badge-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="portal-content">
+      
+      <!-- TAB 1: HR DASHBOARD -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <!-- Quick Action & Greeting Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Workforce Central</h2>
+            <span style="font-size: 12px; color: var(--text-muted);">6 Active Departments</span>
+          </div>
+          <button class="btn-primary" onclick="openModal('modal-add-emp')">
+            <span>+</span> Add Employee
+          </button>
+        </div>
+
+        <!-- 4 Stat Tiles (2x2 Grid) -->
+        <div class="kpi-grid col-4">
+          <div class="kpi-card" onclick="switchTab('employees')">
+            <span class="kpi-label">Total Staff</span>
+            <span class="kpi-value gold" id="kpi-total-staff">142</span>
+            <span class="kpi-sub">Across 6 units</span>
+          </div>
+          <div class="kpi-card" onclick="switchTab('onboarding')">
+            <span class="kpi-label">Onboarding</span>
+            <span class="kpi-value yellow">4</span>
+            <span class="kpi-sub">Joined this month</span>
+          </div>
+          <div class="kpi-card" onclick="openModal('modal-docs')">
+            <span class="kpi-label">Documents</span>
+            <span class="kpi-value red">3</span>
+            <span class="kpi-sub">Pending verification</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Birthdays Today</span>
+            <span class="kpi-value green">2</span>
+            <span class="kpi-sub">Rahul M. & Pooja K.</span>
+          </div>
+        </div>
+
+        <!-- Onboarding Progress Tracker -->
+        <div class="content-card">
+          <div class="card-header-row">
+            <div class="card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c59b27" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+              Active Onboarding Tracker
+            </div>
+            <a class="card-action-link" onclick="switchTab('onboarding')">All (4)</a>
+          </div>
+
+          <div class="item-list">
+            <!-- Candidate 1 -->
+            <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="font-size: 13.5px;">Rohan Soni — Master Diamond Setter</strong>
+                <span style="font-weight: 700; color: var(--gold-dark); font-size: 12px;">85%</span>
+              </div>
+              <div class="progress-bar-container" style="margin: 4px 0 6px 0;">
+                <div class="progress-bar-fill" style="width: 85%;"></div>
+              </div>
+              <div class="progress-meta-row">
+                <span>Step 6 of 7: Security Vault Access Clearance</span>
+                <span class="badge-rag green"><span class="badge-dot"></span> On track</span>
+              </div>
+            </div>
+
+            <!-- Candidate 2 -->
+            <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="font-size: 13.5px;">Priya Menon — Luxury Retail Advisor</strong>
+                <span style="font-weight: 700; color: var(--gold-dark); font-size: 12px;">50%</span>
+              </div>
+              <div class="progress-bar-container" style="margin: 4px 0 6px 0;">
+                <div class="progress-bar-fill" style="width: 50%;"></div>
+              </div>
+              <div class="progress-meta-row">
+                <span>Step 3 of 6: Customer Gold Scheme Training</span>
+                <span class="badge-rag yellow"><span class="badge-dot"></span> In Progress</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Occasions & Birthdays -->
+        <div class="content-card">
+          <div class="card-header-row">
+            <div class="card-title">
+              🎉 Special Occasions Today
+            </div>
+          </div>
+          <div class="item-list">
+            <div class="team-member-row" style="background: #fffdf5; border-color: #fde68a;">
+              <div class="member-info">
+                <div style="font-size: 22px;">🎂</div>
+                <div>
+                  <div class="member-name">Rahul Mehta</div>
+                  <div class="member-role">Senior Sales Consultant • Showroom 1</div>
+                </div>
+              </div>
+              <button class="btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="showToast('Celebration greeting sent to Rahul!')">Send Wish</button>
+            </div>
+            <div class="team-member-row">
+              <div class="member-info">
+                <div style="font-size: 22px;">⭐</div>
+                <div>
+                  <div class="member-name">Sunita Iyer</div>
+                  <div class="member-role">5 Year Work Anniversary • Accounting</div>
+                </div>
+              </div>
+              <button class="btn-navy" style="padding: 4px 10px; font-size: 11px;" onclick="showToast('Anniversary badge awarded!')">Award</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 2: EMPLOYEES DIRECTORY -->
+      <section id="tab-employees" class="tab-pane" style="display: none;">
+        <div class="card-header-row" style="margin-bottom: 12px;">
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Employee Directory</h2>
+          <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="openModal('modal-add-emp')">+ Add</button>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="emp-search" class="search-input" placeholder="Search by name, ID, or designation..." oninput="filterEmployees()">
+        </div>
+
+        <div class="segmented-chips">
+          <button class="chip-btn active" onclick="filterByDept('all', this)">All Depts</button>
+          <button class="chip-btn" onclick="filterByDept('Operations', this)">Operations</button>
+          <button class="chip-btn" onclick="filterByDept('Sales', this)">Sales & Retail</button>
+          <button class="chip-btn" onclick="filterByDept('Finance', this)">Finance</button>
+          <button class="chip-btn" onclick="filterByDept('Vault', this)">Vault & Security</button>
+        </div>
+
+        <!-- Full Directory List -->
+        <div class="item-list" id="employee-list-container">
+          <div class="team-member-row" data-dept="Operations" onclick="openEmpDetail('Adithi Sharma', 'MN-1024', 'Operations Executive', 'Operations & Crafting', '+91 98450 12345', 'adithi.s@mnjewelpark.com')">
+            <div class="member-info">
+              <div class="avatar-initials" style="width: 40px; height: 40px;">AS</div>
+              <div>
+                <div class="member-name">Adithi Sharma</div>
+                <div class="member-role">Operations Executive • ID: MN-1024</div>
+              </div>
+            </div>
+            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
+          </div>
+
+          <div class="team-member-row" data-dept="Operations" onclick="openEmpDetail('Vikram Reddy', 'MN-1008', 'Head of Operations', 'Operations & Crafting', '+91 98450 67890', 'vikram.reddy@mnjewelpark.com')">
+            <div class="member-info">
+              <div class="avatar-initials" style="width: 40px; height: 40px; background: #334155;">VR</div>
+              <div>
+                <div class="member-name">Vikram Reddy</div>
+                <div class="member-role">Head of Operations • ID: MN-1008</div>
+              </div>
+            </div>
+            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
+          </div>
+
+          <div class="team-member-row" data-dept="Sales" onclick="openEmpDetail('Rahul Mehta', 'MN-1045', 'Senior Sales Consultant', 'Sales & Retail', '+91 98450 22334', 'rahul.m@mnjewelpark.com')">
+            <div class="member-info">
+              <div class="avatar-initials" style="width: 40px; height: 40px; background: #64748b;">RM</div>
+              <div>
+                <div class="member-name">Rahul Mehta</div>
+                <div class="member-role">Senior Sales Consultant • ID: MN-1045</div>
+              </div>
+            </div>
+            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
+          </div>
+
+          <div class="team-member-row" data-dept="Finance" onclick="openEmpDetail('Sunita Iyer', 'MN-1012', 'Chief Financial Controller', 'Finance', '+91 98450 99887', 'sunita.i@mnjewelpark.com')">
+            <div class="member-info">
+              <div class="avatar-initials" style="width: 40px; height: 40px; background: #475569;">SI</div>
+              <div>
+                <div class="member-name">Sunita Iyer</div>
+                <div class="member-role">Financial Controller • ID: MN-1012</div>
+              </div>
+            </div>
+            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ONBOARDING -->
+      <section id="tab-onboarding" class="tab-pane" style="display: none;">
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 14px;">Onboarding Pipelines</h2>
+        
+        <div class="item-list">
+          <div class="content-card">
+            <div class="card-header-row">
+              <div>
+                <strong style="font-size: 14px;">Rohan Soni</strong>
+                <div style="font-size: 11px; color: var(--text-muted);">Master Diamond Setter • Joining: Oct 1</div>
+              </div>
+              <span class="badge-rag green">85% Ready</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 85%;"></div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+              ✓ KYC Verified • ✓ Craft Bench Assigned • ⏳ Vault Biometric Pending
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-header-row">
+              <div>
+                <strong style="font-size: 14px;">Priya Menon</strong>
+                <div style="font-size: 11px; color: var(--text-muted);">Luxury Retail Advisor • Joining: Oct 3</div>
+              </div>
+              <span class="badge-rag yellow">50% Ready</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: 50%;"></div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+              ✓ KYC Verified • ⏳ Showroom Uniform Fitting • ⏳ POS System Training
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: PROFILE -->
+      <section id="tab-profile" class="tab-pane" style="display: none;">
+        <div class="hero-card" style="text-align: center; padding: 24px;">
+          <div class="avatar-initials lg" style="margin: 0 auto 12px auto;">MK</div>
+          <h2 style="font-size: 19px; font-weight: 700; color: #ffffff;">Meera Krishnan</h2>
+          <p style="font-size: 13px; color: #cbd5e1;">Head of People & HR Operations</p>
+          <div style="margin-top: 8px;">
+            <span class="role-tag-pill hr">HR Administrator</span>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="card-title" style="margin-bottom: 14px;">Official Information</div>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-muted);">Role</span>
+              <strong>HR Manager & Admin</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-muted);">Email</span>
+              <strong>meera.k@mnjewelpark.com</strong>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-navy btn-full" onclick="showToast('Logged out securely')">Sign Out</button>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('employees')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Employees</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('onboarding')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Onboarding</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Profile</span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- MODAL: ADD EMPLOYEE -->
+  <div class="modal-backdrop" id="modal-add-emp">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">Onboard New Employee</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-emp')">✕</button>
+      </div>
+      <form onsubmit="handleAddEmployeeSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="new-emp-name" class="form-input" placeholder="e.g., Karthik Nair" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label class="form-label">Employee ID</label>
+            <input type="text" id="new-emp-id" class="form-input" value="MN-1151" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="new-emp-dept" class="form-select">
+              <option value="Operations">Operations & Crafting</option>
+              <option value="Sales">Sales & Retail</option>
+              <option value="Finance">Finance</option>
+              <option value="Vault">Vault & Security</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Designation / Role</label>
+          <input type="text" id="new-emp-role" class="form-input" placeholder="e.g., Certified Gemmologist" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" class="form-input" placeholder="+91 98450 ...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date of Joining</label>
+            <input type="date" class="form-input" value="2026-10-15">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary btn-full" style="margin-top: 8px;">Register & Begin Onboarding</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-msg" id="toast">Saved!</div>
+
+  <script>
+    let activeDeptFilter = 'all';
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.style.display = 'block';
+
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => item.classList.remove('active'));
+
+      const tabsMap = { 'dashboard': 0, 'employees': 1, 'onboarding': 2, 'profile': 3 };
+      if (tabsMap[tabId] !== undefined) {
+        navItems[tabsMap[tabId]].classList.add('active');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    function handleAddEmployeeSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-emp-name').value;
+      const id = document.getElementById('new-emp-id').value;
+      const dept = document.getElementById('new-emp-dept').value;
+      const role = document.getElementById('new-emp-role').value;
+
+      const container = document.getElementById('employee-list-container');
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+
+      const newRow = document.createElement('div');
+      newRow.className = 'team-member-row';
+      newRow.setAttribute('data-dept', dept);
+      newRow.onclick = function() {
+        openEmpDetail(name, id, role, dept, '+91 98450 00000', name.toLowerCase().replace(' ', '.') + '@mnjewelpark.com');
+      };
+      newRow.innerHTML = `
+        <div class="member-info">
+          <div class="avatar-initials" style="width: 40px; height: 40px; background: #c59b27;">${initials}</div>
+          <div>
+            <div class="member-name">${name}</div>
+            <div class="member-role">${role} • ID: ${id}</div>
+          </div>
+        </div>
+        <span class="badge-rag yellow"><span class="badge-dot"></span> Onboarding</span>
+      `;
+      container.prepend(newRow);
+
+      const staffCount = document.getElementById('kpi-total-staff');
+      staffCount.textContent = parseInt(staffCount.textContent) + 1;
+
+      closeModal('modal-add-emp');
+      showToast(`${name} added to ${dept} onboarding!`);
+    }
+
+    function filterEmployees() {
+      const q = document.getElementById('emp-search').value.toLowerCase();
+      const rows = document.querySelectorAll('#employee-list-container .team-member-row');
+      rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        const dept = r.getAttribute('data-dept');
+        const matchDept = activeDeptFilter === 'all' || dept === activeDeptFilter;
+        r.style.display = (text.includes(q) && matchDept) ? 'flex' : 'none';
+      });
+    }
+
+    function filterByDept(dept, btn) {
+      activeDeptFilter = dept;
+      btn.parentElement.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterEmployees();
+    }
+
+    function openEmpDetail(name, id, role, dept, phone, email) {
+      alert(`Employee File: ${name}\n\nID: ${id}\nRole: ${role}\nDepartment: ${dept}\nContact: ${phone}\nEmail: ${email}`);
+    }
+  </script>
+</body>
+</html>

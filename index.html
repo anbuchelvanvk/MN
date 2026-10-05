@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0e17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>MN Family — Internal Ecosystem Hub</title>
+  <link rel="stylesheet" href="portal.css">
+  <style>
+    body {
+      background: #0b0e17;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px 12px 40px 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .hub-container {
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hub-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .hub-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: #000;
+      border: 2px solid #d4af37;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+      margin: 0 auto 12px auto;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hub-title {
+      font-family: 'Cinzel', serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #fff2a3 0%, #d4af37 50%, #997d1e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    @media (min-width: 600px) {
+      .hub-title {
+        font-size: 30px;
+      }
+    }
+
+    .hub-subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.5;
+      padding: 0 10px;
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    @media (min-width: 640px) {
+      .role-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+    }
+
+    @media (min-width: 960px) {
+      .role-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .role-card-link {
+      background: rgba(24, 34, 52, 0.75);
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      border-radius: 16px;
+      padding: 18px 16px;
+      text-decoration: none;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      touch-action: manipulation;
+    }
+
+    .role-card-link:active {
+      transform: scale(0.98);
+      background: rgba(30, 41, 59, 0.95);
+    }
+
+    @media (min-width: 768px) {
+      .role-card-link:hover {
+        transform: translateY(-4px);
+        border-color: #d4af37;
+        box-shadow: 0 12px 30px rgba(212, 175, 55, 0.2);
+        background: rgba(30, 41, 59, 0.9);
+      }
+    }
+
+    .role-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .role-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .role-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .role-desc {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.45;
+      margin-bottom: 14px;
+      flex: 1;
+    }
+
+    .role-action-btn {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #d4af37;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Live Preview Section */
+    .preview-frame-container {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 16px;
+      margin-top: 10px;
+    }
+
+    .preview-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .preview-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      max-width: 100%;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .preview-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .preview-tab-btn {
+      background: #1f2937;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      touch-action: manipulation;
+    }
+
+    .preview-tab-btn.active {
+      background: #d4af37;
+      color: #111827;
+      border-color: #d4af37;
+      font-weight: 700;
+    }
+
+    .preview-iframe-box {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(212, 175, 55, 0.25);
+      background: #f8fafc;
+    }
+
+    .preview-iframe {
+      width: 100%;
+      height: 700px;
+      border: none;
+      display: block;
+      background: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hub-container">
+    <!-- Header -->
+    <header class="hub-header">
+      <div class="hub-logo">
+        <svg viewBox="0 0 500 500" fill="none">
+          <path d="M250,150 L440,225 L250,425 L60,225 Z" stroke="#D4AF37" stroke-width="36" />
+          <text x="250" y="270" font-family="'Plus Jakarta Sans', sans-serif" font-size="90" font-weight="900" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central">MN</text>
+        </svg>
+      </div>
+      <h1 class="hub-title">MN JEWEL PARK</h1>
+      <p class="hub-subtitle">
+        Internal Ecosystem & Workforce Suite. Fast, simple, mobile-optimized portals tailored for every role.
+      </p>
+    </header>
+
+    <!-- 4 Role Portals Grid -->
+    <div class="role-grid">
+      
+      <!-- 1. Employee -->
+      <a href="employee.html" class="role-card-link">
+        <div class="role-badge-row">
+          <div class="role-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #fde68a;">👤</div>
+          <span class="role-tag-pill emp">Employee</span>
+        </div>
+        <div class="role-name">Employee Portal</div>
+        <div class="role-desc">
+          Daily to-dos, hallmarking milestones, performance score, leave requests, and updates.
+        </div>
+        <div class="role-action-btn">
+          Open employee.html
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </a>
+
+      <!-- 2. Dept Head -->
+      <a href="dept-head.html" class="role-card-link">
+        <div class="role-badge-row">
+          <div class="role-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #93c5fd;">👔</div>
+          <span class="role-tag-pill dept">Dept Head</span>
+        </div>
+        <div class="role-name">Department Head</div>
+        <div class="role-desc">
+          Team health tracking, 1-click RAG ratings, task assignment, and leave approvals.
+        </div>
+        <div class="role-action-btn">
+          Open dept-head.html
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </a>
+
+      <!-- 3. HR Admin -->
+      <a href="hr.html" class="role-card-link">
+        <div class="role-badge-row">
+          <div class="role-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #86efac;">📑</div>
+          <span class="role-tag-pill hr">HR Admin</span>
+        </div>
+        <div class="role-name">HR Management</div>
+        <div class="role-desc">
+          Workforce stats across 6 departments, live onboarding tracker, directory, and celebrations.
+        </div>
+        <div class="role-action-btn">
+          Open hr.html
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </a>
+
+      <!-- 4. CEO Suite -->
+      <a href="ceo.html" class="role-card-link">
+        <div class="role-badge-row">
+          <div class="role-icon-box" style="background: rgba(212, 175, 55, 0.15); color: #fde68a;">👑</div>
+          <span class="role-tag-pill ceo">CEO Suite</span>
+        </div>
+        <div class="role-name">Executive CEO Suite</div>
+        <div class="role-desc">
+          Executive enterprise health KPIs, department execution progress, delays, and star leads.
+        </div>
+        <div class="role-action-btn">
+          Open ceo.html
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Live Interactive Preview Container -->
+    <div class="preview-frame-container">
+      <div class="preview-bar">
+        <div style="font-size: 13.5px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+          <span>📱 Live Preview:</span>
+          <span id="active-preview-name" style="color: #d4af37;">Employee Portal</span>
+        </div>
+        <div class="preview-tabs">
+          <button class="preview-tab-btn active" onclick="loadPreview('employee.html', 'Employee Portal', this)">Employee</button>
+          <button class="preview-tab-btn" onclick="loadPreview('dept-head.html', 'Department Head', this)">Dept Head</button>
+          <button class="preview-tab-btn" onclick="loadPreview('hr.html', 'HR Management', this)">HR</button>
+          <button class="preview-tab-btn" onclick="loadPreview('ceo.html', 'CEO Executive Suite', this)">CEO</button>
+          <a id="fullscreen-link" href="employee.html" target="_blank" class="preview-tab-btn" style="background: rgba(212, 175, 55, 0.15); color: #d4af37; text-decoration: none; border-color: rgba(212,175,55,0.3);">⤢ Launch Fullscreen</a>
+        </div>
+      </div>
+      <div class="preview-iframe-box">
+        <iframe id="preview-iframe" class="preview-iframe" src="employee.html"></iframe>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function loadPreview(url, name, btn) {
+      document.querySelectorAll('.preview-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('preview-iframe').src = url;
+      document.getElementById('active-preview-name').textContent = name;
+      document.getElementById('fullscreen-link').href = url;
+    }
+  </script>
+</body>
+</html>
