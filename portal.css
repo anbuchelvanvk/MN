@@ -5,7 +5,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
 
-:root {
+:root, [data-theme="navy"] {
   /* MN Gold Signature Palette */
   --gold-primary: #c59b27;
   --gold-accent: #d4af37;
@@ -70,6 +70,80 @@
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
   --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.08);
   --shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.18);
+  --hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --brand-badge-bg: #000000;
+}
+
+/* ==========================================================================
+   COLOR COMBO 1: Imperial Burgundy / Maroon & Champagne Sand
+   ========================================================================== */
+[data-theme="maroon"] {
+  --gold-primary: #6c0f20;
+  --gold-accent: #cbb094;
+  --gold-light: #f8f1ea;
+  --gold-border: #e6d3c2;
+  --gold-dark: #580816;
+  --gold-gradient: linear-gradient(135deg, #871429 0%, #580816 50%, #3a030c 100%);
+  --gold-glow: 0 4px 20px rgba(91, 6, 22, 0.28);
+
+  --navy-dark: #580816;
+  --navy-card: #450510;
+  --navy-surface: #6c0f20;
+  --navy-border: rgba(203, 176, 148, 0.35);
+
+  --bg-page: #faf5f0;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f3eae1;
+  --bg-input: #ffffff;
+
+  --border-light: #ebdcca;
+  --border-subtle: #f5ebe0;
+  --border-focus: #580816;
+
+  --text-main: #2a050c;
+  --text-muted: #745b54;
+  --text-subtle: #a0877f;
+  --text-white: #ffffff;
+  --text-gold: #851227;
+
+  --hero-gradient: linear-gradient(135deg, #44040e 0%, #680d1e 100%);
+  --brand-badge-bg: #44040e;
+}
+
+/* ==========================================================================
+   COLOR COMBO 2: Midnight Onyx Black & Warm Champagne Sand
+   ========================================================================== */
+[data-theme="onyx"] {
+  --gold-primary: #bfa182;
+  --gold-accent: #dfc8af;
+  --gold-light: #f7f1ea;
+  --gold-border: #e3d2c1;
+  --gold-dark: #826647;
+  --gold-gradient: linear-gradient(135deg, #dfc8af 0%, #cbb094 50%, #9e7f60 100%);
+  --gold-glow: 0 4px 20px rgba(203, 176, 148, 0.3);
+
+  --navy-dark: #000000;
+  --navy-card: #0f0f12;
+  --navy-surface: #18181f;
+  --navy-border: rgba(203, 176, 148, 0.35);
+
+  --bg-page: #f8f6f3;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f1ece5;
+  --bg-input: #ffffff;
+
+  --border-light: #e6ded6;
+  --border-subtle: #eee9e3;
+  --border-focus: #cbb094;
+
+  --text-main: #0a0a0c;
+  --text-muted: #5e5a55;
+  --text-subtle: #969088;
+  --text-white: #ffffff;
+  --text-gold: #9e7f60;
+
+  --hero-gradient: linear-gradient(135deg, #000000 0%, #15151c 100%);
+  --brand-badge-bg: #000000;
 }
 
 /* Base Resets & Touch Optimization */
@@ -299,7 +373,7 @@ body {
 
 /* Hero Profile Card */
 .hero-card {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: var(--hero-gradient);
   border-radius: var(--radius-lg);
   padding: 18px;
   color: #ffffff;
@@ -307,7 +381,7 @@ body {
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
   margin-bottom: 14px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid var(--navy-border);
 }
 
 .hero-card::after {
@@ -317,7 +391,7 @@ body {
   right: -30px;
   width: 130px;
   height: 130px;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0) 70%);
+  background: radial-gradient(circle, rgba(203, 176, 148, 0.15) 0%, rgba(203, 176, 148, 0) 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -334,7 +408,7 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #d4af37 0%, #997d1e 100%);
+  background: var(--gold-gradient);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -342,8 +416,10 @@ body {
   font-weight: 700;
   font-size: 16px;
   font-family: var(--font-heading);
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+  box-shadow: var(--gold-glow);
   border: 2px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
   flex-shrink: 0;
 }
 
@@ -1206,3 +1282,106 @@ body {
 .toast-msg.show {
   transform: translateX(-50%) translateY(0);
 }
+
+/* ==========================================================================
+   Universal Theme Switcher Styles
+   ========================================================================== */
+.theme-trigger-btn {
+  position: fixed;
+  bottom: calc(76px + env(safe-area-inset-bottom, 14px));
+  left: max(16px, calc((100vw - 520px) / 2 + 16px));
+  background: var(--navy-dark);
+  color: #ffffff;
+  border: 1.5px solid var(--gold-accent);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 95;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.theme-trigger-btn:active {
+  transform: scale(0.95);
+}
+
+.theme-swatch-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  display: inline-block;
+  background: var(--gold-gradient);
+}
+
+.theme-palette-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.theme-option-card {
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  background: var(--bg-card);
+}
+
+.theme-option-card:hover, .theme-option-card.active {
+  border-color: var(--gold-accent);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.theme-option-card.active {
+  background: var(--gold-light);
+}
+
+.theme-option-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.theme-preview-pill {
+  width: 44px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.theme-preview-pill .c-left {
+  width: 50%;
+  height: 100%;
+}
+
+.theme-preview-pill .c-right {
+  width: 50%;
+  height: 100%;
+}
+
+.theme-option-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.theme-option-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+

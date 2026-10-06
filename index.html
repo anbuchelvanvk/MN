@@ -322,17 +322,34 @@
     <div class="preview-frame-container">
       <div class="preview-bar">
         <div style="font-size: 13.5px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
-          <span>📱 Live Preview:</span>
-          <span id="active-preview-name" style="color: #d4af37;">Employee Portal</span>
+          <span>📱 Live Role Preview:</span>
+          <span id="active-preview-name" style="color: var(--gold-accent);">Employee Portal</span>
         </div>
         <div class="preview-tabs">
           <button class="preview-tab-btn active" onclick="loadPreview('employee.html', 'Employee Portal', this)">Employee</button>
           <button class="preview-tab-btn" onclick="loadPreview('dept-head.html', 'Department Head', this)">Dept Head</button>
           <button class="preview-tab-btn" onclick="loadPreview('hr.html', 'HR Management', this)">HR</button>
           <button class="preview-tab-btn" onclick="loadPreview('ceo.html', 'CEO Executive Suite', this)">CEO</button>
-          <a id="fullscreen-link" href="employee.html" target="_blank" class="preview-tab-btn" style="background: rgba(212, 175, 55, 0.15); color: #d4af37; text-decoration: none; border-color: rgba(212,175,55,0.3);">⤢ Launch Fullscreen</a>
+          <a id="fullscreen-link" href="employee.html" target="_blank" class="preview-tab-btn" style="background: rgba(203, 176, 148, 0.15); color: var(--gold-accent); text-decoration: none; border-color: rgba(203,176,148,0.3);">⤢ Launch Fullscreen</a>
         </div>
       </div>
+
+      <!-- Color Combination Quick Selector Bar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <span style="font-size: 12px; color: #cbd5e1; font-weight: 600;">🎨 Active Color Combination:</span>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button class="preview-tab-btn" id="combo-btn-maroon" onclick="switchThemeDirect('maroon')" style="background: #490410; border-color: #cbb094; color: #f8f1ea;">
+            🍷 Combo 1: Burgundy & Sand
+          </button>
+          <button class="preview-tab-btn" id="combo-btn-onyx" onclick="switchThemeDirect('onyx')" style="background: #111115; border-color: #cbb094; color: #dfc8af;">
+            🖤 Combo 2: Onyx & Sand
+          </button>
+          <button class="preview-tab-btn" id="combo-btn-navy" onclick="switchThemeDirect('navy')" style="background: #0f172a; border-color: #d4af37; color: #fef9e7;">
+            👑 Signature: Navy & Gold
+          </button>
+        </div>
+      </div>
+
       <div class="preview-iframe-box">
         <iframe id="preview-iframe" class="preview-iframe" src="employee.html"></iframe>
       </div>
@@ -341,13 +358,42 @@
   </div>
 
   <script>
+    let currentPreviewUrl = 'employee.html';
+
     function loadPreview(url, name, btn) {
-      document.querySelectorAll('.preview-tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document.querySelectorAll('.preview-tabs .preview-tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      currentPreviewUrl = url;
       document.getElementById('preview-iframe').src = url;
       document.getElementById('active-preview-name').textContent = name;
       document.getElementById('fullscreen-link').href = url;
     }
+
+    function switchThemeDirect(themeName) {
+      if (typeof selectTheme === 'function') {
+        selectTheme(themeName);
+      } else {
+        document.documentElement.setAttribute('data-theme', themeName);
+        localStorage.setItem('mn-app-theme', themeName);
+      }
+      
+      // Update iframe theme as well
+      try {
+        const iframe = document.getElementById('preview-iframe');
+        if (iframe && iframe.contentDocument) {
+          iframe.contentDocument.documentElement.setAttribute('data-theme', themeName);
+        }
+      } catch (e) {}
+    }
+
+    // Sync theme on iframe load
+    document.getElementById('preview-iframe').addEventListener('load', function() {
+      const currentTheme = localStorage.getItem('mn-app-theme') || 'maroon';
+      try {
+        this.contentDocument.documentElement.setAttribute('data-theme', currentTheme);
+      } catch (e) {}
+    });
   </script>
+  <script src="theme-switcher.js"></script>
 </body>
 </html>
