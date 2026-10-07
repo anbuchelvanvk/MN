@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0e17">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family — Internal Ecosystem Hub</title>
+  <title>MN Family - Internal Ecosystem Hub</title>
   <link rel="stylesheet" href="portal.css">
   <style>
     body {
@@ -22,14 +22,14 @@
     }
 
     .hub-container {
-      max-width: 960px;
+      max-width: 980px;
       width: 100%;
       margin: 0 auto;
     }
 
     .hub-header {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .hub-logo {
@@ -66,17 +66,46 @@
     .hub-subtitle {
       font-size: 13px;
       color: #94a3b8;
-      max-width: 540px;
+      max-width: 620px;
       margin: 0 auto;
       line-height: 1.5;
       padding: 0 10px;
+    }
+
+    /* Workflow Highlights Grid */
+    .ecosystem-highlights {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    @media (min-width: 640px) {
+      .ecosystem-highlights {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .highlight-card {
+      background: rgba(17, 24, 39, 0.7);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+    .highlight-card strong {
+      color: #fde68a;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
     }
 
     .role-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     @media (min-width: 640px) {
@@ -228,7 +257,7 @@
 
     .preview-iframe {
       width: 100%;
-      height: 700px;
+      height: 720px;
       border: none;
       display: block;
       background: #f8fafc;
@@ -245,9 +274,25 @@
       </div>
       <h1 class="hub-title">MN JEWEL PARK</h1>
       <p class="hub-subtitle">
-        Internal Ecosystem & Workforce Suite. Fast, simple, mobile-optimized portals tailored for every role.
+        Internal Ecosystem & Workforce Suite. Experience-based probation, daily SOP proof pipelines, emergency leave delegation, 100% profile activation & smart resistance push alerts.
       </p>
     </header>
+
+    <!-- 3 Key Highlights of the Architecture -->
+    <div class="ecosystem-highlights">
+      <div class="highlight-card">
+        <strong>⏳ Dynamic Probation by HR</strong>
+        3+ Yrs Experienced = 2 Weeks Probation; Fresher = 1 Month (4 Wks). Mentor assigned with mandatory Training Agenda & 1st week Daily Diary.
+      </div>
+      <div class="highlight-card">
+        <strong>📸 SOPs, Proof & Postpone Reasons</strong>
+        Predefined immutable daily "Things to Do". Mark complete with photo proof or choose "Not Finished" with mandatory reason recorded for Manager/CEO.
+      </div>
+      <div class="highlight-card">
+        <strong>👑 Universal Hierarchy & Delegations</strong>
+        CEO assigns to anyone; Dept Head assigns to team; HR delegates emergency leave tasks to covering staff. 100% Profile Authorization Gateway.
+      </div>
+    </div>
 
     <!-- 4 Role Portals Grid -->
     <div class="role-grid">
@@ -260,7 +305,7 @@
         </div>
         <div class="role-name">Employee Portal</div>
         <div class="role-desc">
-          Daily to-dos, hallmarking milestones, performance score, leave requests, and updates.
+          Daily SOP "Things To Do", proof photo uploads, postpone reason logging, 100% profile authorization wizard, training diary & push nudges.
         </div>
         <div class="role-action-btn">
           Open employee.html
@@ -276,7 +321,7 @@
         </div>
         <div class="role-name">Department Head</div>
         <div class="role-desc">
-          Team health tracking, 1-click RAG ratings, task assignment, and leave approvals.
+          Team deliverables monitor, attached proof review, staff postponement reasons tracker, mentor sign-offs, and team nudges.
         </div>
         <div class="role-action-btn">
           Open dept-head.html
@@ -292,7 +337,7 @@
         </div>
         <div class="role-name">HR Management</div>
         <div class="role-desc">
-          Workforce stats across 6 departments, live onboarding tracker, directory, and celebrations.
+          Experience-based probation setup (2 wks vs 1 mo), mentor allocation, emergency leave task delegation hub & resistance reminders.
         </div>
         <div class="role-action-btn">
           Open hr.html
@@ -308,7 +353,7 @@
         </div>
         <div class="role-name">Executive CEO Suite</div>
         <div class="role-desc">
-          Executive enterprise health KPIs, department execution progress, delays, and star leads.
+          Universal task assigner across all 6 departments, company-wide postponement reasons drilldown & 100% active health metrics.
         </div>
         <div class="role-action-btn">
           Open ceo.html
@@ -335,17 +380,20 @@
       </div>
 
       <!-- Color Combination Quick Selector Bar -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-        <span style="font-size: 12px; color: #cbd5e1; font-weight: 600;">🎨 Active Color Combination:</span>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button class="preview-tab-btn" id="combo-btn-maroon" onclick="switchThemeDirect('maroon')" style="background: #490410; border-color: #cbb094; color: #f8f1ea;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.4); border-radius: 14px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; border: 1px solid rgba(255,255,255,0.08);">
+        <span style="font-size: 12px; color: #cbd5e1; font-weight: 700;">🎨 Luxury Color Combinations:</span>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="theme-btn-group">
+          <button class="preview-tab-btn active" id="combo-btn-maroon" onclick="switchThemeDirect('maroon', this)" style="background: #490410; border-color: #dfc8af; color: #f8f1ea;">
             🍷 Combo 1: Burgundy & Sand
           </button>
-          <button class="preview-tab-btn" id="combo-btn-onyx" onclick="switchThemeDirect('onyx')" style="background: #111115; border-color: #cbb094; color: #dfc8af;">
+          <button class="preview-tab-btn" id="combo-btn-onyx" onclick="switchThemeDirect('onyx', this)" style="background: #111115; border-color: #dfc8af; color: #dfc8af;">
             🖤 Combo 2: Onyx & Sand
           </button>
-          <button class="preview-tab-btn" id="combo-btn-navy" onclick="switchThemeDirect('navy')" style="background: #0f172a; border-color: #d4af37; color: #fef9e7;">
-            👑 Signature: Navy & Gold
+          <button class="preview-tab-btn" id="combo-btn-navy" onclick="switchThemeDirect('navy', this)" style="background: #0f172a; border-color: #d4af37; color: #fef9e7;">
+            👑 Combo 3: Navy & Gold
+          </button>
+          <button class="preview-tab-btn" id="combo-btn-emerald" onclick="switchThemeDirect('emerald', this)" style="background: #044330; border-color: #eab308; color: #f0fdf4;">
+            💎 Combo 4: Emerald & Gold
           </button>
         </div>
       </div>
@@ -369,7 +417,12 @@
       document.getElementById('fullscreen-link').href = url;
     }
 
-    function switchThemeDirect(themeName) {
+    function switchThemeDirect(themeName, btn) {
+      if (btn) {
+        document.querySelectorAll('#theme-btn-group .preview-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+
       if (typeof selectTheme === 'function') {
         selectTheme(themeName);
       } else {

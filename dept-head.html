@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family — Department Head Portal</title>
+  <title>MN Family - Department Head Portal</title>
   <link rel="stylesheet" href="portal.css">
 </head>
 <body>
@@ -34,7 +34,7 @@
       </div>
       <div class="header-actions">
         <span class="role-tag-pill dept">Dept Head</span>
-        <button class="icon-btn" onclick="showToast('1 pending leave request to review')">
+        <button class="icon-btn" onclick="nudgeDeptStaff()" title="Send Shift Proof Nudge to Operations Team">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
           <span class="badge-dot"></span>
         </button>
@@ -58,9 +58,7 @@
               <div class="hero-role">Head of Operations & Workshop Crafting</div>
               <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
                 <span class="hero-dept-tag">Operations (8 Team Members)</span>
-                <span class="badge-rag green" style="background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.4);">5 Green</span>
-                <span class="badge-rag yellow" style="background: rgba(245,158,11,0.2); color: #fde68a; border-color: rgba(245,158,11,0.4);">2 Yellow</span>
-                <span class="badge-rag red" style="background: rgba(239,68,68,0.2); color: #fca5a5; border-color: rgba(239,68,68,0.4);">1 Red</span>
+                <span class="badge-rag green">1 Trainee on 2-Wk Probation</span>
               </div>
             </div>
           </div>
@@ -68,114 +66,53 @@
 
         <!-- 3 KPIs -->
         <div class="kpi-grid col-3">
-          <div class="kpi-card">
-            <span class="kpi-label">Open Tasks</span>
-            <span class="kpi-value gold" id="kpi-open-tasks">7</span>
+          <div class="kpi-card" onclick="switchTab('tasks')">
+            <span class="kpi-label">Active Tasks</span>
+            <span class="kpi-value gold" id="kpi-open-tasks">6</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Delayed</span>
-            <span class="kpi-value red">2</span>
+          <div class="kpi-card" onclick="switchTab('tasks')">
+            <span class="kpi-label">Postponed</span>
+            <span class="kpi-value red" id="kpi-postponed-tasks">1</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Requests</span>
-            <span class="kpi-value yellow">1</span>
+          <div class="kpi-card" onclick="switchTab('mentorship')">
+            <span class="kpi-label">Mentorship</span>
+            <span class="kpi-value green">1 Active</span>
           </div>
         </div>
 
-        <!-- Quick Primary Actions (Update Performance & Assign Task) -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;">
-          <button class="btn-primary" onclick="openPerformanceModal('Adithi Sharma', 'green')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-            Rate Member
+        <!-- Quick Primary Actions (Assign Dept Task & Nudge Team) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          <button class="btn-primary" onclick="openModal('modal-assign-task')">
+            <span>+</span> Assign Dept Task
           </button>
-          <button class="btn-navy" onclick="openModal('modal-assign-task')">
-            <span>+</span> Assign Task
+          <button class="btn-navy" onclick="nudgeDeptStaff()">
+            🔔 Nudge Operations Staff
           </button>
         </div>
 
-        <!-- Team Quick List -->
+        <!-- Team Tasks with Proof & Postpone Reasons Preview -->
         <div class="content-card">
           <div class="card-header-row">
-            <div class="card-title">
-              My Team Members
-              <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);">(8)</span>
+            <div>
+              <div class="card-title">Department "Things To Do" Monitor</div>
+              <span style="font-size: 11.5px; color: var(--text-muted);">View attached proof & employee postponement reasons</span>
             </div>
-            <a class="card-action-link" onclick="switchTab('team')">View All</a>
+            <a class="card-action-link" onclick="switchTab('tasks')">All</a>
           </div>
 
-          <div class="item-list">
-            <!-- Member 1 -->
-            <div class="team-member-row" onclick="openPerformanceModal('Adithi Sharma', 'green')">
-              <div class="member-info">
-                <div class="avatar-initials" style="width: 38px; height: 38px; font-size: 14px;">AS</div>
-                <div>
-                  <div class="member-name">Adithi Sharma</div>
-                  <div class="member-role">Operations Executive • 2 Open Tasks</div>
-                </div>
-              </div>
-              <span class="badge-rag green"><span class="badge-dot"></span> Green</span>
-            </div>
-
-            <!-- Member 2 -->
-            <div class="team-member-row" onclick="openPerformanceModal('Karan Verma', 'yellow')">
-              <div class="member-info">
-                <div class="avatar-initials" style="width: 38px; height: 38px; font-size: 14px; background: #64748b;">KV</div>
-                <div>
-                  <div class="member-name">Karan Verma</div>
-                  <div class="member-role">Senior Goldsmith • 1 Delayed Task</div>
-                </div>
-              </div>
-              <span class="badge-rag yellow"><span class="badge-dot"></span> Yellow</span>
-            </div>
-
-            <!-- Member 3 -->
-            <div class="team-member-row" onclick="openPerformanceModal('Deepak Nair', 'red')">
-              <div class="member-info">
-                <div class="avatar-initials" style="width: 38px; height: 38px; font-size: 14px; background: #475569;">DN</div>
-                <div>
-                  <div class="member-name">Deepak Nair</div>
-                  <div class="member-role">Polishing Artisan • 2 Delayed Tasks</div>
-                </div>
-              </div>
-              <span class="badge-rag red"><span class="badge-dot"></span> Red</span>
-            </div>
-
-            <!-- Member 4 -->
-            <div class="team-member-row" onclick="openPerformanceModal('Sneha Pillai', 'green')">
-              <div class="member-info">
-                <div class="avatar-initials" style="width: 38px; height: 38px; font-size: 14px;">SP</div>
-                <div>
-                  <div class="member-name">Sneha Pillai</div>
-                  <div class="member-role">Quality Control Specialist</div>
-                </div>
-              </div>
-              <span class="badge-rag green"><span class="badge-dot"></span> Green</span>
-            </div>
+          <div class="item-list" id="overview-tasks-container">
+            <!-- Rendered dynamically -->
           </div>
         </div>
 
-        <!-- Pending Leave / Change Requests -->
-        <div class="content-card">
+        <!-- Mentorship & Trainee Status Card -->
+        <div class="content-card" style="border-left: 4px solid var(--gold-accent);">
           <div class="card-header-row">
-            <div class="card-title">
-              Pending Approvals
-              <span class="badge-rag yellow">1</span>
-            </div>
+            <div class="card-title">🎓 Trainee Mentorship & Daily Reviews</div>
+            <a class="card-action-link" onclick="switchTab('mentorship')">View Diary</a>
           </div>
-          <div class="task-item-card" style="cursor: default;">
-            <div class="task-left">
-              <div style="font-size: 20px;">📅</div>
-              <div class="task-details">
-                <div class="task-title">Casual Leave: Adithi Sharma</div>
-                <div class="task-meta">
-                  <span>Oct 12 – Oct 13 (2 Days)</span>
-                  <span>Reason: Family event</span>
-                </div>
-              </div>
-            </div>
-            <div style="display: flex; gap: 6px;">
-              <button class="btn-primary" style="padding: 5px 12px; font-size: 11px;" onclick="approveRequest(this)">Approve</button>
-            </div>
+          <div style="background: var(--bg-card-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 12px; line-height: 1.4;">
+            <strong>Rohan Soni (Master Diamond Setter):</strong> 2-Week Probation active. 2 of 3 training modules completed. Last learning diary: <em>"Completed 18K antique bridal choker prong alignment test."</em>
           </div>
         </div>
 
@@ -184,134 +121,83 @@
       <!-- TAB 2: FULL TEAM -->
       <section id="tab-team" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Department Team</h2>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Operations Team Directory</h2>
           <span style="font-size: 12px; color: var(--text-muted);">8 Members</span>
         </div>
 
-        <div class="search-box">
-          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" class="search-input" placeholder="Search team member by name..." oninput="filterTeamMembers(this.value)">
-        </div>
-
-        <div class="item-list" id="team-full-list">
-          <div class="team-member-row" onclick="openPerformanceModal('Adithi Sharma', 'green')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 38px; height: 38px;">AS</div>
-              <div>
-                <div class="member-name">Adithi Sharma</div>
-                <div class="member-role">Operations Executive • ID: MN-1024</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Green</span>
-          </div>
-
-          <div class="team-member-row" onclick="openPerformanceModal('Karan Verma', 'yellow')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 38px; height: 38px; background: #64748b;">KV</div>
-              <div>
-                <div class="member-name">Karan Verma</div>
-                <div class="member-role">Senior Goldsmith • ID: MN-1019</div>
-              </div>
-            </div>
-            <span class="badge-rag yellow"><span class="badge-dot"></span> Yellow</span>
-          </div>
-
-          <div class="team-member-row" onclick="openPerformanceModal('Deepak Nair', 'red')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 38px; height: 38px; background: #475569;">DN</div>
-              <div>
-                <div class="member-name">Deepak Nair</div>
-                <div class="member-role">Polishing Artisan • ID: MN-1044</div>
-              </div>
-            </div>
-            <span class="badge-rag red"><span class="badge-dot"></span> Red</span>
-          </div>
-
-          <div class="team-member-row" onclick="openPerformanceModal('Sneha Pillai', 'green')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 38px; height: 38px;">SP</div>
-              <div>
-                <div class="member-name">Sneha Pillai</div>
-                <div class="member-role">Quality Control Specialist • ID: MN-1031</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Green</span>
-          </div>
-
-          <div class="team-member-row" onclick="openPerformanceModal('Manoj Kumar', 'green')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 38px; height: 38px;">MK</div>
-              <div>
-                <div class="member-name">Manoj Kumar</div>
-                <div class="member-role">Gemstone Setter • ID: MN-1082</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Green</span>
-          </div>
-
-          <div class="team-member-row" onclick="openPerformanceModal('Arun Balan', 'green')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 38px; height: 38px;">AB</div>
-              <div>
-                <div class="member-name">Arun Balan</div>
-                <div class="member-role">Laser Soldering Tech • ID: MN-1090</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Green</span>
-          </div>
+        <div class="item-list" id="dept-team-container">
+          <!-- Injected via renderTeam() -->
         </div>
       </section>
 
-      <!-- TAB 3: TEAM TASKS -->
+      <!-- TAB 3: TEAM DELIVERABLES & REASONS -->
       <section id="tab-tasks" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Team Deliverables</h2>
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Department Task Oversight</h2>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Track completion proof and employee postponement reasons</p>
+          </div>
           <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="openModal('modal-assign-task')">+ Assign</button>
         </div>
 
-        <div class="item-list">
-          <div class="task-item-card">
-            <div class="task-left">
-              <div class="task-details">
-                <div class="task-title">Daily 22K Gold Vault Reconciliation</div>
-                <div class="task-meta">
-                  <span class="priority-pill dept">Assigned to: Adithi Sharma</span>
-                  <span class="priority-pill high">Due Today</span>
-                  <span class="badge-rag green">In Progress</span>
-                </div>
-              </div>
+        <div class="item-list" id="full-dept-tasks-container">
+          <!-- Injected via renderDeptTasks() -->
+        </div>
+      </section>
+
+      <!-- TAB 4: MENTORSHIP & PROBATION DIARY -->
+      <section id="tab-mentorship" class="tab-pane" style="display: none;">
+        <div class="card-header-row" style="margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Mentorship & Daily Diary Reviews</h2>
+            <p style="font-size: 11.5px; color: var(--text-muted);">First-week daily learning diary logs from assigned trainees</p>
+          </div>
+        </div>
+
+        <div class="content-card" style="margin-bottom: 14px;">
+          <div class="card-header-row">
+            <div>
+              <strong style="font-size: 14px; color: var(--navy-dark);">Rohan Soni (Trainee)</strong>
+              <div style="font-size: 11.5px; color: var(--text-muted);">Master Diamond Setter • 2-Week Probation</div>
+            </div>
+            <span class="badge-rag green">85% Ready</span>
+          </div>
+
+          <div class="card-title" style="font-size: 12.5px; margin: 10px 0 6px 0;">Mandatory Training SOP Checklist:</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 8px; background: #f0fdf4; border-radius: 6px;">
+              <span>✓ 1. BIS Hallmark Laser Inscription</span>
+              <strong style="color: #047857;">Signed Off</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 8px; background: #f0fdf4; border-radius: 6px;">
+              <span>✓ 2. Precision Micro-Prong Setting</span>
+              <strong style="color: #047857;">Signed Off</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 8px; background: #fffbeb; border-radius: 6px;">
+              <span>⏳ 3. Sweepings Recovery & Vault Inward</span>
+              <button class="btn-primary" style="font-size: 10px; padding: 2px 6px;" onclick="showToast('Signed off Sweepings module for Rohan!')">Sign Off</button>
             </div>
           </div>
 
-          <div class="task-item-card">
-            <div class="task-left">
-              <div class="task-details">
-                <div class="task-title">Diwali Temple Jewellery Hand-Engraving Batch #12</div>
-                <div class="task-meta">
-                  <span class="priority-pill dept">Assigned to: Karan Verma</span>
-                  <span class="priority-pill medium">Due Oct 9</span>
-                  <span class="badge-rag yellow">Review Needed</span>
-                </div>
-              </div>
+          <div class="card-title" style="font-size: 12.5px; margin-bottom: 6px;">1st Week Daily Reviews Submitted:</div>
+          <div class="diary-review-item">
+            <div class="diary-review-header">
+              <span>Day 1 (Oct 01)</span>
+              <span class="badge-rag green">Rated 5/5</span>
             </div>
+            <p>Calibrated micro-welding station and gold bullion requisition paperwork.</p>
           </div>
-
-          <div class="task-item-card">
-            <div class="task-left">
-              <div class="task-details">
-                <div class="task-title">Rhodium Polish for Diamond Solitaire Rings</div>
-                <div class="task-meta">
-                  <span class="priority-pill dept">Assigned to: Deepak Nair</span>
-                  <span class="priority-pill high">Overdue 1d</span>
-                  <span class="badge-rag red">Delayed</span>
-                </div>
-              </div>
+          <div class="diary-review-item">
+            <div class="diary-review-header">
+              <span>Day 2 (Oct 02)</span>
+              <span class="badge-rag green">Rated 5/5</span>
             </div>
+            <p>Completed 18K antique bridal choker prong alignment test with zero diamond fracture.</p>
           </div>
         </div>
       </section>
 
-      <!-- TAB 4: PROFILE -->
+      <!-- TAB 5: PROFILE -->
       <section id="tab-profile" class="tab-pane" style="display: none;">
         <div class="hero-card" style="text-align: center; padding: 24px;">
           <div class="avatar-initials lg" style="margin: 0 auto 12px auto;">VR</div>
@@ -319,24 +205,6 @@
           <p style="font-size: 13px; color: #cbd5e1;">Head of Operations & Crafting</p>
           <div style="margin-top: 8px;">
             <span class="role-tag-pill dept">Department Lead</span>
-          </div>
-        </div>
-
-        <div class="content-card">
-          <div class="card-title" style="margin-bottom: 14px;">Lead Information</div>
-          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Department</span>
-              <strong>Fine Jewellery Operations</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Reporting To</span>
-              <strong>Suresh Iyer (CEO)</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: var(--text-muted);">Official Email</span>
-              <strong>vikram.reddy@mnjewelpark.com</strong>
-            </div>
           </div>
         </div>
 
@@ -351,119 +219,197 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         <span>Overview</span>
       </div>
+      <div class="nav-item" onclick="switchTab('tasks')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+        <span>Deliverables</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('mentorship')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Mentorship</span>
+      </div>
       <div class="nav-item" onclick="switchTab('team')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         <span>Team</span>
       </div>
-      <div class="nav-item" onclick="switchTab('tasks')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-        <span>Tasks</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('profile')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <span>Profile</span>
-      </div>
     </nav>
   </div>
 
-  <!-- MODAL: UPDATE PERFORMANCE (RAG RATING) -->
-  <div class="modal-backdrop" id="modal-performance">
+  <!-- MODAL: ASSIGN TASK TO DEPT STAFF -->
+  <div class="modal-backdrop" id="modal-assign-task">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">Update Performance Status</h3>
-        <button class="modal-close" onclick="closeModal('modal-performance')">✕</button>
+        <h3 class="modal-title">🛡️ Assign Operations Task</h3>
+        <button class="modal-close" onclick="closeModal('modal-assign-task')">✕</button>
       </div>
-      <form onsubmit="handlePerformanceSubmit(event)">
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+        As Department Head, assign prioritized deliverables directly into your staff member's daily queue.
+      </p>
+
+      <form onsubmit="handleAssignTaskSubmit(event)">
         <div class="form-group">
-          <label class="form-label">Team Member</label>
-          <select id="perf-member-select" class="form-select">
-            <option value="Adithi Sharma">Adithi Sharma (Operations)</option>
-            <option value="Karan Verma">Karan Verma (Senior Goldsmith)</option>
-            <option value="Deepak Nair">Deepak Nair (Polishing Artisan)</option>
-            <option value="Sneha Pillai">Sneha Pillai (Quality Control)</option>
-            <option value="Manoj Kumar">Manoj Kumar (Gemstone Setter)</option>
+          <label class="form-label">Assign To Operations Member</label>
+          <select id="assign-member-select" class="form-select">
+            <option value="MN-1024">Adithi Sharma (Operations Executive)</option>
+            <option value="MN-1094">Rohan Soni (Master Goldsmith)</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Select RAG Status Rating</label>
-          <div class="radio-group-rag">
-            <div class="radio-rag-card selected green" onclick="selectRagOption('green', this)">
-              <div style="font-size: 16px;">🟢</div>
-              <div style="font-size: 12px; margin-top: 4px;">Green</div>
-              <div style="font-size: 10px; opacity: 0.8;">On track</div>
-            </div>
-            <div class="radio-rag-card yellow" onclick="selectRagOption('yellow', this)">
-              <div style="font-size: 16px;">🟡</div>
-              <div style="font-size: 12px; margin-top: 4px;">Yellow</div>
-              <div style="font-size: 10px; opacity: 0.8;">Needs focus</div>
-            </div>
-            <div class="radio-rag-card red" onclick="selectRagOption('red', this)">
-              <div style="font-size: 16px;">🔴</div>
-              <div style="font-size: 12px; margin-top: 4px;">Red</div>
-              <div style="font-size: 10px; opacity: 0.8;">Attention</div>
-            </div>
+          <label class="form-label">Task Deliverable Title</label>
+          <input type="text" id="assign-title" class="form-input" placeholder="e.g., Dual-microscope inspection for 22K Navaratna set" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select id="assign-priority" class="form-select">
+              <option value="Critical SLA">Critical SLA</option>
+              <option value="High" selected>High Priority</option>
+              <option value="Standard">Standard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Time</label>
+            <input type="text" id="assign-due" class="form-input" value="04:30 PM">
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Key Reason / Metric</label>
-          <input type="text" id="perf-reason" class="form-input" placeholder="e.g., Timely gold vault reconciliation" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Manager Feedback & Notes</label>
-          <textarea id="perf-notes" class="form-textarea" rows="3" placeholder="Provide constructive feedback for the member..."></textarea>
-        </div>
-
-        <button type="submit" class="btn-primary btn-full">Submit Performance Update</button>
+        <button type="submit" class="btn-primary btn-full">Assign Into Staff Things To Do</button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: ASSIGN TASK -->
-  <div class="modal-backdrop" id="modal-assign-task">
+  <!-- MODAL: VIEW PROOF POPUP -->
+  <div class="modal-backdrop" id="modal-lead-proof">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">Assign Department Task</h3>
-        <button class="modal-close" onclick="closeModal('modal-assign-task')">✕</button>
+        <h3 class="modal-title">🔍 Staff Proof Inspection</h3>
+        <button class="modal-close" onclick="closeModal('modal-lead-proof')">✕</button>
       </div>
-      <form onsubmit="handleAssignTask(event)">
-        <div class="form-group">
-          <label class="form-label">Assign To</label>
-          <select id="assign-member" class="form-select">
-            <option>Adithi Sharma (Operations)</option>
-            <option>Karan Verma (Goldsmith)</option>
-            <option>Deepak Nair (Polishing)</option>
-            <option>Sneha Pillai (QC Specialist)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Task Deliverable Title</label>
-          <input type="text" id="assign-title" class="form-input" placeholder="e.g., Complete Diwali showroom inventory dispatch" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Priority</label>
-          <select id="assign-priority" class="form-select">
-            <option value="High">High Priority</option>
-            <option value="Medium" selected>Medium Priority</option>
-            <option value="Low">Low Priority</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Due Date</label>
-          <input type="date" id="assign-date" class="form-input" value="2026-10-09">
-        </div>
-        <button type="submit" class="btn-primary btn-full">Assign Task</button>
-      </form>
+      <img id="leadProofImg" src="" style="width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid var(--border-light);" alt="Proof">
+      <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Logged: <span id="leadProofTime" style="font-weight: 700; color: var(--text-main);"></span></div>
+        <div style="font-size: 13px; color: var(--text-main); line-height: 1.4;" id="leadProofContent"></div>
+      </div>
+      <button class="btn-navy btn-full" onclick="closeModal('modal-lead-proof')">Close</button>
     </div>
   </div>
 
   <!-- Toast Notification -->
-  <div class="toast-msg" id="toast">Performance score updated!</div>
+  <div class="toast-msg" id="toast">Updated!</div>
 
+  <script src="ecosystem-data.js"></script>
   <script>
-    let selectedRag = 'green';
+    document.addEventListener('DOMContentLoaded', () => {
+      renderOverviewTasks();
+      renderDeptTasks();
+      renderTeam();
+    });
+
+    function renderOverviewTasks() {
+      const allTasks = window.MNStore.getAllTasks();
+      const opTasks = allTasks.filter(t => t.empId === 'MN-1024' || t.empId === 'MN-1094');
+
+      const postponed = opTasks.filter(t => t.status === 'postponed').length;
+      document.getElementById('kpi-open-tasks').textContent = opTasks.filter(t => t.status !== 'completed').length;
+      document.getElementById('kpi-postponed-tasks').textContent = postponed;
+
+      document.getElementById('overview-tasks-container').innerHTML = opTasks.map(t => createLeadTaskCard(t)).join('');
+    }
+
+    function renderDeptTasks() {
+      const allTasks = window.MNStore.getAllTasks();
+      const opTasks = allTasks.filter(t => t.empId === 'MN-1024' || t.empId === 'MN-1094');
+      document.getElementById('full-dept-tasks-container').innerHTML = opTasks.map(t => createLeadTaskCard(t)).join('');
+    }
+
+    function createLeadTaskCard(task) {
+      const isCompleted = task.status === 'completed';
+      const isPostponed = task.status === 'postponed';
+
+      return `
+        <div class="task-item-card ${isCompleted ? 'has-proof' : ''} ${isPostponed ? 'is-postponed' : ''}">
+          <div class="task-top-row">
+            <div style="font-size: 18px; flex-shrink: 0; margin-top: 1px;">${isCompleted ? '✅' : (isPostponed ? '⏳' : '📌')}</div>
+            <div class="task-main-info">
+              <div class="task-title" style="${isCompleted ? 'text-decoration:line-through; opacity:0.75;' : ''}">${task.title}</div>
+              <div class="task-meta-row">
+                <span class="authority-pill lead">Owner: ${task.empId === 'MN-1024' ? 'Adithi S.' : 'Rohan S.'}</span>
+                <span class="priority-pill ${task.priority === 'Critical SLA' ? 'high' : 'medium'}">${task.priority}</span>
+                <span>Due: ${task.due}</span>
+                ${isCompleted && task.proof ? `
+                  <span class="proof-tag" onclick="viewStaffProof('${task.id}')">
+                    <img class="proof-thumb" src="${task.proof.photoUrl || ''}" alt="P">
+                    ✓ Verified Proof
+                  </span>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          ${isPostponed && task.postponeInfo ? `
+            <div class="postponed-callout">
+              <strong>⏳ Postponed to ${task.postponeInfo.postponedTo}:</strong> "${task.postponeInfo.reason}"
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderTeam() {
+      const emps = window.MNStore.getAllEmployees().filter(e => e.dept === 'Operations');
+      document.getElementById('dept-team-container').innerHTML = emps.map(emp => `
+        <div class="team-member-row">
+          <div class="member-info">
+            <div class="avatar-initials" style="width: 38px; height: 38px;">${emp.initials}</div>
+            <div>
+              <div class="member-name">${emp.name}</div>
+              <div class="member-role">${emp.role} • Probation: ${emp.probationWeeks} Wks</div>
+            </div>
+          </div>
+          <span class="badge-rag green"><span class="badge-dot"></span> On Track</span>
+        </div>
+      `).join('');
+    }
+
+    function handleAssignTaskSubmit(e) {
+      e.preventDefault();
+      const empId = document.getElementById('assign-member-select').value;
+      const title = document.getElementById('assign-title').value;
+      const priority = document.getElementById('assign-priority').value;
+      const due = document.getElementById('assign-due').value;
+
+      window.MNStore.assignTask({
+        empId,
+        title,
+        priority,
+        due,
+        assignerRole: 'dept_head',
+        assignerName: 'Vikram Reddy (Dept Head)'
+      });
+
+      closeModal('modal-assign-task');
+      renderOverviewTasks();
+      renderDeptTasks();
+      window.MNStore.playNotificationSound();
+      showToast('🛡️ Task assigned directly into staff member\'s daily queue!');
+      document.getElementById('assign-title').value = '';
+    }
+
+    function viewStaffProof(taskId) {
+      const task = window.MNStore.getAllTasks().find(t => t.id === taskId);
+      if (!task || !task.proof) return;
+
+      document.getElementById('leadProofImg').src = task.proof.photoUrl || 'https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&q=80&w=300';
+      document.getElementById('leadProofTime').textContent = task.proof.timestamp || 'Today';
+      document.getElementById('leadProofContent').textContent = task.proof.content || 'Verified with master hallmark assay standards.';
+      openModal('modal-lead-proof');
+    }
+
+    function nudgeDeptStaff() {
+      window.MNStore.playNotificationSound();
+      showToast('🔔 Shift Proof Reminder sent to all Operations artisans!');
+    }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
@@ -473,61 +419,11 @@
       const navItems = document.querySelectorAll('.nav-item');
       navItems.forEach(item => item.classList.remove('active'));
 
-      const tabsMap = { 'overview': 0, 'team': 1, 'tasks': 2, 'profile': 3 };
+      const tabsMap = { 'overview': 0, 'tasks': 1, 'mentorship': 2, 'team': 3, 'profile': 4 };
       if (tabsMap[tabId] !== undefined) {
         navItems[tabsMap[tabId]].classList.add('active');
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function openPerformanceModal(memberName, rag) {
-      const select = document.getElementById('perf-member-select');
-      for (let i = 0; i < select.options.length; i++) {
-        if (select.options[i].value === memberName) {
-          select.selectedIndex = i;
-          break;
-        }
-      }
-      openModal('modal-performance');
-    }
-
-    function selectRagOption(color, card) {
-      selectedRag = color;
-      document.querySelectorAll('.radio-rag-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-    }
-
-    function handlePerformanceSubmit(e) {
-      e.preventDefault();
-      const member = document.getElementById('perf-member-select').value;
-      closeModal('modal-performance');
-      showToast(`Performance rating updated for ${member} (${selectedRag.toUpperCase()})`);
-    }
-
-    function handleAssignTask(e) {
-      e.preventDefault();
-      const member = document.getElementById('assign-member').value;
-      const countEl = document.getElementById('kpi-open-tasks');
-      countEl.textContent = parseInt(countEl.textContent || 7) + 1;
-      closeModal('modal-assign-task');
-      showToast(`Task successfully assigned to ${member}`);
-    }
-
-    function approveRequest(btn) {
-      const card = btn.closest('.task-item-card');
-      card.style.opacity = '0.5';
-      btn.textContent = 'Approved ✓';
-      btn.style.background = '#10b981';
-      btn.disabled = true;
-      showToast('Leave request approved and logged to HR');
-    }
-
-    function filterTeamMembers(query) {
-      const rows = document.querySelectorAll('#team-full-list .team-member-row');
-      rows.forEach(r => {
-        const name = r.querySelector('.member-name').textContent.toLowerCase();
-        r.style.display = name.includes(query.toLowerCase()) ? 'flex' : 'none';
-      });
     }
 
     function openModal(id) {

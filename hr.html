@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family — HR Management Portal</title>
+  <title>MN Family - HR Management Portal</title>
   <link rel="stylesheet" href="portal.css">
 </head>
 <body>
@@ -34,7 +34,7 @@
       </div>
       <div class="header-actions">
         <span class="role-tag-pill hr">HR Admin</span>
-        <button class="icon-btn" onclick="showToast('3 documents pending review')">
+        <button class="icon-btn" onclick="openModal('modal-nudge-all')" title="Send Resistance Reminder Nudge to Inactive Staff">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
           <span class="badge-dot"></span>
         </button>
@@ -47,17 +47,22 @@
       <!-- TAB 1: HR DASHBOARD -->
       <section id="tab-dashboard" class="tab-pane active">
         <!-- Quick Action & Greeting Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Workforce Central</h2>
-            <span style="font-size: 12px; color: var(--text-muted);">6 Active Departments</span>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Workforce & Onboarding Central</h2>
+            <span style="font-size: 12px; color: var(--text-muted);">Probation rules, trainer allocation & emergency task delegation</span>
           </div>
-          <button class="btn-primary" onclick="openModal('modal-add-emp')">
-            <span>+</span> Add Employee
-          </button>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-primary" onclick="openAddEmpModal()">
+              <span>+</span> Onboard New Hire
+            </button>
+            <button class="btn-navy" style="font-size: 11.5px; padding: 6px 10px;" onclick="openEmergencyDelegationModal()">
+              📑 Delegate Leave Tasks
+            </button>
+          </div>
         </div>
 
-        <!-- 4 Stat Tiles (2x2 Grid) -->
+        <!-- 4 Stat Tiles -->
         <div class="kpi-grid col-4">
           <div class="kpi-card" onclick="switchTab('employees')">
             <span class="kpi-label">Total Staff</span>
@@ -66,91 +71,52 @@
           </div>
           <div class="kpi-card" onclick="switchTab('onboarding')">
             <span class="kpi-label">Onboarding</span>
-            <span class="kpi-value yellow">4</span>
-            <span class="kpi-sub">Joined this month</span>
+            <span class="kpi-value yellow" id="kpi-onboarding-count">2</span>
+            <span class="kpi-sub">Active probation</span>
           </div>
-          <div class="kpi-card" onclick="openModal('modal-docs')">
-            <span class="kpi-label">Documents</span>
-            <span class="kpi-value red">3</span>
-            <span class="kpi-sub">Pending verification</span>
+          <div class="kpi-card" onclick="openEmergencyDelegationModal()">
+            <span class="kpi-label">Emergency Leave</span>
+            <span class="kpi-value red">1</span>
+            <span class="kpi-sub">Task coverage</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">Birthdays Today</span>
-            <span class="kpi-value green">2</span>
-            <span class="kpi-sub">Rahul M. & Pooja K.</span>
+          <div class="kpi-card" onclick="openModal('modal-nudge-all')">
+            <span class="kpi-label">App Nudges</span>
+            <span class="kpi-value green">Active</span>
+            <span class="kpi-sub">Daily triggers</span>
           </div>
         </div>
 
-        <!-- Onboarding Progress Tracker -->
+        <!-- Active Probation & Onboarding Pipeline -->
         <div class="content-card">
           <div class="card-header-row">
             <div class="card-title">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c59b27" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
-              Active Onboarding Tracker
+              Live Probation & Training Pipeline
             </div>
-            <a class="card-action-link" onclick="switchTab('onboarding')">All (4)</a>
+            <a class="card-action-link" onclick="switchTab('onboarding')">View All</a>
           </div>
 
-          <div class="item-list">
-            <!-- Candidate 1 -->
-            <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <strong style="font-size: 13.5px;">Rohan Soni — Master Diamond Setter</strong>
-                <span style="font-weight: 700; color: var(--gold-dark); font-size: 12px;">85%</span>
-              </div>
-              <div class="progress-bar-container" style="margin: 4px 0 6px 0;">
-                <div class="progress-bar-fill" style="width: 85%;"></div>
-              </div>
-              <div class="progress-meta-row">
-                <span>Step 6 of 7: Security Vault Access Clearance</span>
-                <span class="badge-rag green"><span class="badge-dot"></span> On track</span>
-              </div>
-            </div>
-
-            <!-- Candidate 2 -->
-            <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <strong style="font-size: 13.5px;">Priya Menon — Luxury Retail Advisor</strong>
-                <span style="font-weight: 700; color: var(--gold-dark); font-size: 12px;">50%</span>
-              </div>
-              <div class="progress-bar-container" style="margin: 4px 0 6px 0;">
-                <div class="progress-bar-fill" style="width: 50%;"></div>
-              </div>
-              <div class="progress-meta-row">
-                <span>Step 3 of 6: Customer Gold Scheme Training</span>
-                <span class="badge-rag yellow"><span class="badge-dot"></span> In Progress</span>
-              </div>
-            </div>
+          <div class="item-list" id="dashboard-onboarding-list">
+            <!-- Rendered dynamically -->
           </div>
         </div>
 
-        <!-- Special Occasions & Birthdays -->
-        <div class="content-card">
+        <!-- Emergency Leave Delegation Audit Card -->
+        <div class="content-card" style="border-left: 4px solid #9333ea;">
           <div class="card-header-row">
-            <div class="card-title">
-              🎉 Special Occasions Today
+            <div class="card-title" style="color: #7e22ce;">
+              📑 Emergency Leave Task Delegation
             </div>
+            <button class="btn-primary" style="font-size: 10.5px; padding: 4px 8px; background: #9333ea; border-color: #7e22ce;" onclick="openEmergencyDelegationModal()">
+              + Delegate Tasks
+            </button>
           </div>
-          <div class="item-list">
-            <div class="team-member-row" style="background: #fffdf5; border-color: #fde68a;">
-              <div class="member-info">
-                <div style="font-size: 22px;">🎂</div>
-                <div>
-                  <div class="member-name">Rahul Mehta</div>
-                  <div class="member-role">Senior Sales Consultant • Showroom 1</div>
-                </div>
-              </div>
-              <button class="btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="showToast('Celebration greeting sent to Rahul!')">Send Wish</button>
-            </div>
-            <div class="team-member-row">
-              <div class="member-info">
-                <div style="font-size: 22px;">⭐</div>
-                <div>
-                  <div class="member-name">Sunita Iyer</div>
-                  <div class="member-role">5 Year Work Anniversary • Accounting</div>
-                </div>
-              </div>
-              <button class="btn-navy" style="padding: 4px 10px; font-size: 11px;" onclick="showToast('Anniversary badge awarded!')">Award</button>
+          <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px;">
+            When an employee calls in emergency leave, HR can reassign their daily SOP tasks to another staff member.
+          </p>
+          <div id="delegation-history-list">
+            <div style="background: var(--bg-card-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 12px;">
+              <strong>Adithi Sharma (Operations)</strong> was covered by <strong>Karan Verma</strong> on Oct 06 (2 SOP tasks covered).
             </div>
           </div>
         </div>
@@ -160,108 +126,42 @@
       <!-- TAB 2: EMPLOYEES DIRECTORY -->
       <section id="tab-employees" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Employee Directory</h2>
-          <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="openModal('modal-add-emp')">+ Add</button>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Employee Directory & 100% Status</h2>
+          <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="openAddEmpModal()">+ Add New Hire</button>
         </div>
 
         <!-- Search & Filter Controls -->
         <div class="search-box">
           <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="emp-search" class="search-input" placeholder="Search by name, ID, or designation..." oninput="filterEmployees()">
+          <input type="text" id="emp-search" class="search-input" placeholder="Search by name, role, or ID..." oninput="filterEmployees()">
         </div>
 
         <div class="segmented-chips">
-          <button class="chip-btn active" onclick="filterByDept('all', this)">All Depts</button>
+          <button class="chip-btn active" onclick="filterByDept('all', this)">All</button>
           <button class="chip-btn" onclick="filterByDept('Operations', this)">Operations</button>
-          <button class="chip-btn" onclick="filterByDept('Sales', this)">Sales & Retail</button>
-          <button class="chip-btn" onclick="filterByDept('Finance', this)">Finance</button>
-          <button class="chip-btn" onclick="filterByDept('Vault', this)">Vault & Security</button>
+          <button class="chip-btn" onclick="filterByDept('Sales', this)">Sales</button>
+          <button class="chip-btn" onclick="filterByDept('Housekeeping', this)">Housekeeping</button>
+          <button class="chip-btn" onclick="filterByDept('Vault', this)">Vault</button>
         </div>
 
         <!-- Full Directory List -->
         <div class="item-list" id="employee-list-container">
-          <div class="team-member-row" data-dept="Operations" onclick="openEmpDetail('Adithi Sharma', 'MN-1024', 'Operations Executive', 'Operations & Crafting', '+91 98450 12345', 'adithi.s@mnjewelpark.com')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 40px; height: 40px;">AS</div>
-              <div>
-                <div class="member-name">Adithi Sharma</div>
-                <div class="member-role">Operations Executive • ID: MN-1024</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
-          </div>
-
-          <div class="team-member-row" data-dept="Operations" onclick="openEmpDetail('Vikram Reddy', 'MN-1008', 'Head of Operations', 'Operations & Crafting', '+91 98450 67890', 'vikram.reddy@mnjewelpark.com')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 40px; height: 40px; background: #334155;">VR</div>
-              <div>
-                <div class="member-name">Vikram Reddy</div>
-                <div class="member-role">Head of Operations • ID: MN-1008</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
-          </div>
-
-          <div class="team-member-row" data-dept="Sales" onclick="openEmpDetail('Rahul Mehta', 'MN-1045', 'Senior Sales Consultant', 'Sales & Retail', '+91 98450 22334', 'rahul.m@mnjewelpark.com')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 40px; height: 40px; background: #64748b;">RM</div>
-              <div>
-                <div class="member-name">Rahul Mehta</div>
-                <div class="member-role">Senior Sales Consultant • ID: MN-1045</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
-          </div>
-
-          <div class="team-member-row" data-dept="Finance" onclick="openEmpDetail('Sunita Iyer', 'MN-1012', 'Chief Financial Controller', 'Finance', '+91 98450 99887', 'sunita.i@mnjewelpark.com')">
-            <div class="member-info">
-              <div class="avatar-initials" style="width: 40px; height: 40px; background: #475569;">SI</div>
-              <div>
-                <div class="member-name">Sunita Iyer</div>
-                <div class="member-role">Financial Controller • ID: MN-1012</div>
-              </div>
-            </div>
-            <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
-          </div>
+          <!-- Injected via renderDirectory() -->
         </div>
       </section>
 
-      <!-- TAB 3: ONBOARDING -->
+      <!-- TAB 3: ONBOARDING & PROBATION TRACKER -->
       <section id="tab-onboarding" class="tab-pane" style="display: none;">
-        <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 14px;">Onboarding Pipelines</h2>
-        
-        <div class="item-list">
-          <div class="content-card">
-            <div class="card-header-row">
-              <div>
-                <strong style="font-size: 14px;">Rohan Soni</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Master Diamond Setter • Joining: Oct 1</div>
-              </div>
-              <span class="badge-rag green">85% Ready</span>
-            </div>
-            <div class="progress-bar-container">
-              <div class="progress-bar-fill" style="width: 85%;"></div>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-              ✓ KYC Verified • ✓ Craft Bench Assigned • ⏳ Vault Biometric Pending
-            </div>
+        <div class="card-header-row" style="margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Probation & Training Central</h2>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Experience-based probation (2 Weeks vs 1 Month) & Trainer reviews</p>
           </div>
+          <button class="btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="openAddEmpModal()">+ New Onboarding</button>
+        </div>
 
-          <div class="content-card">
-            <div class="card-header-row">
-              <div>
-                <strong style="font-size: 14px;">Priya Menon</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Luxury Retail Advisor • Joining: Oct 3</div>
-              </div>
-              <span class="badge-rag yellow">50% Ready</span>
-            </div>
-            <div class="progress-bar-container">
-              <div class="progress-bar-fill" style="width: 50%;"></div>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-              ✓ KYC Verified • ⏳ Showroom Uniform Fitting • ⏳ POS System Training
-            </div>
-          </div>
+        <div class="item-list" id="full-onboarding-container">
+          <!-- Injected via renderFullOnboarding() -->
         </div>
       </section>
 
@@ -277,15 +177,19 @@
         </div>
 
         <div class="content-card">
-          <div class="card-title" style="margin-bottom: 14px;">Official Information</div>
+          <div class="card-title" style="margin-bottom: 14px;">HR Admin Powers</div>
           <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
             <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Role</span>
-              <strong>HR Manager & Admin</strong>
+              <span style="color: var(--text-muted);">Probation Authority</span>
+              <strong>Set duration by candidate experience</strong>
             </div>
             <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Email</span>
-              <strong>meera.k@mnjewelpark.com</strong>
+              <span style="color: var(--text-muted);">Trainer Assignment</span>
+              <strong>Designate existing staff from department</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-muted);">Leave Task Delegation</span>
+              <strong>Reassign emergency leave tasks</strong>
             </div>
           </div>
         </div>
@@ -303,11 +207,11 @@
       </div>
       <div class="nav-item" onclick="switchTab('employees')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        <span>Employees</span>
+        <span>Staff (100%)</span>
       </div>
       <div class="nav-item" onclick="switchTab('onboarding')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        <span>Onboarding</span>
+        <span>Probation</span>
       </div>
       <div class="nav-item" onclick="switchTab('profile')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -316,57 +220,380 @@
     </nav>
   </div>
 
-  <!-- MODAL: ADD EMPLOYEE -->
+  <!-- MODAL 1: ADD EMPLOYEE & DYNAMIC PROBATION SETUP -->
   <div class="modal-backdrop" id="modal-add-emp">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">Onboard New Employee</h3>
+        <h3 class="modal-title">✨ Onboard Employee & Assign Trainer</h3>
         <button class="modal-close" onclick="closeModal('modal-add-emp')">✕</button>
       </div>
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+        HR sets probation duration based on jewelry industry experience and assigns an existing department colleague as trainer.
+      </p>
+
       <form onsubmit="handleAddEmployeeSubmit(event)">
         <div class="form-group">
           <label class="form-label">Full Name</label>
-          <input type="text" id="new-emp-name" class="form-input" placeholder="e.g., Karthik Nair" required>
+          <input type="text" id="new-emp-name" class="form-input" placeholder="e.g., Deepika Sundaram" required>
         </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <div class="form-group">
-            <label class="form-label">Employee ID</label>
-            <input type="text" id="new-emp-id" class="form-input" value="MN-1151" required>
+            <label class="form-label">Department</label>
+            <select id="new-emp-dept" class="form-select" onchange="updateTrainerDropdown()">
+              <option value="Operations">Operations & Crafting</option>
+              <option value="Sales">Sales & Showroom</option>
+              <option value="Housekeeping">Housekeeping</option>
+              <option value="Vault">Vault & Security</option>
+              <option value="Finance">Finance</option>
+            </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Department</label>
-            <select id="new-emp-dept" class="form-select">
-              <option value="Operations">Operations & Crafting</option>
-              <option value="Sales">Sales & Retail</option>
-              <option value="Finance">Finance</option>
-              <option value="Vault">Vault & Security</option>
+            <label class="form-label">Designation / Role</label>
+            <input type="text" id="new-emp-role" class="form-input" placeholder="e.g., Jewellery Stylist" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label class="form-label">Date of Joining</label>
+            <input type="date" id="new-emp-doj" class="form-input" value="2026-10-08" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Industry Experience</label>
+            <select id="new-emp-exp" class="form-select" onchange="updateProbationRulePreview()">
+              <option value="experienced">Experienced (3+ Yrs) → 2 Wks Probation</option>
+              <option value="fresher">Fresher (0 Yrs) → 1 Month Probation</option>
             </select>
           </div>
         </div>
+
+        <!-- Probation Rule Display Banner -->
+        <div style="background: var(--gold-light); border: 1px solid var(--gold-border); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 11.5px; color: var(--gold-dark);" id="probationRuleBanner">
+          ⚡ <strong>Probation Policy:</strong> Candidate has 3+ years experience in jewelry field. Probation period set to <strong>2 Weeks</strong> with 1st-week daily review diary.
+        </div>
+
+        <!-- Trainer Assignment Dropdown -->
         <div class="form-group">
-          <label class="form-label">Designation / Role</label>
-          <input type="text" id="new-emp-role" class="form-input" placeholder="e.g., Certified Gemmologist" required>
+          <label class="form-label">Assign Department Trainer / Mentor</label>
+          <select id="new-emp-trainer" class="form-select">
+            <!-- Populated via updateTrainerDropdown() -->
+          </select>
+          <span style="font-size: 10.5px; color: var(--text-muted); margin-top: 3px; display: block;">
+            The assigned mentor will receive training checklist and daily review sign-offs in their portal.
+          </span>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div class="form-group">
-            <label class="form-label">Phone Number</label>
-            <input type="tel" class="form-input" placeholder="+91 98450 ...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Date of Joining</label>
-            <input type="date" class="form-input" value="2026-10-15">
-          </div>
-        </div>
-        <button type="submit" class="btn-primary btn-full" style="margin-top: 8px;">Register & Begin Onboarding</button>
+
+        <button type="submit" class="btn-primary btn-full" style="margin-top: 6px;">
+          Register Hire & Initialize SOP Agenda
+        </button>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: EMERGENCY LEAVE TASK DELEGATION -->
+  <div class="modal-backdrop" id="modal-delegate">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #7e22ce;">📑 Emergency Leave Task Delegation</h3>
+        <button class="modal-close" onclick="closeModal('modal-delegate')">✕</button>
+      </div>
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+        As HR Admin, reassign daily SOP tasks of an employee taking emergency leave to an active colleague.
+      </p>
+
+      <form onsubmit="handleDelegationSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Employee Taking Emergency Leave</label>
+          <select id="leave-emp-select" class="form-select">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Covering Colleague (Reassign tasks to)</label>
+          <select id="rep-emp-select" class="form-select">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason for Emergency Coverage</label>
+          <input type="text" id="delegation-reason" class="form-input" value="Emergency Sick Leave Coverage" required>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full" style="background: #9333ea; border-color: #7e22ce;">
+          Delegate Daily Tasks to Covering Staff
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: RESISTANCE REMINDER NUDGE POPUP -->
+  <div class="modal-backdrop" id="modal-nudge-all">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">🔔 Trigger Resistance Push Nudge</h3>
+        <button class="modal-close" onclick="closeModal('modal-nudge-all')">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+        Send a high-priority sound & banner nudge to employees who haven't opened the app or uploaded proof.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Target Audience</label>
+        <select class="form-select" id="nudgeAudience">
+          <option>All 142 Employees (Shift SOP Alert)</option>
+          <option>Staff with Pending Daily Proofs</option>
+          <option>New Joiners on Probation</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nudge Prompt Message</label>
+        <textarea class="form-textarea" rows="2" id="nudgeMessage">⏰ Shift SOP Reminder: Please open your Things To Do list and upload required Hallmark / Ledger proof before 6 PM.</textarea>
+      </div>
+
+      <button type="button" class="btn-primary btn-full" onclick="sendBroadcastNudge()">
+        🔊 Send Instant Push Nudge & Sound Alert
+      </button>
     </div>
   </div>
 
   <!-- Toast Notification -->
   <div class="toast-msg" id="toast">Saved!</div>
 
+  <script src="ecosystem-data.js"></script>
   <script>
     let activeDeptFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderDashboard();
+      renderDirectory();
+      renderFullOnboarding();
+      updateTrainerDropdown();
+    });
+
+    function renderDashboard() {
+      const emps = window.MNStore.getAllEmployees();
+      const onboardingEmps = emps.filter(e => e.status === 'onboarding' || e.probationStatus === 'active');
+
+      document.getElementById('kpi-total-staff').textContent = emps.length;
+      document.getElementById('kpi-onboarding-count').textContent = onboardingEmps.length;
+
+      const container = document.getElementById('dashboard-onboarding-list');
+      container.innerHTML = onboardingEmps.map(emp => {
+        const pct = emp.profileCompletion ? emp.profileCompletion.percentage : 50;
+        return `
+          <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="font-size: 13.5px; color: var(--navy-dark);">${emp.name} — ${emp.role}</strong>
+              <span style="font-weight: 700; color: var(--gold-dark); font-size: 12px;">${pct}%</span>
+            </div>
+            <div class="progress-bar-container" style="margin: 4px 0 6px 0;">
+              <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+            <div class="progress-meta-row" style="font-size: 11px;">
+              <span>Probation: <strong>${emp.probationWeeks} Wks (${emp.experienceCategory === 'experienced' ? 'Experienced' : 'Fresher'})</strong></span>
+              <span>Mentor: <strong>${emp.trainer ? emp.trainer.name : 'Lead'}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join('') || '<div style="font-size:12px; color:var(--text-muted);">No active onboarding pipelines.</div>';
+    }
+
+    function renderDirectory() {
+      const emps = window.MNStore.getAllEmployees();
+      const container = document.getElementById('employee-list-container');
+
+      container.innerHTML = emps.map(emp => {
+        const is100 = emp.profileCompletion && emp.profileCompletion.percentage >= 100;
+        return `
+          <div class="team-member-row" data-dept="${emp.dept}">
+            <div class="member-info">
+              <div class="avatar-initials" style="width: 40px; height: 40px;">${emp.initials}</div>
+              <div>
+                <div class="member-name">${emp.name}</div>
+                <div class="member-role">${emp.role} • ${emp.dept}</div>
+                <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">
+                  Probation: ${emp.probationWeeks} Wks • Mentor: ${emp.trainer ? emp.trainer.name : 'Dept Lead'}
+                </div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              ${is100 ? `
+                <span class="badge-rag green"><span class="badge-dot"></span> 100% Active</span>
+              ` : `
+                <span class="badge-rag yellow"><span class="badge-dot"></span> ${emp.profileCompletion ? emp.profileCompletion.percentage : 60}% Onboarding</span>
+              `}
+              <div style="margin-top: 4px;">
+                <button class="btn-nudge-test" style="font-size: 9.5px; padding: 2px 6px;" onclick="nudgeIndividual('${emp.name}')">🔔 Nudge</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFullOnboarding() {
+      const emps = window.MNStore.getAllEmployees();
+      const onboardingEmps = emps.filter(e => e.status === 'onboarding' || e.probationStatus === 'active');
+      const container = document.getElementById('full-onboarding-container');
+
+      container.innerHTML = onboardingEmps.map(emp => {
+        const pct = emp.profileCompletion ? emp.profileCompletion.percentage : 65;
+        return `
+          <div class="content-card" style="margin-bottom: 12px;">
+            <div class="card-header-row">
+              <div>
+                <strong style="font-size: 14.5px; color: var(--navy-dark);">${emp.name}</strong>
+                <div style="font-size: 11.5px; color: var(--text-muted);">${emp.role} • Joined: ${emp.doj}</div>
+              </div>
+              <span class="badge-rag ${pct >= 80 ? 'green' : 'yellow'}">${pct}% Ready</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11.5px; margin: 8px 0; background: var(--bg-card-subtle); padding: 8px; border-radius: var(--radius-xs);">
+              <div>⏳ Probation Duration: <strong>${emp.probationWeeks} Weeks</strong> (${emp.experienceYears})</div>
+              <div>🛡️ Assigned Trainer: <strong>${emp.trainer ? emp.trainer.name : 'Dept Head'}</strong></div>
+            </div>
+
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+
+            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 11px; color: var(--text-muted);">
+                ${emp.trainingAgenda ? emp.trainingAgenda.filter(m => m.done).length : 0} of ${emp.trainingAgenda ? emp.trainingAgenda.length : 0} Training SOPs signed off
+              </span>
+              <button class="btn-primary" style="font-size: 11px; padding: 4px 10px;" onclick="clearProbation('${emp.id}')">
+                ✓ Authorize 100% Active
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('') || '<div style="padding:20px; text-align:center; color:var(--text-muted);">All employees have cleared probation and reached 100% Active status.</div>';
+    }
+
+    function openAddEmpModal() {
+      updateTrainerDropdown();
+      openModal('modal-add-emp');
+    }
+
+    function updateProbationRulePreview() {
+      const exp = document.getElementById('new-emp-exp').value;
+      const banner = document.getElementById('probationRuleBanner');
+      if (exp === 'experienced') {
+        banner.innerHTML = `⚡ <strong>Probation Policy:</strong> Candidate has 3+ years jewelry industry experience. Probation duration set to <strong>2 Weeks</strong> with 1st-week daily review diary.`;
+      } else {
+        banner.innerHTML = `⚡ <strong>Probation Policy:</strong> Candidate is a Fresher. Mandatory comprehensive probation set to <strong>1 Month (4 Weeks)</strong> with full department mentor oversight.`;
+      }
+    }
+
+    function updateTrainerDropdown() {
+      const dept = document.getElementById('new-emp-dept').value;
+      const emps = window.MNStore.getAllEmployees().filter(e => e.dept === dept);
+      const select = document.getElementById('new-emp-trainer');
+
+      if (emps.length > 0) {
+        select.innerHTML = emps.map(e => `<option value="${e.id}">${e.name} (${e.role})</option>`).join('');
+      } else {
+        select.innerHTML = `<option value="HEAD">Department Head (${dept})</option>`;
+      }
+    }
+
+    function handleAddEmployeeSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-emp-name').value;
+      const dept = document.getElementById('new-emp-dept').value;
+      const role = document.getElementById('new-emp-role').value;
+      const doj = document.getElementById('new-emp-doj').value;
+      const exp = document.getElementById('new-emp-exp').value;
+      const trainerId = document.getElementById('new-emp-trainer').value;
+
+      const newEmp = window.MNStore.addNewEmployee({
+        name,
+        dept,
+        role,
+        doj,
+        experienceCategory: exp,
+        trainerId
+      });
+
+      closeModal('modal-add-emp');
+      renderDashboard();
+      renderDirectory();
+      renderFullOnboarding();
+      window.MNStore.playNotificationSound();
+      showToast(`🎉 ${name} registered! Assigned ${newEmp.probationWeeks} wks probation & Mentor.`);
+    }
+
+    function openEmergencyDelegationModal() {
+      const emps = window.MNStore.getAllEmployees();
+      const leaveSelect = document.getElementById('leave-emp-select');
+      const repSelect = document.getElementById('rep-emp-select');
+
+      leaveSelect.innerHTML = emps.map(e => `<option value="${e.id}">${e.name} (${e.dept} - ${e.role})</option>`).join('');
+      repSelect.innerHTML = emps.map(e => `<option value="${e.id}">${e.name} (${e.dept} - ${e.role})</option>`).join('');
+
+      if (emps.length > 1) repSelect.selectedIndex = 1;
+      openModal('modal-delegate');
+    }
+
+    function handleDelegationSubmit(e) {
+      e.preventDefault();
+      const leaveEmpId = document.getElementById('leave-emp-select').value;
+      const repEmpId = document.getElementById('rep-emp-select').value;
+      const reason = document.getElementById('delegation-reason').value;
+
+      const record = window.MNStore.delegateEmergencyLeaveTasks({
+        leaveEmpId,
+        replacementEmpId: repEmpId,
+        reason
+      });
+
+      closeModal('modal-delegate');
+      window.MNStore.playNotificationSound();
+      showToast(`📑 ${record.taskCount} tasks delegated from ${record.fromEmp} to ${record.toEmp}!`);
+    }
+
+    function clearProbation(empId) {
+      window.MNStore.authorizeUserProfile(empId);
+      renderDashboard();
+      renderDirectory();
+      renderFullOnboarding();
+      window.MNStore.playNotificationSound();
+      showToast('🌟 Candidate approved! Profile set to 100% Active Enterprise Member.');
+    }
+
+    function nudgeIndividual(name) {
+      window.MNStore.playNotificationSound();
+      showToast(`🔔 Push Reminder triggered for ${name} (SOP upload alert)!`);
+    }
+
+    function sendBroadcastNudge() {
+      const msg = document.getElementById('nudgeMessage').value;
+      closeModal('modal-nudge-all');
+      window.MNStore.playNotificationSound();
+      showToast(`📢 Resistance Nudge broadcasted to all employees!`);
+    }
+
+    function filterEmployees() {
+      const q = document.getElementById('emp-search').value.toLowerCase();
+      const rows = document.querySelectorAll('#employee-list-container .team-member-row');
+      rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        const dept = r.getAttribute('data-dept');
+        const matchDept = activeDeptFilter === 'all' || dept === activeDeptFilter;
+        r.style.display = (text.includes(q) && matchDept) ? 'flex' : 'none';
+      });
+    }
+
+    function filterByDept(dept, btn) {
+      activeDeptFilter = dept;
+      btn.parentElement.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterEmployees();
+    }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
@@ -396,63 +623,6 @@
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2400);
-    }
-
-    function handleAddEmployeeSubmit(e) {
-      e.preventDefault();
-      const name = document.getElementById('new-emp-name').value;
-      const id = document.getElementById('new-emp-id').value;
-      const dept = document.getElementById('new-emp-dept').value;
-      const role = document.getElementById('new-emp-role').value;
-
-      const container = document.getElementById('employee-list-container');
-      const initials = name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-
-      const newRow = document.createElement('div');
-      newRow.className = 'team-member-row';
-      newRow.setAttribute('data-dept', dept);
-      newRow.onclick = function() {
-        openEmpDetail(name, id, role, dept, '+91 98450 00000', name.toLowerCase().replace(' ', '.') + '@mnjewelpark.com');
-      };
-      newRow.innerHTML = `
-        <div class="member-info">
-          <div class="avatar-initials" style="width: 40px; height: 40px; background: #c59b27;">${initials}</div>
-          <div>
-            <div class="member-name">${name}</div>
-            <div class="member-role">${role} • ID: ${id}</div>
-          </div>
-        </div>
-        <span class="badge-rag yellow"><span class="badge-dot"></span> Onboarding</span>
-      `;
-      container.prepend(newRow);
-
-      const staffCount = document.getElementById('kpi-total-staff');
-      staffCount.textContent = parseInt(staffCount.textContent) + 1;
-
-      closeModal('modal-add-emp');
-      showToast(`${name} added to ${dept} onboarding!`);
-    }
-
-    function filterEmployees() {
-      const q = document.getElementById('emp-search').value.toLowerCase();
-      const rows = document.querySelectorAll('#employee-list-container .team-member-row');
-      rows.forEach(r => {
-        const text = r.textContent.toLowerCase();
-        const dept = r.getAttribute('data-dept');
-        const matchDept = activeDeptFilter === 'all' || dept === activeDeptFilter;
-        r.style.display = (text.includes(q) && matchDept) ? 'flex' : 'none';
-      });
-    }
-
-    function filterByDept(dept, btn) {
-      activeDeptFilter = dept;
-      btn.parentElement.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      filterEmployees();
-    }
-
-    function openEmpDetail(name, id, role, dept, phone, email) {
-      alert(`Employee File: ${name}\n\nID: ${id}\nRole: ${role}\nDepartment: ${dept}\nContact: ${phone}\nEmail: ${email}`);
     }
   </script>
   <script src="theme-switcher.js"></script>

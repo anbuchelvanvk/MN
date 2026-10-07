@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family — Executive CEO Suite</title>
+  <title>MN Family - Executive CEO Suite</title>
   <link rel="stylesheet" href="portal.css">
 </head>
 <body>
@@ -56,8 +56,9 @@
                 <span class="badge-rag green"><span class="badge-dot"></span> 94% Healthy</span>
               </div>
               <div class="hero-role">Managing Director & CEO</div>
-              <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
+              <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
                 <span class="hero-dept-tag">142 Employees • 6 Depts</span>
+                <span class="badge-rag green">Universal Task Authority Active</span>
               </div>
             </div>
           </div>
@@ -66,25 +67,32 @@
         <!-- 4 Executive KPIs -->
         <div class="kpi-grid col-4">
           <div class="kpi-card">
-            <span class="kpi-label">Total Deliverables</span>
+            <span class="kpi-label">Deliverables</span>
             <span class="kpi-value gold">384</span>
             <span class="kpi-sub">Across enterprise</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Completed</span>
+            <span class="kpi-label">Proof Verified</span>
             <span class="kpi-value green">298</span>
             <span class="kpi-sub">77.6% on-time</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">In Progress</span>
-            <span class="kpi-value yellow">68</span>
-            <span class="kpi-sub">Active work</span>
-          </div>
           <div class="kpi-card" onclick="switchTab('delays')">
-            <span class="kpi-label">Critical Delays</span>
+            <span class="kpi-label">Postponed / Reasons</span>
             <span class="kpi-value red">18</span>
-            <span class="kpi-sub">Requires focus</span>
+            <span class="kpi-sub">Review justifications</span>
           </div>
+          <div class="kpi-card">
+            <span class="kpi-label">100% Active</span>
+            <span class="kpi-value green">92%</span>
+            <span class="kpi-sub">Staff authorized</span>
+          </div>
+        </div>
+
+        <!-- Executive Action: Universal Task Assigner -->
+        <div style="margin-bottom: 14px;">
+          <button class="btn-primary btn-full" onclick="openCeoAssignModal()" style="font-size: 13px; padding: 10px;">
+            👑 CEO Special Directive: Assign Task to Any Employee
+          </button>
         </div>
 
         <!-- Organization RAG Distribution Bar -->
@@ -105,77 +113,19 @@
           </div>
         </div>
 
-        <!-- Department Progress Overview -->
-        <div class="content-card">
-          <div class="card-header-row">
-            <div class="card-title">
-              Department Execution
-            </div>
-            <a class="card-action-link" onclick="switchTab('depts')">View All</a>
-          </div>
-
-          <div class="item-list">
-            <!-- Dept 1 -->
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
-                <span>Fine Jewellery Crafting & Workshop</span>
-                <span style="color: var(--gold-dark);">88%</span>
-              </div>
-              <div class="progress-bar-container" style="margin: 0 0 8px 0;">
-                <div class="progress-bar-fill" style="width: 88%;"></div>
-              </div>
-            </div>
-
-            <!-- Dept 2 -->
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
-                <span>Showroom & Retail Sales</span>
-                <span style="color: #10b981;">92%</span>
-              </div>
-              <div class="progress-bar-container" style="margin: 0 0 8px 0;">
-                <div class="progress-bar-fill green" style="width: 92%;"></div>
-              </div>
-            </div>
-
-            <!-- Dept 3 -->
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
-                <span>Vault & Logistics Security</span>
-                <span style="color: #10b981;">96%</span>
-              </div>
-              <div class="progress-bar-container" style="margin: 0 0 8px 0;">
-                <div class="progress-bar-fill green" style="width: 96%;"></div>
-              </div>
-            </div>
-
-            <!-- Dept 4 -->
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
-                <span>Marketing & Diwali Campaign</span>
-                <span style="color: #f59e0b;">78%</span>
-              </div>
-              <div class="progress-bar-container" style="margin: 0 0 8px 0;">
-                <div class="progress-bar-fill" style="width: 78%; background: #f59e0b;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottlenecks & Critical Delays Callout -->
+        <!-- Executive Delays & Postponement Reasons Callout -->
         <div class="content-card" style="border-left: 4px solid var(--rag-red);">
           <div class="card-header-row">
             <div class="card-title" style="color: #b91c1c;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              Critical Executive Alerts
+              Recent Postponement Reasons Logged by Staff
             </div>
-            <span class="badge-rag red">2 Urgent</span>
+            <a class="card-action-link" onclick="switchTab('delays')">All (18)</a>
           </div>
           <div class="item-list">
-            <div style="background: #fef2f2; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12.5px; color: #991b1b;">
-              <strong>Diwali Gold Stock Logistics:</strong> 2 shipments from Mumbai bullion refiners delayed by 48 hrs due to customs clearance.
-            </div>
-            <div style="background: #fffbeb; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12.5px; color: #92400e;">
-              <strong>Polishing Artisan Shortage:</strong> 2 craftsmen on medical leave; overtime approved to meet delivery deadlines.
+            <div style="background: #fffdfa; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12px; border: 1px solid var(--rag-yellow-border);">
+              <strong>Adithi Sharma (Operations):</strong> "Evening Gold Craft Waste & Sweepings Recovery Log" postponed to Tomorrow 08:30 AM. <br>
+              <span style="color: #92400e;">Reason: "Late bridal jewellery custom sizing order delayed workshop furnace shutdown by 1 hour."</span>
             </div>
           </div>
         </div>
@@ -191,12 +141,9 @@
             <div class="card-header-row">
               <div>
                 <strong style="font-size: 14px;">Fine Jewellery Operations</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Lead: Vikram Reddy • 34 Craftsmen & Techs</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Lead: Vikram Reddy • 34 Craftsmen</div>
               </div>
               <span class="badge-rag green">88% Healthy</span>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-              28 Green • 4 Yellow • 2 Red
             </div>
           </div>
 
@@ -208,8 +155,15 @@
               </div>
               <span class="badge-rag green">92% Healthy</span>
             </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-              44 Green • 3 Yellow • 1 Red
+          </div>
+
+          <div class="content-card">
+            <div class="card-header-row">
+              <div>
+                <strong style="font-size: 14px;">Housekeeping & Facility Care</strong>
+                <div style="font-size: 11px; color: var(--text-muted);">Lead: K. Natarajan • 14 Staff</div>
+              </div>
+              <span class="badge-rag green">95% Healthy</span>
             </div>
           </div>
 
@@ -217,46 +171,33 @@
             <div class="card-header-row">
               <div>
                 <strong style="font-size: 14px;">Vault & High-Security Logistics</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Lead: Major R. Pillai • 18 Security Personnel</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Lead: Major R. Pillai • 18 Personnel</div>
               </div>
               <span class="badge-rag green">96% Healthy</span>
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-              18 Green • 0 Yellow • 0 Red
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: DELAYS -->
+      <!-- TAB 3: DELAYS & REASONS MONITOR -->
       <section id="tab-delays" class="tab-pane" style="display: none;">
-        <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 14px;">Risk & Delay Monitor</h2>
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 14px;">Postponed Tasks & Reasons Audit</h2>
         
-        <div class="item-list">
-          <div class="task-item-card" style="border-left: 4px solid var(--rag-red);">
-            <div class="task-left">
-              <div class="task-details">
-                <div class="task-title">Bullion Import Clearance Batch #88</div>
-                <div class="task-meta">
-                  <span class="priority-pill high">Delayed 2 Days</span>
-                  <span class="priority-pill dept">Owner: Logistics</span>
+        <div class="item-list" id="ceo-postponed-list">
+          <div class="task-item-card is-postponed">
+            <div class="task-top-row">
+              <div style="font-size: 18px; flex-shrink: 0; margin-top: 1px;">⏳</div>
+              <div class="task-main-info">
+                <div class="task-title">Evening Gold Craft Waste & Sweepings Recovery Log</div>
+                <div class="task-meta-row">
+                  <span class="authority-pill lead">Owner: Adithi Sharma (Operations)</span>
+                  <span class="priority-pill medium">Postponed to Tomorrow</span>
                 </div>
               </div>
             </div>
-            <button class="btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="showToast('Escalated to customs liaison')">Escalate</button>
-          </div>
-
-          <div class="task-item-card" style="border-left: 4px solid var(--rag-yellow);">
-            <div class="task-left">
-              <div class="task-details">
-                <div class="task-title">Diwali Billboard Artwork Approval</div>
-                <div class="task-meta">
-                  <span class="priority-pill medium">Needs Review</span>
-                  <span class="priority-pill dept">Owner: Marketing</span>
-                </div>
-              </div>
+            <div class="postponed-callout">
+              <strong>Employee Reason:</strong> "Late bridal jewellery custom sizing order delayed workshop furnace shutdown by 1 hour."
             </div>
-            <button class="btn-navy" style="padding: 4px 10px; font-size: 11px;" onclick="showToast('Approval sent')">Approve</button>
           </div>
         </div>
       </section>
@@ -269,20 +210,6 @@
           <p style="font-size: 13px; color: #cbd5e1;">Managing Director & CEO</p>
           <div style="margin-top: 8px;">
             <span class="role-tag-pill ceo">MN Jewel Park Executive</span>
-          </div>
-        </div>
-
-        <div class="content-card">
-          <div class="card-title" style="margin-bottom: 14px;">Executive Office</div>
-          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Title</span>
-              <strong>Managing Director & CEO</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Email</span>
-              <strong>ceo@mnjewelpark.com</strong>
-            </div>
           </div>
         </div>
 
@@ -303,7 +230,7 @@
       </div>
       <div class="nav-item" onclick="switchTab('delays')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <span>Risks & Delays</span>
+        <span>Postponed (18)</span>
       </div>
       <div class="nav-item" onclick="switchTab('profile')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -312,10 +239,88 @@
     </nav>
   </div>
 
+  <!-- MODAL: CEO UNIVERSAL TASK ASSIGNER -->
+  <div class="modal-backdrop" id="modal-ceo-assign">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">👑 CEO Universal Task Assigner</h3>
+        <button class="modal-close" onclick="closeModal('modal-ceo-assign')">✕</button>
+      </div>
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+        As Managing Director & CEO, you hold executive power to assign critical deliverables directly to any employee across all 6 departments.
+      </p>
+
+      <form onsubmit="handleCeoAssignSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Target Employee (Any Department)</label>
+          <select id="ceo-target-emp" class="form-select">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Executive Directive Title</label>
+          <input type="text" id="ceo-task-title" class="form-input" placeholder="e.g., Priority Hallmark Inspection for Royal Emerald Choker Lot #88" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label class="form-label">Priority Level</label>
+            <select id="ceo-task-priority" class="form-select">
+              <option value="Critical SLA" selected>👑 Critical SLA (CEO Directive)</option>
+              <option value="High">High Priority</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deadline</label>
+            <input type="text" id="ceo-task-due" class="form-input" value="Today 05:00 PM">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary btn-full">
+          Transmit CEO Directive to Employee
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div class="toast-msg" id="toast">Updated!</div>
 
+  <script src="ecosystem-data.js"></script>
   <script>
+    function openCeoAssignModal() {
+      const emps = window.MNStore.getAllEmployees();
+      const select = document.getElementById('ceo-target-emp');
+      select.innerHTML = emps.map(e => `<option value="${e.id}">${e.name} (${e.dept} — ${e.role})</option>`).join('');
+      openModal('modal-ceo-assign');
+    }
+
+    function handleCeoAssignSubmit(e) {
+      e.preventDefault();
+      const empId = document.getElementById('ceo-target-emp').value;
+      const title = document.getElementById('ceo-task-title').value;
+      const priority = document.getElementById('ceo-task-priority').value;
+      const due = document.getElementById('ceo-task-due').value;
+
+      const targetEmp = window.MNStore.getAllEmployees().find(e => e.id === empId);
+
+      window.MNStore.assignTask({
+        empId,
+        title,
+        category: 'CEO Special Directive',
+        priority,
+        due,
+        assignerRole: 'ceo',
+        assignerName: 'Suresh Iyer (CEO)'
+      });
+
+      closeModal('modal-ceo-assign');
+      window.MNStore.playNotificationSound();
+      showToast(`👑 CEO Directive transmitted to ${targetEmp ? targetEmp.name : 'Employee'}!`);
+      document.getElementById('ceo-task-title').value = '';
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
       const target = document.getElementById('tab-' + tabId);
@@ -329,6 +334,14 @@
         navItems[tabsMap[tabId]].classList.add('active');
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
     }
 
     function showToast(msg) {

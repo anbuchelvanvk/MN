@@ -1,13 +1,12 @@
 // ==========================================================================
-// MN FAMILY - UNIVERSAL COLOR COMBO SWITCHER
-// Supports:
+// MN FAMILY - UNIVERSAL COLOR COMBO SWITCHER (4 LUXURY PALETTES)
 // 1. Burgundy & Champagne Sand (Combo 1)
 // 2. Midnight Onyx & Warm Sand (Combo 2)
-// 3. Royal Navy & Classic Gold (Signature MN Palette)
+// 3. Royal Navy & Classic Gold (Combo 3 / Signature)
+// 4. Emerald Royale & Radiant Gold (Combo 4)
 // ==========================================================================
 
 (function() {
-  // Read theme from URL or localStorage
   const urlParams = new URLSearchParams(window.location.search);
   const themeParam = urlParams.get('theme');
   const savedTheme = themeParam || localStorage.getItem('mn-app-theme') || 'maroon';
@@ -16,7 +15,7 @@
     document.documentElement.setAttribute('data-theme', themeName);
     localStorage.setItem('mn-app-theme', themeName);
     
-    // Update active card states in modal
+    // Update active card states in modal if present
     document.querySelectorAll('.theme-option-card').forEach(card => {
       if (card.getAttribute('data-theme-key') === themeName) {
         card.classList.add('active');
@@ -25,37 +24,27 @@
       }
     });
 
-    // Update floating trigger label if present
-    const labelEl = document.getElementById('active-theme-label');
-    if (labelEl) {
-      const labels = {
-        'maroon': '🍷 Burgundy & Sand',
-        'onyx': '🖤 Onyx & Sand',
-        'navy': '👑 Navy & Gold'
+    // Update any theme indicators in header
+    const headerPill = document.getElementById('header-theme-label');
+    if (headerPill) {
+      const names = {
+        'maroon': '🍷 Burgundy',
+        'onyx': '🖤 Onyx',
+        'navy': '👑 Navy',
+        'emerald': '💎 Emerald'
       };
-      labelEl.textContent = labels[themeName] || 'Palette';
+      headerPill.textContent = names[themeName] || 'Palette';
     }
   }
 
-  // Apply immediately on script run
+  // Apply immediately
   applyTheme(savedTheme);
 
-  // Inject Floating Button and Modal into DOM after loaded
+  // Inject Theme Modal into DOM
   document.addEventListener('DOMContentLoaded', () => {
-    // 1. Create Floating Button
-    const triggerBtn = document.createElement('button');
-    triggerBtn.className = 'theme-trigger-btn';
-    triggerBtn.id = 'theme-trigger-btn';
-    triggerBtn.title = 'Change Color Combination';
-    triggerBtn.onclick = () => openThemeModal();
-    triggerBtn.innerHTML = `
-      <span class="theme-swatch-dot"></span>
-      <span id="active-theme-label">Palette</span>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-    `;
-    document.body.appendChild(triggerBtn);
+    // Check if modal already exists
+    if (document.getElementById('modal-theme-switcher')) return;
 
-    // 2. Create Modal
     const modalBackdrop = document.createElement('div');
     modalBackdrop.className = 'modal-backdrop';
     modalBackdrop.id = 'modal-theme-switcher';
@@ -64,13 +53,13 @@
     };
 
     modalBackdrop.innerHTML = `
-      <div class="modal-sheet">
+      <div class="modal-sheet" style="max-height: 85vh; overflow-y: auto;">
         <div class="modal-header">
-          <h3 class="modal-title">🎨 Select Color Theme</h3>
+          <h3 class="modal-title">🎨 Select Luxury Color Theme</h3>
           <button class="modal-close" onclick="closeThemeModal()">✕</button>
         </div>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-          Choose your preferred luxury aesthetic palette for MN Jewel Park:
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Choose your preferred mobile aesthetic palette for MN Jewel Park:
         </p>
 
         <div class="theme-palette-grid">
@@ -79,32 +68,32 @@
             <div class="theme-option-left">
               <div class="theme-preview-pill">
                 <div class="c-left" style="background: #580816;"></div>
-                <div class="c-right" style="background: #cbb094;"></div>
+                <div class="c-right" style="background: #dfc8af;"></div>
               </div>
               <div>
-                <div class="theme-option-title">Burgundy & Champagne Sand</div>
-                <div class="theme-option-desc">Deep Wine Velvet Maroon + Biscuit Sand (Combo 1)</div>
+                <div class="theme-option-title">🍷 Combo 1: Burgundy & Champagne Sand</div>
+                <div class="theme-option-desc">Deep Wine Velvet + Warm Biscuit Sand</div>
               </div>
             </div>
-            <span style="font-size: 16px;">✓</span>
+            <span class="theme-chk-icon">✓</span>
           </div>
 
           <!-- COMBO 2 -->
           <div class="theme-option-card ${savedTheme === 'onyx' ? 'active' : ''}" data-theme-key="onyx" onclick="selectTheme('onyx')">
             <div class="theme-option-left">
               <div class="theme-preview-pill">
-                <div class="c-left" style="background: #000000;"></div>
-                <div class="c-right" style="background: #cbb094;"></div>
+                <div class="c-left" style="background: #0a0a0d;"></div>
+                <div class="c-right" style="background: #dfc8af;"></div>
               </div>
               <div>
-                <div class="theme-option-title">Midnight Onyx & Sand Gold</div>
-                <div class="theme-option-desc">Jet Black Obsidian + Warm Sand (Combo 2)</div>
+                <div class="theme-option-title">🖤 Combo 2: Midnight Onyx & Warm Sand</div>
+                <div class="theme-option-desc">Jet Black Obsidian + Warm Sand</div>
               </div>
             </div>
-            <span style="font-size: 16px;">✓</span>
+            <span class="theme-chk-icon">✓</span>
           </div>
 
-          <!-- SIGNATURE -->
+          <!-- COMBO 3 -->
           <div class="theme-option-card ${savedTheme === 'navy' ? 'active' : ''}" data-theme-key="navy" onclick="selectTheme('navy')">
             <div class="theme-option-left">
               <div class="theme-preview-pill">
@@ -112,20 +101,33 @@
                 <div class="c-right" style="background: #d4af37;"></div>
               </div>
               <div>
-                <div class="theme-option-title">Royal Navy & Classic Gold</div>
+                <div class="theme-option-title">👑 Combo 3: Royal Navy & Classic Gold</div>
                 <div class="theme-option-desc">Midnight Blue Charcoal + Metallic Gold</div>
               </div>
             </div>
-            <span style="font-size: 16px;">✓</span>
+            <span class="theme-chk-icon">✓</span>
+          </div>
+
+          <!-- COMBO 4 (NEW) -->
+          <div class="theme-option-card ${savedTheme === 'emerald' ? 'active' : ''}" data-theme-key="emerald" onclick="selectTheme('emerald')">
+            <div class="theme-option-left">
+              <div class="theme-preview-pill">
+                <div class="c-left" style="background: #044330;"></div>
+                <div class="c-right" style="background: #eab308;"></div>
+              </div>
+              <div>
+                <div class="theme-option-title">💎 Combo 4: Emerald Royale & Radiant Gold</div>
+                <div class="theme-option-desc">Deep Indian Emerald + Radiant Temple Gold</div>
+              </div>
+            </div>
+            <span class="theme-chk-icon">✓</span>
           </div>
         </div>
 
-        <button class="btn-primary btn-full" style="margin-top: 18px;" onclick="closeThemeModal()">Apply & Close</button>
+        <button class="btn-primary btn-full" style="margin-top: 16px;" onclick="closeThemeModal()">Apply Theme & Close</button>
       </div>
     `;
     document.body.appendChild(modalBackdrop);
-
-    // Initial label update
     applyTheme(savedTheme);
   });
 
@@ -145,12 +147,13 @@
       const names = {
         'maroon': 'Theme set to Burgundy & Champagne Sand!',
         'onyx': 'Theme set to Midnight Onyx & Warm Sand!',
-        'navy': 'Theme set to Royal Navy & Classic Gold!'
+        'navy': 'Theme set to Royal Navy & Classic Gold!',
+        'emerald': 'Theme set to Emerald Royale & Radiant Gold!'
       };
       showToast(names[themeName] || 'Theme updated!');
     }
     setTimeout(() => {
       closeThemeModal();
-    }, 250);
+    }, 220);
   };
 })();
