@@ -6,17 +6,17 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family - HR Management Portal</title>
+  <title>MN Family — HR Management Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="portal.css">
 </head>
 <body>
 
   <!-- Top Role Switcher / Quick Return Bar -->
   <div class="role-switcher-banner">
-    <span>Logged in as <strong>Meera Krishnan (Head of HR & People)</strong></span>
+    <span>HR Administration: <strong>Meera Krishnan (Head of People & HR)</strong></span>
     <a href="index.html">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      Role Switcher
+      <i class="fa-solid fa-arrow-right-arrow-left"></i> Switch Role
     </a>
   </div>
 
@@ -33,9 +33,9 @@
         </div>
       </div>
       <div class="header-actions">
-        <span class="role-tag-pill hr">HR Admin</span>
-        <button class="icon-btn" onclick="openModal('modal-nudge-all')" title="Send Resistance Reminder Nudge to Inactive Staff">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span class="role-tag-pill hr"><i class="fa-solid fa-user-gear"></i> HR Admin</span>
+        <button class="icon-btn" onclick="openModal('modal-nudge-all')" title="Send Routine Reminders">
+          <i class="fa-regular fa-bell"></i>
           <span class="badge-dot"></span>
         </button>
       </div>
@@ -47,17 +47,17 @@
       <!-- TAB 1: HR DASHBOARD -->
       <section id="tab-dashboard" class="tab-pane active">
         <!-- Quick Action & Greeting Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Workforce & Onboarding Central</h2>
-            <span style="font-size: 12px; color: var(--text-muted);">Probation rules, trainer allocation & emergency task delegation</span>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Workforce & Onboarding Management</h2>
+            <span style="font-size: 11px; color: var(--text-muted);">Probation rules, mentor allocation & emergency task delegation</span>
           </div>
           <div style="display: flex; gap: 6px;">
             <button class="btn-primary" onclick="openAddEmpModal()">
-              <span>+</span> Onboard New Hire
+              <i class="fa-solid fa-user-plus"></i> Add Hire
             </button>
-            <button class="btn-navy" style="font-size: 11.5px; padding: 6px 10px;" onclick="openEmergencyDelegationModal()">
-              📑 Delegate Leave Tasks
+            <button class="btn-navy" style="font-size: 11px; padding: 6px 10px;" onclick="openEmergencyDelegationModal()">
+              <i class="fa-solid fa-handshake"></i> Delegate Leave
             </button>
           </div>
         </div>
@@ -65,24 +65,24 @@
         <!-- 4 Stat Tiles -->
         <div class="kpi-grid col-4">
           <div class="kpi-card" onclick="switchTab('employees')">
-            <span class="kpi-label">Total Staff</span>
+            <span class="kpi-label"><i class="fa-solid fa-users"></i> Total Staff</span>
             <span class="kpi-value gold" id="kpi-total-staff">142</span>
             <span class="kpi-sub">Across 6 units</span>
           </div>
           <div class="kpi-card" onclick="switchTab('onboarding')">
-            <span class="kpi-label">Onboarding</span>
+            <span class="kpi-label"><i class="fa-solid fa-user-graduate"></i> Onboarding</span>
             <span class="kpi-value yellow" id="kpi-onboarding-count">2</span>
             <span class="kpi-sub">Active probation</span>
           </div>
           <div class="kpi-card" onclick="openEmergencyDelegationModal()">
-            <span class="kpi-label">Emergency Leave</span>
+            <span class="kpi-label"><i class="fa-regular fa-calendar-days"></i> Leave Cover</span>
             <span class="kpi-value red">1</span>
-            <span class="kpi-sub">Task coverage</span>
+            <span class="kpi-sub">Task delegation</span>
           </div>
           <div class="kpi-card" onclick="openModal('modal-nudge-all')">
-            <span class="kpi-label">App Nudges</span>
+            <span class="kpi-label"><i class="fa-regular fa-bell"></i> Alerts</span>
             <span class="kpi-value green">Active</span>
-            <span class="kpi-sub">Daily triggers</span>
+            <span class="kpi-sub">Routine nudges</span>
           </div>
         </div>
 
@@ -90,8 +90,7 @@
         <div class="content-card">
           <div class="card-header-row">
             <div class="card-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c59b27" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
-              Live Probation & Training Pipeline
+              <i class="fa-solid fa-user-graduate"></i> Active Probation & Mentorship Pipeline
             </div>
             <a class="card-action-link" onclick="switchTab('onboarding')">View All</a>
           </div>
@@ -102,21 +101,21 @@
         </div>
 
         <!-- Emergency Leave Delegation Audit Card -->
-        <div class="content-card" style="border-left: 4px solid #9333ea;">
+        <div class="content-card" style="border-left: 3px solid #7c3aed;">
           <div class="card-header-row">
-            <div class="card-title" style="color: #7e22ce;">
-              📑 Emergency Leave Task Delegation
+            <div class="card-title" style="color: #6d28d9;">
+              <i class="fa-solid fa-handshake" style="color: #7c3aed;"></i> Emergency Leave Task Delegation
             </div>
-            <button class="btn-primary" style="font-size: 10.5px; padding: 4px 8px; background: #9333ea; border-color: #7e22ce;" onclick="openEmergencyDelegationModal()">
-              + Delegate Tasks
+            <button class="btn-primary" style="font-size: 10.5px; padding: 4px 8px; background: #7c3aed; border-color: #6d28d9; color: #fff;" onclick="openEmergencyDelegationModal()">
+              <i class="fa-solid fa-plus"></i> Delegate Tasks
             </button>
           </div>
-          <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px;">
-            When an employee calls in emergency leave, HR can reassign their daily SOP tasks to another staff member.
+          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+            Reassign daily SOP tasks when staff members take emergency leave.
           </p>
           <div id="delegation-history-list">
-            <div style="background: var(--bg-card-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 12px;">
-              <strong>Adithi Sharma (Operations)</strong> was covered by <strong>Karan Verma</strong> on Oct 06 (2 SOP tasks covered).
+            <div style="background: var(--bg-card-subtle); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 11.5px;">
+              <strong>Adithi Sharma (Operations)</strong> was covered by <strong>Karan Verma</strong> on Oct 06 (2 tasks covered).
             </div>
           </div>
         </div>
@@ -126,13 +125,15 @@
       <!-- TAB 2: EMPLOYEES DIRECTORY -->
       <section id="tab-employees" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Employee Directory & 100% Status</h2>
-          <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="openAddEmpModal()">+ Add New Hire</button>
+          <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Employee Directory & Clearance</h2>
+          <button class="btn-primary" style="padding: 5px 12px; font-size: 11.5px;" onclick="openAddEmpModal()">
+            <i class="fa-solid fa-plus"></i> New Hire
+          </button>
         </div>
 
         <!-- Search & Filter Controls -->
         <div class="search-box">
-          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
           <input type="text" id="emp-search" class="search-input" placeholder="Search by name, role, or ID..." oninput="filterEmployees()">
         </div>
 
@@ -154,10 +155,12 @@
       <section id="tab-onboarding" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Probation & Training Central</h2>
-            <p style="font-size: 11.5px; color: var(--text-muted);">Experience-based probation (2 Weeks vs 1 Month) & Trainer reviews</p>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Probation & Training Management</h2>
+            <p style="font-size: 11px; color: var(--text-muted);">Experience-based probation rules (2 Weeks vs 1 Month) & Mentor reviews</p>
           </div>
-          <button class="btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="openAddEmpModal()">+ New Onboarding</button>
+          <button class="btn-primary" style="font-size: 11.5px; padding: 5px 10px;" onclick="openAddEmpModal()">
+            <i class="fa-solid fa-plus"></i> New Onboarding
+          </button>
         </div>
 
         <div class="item-list" id="full-onboarding-container">
@@ -167,34 +170,34 @@
 
       <!-- TAB 4: PROFILE -->
       <section id="tab-profile" class="tab-pane" style="display: none;">
-        <div class="hero-card" style="text-align: center; padding: 24px;">
-          <div class="avatar-initials lg" style="margin: 0 auto 12px auto;">MK</div>
-          <h2 style="font-size: 19px; font-weight: 700; color: #ffffff;">Meera Krishnan</h2>
-          <p style="font-size: 13px; color: #cbd5e1;">Head of People & HR Operations</p>
-          <div style="margin-top: 8px;">
-            <span class="role-tag-pill hr">HR Administrator</span>
+        <div class="hero-card" style="text-align: center; padding: 20px;">
+          <div class="avatar-initials lg" style="margin: 0 auto 10px auto;">MK</div>
+          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Meera Krishnan</h2>
+          <p style="font-size: 12px; color: #cbd5e1;">Head of People & HR Operations</p>
+          <div style="margin-top: 6px;">
+            <span class="role-tag-pill hr"><i class="fa-solid fa-user-gear"></i> HR Administrator</span>
           </div>
         </div>
 
         <div class="content-card">
-          <div class="card-title" style="margin-bottom: 14px;">HR Admin Powers</div>
-          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Probation Authority</span>
-              <strong>Set duration by candidate experience</strong>
+          <div class="card-title" style="margin-bottom: 12px;"><i class="fa-solid fa-sliders"></i> HR Administrative Scope</div>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-muted);">Probation Policy</span>
+              <strong>Calculated from jewellery experience</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Trainer Assignment</span>
-              <strong>Designate existing staff from department</strong>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-muted);">Mentor Assignment</span>
+              <strong>Designate departmental senior staff</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Leave Task Delegation</span>
-              <strong>Reassign emergency leave tasks</strong>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-muted);">Emergency Task Delegation</span>
+              <strong>Reassign tasks during approved leave</strong>
             </div>
           </div>
         </div>
 
-        <button class="btn-navy btn-full" onclick="showToast('Logged out securely')">Sign Out</button>
+        <button class="btn-navy btn-full" onclick="showToast('Logged out securely.')">Sign Out</button>
       </section>
 
     </main>
@@ -202,19 +205,19 @@
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('dashboard')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <i class="fa-solid fa-house"></i>
         <span>Dashboard</span>
       </div>
       <div class="nav-item" onclick="switchTab('employees')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        <span>Staff (100%)</span>
+        <i class="fa-solid fa-users"></i>
+        <span>Staff Directory</span>
       </div>
       <div class="nav-item" onclick="switchTab('onboarding')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <i class="fa-solid fa-user-graduate"></i>
         <span>Probation</span>
       </div>
       <div class="nav-item" onclick="switchTab('profile')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <i class="fa-solid fa-user"></i>
         <span>Profile</span>
       </div>
     </nav>
@@ -224,11 +227,11 @@
   <div class="modal-backdrop" id="modal-add-emp">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">✨ Onboard Employee & Assign Trainer</h3>
+        <h3 class="modal-title"><i class="fa-solid fa-user-plus"></i> Onboard Employee & Assign Mentor</h3>
         <button class="modal-close" onclick="closeModal('modal-add-emp')">✕</button>
       </div>
       <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-        HR sets probation duration based on jewelry industry experience and assigns an existing department colleague as trainer.
+        Set probation duration based on candidate jewellery experience and assign a department mentor.
       </p>
 
       <form onsubmit="handleAddEmployeeSubmit(event)">
@@ -269,23 +272,20 @@
         </div>
 
         <!-- Probation Rule Display Banner -->
-        <div style="background: var(--gold-light); border: 1px solid var(--gold-border); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 11.5px; color: var(--gold-dark);" id="probationRuleBanner">
-          ⚡ <strong>Probation Policy:</strong> Candidate has 3+ years experience in jewelry field. Probation period set to <strong>2 Weeks</strong> with 1st-week daily review diary.
+        <div style="background: var(--gold-light); border: 1px solid var(--gold-border); padding: 9px 11px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 11.5px; color: var(--gold-dark);" id="probationRuleBanner">
+          <strong>Probation Rule:</strong> Candidate has 3+ years experience. Probation period set to <strong>2 Weeks</strong> with 1st-week daily review diary.
         </div>
 
         <!-- Trainer Assignment Dropdown -->
         <div class="form-group">
-          <label class="form-label">Assign Department Trainer / Mentor</label>
+          <label class="form-label">Assign Department Mentor</label>
           <select id="new-emp-trainer" class="form-select">
             <!-- Populated via updateTrainerDropdown() -->
           </select>
-          <span style="font-size: 10.5px; color: var(--text-muted); margin-top: 3px; display: block;">
-            The assigned mentor will receive training checklist and daily review sign-offs in their portal.
-          </span>
         </div>
 
         <button type="submit" class="btn-primary btn-full" style="margin-top: 6px;">
-          Register Hire & Initialize SOP Agenda
+          <i class="fa-solid fa-check"></i> Register Hire & Initialize SOP Agenda
         </button>
       </form>
     </div>
@@ -295,16 +295,16 @@
   <div class="modal-backdrop" id="modal-delegate">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title" style="color: #7e22ce;">📑 Emergency Leave Task Delegation</h3>
+        <h3 class="modal-title" style="color: #6d28d9;"><i class="fa-solid fa-handshake"></i> Emergency Leave Task Delegation</h3>
         <button class="modal-close" onclick="closeModal('modal-delegate')">✕</button>
       </div>
       <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-        As HR Admin, reassign daily SOP tasks of an employee taking emergency leave to an active colleague.
+        Reassign scheduled daily SOP tasks of an employee taking emergency leave to an active colleague.
       </p>
 
       <form onsubmit="handleDelegationSubmit(event)">
         <div class="form-group">
-          <label class="form-label">Employee Taking Emergency Leave</label>
+          <label class="form-label">Employee Taking Leave</label>
           <select id="leave-emp-select" class="form-select">
             <!-- Populated dynamically -->
           </select>
@@ -319,11 +319,11 @@
 
         <div class="form-group">
           <label class="form-label">Reason for Emergency Coverage</label>
-          <input type="text" id="delegation-reason" class="form-input" value="Emergency Sick Leave Coverage" required>
+          <input type="text" id="delegation-reason" class="form-input" value="Emergency Leave Coverage" required>
         </div>
 
-        <button type="submit" class="btn-primary btn-full" style="background: #9333ea; border-color: #7e22ce;">
-          Delegate Daily Tasks to Covering Staff
+        <button type="submit" class="btn-primary btn-full" style="background: #7c3aed; border-color: #6d28d9; color: #fff;">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i> Delegate Daily Tasks
         </button>
       </form>
     </div>
@@ -333,29 +333,29 @@
   <div class="modal-backdrop" id="modal-nudge-all">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">🔔 Trigger Resistance Push Nudge</h3>
+        <h3 class="modal-title"><i class="fa-regular fa-bell"></i> Send Push Routine Nudge</h3>
         <button class="modal-close" onclick="closeModal('modal-nudge-all')">✕</button>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-        Send a high-priority sound & banner nudge to employees who haven't opened the app or uploaded proof.
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+        Send an operational reminder to employees who have pending checklist items or unverified proofs.
       </p>
 
       <div class="form-group">
         <label class="form-label">Target Audience</label>
         <select class="form-select" id="nudgeAudience">
-          <option>All 142 Employees (Shift SOP Alert)</option>
+          <option>All Staff (Shift SOP Alert)</option>
           <option>Staff with Pending Daily Proofs</option>
           <option>New Joiners on Probation</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Nudge Prompt Message</label>
-        <textarea class="form-textarea" rows="2" id="nudgeMessage">⏰ Shift SOP Reminder: Please open your Things To Do list and upload required Hallmark / Ledger proof before 6 PM.</textarea>
+        <label class="form-label">Reminder Message</label>
+        <textarea class="form-textarea" rows="2" id="nudgeMessage">Shift SOP Reminder: Please complete your Things To Do list and upload required verification proof before 06:00 PM.</textarea>
       </div>
 
       <button type="button" class="btn-primary btn-full" onclick="sendBroadcastNudge()">
-        🔊 Send Instant Push Nudge & Sound Alert
+        <i class="fa-solid fa-paper-plane"></i> Send Push Alert
       </button>
     </div>
   </div>
@@ -385,21 +385,21 @@
       container.innerHTML = onboardingEmps.map(emp => {
         const pct = emp.profileCompletion ? emp.profileCompletion.percentage : 50;
         return `
-          <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 8px;">
+          <div style="background: var(--bg-card-subtle); padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-light); margin-bottom: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <strong style="font-size: 13.5px; color: var(--navy-dark);">${emp.name} — ${emp.role}</strong>
-              <span style="font-weight: 700; color: var(--gold-dark); font-size: 12px;">${pct}%</span>
+              <strong style="font-size: 13px; color: var(--navy-dark);">${emp.name} — ${emp.role}</strong>
+              <span style="font-weight: 700; color: var(--gold-dark); font-size: 11.5px;">${pct}%</span>
             </div>
             <div class="progress-bar-container" style="margin: 4px 0 6px 0;">
               <div class="progress-bar-fill" style="width: ${pct}%;"></div>
             </div>
-            <div class="progress-meta-row" style="font-size: 11px;">
+            <div class="progress-meta-row" style="font-size: 10.5px;">
               <span>Probation: <strong>${emp.probationWeeks} Wks (${emp.experienceCategory === 'experienced' ? 'Experienced' : 'Fresher'})</strong></span>
               <span>Mentor: <strong>${emp.trainer ? emp.trainer.name : 'Lead'}</strong></span>
             </div>
           </div>
         `;
-      }).join('') || '<div style="font-size:12px; color:var(--text-muted);">No active onboarding pipelines.</div>';
+      }).join('') || '<div style="font-size:11.5px; color:var(--text-muted);">No active onboarding pipelines.</div>';
     }
 
     function renderDirectory() {
@@ -411,7 +411,7 @@
         return `
           <div class="team-member-row" data-dept="${emp.dept}">
             <div class="member-info">
-              <div class="avatar-initials" style="width: 40px; height: 40px;">${emp.initials}</div>
+              <div class="avatar-initials" style="width: 36px; height: 36px; font-size:13px;">${emp.initials}</div>
               <div>
                 <div class="member-name">${emp.name}</div>
                 <div class="member-role">${emp.role} • ${emp.dept}</div>
@@ -424,10 +424,10 @@
               ${is100 ? `
                 <span class="badge-rag green"><span class="badge-dot"></span> 100% Active</span>
               ` : `
-                <span class="badge-rag yellow"><span class="badge-dot"></span> ${emp.profileCompletion ? emp.profileCompletion.percentage : 60}% Onboarding</span>
+                <span class="badge-rag yellow"><span class="badge-dot"></span> ${emp.profileCompletion ? emp.profileCompletion.percentage : 60}% Active</span>
               `}
               <div style="margin-top: 4px;">
-                <button class="btn-nudge-test" style="font-size: 9.5px; padding: 2px 6px;" onclick="nudgeIndividual('${emp.name}')">🔔 Nudge</button>
+                <button class="btn-nudge-test" style="font-size: 9.5px; padding: 2px 6px;" onclick="nudgeIndividual('${emp.name}')"><i class="fa-regular fa-bell"></i> Nudge</button>
               </div>
             </div>
           </div>
@@ -443,18 +443,18 @@
       container.innerHTML = onboardingEmps.map(emp => {
         const pct = emp.profileCompletion ? emp.profileCompletion.percentage : 65;
         return `
-          <div class="content-card" style="margin-bottom: 12px;">
+          <div class="content-card" style="margin-bottom: 10px;">
             <div class="card-header-row">
               <div>
-                <strong style="font-size: 14.5px; color: var(--navy-dark);">${emp.name}</strong>
-                <div style="font-size: 11.5px; color: var(--text-muted);">${emp.role} • Joined: ${emp.doj}</div>
+                <strong style="font-size: 13.5px; color: var(--navy-dark);">${emp.name}</strong>
+                <div style="font-size: 11px; color: var(--text-muted);">${emp.role} • Joined: ${emp.doj}</div>
               </div>
               <span class="badge-rag ${pct >= 80 ? 'green' : 'yellow'}">${pct}% Ready</span>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11.5px; margin: 8px 0; background: var(--bg-card-subtle); padding: 8px; border-radius: var(--radius-xs);">
-              <div>⏳ Probation Duration: <strong>${emp.probationWeeks} Weeks</strong> (${emp.experienceYears})</div>
-              <div>🛡️ Assigned Trainer: <strong>${emp.trainer ? emp.trainer.name : 'Dept Head'}</strong></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin: 8px 0; background: var(--bg-card-subtle); padding: 7px; border-radius: var(--radius-xs);">
+              <div>Probation: <strong>${emp.probationWeeks} Wks</strong> (${emp.experienceYears})</div>
+              <div>Mentor: <strong>${emp.trainer ? emp.trainer.name : 'Dept Head'}</strong></div>
             </div>
 
             <div class="progress-bar-container">
@@ -462,11 +462,11 @@
             </div>
 
             <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 11px; color: var(--text-muted);">
-                ${emp.trainingAgenda ? emp.trainingAgenda.filter(m => m.done).length : 0} of ${emp.trainingAgenda ? emp.trainingAgenda.length : 0} Training SOPs signed off
+              <span style="font-size: 10.5px; color: var(--text-muted);">
+                ${emp.trainingAgenda ? emp.trainingAgenda.filter(m => m.done).length : 0} of ${emp.trainingAgenda ? emp.trainingAgenda.length : 0} modules verified
               </span>
-              <button class="btn-primary" style="font-size: 11px; padding: 4px 10px;" onclick="clearProbation('${emp.id}')">
-                ✓ Authorize 100% Active
+              <button class="btn-primary" style="font-size: 10.5px; padding: 4px 8px;" onclick="clearProbation('${emp.id}')">
+                <i class="fa-solid fa-check"></i> Authorize 100%
               </button>
             </div>
           </div>
@@ -483,9 +483,9 @@
       const exp = document.getElementById('new-emp-exp').value;
       const banner = document.getElementById('probationRuleBanner');
       if (exp === 'experienced') {
-        banner.innerHTML = `⚡ <strong>Probation Policy:</strong> Candidate has 3+ years jewelry industry experience. Probation duration set to <strong>2 Weeks</strong> with 1st-week daily review diary.`;
+        banner.innerHTML = `<strong>Probation Rule:</strong> Candidate has 3+ years jewellery industry experience. Probation set to <strong>2 Weeks</strong> with 1st-week daily review diary.`;
       } else {
-        banner.innerHTML = `⚡ <strong>Probation Policy:</strong> Candidate is a Fresher. Mandatory comprehensive probation set to <strong>1 Month (4 Weeks)</strong> with full department mentor oversight.`;
+        banner.innerHTML = `<strong>Probation Rule:</strong> Candidate is a Fresher. Mandatory probation set to <strong>1 Month (4 Weeks)</strong> with full department mentor oversight.`;
       }
     }
 
@@ -524,7 +524,7 @@
       renderDirectory();
       renderFullOnboarding();
       window.MNStore.playNotificationSound();
-      showToast(`🎉 ${name} registered! Assigned ${newEmp.probationWeeks} wks probation & Mentor.`);
+      showToast(`${name} registered with ${newEmp.probationWeeks} wks probation & mentor.`);
     }
 
     function openEmergencyDelegationModal() {
@@ -553,7 +553,7 @@
 
       closeModal('modal-delegate');
       window.MNStore.playNotificationSound();
-      showToast(`📑 ${record.taskCount} tasks delegated from ${record.fromEmp} to ${record.toEmp}!`);
+      showToast(`${record.taskCount} tasks delegated from ${record.fromEmp} to ${record.toEmp}.`);
     }
 
     function clearProbation(empId) {
@@ -562,19 +562,19 @@
       renderDirectory();
       renderFullOnboarding();
       window.MNStore.playNotificationSound();
-      showToast('🌟 Candidate approved! Profile set to 100% Active Enterprise Member.');
+      showToast('Candidate approved with 100% Active clearance.');
     }
 
     function nudgeIndividual(name) {
       window.MNStore.playNotificationSound();
-      showToast(`🔔 Push Reminder triggered for ${name} (SOP upload alert)!`);
+      showToast(`Reminder sent to ${name}.`);
     }
 
     function sendBroadcastNudge() {
       const msg = document.getElementById('nudgeMessage').value;
       closeModal('modal-nudge-all');
       window.MNStore.playNotificationSound();
-      showToast(`📢 Resistance Nudge broadcasted to all employees!`);
+      showToast('Shift SOP reminder broadcasted.');
     }
 
     function filterEmployees() {

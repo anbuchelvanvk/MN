@@ -6,17 +6,17 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family - Employee Portal</title>
+  <title>MN Family — Employee Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="portal.css">
 </head>
 <body>
 
   <!-- Top Role Switcher / Quick Return Bar -->
   <div class="role-switcher-banner">
-    <span>Logged in as <strong id="top-bar-emp-name">Adithi Sharma (Operations)</strong></span>
+    <span>Staff Member: <strong id="top-bar-emp-name">Adithi Sharma (Operations)</strong></span>
     <a href="index.html">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      Role Switcher
+      <i class="fa-solid fa-arrow-right-arrow-left"></i> Switch Role
     </a>
   </div>
 
@@ -33,9 +33,9 @@
         </div>
       </div>
       <div class="header-actions">
-        <span class="role-tag-pill emp">Employee</span>
-        <button class="icon-btn" onclick="triggerResistanceReminder(true)" title="Daily Routine & Proof Alerts">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span class="role-tag-pill emp"><i class="fa-solid fa-user"></i> Employee</span>
+        <button class="icon-btn" onclick="triggerResistanceReminder(true)" title="Daily SOP Reminders">
+          <i class="fa-regular fa-bell"></i>
           <span class="badge-dot" id="header-notif-dot"></span>
         </button>
       </div>
@@ -47,34 +47,34 @@
       <!-- TAB 1: HOME DASHBOARD -->
       <section id="tab-home" class="tab-pane active">
         
-        <!-- Resistance Reminder Banner (Simulated Push Nudge for Mobile Users) -->
+        <!-- Daily Routine Reminder Banner -->
         <div class="resistance-reminder-banner" id="reminderBanner">
           <div>
             <div class="reminder-text">
-              <strong>🔔 Daily SOP Routine Alert</strong>
-              <span>Shift active: Please complete required proof uploads & check-ins before 6:00 PM.</span>
+              <strong>Daily SOP Routine Reminder</strong>
+              <span>Shift Active: Complete required verification proofs and checklist items before 06:00 PM.</span>
             </div>
           </div>
           <button class="btn-nudge-test" onclick="triggerResistanceReminder(true)">
-            🔊 Test Alert
+            <i class="fa-solid fa-bell"></i> Test Nudge
           </button>
         </div>
 
-        <!-- 100% Profile Verification & Activation Banner -->
+        <!-- 100% Profile Verification Card -->
         <div class="profile-activation-card" id="profileActivationCard">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
             <div>
               <span class="profile-auth-badge" id="profileAuthBadge">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <i class="fa-solid fa-circle-check"></i>
                 <span id="profileAuthText">100% Active & Authorized</span>
               </span>
-              <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 3px; color: #ffffff;" id="profileCardTitle">Enterprise Clearance Active</h3>
-              <p style="font-size: 12px; color: #cbd5e1; max-width: 320px; line-height: 1.4;" id="profileCardSub">
-                Photo, Address, and Predefined Daily Roles & Responsibilities are 100% authorized.
+              <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 3px; color: #ffffff;" id="profileCardTitle">Enterprise Clearance Active</h3>
+              <p style="font-size: 11.5px; color: #cbd5e1; line-height: 1.35;" id="profileCardSub">
+                Photo identity, address KYC, and predefined daily SOP responsibilities are authorized.
               </p>
             </div>
-            <button class="btn-primary" style="font-size: 11px; padding: 6px 12px;" onclick="openModal('modal-verify-profile')" id="btnProfileWizard">
-              Verify / View
+            <button class="btn-primary" style="font-size: 11px; padding: 5px 10px; white-space: nowrap;" onclick="openModal('modal-verify-profile')" id="btnProfileWizard">
+              View Audit
             </button>
           </div>
           <div class="progress-bar-container" style="margin-top: 10px; background: rgba(255,255,255,0.15);">
@@ -89,13 +89,13 @@
             <div class="hero-info">
               <div class="hero-name">
                 <span id="hero-name-text">Adithi Sharma</span>
-                <span class="badge-rag green" id="hero-rag-badge"><span class="badge-dot"></span> On track</span>
+                <span class="badge-rag green" id="hero-rag-badge"><span class="badge-dot"></span> On Track</span>
               </div>
               <div class="hero-role" id="hero-role-text">Fine Jewellery Operations Executive</div>
               <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
-                <span class="hero-dept-tag" id="hero-dept-text">Operations & Crafting</span>
+                <span class="hero-dept-tag" id="hero-dept-text"><i class="fa-solid fa-gem"></i> Operations & Crafting</span>
                 <span class="hero-id-tag" id="hero-id-text">ID: MN-1024</span>
-                <span class="hero-id-tag" style="background: rgba(212,175,55,0.15); color: var(--gold-accent);">Probation: 2 Wks (Experienced)</span>
+                <span class="hero-id-tag" style="background: rgba(212,175,55,0.15); color: var(--gold-accent); padding: 1px 6px; border-radius: 4px;">Probation: 2 Wks</span>
               </div>
             </div>
           </div>
@@ -105,50 +105,50 @@
         <div class="quick-action-grid">
           <div class="action-tile" onclick="switchTab('tasks')">
             <div class="action-tile-top">
-              <span class="action-icon">📋</span>
-              <span class="badge-rag yellow" id="badge-pending-tasks">2 pending</span>
+              <span class="action-icon"><i class="fa-solid fa-list-check"></i></span>
+              <span class="badge-rag yellow" id="badge-pending-tasks">2 Pending</span>
             </div>
             <span class="action-title">Things To Do</span>
           </div>
 
           <div class="action-tile" onclick="switchTab('training')">
             <div class="action-tile-top">
-              <span class="action-icon">🎓</span>
-              <span class="badge-rag green">Mentor Active</span>
+              <span class="action-icon"><i class="fa-solid fa-user-graduate"></i></span>
+              <span class="badge-rag green">Active</span>
             </div>
-            <span class="action-title">Training & Reviews</span>
+            <span class="action-title">Training & Mentorship</span>
           </div>
 
           <div class="action-tile" onclick="openModal('modal-leave')">
             <div class="action-tile-top">
-              <span class="action-icon">📅</span>
-              <span style="font-size: 11px; color: var(--text-muted);">Balance: 14d</span>
+              <span class="action-icon"><i class="fa-regular fa-calendar-days"></i></span>
+              <span style="font-size: 10.5px; color: var(--text-muted);">14d Balance</span>
             </div>
-            <span class="action-title">Emergency Leave</span>
+            <span class="action-title">Leave Request</span>
           </div>
 
           <div class="action-tile" onclick="switchTab('performance')">
             <div class="action-tile-top">
-              <span class="action-icon">🏆</span>
+              <span class="action-icon"><i class="fa-solid fa-chart-line"></i></span>
               <span class="badge-rag green">Grade A</span>
             </div>
-            <span class="action-title">Scorecard</span>
+            <span class="action-title">Performance</span>
           </div>
         </div>
 
-        <!-- Today's Things To Do (Daily SOP & Directives) -->
+        <!-- Today's Things To Do Agenda -->
         <div class="content-card">
           <div class="card-header-row">
             <div>
               <div class="card-title">
-                Today's "Things To Do" Agenda
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);" id="today-tasks-count">(4)</span>
+                <i class="fa-solid fa-clipboard-list"></i> Today's Operational Agenda
+                <span style="font-size: 11.5px; font-weight: 600; color: var(--text-muted);" id="today-tasks-count">(4)</span>
               </div>
               <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-                Predefined SOP routines + CEO/Manager Directives. Proof is required for completion.
+                Standard daily SOP routines and assigned directives with proof verification.
               </div>
             </div>
-            <button class="card-action-link" style="background:none; border:none; cursor:pointer;" onclick="switchTab('tasks')">All (4)</button>
+            <button class="card-action-link" style="background:none; border:none; cursor:pointer;" onclick="switchTab('tasks')">View All</button>
           </div>
 
           <div class="item-list" id="home-tasks-container">
@@ -162,31 +162,31 @@
       <section id="tab-tasks" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Predefined SOPs & Tasks</h2>
-            <p style="font-size: 11.5px; color: var(--text-muted);">Immutable daily responsibilities + assigned directives</p>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Daily SOPs & Assigned Tasks</h2>
+            <p style="font-size: 11px; color: var(--text-muted);">Immutable operational responsibilities and management directives</p>
           </div>
         </div>
 
         <!-- Filter Chips -->
         <div class="segmented-chips">
-          <button class="chip-btn active" onclick="filterEmpTasks('all', this)">All</button>
+          <button class="chip-btn active" onclick="filterEmpTasks('all', this)">All Tasks</button>
           <button class="chip-btn" onclick="filterEmpTasks('pending', this)">Pending</button>
-          <button class="chip-btn" onclick="filterEmpTasks('postponed', this)">Postponed / Not Finished</button>
-          <button class="chip-btn" onclick="filterEmpTasks('completed', this)">Completed with Proof</button>
+          <button class="chip-btn" onclick="filterEmpTasks('postponed', this)">Postponed</button>
+          <button class="chip-btn" onclick="filterEmpTasks('completed', this)">Completed</button>
         </div>
 
         <!-- KPI Grid -->
-        <div class="kpi-grid col-3" style="margin-bottom: 14px;">
+        <div class="kpi-grid col-3" style="margin-bottom: 12px;">
           <div class="kpi-card">
-            <span class="kpi-label">Pending</span>
+            <span class="kpi-label"><i class="fa-regular fa-clock"></i> Pending</span>
             <span class="kpi-value yellow" id="kpi-tasks-pending">2</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Postponed</span>
+            <span class="kpi-label"><i class="fa-solid fa-triangle-exclamation"></i> Postponed</span>
             <span class="kpi-value red" id="kpi-tasks-postponed">1</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-label">Completed</span>
+            <span class="kpi-label"><i class="fa-solid fa-circle-check"></i> Completed</span>
             <span class="kpi-value green" id="kpi-tasks-completed">2</span>
           </div>
         </div>
@@ -201,21 +201,21 @@
       <section id="tab-training" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Onboarding & Mentorship</h2>
-            <p style="font-size: 11.5px; color: var(--text-muted);">Assigned Trainer, Mandatory SOPs & 1st Week Daily Reviews</p>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Onboarding & Mentorship</h2>
+            <p style="font-size: 11px; color: var(--text-muted);">Assigned Trainer, Mandatory SOPs & 1st Week Daily Reviews</p>
           </div>
         </div>
 
         <!-- Trainer Card -->
-        <div class="content-card" style="border-left: 4px solid var(--gold-accent);">
+        <div class="content-card" style="border-left: 3px solid var(--gold-accent);">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <span style="font-size: 10.5px; font-weight: 700; color: var(--gold-dark); text-transform: uppercase;">Assigned Trainer & Mentor</span>
-              <h4 style="font-size: 15px; font-weight: 700; color: var(--navy-dark);" id="trainerNameDisplay">Vikram Reddy</h4>
-              <p style="font-size: 12px; color: var(--text-muted);" id="trainerRoleDisplay">Head of Operations & Assay</p>
+              <span style="font-size: 10px; font-weight: 700; color: var(--gold-dark); text-transform: uppercase;">Assigned Mentor</span>
+              <h4 style="font-size: 14px; font-weight: 700; color: var(--navy-dark);" id="trainerNameDisplay">Vikram Reddy</h4>
+              <p style="font-size: 11.5px; color: var(--text-muted);" id="trainerRoleDisplay">Head of Operations & Assay</p>
             </div>
-            <button class="btn-primary" style="font-size: 11px; padding: 6px 10px;" onclick="showToast('Contacting Trainer Vikram Reddy on intercom...')">
-              💬 Message Mentor
+            <button class="btn-primary" style="font-size: 11px; padding: 5px 10px;" onclick="showToast('Contacting mentor Vikram Reddy on internal channel...')">
+              <i class="fa-regular fa-comment-dots"></i> Message
             </button>
           </div>
         </div>
@@ -223,7 +223,7 @@
         <!-- Training Agenda Checklist -->
         <div class="content-card">
           <div class="card-header-row">
-            <div class="card-title">Mandatory Training Agenda</div>
+            <div class="card-title"><i class="fa-solid fa-graduation-cap"></i> Mandatory Training Agenda</div>
             <span class="badge-rag green" id="trainingProgressText">2 of 3 Done</span>
           </div>
           <div class="item-list" id="trainingModulesList">
@@ -231,26 +231,26 @@
           </div>
         </div>
 
-        <!-- 1st Week Daily Learning Diary (Review Form) -->
+        <!-- 1st Week Daily Learning Diary -->
         <div class="content-card">
           <div class="card-header-row">
-            <div class="card-title">📖 Daily Learning Diary (1st Week Reviews)</div>
+            <div class="card-title"><i class="fa-solid fa-book-open"></i> Daily Learning Diary (1st Week)</div>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-            Every day in your first week, record what you learned. Your HR and Mentor review this daily.
+          <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 10px;">
+            Record your daily key operational learnings during your first week. Reviewed by HR and your mentor.
           </p>
 
-          <form onsubmit="handleDiarySubmit(event)" style="margin-bottom: 14px;">
+          <form onsubmit="handleDiarySubmit(event)" style="margin-bottom: 12px;">
             <div class="form-group">
-              <label class="form-label">What did you learn / accomplish today?</label>
-              <textarea id="diaryInput" class="form-textarea" rows="2" placeholder="e.g., Practiced 6-digit HUID laser hallmarking registry and 0.001g weight variance checks..." required></textarea>
+              <label class="form-label">Today's Key Learnings / Practical Accomplishments</label>
+              <textarea id="diaryInput" class="form-textarea" rows="2" placeholder="e.g., Practiced 6-digit HUID laser hallmarking registry and 0.001g weight balance checks..." required></textarea>
             </div>
-            <button type="submit" class="btn-primary btn-full" style="font-size: 12px; padding: 8px;">
-              Submit Today's Learning Diary
+            <button type="submit" class="btn-primary btn-full" style="font-size: 11.5px; padding: 7px;">
+              <i class="fa-solid fa-paper-plane"></i> Submit Learning Entry
             </button>
           </form>
 
-          <div class="card-title" style="font-size: 13px; margin-bottom: 8px;">Previous Review Logs:</div>
+          <div class="card-title" style="font-size: 12.5px; margin-bottom: 8px;">Previous Diary Logs</div>
           <div id="diaryReviewsList">
             <!-- Dynamic diary reviews -->
           </div>
@@ -259,54 +259,53 @@
 
       <!-- TAB 4: PERFORMANCE -->
       <section id="tab-performance" class="tab-pane" style="display: none;">
-        <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 14px;">Performance Scorecard</h2>
+        <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark); margin-bottom: 12px;">Performance Scorecard</h2>
         
-        <div class="content-card" style="text-align: center; padding: 26px 18px;">
-          <div style="width: 84px; height: 84px; border-radius: 50%; background: #ecfdf5; border: 4px solid #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 4px 18px rgba(16, 185, 129, 0.25);">
-            <span style="font-size: 32px;">🟢</span>
+        <div class="content-card" style="text-align: center; padding: 22px 16px;">
+          <div style="width: 68px; height: 68px; border-radius: 50%; background: #ecfdf5; border: 3px solid #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <i class="fa-solid fa-check" style="font-size: 26px; color: #10b981;"></i>
           </div>
-          <h3 style="font-size: 20px; font-weight: 800; color: var(--navy-dark);">ON TRACK (GREEN)</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Evaluated by <strong>Vikram Reddy (Dept Head)</strong></p>
+          <h3 style="font-size: 18px; font-weight: 800; color: var(--navy-dark);">ON TRACK (GREEN)</h3>
+          <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">Evaluated by <strong>Vikram Reddy (Dept Head)</strong></p>
         </div>
 
         <div class="content-card">
           <div class="card-title" style="margin-bottom: 8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c59b27" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            Supervisor Feedback
+            <i class="fa-solid fa-comments"></i> Supervisor Feedback
           </div>
-          <div style="background: var(--bg-card-subtle); padding: 14px; border-radius: var(--radius-md); font-size: 13.5px; color: var(--text-main); line-height: 1.5; border-left: 4px solid var(--gold-primary);">
-            "Adithi has shown immaculate accuracy with our 22K gold inventory reconciliation and timely hallmarking proof uploads. Keep up the high standards."
+          <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-sm); font-size: 12.5px; color: var(--text-main); line-height: 1.45; border-left: 3px solid var(--gold-primary);">
+            "Adithi has shown consistent accuracy with daily 22K gold vault weight reconciliations and timely proof documentation. Maintaining top-tier SOP compliance."
           </div>
         </div>
       </section>
 
       <!-- TAB 5: PROFILE -->
       <section id="tab-profile" class="tab-pane" style="display: none;">
-        <div class="hero-card" style="text-align: center; padding: 24px;">
-          <div class="avatar-initials lg" style="margin: 0 auto 12px auto;" id="profile-avatar-lg">AS</div>
-          <h2 style="font-size: 19px; font-weight: 700; color: #ffffff;" id="profile-name-lg">Adithi Sharma</h2>
-          <p style="font-size: 13px; color: #cbd5e1;" id="profile-role-lg">Fine Jewellery Operations Executive</p>
-          <div style="margin-top: 8px;">
-            <span class="role-tag-pill emp" id="profile-status-pill">100% Active Profile</span>
+        <div class="hero-card" style="text-align: center; padding: 20px;">
+          <div class="avatar-initials lg" style="margin: 0 auto 10px auto;" id="profile-avatar-lg">AS</div>
+          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;" id="profile-name-lg">Adithi Sharma</h2>
+          <p style="font-size: 12px; color: #cbd5e1;" id="profile-role-lg">Fine Jewellery Operations Executive</p>
+          <div style="margin-top: 6px;">
+            <span class="role-tag-pill emp" id="profile-status-pill"><i class="fa-solid fa-circle-check"></i> 100% Active Profile</span>
           </div>
         </div>
 
         <div class="content-card">
-          <div class="card-title" style="margin-bottom: 14px;">Work & Employment Details</div>
-          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+          <div class="card-title" style="margin-bottom: 12px;"><i class="fa-solid fa-id-card"></i> Official Employment Details</div>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
               <span style="color: var(--text-muted);">Department</span>
               <strong>Operations & Crafting</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
               <span style="color: var(--text-muted);">Probation Period</span>
               <strong style="color: var(--gold-dark);">2 Weeks (Experienced Specialist)</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Assigned Trainer</span>
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-muted);">Assigned Mentor</span>
               <strong>Vikram Reddy (Head of Operations)</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
               <span style="color: var(--text-muted);">Official Email</span>
               <strong>adithi.s@mnjewelpark.com</strong>
             </div>
@@ -314,10 +313,10 @@
         </div>
 
         <button class="btn-primary btn-full" style="margin-bottom: 10px;" onclick="openModal('modal-verify-profile')">
-          ⚙️ Re-Authorize & Audit Profile (100%)
+          <i class="fa-solid fa-shield-halved"></i> Verify & Re-Audit Profile (100%)
         </button>
 
-        <button class="btn-navy btn-full" onclick="showToast('Logged out securely')">Sign Out</button>
+        <button class="btn-navy btn-full" onclick="showToast('Session logged out securely.')">Sign Out</button>
       </section>
 
     </main>
@@ -325,23 +324,23 @@
     <!-- Bottom Navigation Bar (5 tabs) -->
     <nav class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('home')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <i class="fa-solid fa-house"></i>
         <span>Home</span>
       </div>
       <div class="nav-item" onclick="switchTab('tasks')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+        <i class="fa-solid fa-list-check"></i>
         <span>Things To Do</span>
       </div>
       <div class="nav-item" onclick="switchTab('training')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <i class="fa-solid fa-user-graduate"></i>
         <span>Training</span>
       </div>
       <div class="nav-item" onclick="switchTab('performance')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
-        <span>Performance</span>
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Scorecard</span>
       </div>
       <div class="nav-item" onclick="switchTab('profile')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <i class="fa-solid fa-user"></i>
         <span>Profile</span>
       </div>
     </nav>
@@ -351,37 +350,37 @@
   <div class="modal-backdrop" id="modal-proof">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">📸 Submit Completion Proof</h3>
+        <h3 class="modal-title"><i class="fa-solid fa-camera"></i> Submit Completion Proof</h3>
         <button class="modal-close" onclick="closeModal('modal-proof')">✕</button>
       </div>
       <div style="font-size: 13px; font-weight: 700; color: var(--navy-dark); margin-bottom: 4px;" id="proofTaskTitle">
-        Perform daily 22K gold vault weight reconciliation
+        Daily 22K Gold Vault Weight Reconciliation
       </div>
       <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-        As per MN Jewel Park security audit, attach photo or slip verification note before marking complete.
+        Attach verification photo or register slip note as required by MN Jewel Park compliance policy.
       </p>
 
       <form onsubmit="handleProofSubmit(event)">
         <input type="hidden" id="proofTaskId">
         
         <div class="form-group">
-          <label class="form-label">Attached Photo Proof (Simulated Snapshot)</label>
-          <div style="display: flex; gap: 10px; align-items: center; padding: 10px; background: var(--bg-card-subtle); border-radius: var(--radius-sm); border: 1px dashed var(--gold-border);">
-            <img id="proofPreviewImg" src="https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&q=80&w=300" style="width: 54px; height: 54px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border-light);" alt="Proof">
+          <label class="form-label">Attached Photo Proof</label>
+          <div style="display: flex; gap: 10px; align-items: center; padding: 10px; background: var(--bg-card-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+            <img id="proofPreviewImg" src="https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&q=80&w=300" style="width: 50px; height: 50px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border-light);" alt="Proof">
             <div>
-              <strong style="font-size: 12px; color: var(--text-main);">Gold Assay & Ledger Photo</strong>
-              <div style="font-size: 11px; color: var(--text-muted);">Timestamp: Verified at bench</div>
-              <button type="button" class="btn-navy" style="font-size: 10px; padding: 3px 8px; margin-top: 4px;" onclick="showToast('Camera snapshot reloaded')">Take New Photo</button>
+              <strong style="font-size: 12px; color: var(--text-main);">Gold Assay & Ledger Snapshot</strong>
+              <div style="font-size: 11px; color: var(--text-muted);">Bench workstation verification</div>
+              <button type="button" class="btn-navy" style="font-size: 10px; padding: 2px 7px; margin-top: 4px;" onclick="showToast('Photo refreshed from bench camera.')">Retake Photo</button>
             </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Verification Note / Serial # / Ledger Details</label>
-          <textarea id="proofNoteInput" class="form-textarea" rows="2" placeholder="e.g., Weight matched 4,820.450g. Checked by dual witness." required></textarea>
+          <label class="form-label">Verification Note / Ledger Serial Details</label>
+          <textarea id="proofNoteInput" class="form-textarea" rows="2" placeholder="e.g., Weight confirmed 4,820.450g. Dual-verified with master scales." required></textarea>
         </div>
 
-        <button type="submit" class="btn-primary btn-full">✓ Complete Task with Proof</button>
+        <button type="submit" class="btn-primary btn-full"><i class="fa-solid fa-check"></i> Complete Task with Verified Proof</button>
       </form>
     </div>
   </div>
@@ -390,26 +389,26 @@
   <div class="modal-backdrop" id="modal-postpone">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title" style="color: #92400e;">⏳ Not Finished — Postpone Task</h3>
+        <h3 class="modal-title" style="color: #92400e;"><i class="fa-regular fa-clock"></i> Postpone SOP / Log Reason</h3>
         <button class="modal-close" onclick="closeModal('modal-postpone')">✕</button>
       </div>
       <div style="font-size: 13px; font-weight: 700; color: var(--navy-dark); margin-bottom: 4px;" id="postponeTaskTitle">
         Evening Gold Craft Waste & Sweepings Recovery Log
       </div>
       <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-        If you cannot complete this daily SOP today, provide a proper reason for manager and CEO review.
+        If an operational task cannot be finished today, provide a justification for manager and CEO review.
       </p>
 
       <form onsubmit="handlePostponeSubmit(event)">
         <input type="hidden" id="postponeTaskId">
 
         <div class="form-group">
-          <label class="form-label">Mandatory Reason for Postponing</label>
-          <textarea id="postponeReasonInput" class="form-textarea" rows="3" placeholder="e.g., Customer customized bridal alteration delayed workbench shutdown..." required></textarea>
+          <label class="form-label">Operational Reason for Postponement</label>
+          <textarea id="postponeReasonInput" class="form-textarea" rows="3" placeholder="e.g., Custom bridal alteration order extended bench hours past furnace shutdown..." required></textarea>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Postpone Target Date</label>
+          <label class="form-label">Reschedule Target</label>
           <select id="postponeTargetDate" class="form-select">
             <option value="Tomorrow 08:30 AM">Tomorrow Morning (08:30 AM)</option>
             <option value="Tomorrow 02:00 PM">Tomorrow Midday (02:00 PM)</option>
@@ -418,8 +417,8 @@
           </select>
         </div>
 
-        <button type="submit" class="btn-primary btn-full" style="background: #d97706; border-color: #b45309;">
-          Submit Reason & Postpone
+        <button type="submit" class="btn-primary btn-full" style="background: #d97706; border-color: #b45309; color: #ffffff;">
+          <i class="fa-solid fa-calendar-plus"></i> Submit Reason & Postpone
         </button>
       </form>
     </div>
@@ -429,55 +428,55 @@
   <div class="modal-backdrop" id="modal-view-proof">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">🔍 Verified Proof Record</h3>
+        <h3 class="modal-title"><i class="fa-regular fa-eye"></i> Verified Proof Audit Record</h3>
         <button class="modal-close" onclick="closeModal('modal-view-proof')">✕</button>
       </div>
-      <img id="viewProofImg" src="" style="width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid var(--border-light);" alt="Proof">
-      <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 12px;">
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Timestamp: <span id="viewProofTime" style="font-weight: 700; color: var(--text-main);"></span></div>
-        <div style="font-size: 13px; color: var(--text-main); line-height: 1.4;" id="viewProofContent"></div>
+      <img id="viewProofImg" src="" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid var(--border-light);" alt="Proof">
+      <div style="background: var(--bg-card-subtle); padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Verified Time: <span id="viewProofTime" style="font-weight: 700; color: var(--text-main);"></span></div>
+        <div style="font-size: 12.5px; color: var(--text-main); line-height: 1.4;" id="viewProofContent"></div>
       </div>
       <button class="btn-navy btn-full" onclick="closeModal('modal-view-proof')">Close</button>
     </div>
   </div>
 
-  <!-- MODAL 4: 100% PROFILE VERIFICATION & AUTHORIZATION WIZARD -->
+  <!-- MODAL 4: 100% PROFILE VERIFICATION WIZARD -->
   <div class="modal-backdrop" id="modal-verify-profile">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">👑 100% Profile & SOP Authorization</h3>
+        <h3 class="modal-title"><i class="fa-solid fa-id-card-clip"></i> 100% Profile & SOP Verification</h3>
         <button class="modal-close" onclick="closeModal('modal-verify-profile')">✕</button>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-        Authorize your profile data, identity, and daily SOP responsibilities to become a fully verified active enterprise member.
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+        Confirm your profile credentials and daily operational duties to maintain full Active enterprise clearance.
       </p>
 
       <div class="auth-step-row">
-        <div class="auth-step-chk">✓</div>
+        <div class="auth-step-chk"><i class="fa-solid fa-check"></i></div>
         <div>
-          <strong style="font-size: 13px; color: var(--text-main);">1. Photo & Biometrics Verification</strong>
-          <div style="font-size: 11.5px; color: var(--text-muted);">"Yes, this is my official photo & badge ID (MN-1024)"</div>
+          <strong style="font-size: 12.5px; color: var(--text-main);">1. Photo Identity & Badge</strong>
+          <div style="font-size: 11px; color: var(--text-muted);">Official badge ID MN-1024 verified with HR records.</div>
         </div>
       </div>
 
       <div class="auth-step-row">
-        <div class="auth-step-chk">✓</div>
+        <div class="auth-step-chk"><i class="fa-solid fa-check"></i></div>
         <div>
-          <strong style="font-size: 13px; color: var(--text-main);">2. Permanent Address & KYC Contact</strong>
-          <div style="font-size: 11.5px; color: var(--text-muted);">Verified mobile number +91 98450 12345 and residential proof.</div>
+          <strong style="font-size: 12.5px; color: var(--text-main);">2. Contact & KYC Compliance</strong>
+          <div style="font-size: 11px; color: var(--text-muted);">Mobile +91 98450 12345 and residential address validated.</div>
         </div>
       </div>
 
       <div class="auth-step-row">
-        <div class="auth-step-chk">✓</div>
+        <div class="auth-step-chk"><i class="fa-solid fa-check"></i></div>
         <div>
-          <strong style="font-size: 13px; color: var(--text-main);">3. Predefined SOP & Things To Do Acknowledgment</strong>
-          <div style="font-size: 11.5px; color: var(--text-muted);">I have read and acknowledged my daily immutable SOP checklist.</div>
+          <strong style="font-size: 12.5px; color: var(--text-main);">3. SOP Checklist & Duties Acknowledgment</strong>
+          <div style="font-size: 11px; color: var(--text-muted);">Daily operational routines acknowledged and active.</div>
         </div>
       </div>
 
       <button class="btn-primary btn-full" style="margin-top: 10px;" onclick="confirm100PercentAuthorization()">
-        🌟 Authorize & Activate 100% Profile
+        <i class="fa-solid fa-circle-check"></i> Confirm Authorization (100%)
       </button>
     </div>
   </div>
@@ -486,11 +485,11 @@
   <div class="modal-backdrop" id="modal-leave">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">Apply for Emergency Leave</h3>
+        <h3 class="modal-title"><i class="fa-regular fa-calendar-plus"></i> Apply for Emergency Leave</h3>
         <button class="modal-close" onclick="closeModal('modal-leave')">✕</button>
       </div>
       <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-        When you take leave, HR has the authority to delegate your daily SOP tasks to a covering colleague.
+        Upon submission, HR can seamlessly re-assign your scheduled daily SOP tasks to a designated colleague.
       </p>
       <form onsubmit="handleLeaveSubmit(event)">
         <div class="form-group">
@@ -510,9 +509,9 @@
         </div>
         <div class="form-group">
           <label class="form-label">Reason</label>
-          <textarea class="form-textarea" rows="2" placeholder="Urgent family / health reason" required></textarea>
+          <textarea class="form-textarea" rows="2" placeholder="Urgent family / medical coverage" required></textarea>
         </div>
-        <button type="submit" class="btn-primary btn-full">Submit & Notify HR for Task Coverage</button>
+        <button type="submit" class="btn-primary btn-full"><i class="fa-solid fa-paper-plane"></i> Submit Leave Application</button>
       </form>
     </div>
   </div>
@@ -547,8 +546,8 @@
       if (pct >= 100) {
         document.getElementById('profileAuthText').textContent = '100% Active & Authorized';
         document.getElementById('profileCardTitle').textContent = 'Enterprise Clearance Active (100%)';
-        document.getElementById('profileCardSub').textContent = 'Identity, Address, and Daily SOP Responsibilities are 100% verified.';
-        document.getElementById('btnProfileWizard').textContent = 'Audit Clearance';
+        document.getElementById('profileCardSub').textContent = 'Identity, address KYC, and daily SOP responsibilities are authorized.';
+        document.getElementById('btnProfileWizard').textContent = 'View Audit';
       } else {
         document.getElementById('profileAuthText').textContent = `${pct}% Incomplete`;
         document.getElementById('profileCardTitle').textContent = `Action Required (${pct}% Complete)`;
@@ -568,7 +567,7 @@
       const postponedCount = tasks.filter(t => t.status === 'postponed').length;
       const completedCount = tasks.filter(t => t.status === 'completed').length;
 
-      document.getElementById('badge-pending-tasks').textContent = `${pendingCount} pending`;
+      document.getElementById('badge-pending-tasks').textContent = `${pendingCount} Pending`;
       document.getElementById('today-tasks-count').textContent = `(${tasks.length})`;
       document.getElementById('kpi-tasks-pending').textContent = pendingCount;
       document.getElementById('kpi-tasks-postponed').textContent = postponedCount;
@@ -582,17 +581,17 @@
       const html = filtered.map(t => createTaskCardHtml(t)).join('');
 
       document.getElementById('home-tasks-container').innerHTML = tasks.slice(0, 4).map(t => createTaskCardHtml(t)).join('');
-      document.getElementById('full-tasks-container').innerHTML = html || '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">No tasks match this filter.</div>';
+      document.getElementById('full-tasks-container').innerHTML = html || '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:12.5px;">No tasks match this filter.</div>';
     }
 
     function createTaskCardHtml(task) {
-      let assignerBadge = `<span class="authority-pill sop">🔒 Predefined SOP</span>`;
+      let assignerBadge = `<span class="authority-pill sop"><i class="fa-solid fa-lock"></i> Standard SOP</span>`;
       if (task.assignedBy && task.assignedBy.role === 'ceo') {
-        assignerBadge = `<span class="authority-pill ceo">👑 ${task.assignedBy.name}</span>`;
+        assignerBadge = `<span class="authority-pill ceo"><i class="fa-solid fa-crown"></i> ${task.assignedBy.name}</span>`;
       } else if (task.assignedBy && task.assignedBy.role === 'dept_head') {
-        assignerBadge = `<span class="authority-pill lead">🛡️ ${task.assignedBy.name}</span>`;
+        assignerBadge = `<span class="authority-pill lead"><i class="fa-solid fa-shield-halved"></i> ${task.assignedBy.name}</span>`;
       } else if (task.delegatedFrom) {
-        assignerBadge = `<span class="authority-pill delegated">📑 Covering: ${task.delegatedFrom.originalName}</span>`;
+        assignerBadge = `<span class="authority-pill delegated"><i class="fa-solid fa-handshake"></i> Covering: ${task.delegatedFrom.originalName}</span>`;
       }
 
       const isCompleted = task.status === 'completed';
@@ -602,18 +601,18 @@
         <div class="task-item-card ${isCompleted ? 'has-proof completed' : ''} ${isPostponed ? 'is-postponed' : ''}">
           <div class="task-top-row">
             <div class="custom-checkbox ${isCompleted ? 'checked' : ''}" onclick="openProofModal('${task.id}')">
-              ${isCompleted ? '✓' : ''}
+              ${isCompleted ? '<i class="fa-solid fa-check"></i>' : ''}
             </div>
             <div class="task-main-info">
-              <div class="task-title" style="${isCompleted ? 'text-decoration:line-through; opacity:0.75;' : ''}">${task.title}</div>
+              <div class="task-title">${task.title}</div>
               <div class="task-meta-row">
                 ${assignerBadge}
                 <span class="priority-pill ${task.priority === 'Critical SLA' ? 'high' : 'medium'}">${task.priority}</span>
                 <span>Due: ${task.due}</span>
                 ${isCompleted && task.proof ? `
                   <span class="proof-tag" onclick="viewProof('${task.id}')">
-                    <img class="proof-thumb" src="${task.proof.photoUrl || ''}" alt="P">
-                    ✓ Proof Attached
+                    <img class="proof-thumb" src="${task.proof.photoUrl || ''}" alt="Proof">
+                    <i class="fa-solid fa-circle-check"></i> Proof Attached
                   </span>
                 ` : ''}
               </div>
@@ -622,21 +621,21 @@
 
           ${isPostponed && task.postponeInfo ? `
             <div class="postponed-callout">
-              <strong>⏳ Postponed to ${task.postponeInfo.postponedTo}:</strong> "${task.postponeInfo.reason}"
+              <strong><i class="fa-regular fa-clock"></i> Postponed to ${task.postponeInfo.postponedTo}:</strong> "${task.postponeInfo.reason}"
             </div>
           ` : ''}
 
           <div class="task-bottom-actions">
             ${!isCompleted ? `
               <button class="btn-task-action proof" onclick="openProofModal('${task.id}')">
-                📸 Submit Proof
+                <i class="fa-solid fa-camera"></i> Submit Proof
               </button>
               <button class="btn-task-action postpone" onclick="openPostponeModal('${task.id}')">
-                ⏳ Not Finished
+                <i class="fa-regular fa-clock"></i> Postpone
               </button>
             ` : `
               <button class="btn-task-action proof" onclick="viewProof('${task.id}')">
-                🔍 View Attached Proof
+                <i class="fa-regular fa-eye"></i> View Proof
               </button>
             `}
           </div>
@@ -652,18 +651,20 @@
 
       const modules = emp.trainingAgenda || [];
       const done = modules.filter(m => m.done).length;
-      document.getElementById('trainingProgressText').textContent = `${done} of ${modules.length} Completed`;
+      document.getElementById('trainingProgressText').textContent = `${done} of ${modules.length} Done`;
 
       document.getElementById('trainingModulesList').innerHTML = modules.map(m => `
-        <div class="training-module-row ${m.done ? 'completed' : ''}">
-          <div style="font-size: 16px;">${m.done ? '✅' : '⏳'}</div>
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:9px 11px; background:${m.done ? '#f0fdf4' : 'var(--bg-card-subtle)'}; border-radius:var(--radius-sm); border:1px solid ${m.done ? '#bbf7d0' : 'var(--border-light)'};">
+          <div style="font-size: 14px; margin-top:2px; color:${m.done ? '#10b981' : 'var(--text-muted)'};">
+            <i class="${m.done ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'}"></i>
+          </div>
           <div style="flex:1;">
-            <strong style="font-size: 13px; color: var(--navy-dark);">${m.title}</strong>
-            <p style="font-size: 11.5px; color: var(--text-muted); margin: 2px 0 4px 0;">${m.desc}</p>
+            <strong style="font-size: 12.5px; color: var(--navy-dark);">${m.title}</strong>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 4px 0;">${m.desc}</p>
             ${m.done ? `
               <span style="font-size: 10px; color: #047857; font-weight: 700;">Verified by ${m.verifiedBy || 'Mentor'}</span>
             ` : `
-              <button class="btn-primary" style="font-size: 10px; padding: 3px 8px;" onclick="completeModuleAction(${m.id})">Mark Module Done</button>
+              <button class="btn-primary" style="font-size: 10px; padding: 2px 7px;" onclick="completeModuleAction(${m.id})">Mark Done</button>
             `}
           </div>
         </div>
@@ -672,12 +673,12 @@
       // Diary list
       const reviews = emp.dailyReviews || [];
       document.getElementById('diaryReviewsList').innerHTML = reviews.map(r => `
-        <div class="diary-review-item">
-          <div class="diary-review-header">
-            <span>${r.day} (${r.date})</span>
+        <div style="padding:8px 10px; background:var(--bg-card-subtle); border-radius:var(--radius-xs); border:1px solid var(--border-light); margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+            <strong style="color:var(--navy-dark);">${r.day} (${r.date})</strong>
             <span class="badge-rag green">${r.trainerRating || 'Reviewed'}</span>
           </div>
-          <p style="color: var(--text-main);">${r.learnings}</p>
+          <p style="font-size:12px; color: var(--text-main); line-height:1.35;">${r.learnings}</p>
         </div>
       `).join('');
     }
@@ -688,7 +689,7 @@
       if (!task) return;
       document.getElementById('proofTaskId').value = taskId;
       document.getElementById('proofTaskTitle').textContent = task.title;
-      document.getElementById('proofNoteInput').value = `Verified 916 Hallmark & ledger register for ${task.title.substring(0, 30)}...`;
+      document.getElementById('proofNoteInput').value = `Verified 916 Hallmark & register for ${task.title.substring(0, 30)}...`;
       openModal('modal-proof');
     }
 
@@ -706,7 +707,7 @@
       closeModal('modal-proof');
       renderAll();
       window.MNStore.playNotificationSound();
-      showToast('✨ Task completed with verified proof!');
+      showToast('Task completed with verified proof.');
     }
 
     function openPostponeModal(taskId) {
@@ -727,7 +728,7 @@
       window.MNStore.postponeTaskWithReason(taskId, reason, targetDate);
       closeModal('modal-postpone');
       renderAll();
-      showToast(`⏳ Task postponed to ${targetDate}. Reason recorded for Manager review.`);
+      showToast(`Task postponed to ${targetDate}. Reason recorded.`);
     }
 
     function viewProof(taskId) {
@@ -745,13 +746,13 @@
       closeModal('modal-verify-profile');
       renderAll();
       window.MNStore.playNotificationSound();
-      showToast('🎉 100% Profile Authorized & Enterprise Clearance Activated!');
+      showToast('100% Profile authorized & clearance active.');
     }
 
     function completeModuleAction(moduleId) {
       window.MNStore.toggleTrainingModule(CURRENT_EMP_ID, moduleId, 'Vikram Reddy');
       renderAll();
-      showToast('🎓 Training module signed off and updated!');
+      showToast('Training module signed off.');
     }
 
     function handleDiarySubmit(e) {
@@ -763,12 +764,12 @@
       window.MNStore.addDailyReview(CURRENT_EMP_ID, text, 'Excellent (5/5)');
       input.value = '';
       renderAll();
-      showToast('📖 Today\'s learning diary logged and sent to Mentor & HR!');
+      showToast('Daily learning entry saved.');
     }
 
     function triggerResistanceReminder(manual = false) {
       window.MNStore.playNotificationSound();
-      showToast('⏰ PUSH NUDGE: 2 Daily SOP Things To Do pending proof upload!');
+      showToast('Reminder: 2 Daily SOP tasks pending proof upload.');
     }
 
     function filterEmpTasks(type, btn) {
@@ -781,7 +782,7 @@
     function handleLeaveSubmit(e) {
       e.preventDefault();
       closeModal('modal-leave');
-      showToast('Leave request submitted. HR can delegate your daily tasks to a covering colleague.');
+      showToast('Leave request submitted. HR notified for task coverage.');
     }
 
     function switchTab(tabId) {

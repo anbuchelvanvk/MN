@@ -6,7 +6,8 @@
   <meta name="theme-color" content="#0b0e17">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family - Internal Ecosystem Hub</title>
+  <title>MN Family — Internal Ecosystem Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="portal.css">
   <style>
     body {
@@ -17,7 +18,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 20px 12px 40px 12px;
+      padding: 16px 12px 36px 12px;
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
@@ -29,18 +30,18 @@
 
     .hub-header {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .hub-logo {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
       background: #000;
-      border: 2px solid #d4af37;
-      box-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
-      margin: 0 auto 12px auto;
-      padding: 5px;
+      border: 1.5px solid #d4af37;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+      margin: 0 auto 10px auto;
+      padding: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -48,36 +49,36 @@
 
     .hub-title {
       font-family: 'Cinzel', serif;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
       letter-spacing: 0.5px;
       background: linear-gradient(135deg, #fff2a3 0%, #d4af37 50%, #997d1e 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     @media (min-width: 600px) {
       .hub-title {
-        font-size: 30px;
+        font-size: 28px;
       }
     }
 
     .hub-subtitle {
-      font-size: 13px;
+      font-size: 12px;
       color: #94a3b8;
-      max-width: 620px;
+      max-width: 600px;
       margin: 0 auto;
-      line-height: 1.5;
-      padding: 0 10px;
+      line-height: 1.45;
+      padding: 0 8px;
     }
 
     /* Workflow Highlights Grid */
     .ecosystem-highlights {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 10px;
-      margin-bottom: 24px;
+      gap: 8px;
+      margin-bottom: 20px;
     }
 
     @media (min-width: 640px) {
@@ -89,29 +90,32 @@
     .highlight-card {
       background: rgba(17, 24, 39, 0.7);
       border: 1px solid rgba(212, 175, 55, 0.2);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 12px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11.5px;
       color: #cbd5e1;
+      line-height: 1.4;
     }
     .highlight-card strong {
       color: #fde68a;
-      display: block;
-      margin-bottom: 4px;
-      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+      font-size: 12.5px;
     }
 
     .role-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     @media (min-width: 640px) {
       .role-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
+        gap: 12px;
       }
     }
 
@@ -123,15 +127,15 @@
 
     .role-card-link {
       background: rgba(24, 34, 52, 0.75);
-      border: 1px solid rgba(212, 175, 55, 0.22);
-      border-radius: 16px;
-      padding: 18px 16px;
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 14px;
+      padding: 15px 14px;
       text-decoration: none;
       color: #ffffff;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       touch-action: manipulation;
     }
@@ -143,9 +147,9 @@
 
     @media (min-width: 768px) {
       .role-card-link:hover {
-        transform: translateY(-4px);
+        transform: translateY(-3px);
         border-color: #d4af37;
-        box-shadow: 0 12px 30px rgba(212, 175, 55, 0.2);
+        box-shadow: 0 8px 24px rgba(212, 175, 55, 0.18);
         background: rgba(30, 41, 59, 0.9);
       }
     }
@@ -154,60 +158,60 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .role-icon-box {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 19px;
+      font-size: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .role-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #ffffff;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .role-desc {
-      font-size: 12px;
+      font-size: 11.5px;
       color: #94a3b8;
-      line-height: 1.45;
-      margin-bottom: 14px;
+      line-height: 1.4;
+      margin-bottom: 12px;
       flex: 1;
     }
 
     .role-action-btn {
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
       color: #d4af37;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
 
     /* Live Preview Section */
     .preview-frame-container {
       background: #111827;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      padding: 16px;
-      margin-top: 10px;
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 8px;
     }
 
     .preview-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
     }
 
     .preview-tabs {
@@ -227,9 +231,9 @@
       background: #1f2937;
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #94a3b8;
-      padding: 6px 12px;
+      padding: 5px 11px;
       border-radius: 99px;
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -248,16 +252,16 @@
       width: 100%;
       max-width: 480px;
       margin: 0 auto;
-      border-radius: 20px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-      border: 2px solid rgba(212, 175, 55, 0.25);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      border: 1.5px solid rgba(212, 175, 55, 0.25);
       background: #f8fafc;
     }
 
     .preview-iframe {
       width: 100%;
-      height: 720px;
+      height: 680px;
       border: none;
       display: block;
       background: #f8fafc;
@@ -274,23 +278,23 @@
       </div>
       <h1 class="hub-title">MN JEWEL PARK</h1>
       <p class="hub-subtitle">
-        Internal Ecosystem & Workforce Suite. Experience-based probation, daily SOP proof pipelines, emergency leave delegation, 100% profile activation & smart resistance push alerts.
+        Internal Operations Nerve Center & Executive Management Hub. Dynamic probation rules, daily SOP proof audits, emergency task delegations, and 100% profile activation.
       </p>
     </header>
 
-    <!-- 3 Key Highlights of the Architecture -->
+    <!-- 3 Key Highlights -->
     <div class="ecosystem-highlights">
       <div class="highlight-card">
-        <strong>⏳ Dynamic Probation by HR</strong>
-        3+ Yrs Experienced = 2 Weeks Probation; Fresher = 1 Month (4 Wks). Mentor assigned with mandatory Training Agenda & 1st week Daily Diary.
+        <strong><i class="fa-solid fa-user-clock"></i> Dynamic Probation Management</strong>
+        3+ Yrs Experience = 2 Weeks Probation; Fresher = 1 Month (4 Wks). Mentor assigned with training checklist and 1st week daily review diary.
       </div>
       <div class="highlight-card">
-        <strong>📸 SOPs, Proof & Postpone Reasons</strong>
-        Predefined immutable daily "Things to Do". Mark complete with photo proof or choose "Not Finished" with mandatory reason recorded for Manager/CEO.
+        <strong><i class="fa-solid fa-list-check"></i> SOPs, Proof & Postponements</strong>
+        Standardized daily routines. Complete with verified photo documentation or log operational postponement reasons for executive review.
       </div>
       <div class="highlight-card">
-        <strong>👑 Universal Hierarchy & Delegations</strong>
-        CEO assigns to anyone; Dept Head assigns to team; HR delegates emergency leave tasks to covering staff. 100% Profile Authorization Gateway.
+        <strong><i class="fa-solid fa-shield-halved"></i> Organizational Hierarchy & Coverage</strong>
+        CEO cross-department directives, department lead queue management, and HR emergency leave task coverage delegation.
       </div>
     </div>
 
@@ -300,7 +304,9 @@
       <!-- 1. Employee -->
       <a href="employee.html" class="role-card-link">
         <div class="role-badge-row">
-          <div class="role-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #fde68a;">👤</div>
+          <div class="role-icon-box" style="background: rgba(245, 158, 11, 0.15); color: #fde68a;">
+            <i class="fa-solid fa-user"></i>
+          </div>
           <span class="role-tag-pill emp">Employee</span>
         </div>
         <div class="role-name">Employee Portal</div>
@@ -309,14 +315,16 @@
         </div>
         <div class="role-action-btn">
           Open employee.html
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <i class="fa-solid fa-arrow-right"></i>
         </div>
       </a>
 
       <!-- 2. Dept Head -->
       <a href="dept-head.html" class="role-card-link">
         <div class="role-badge-row">
-          <div class="role-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #93c5fd;">👔</div>
+          <div class="role-icon-box" style="background: rgba(59, 130, 246, 0.15); color: #93c5fd;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
           <span class="role-tag-pill dept">Dept Head</span>
         </div>
         <div class="role-name">Department Head</div>
@@ -325,14 +333,16 @@
         </div>
         <div class="role-action-btn">
           Open dept-head.html
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <i class="fa-solid fa-arrow-right"></i>
         </div>
       </a>
 
       <!-- 3. HR Admin -->
       <a href="hr.html" class="role-card-link">
         <div class="role-badge-row">
-          <div class="role-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #86efac;">📑</div>
+          <div class="role-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #86efac;">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
           <span class="role-tag-pill hr">HR Admin</span>
         </div>
         <div class="role-name">HR Management</div>
@@ -341,14 +351,16 @@
         </div>
         <div class="role-action-btn">
           Open hr.html
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <i class="fa-solid fa-arrow-right"></i>
         </div>
       </a>
 
       <!-- 4. CEO Suite -->
       <a href="ceo.html" class="role-card-link">
         <div class="role-badge-row">
-          <div class="role-icon-box" style="background: rgba(212, 175, 55, 0.15); color: #fde68a;">👑</div>
+          <div class="role-icon-box" style="background: rgba(212, 175, 55, 0.15); color: #fde68a;">
+            <i class="fa-solid fa-crown"></i>
+          </div>
           <span class="role-tag-pill ceo">CEO Suite</span>
         </div>
         <div class="role-name">Executive CEO Suite</div>
@@ -357,7 +369,7 @@
         </div>
         <div class="role-action-btn">
           Open ceo.html
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <i class="fa-solid fa-arrow-right"></i>
         </div>
       </a>
 
@@ -366,8 +378,9 @@
     <!-- Live Interactive Preview Container -->
     <div class="preview-frame-container">
       <div class="preview-bar">
-        <div style="font-size: 13.5px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
-          <span>📱 Live Role Preview:</span>
+        <div style="font-size: 13px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>Live Mobile Preview:</span>
           <span id="active-preview-name" style="color: var(--gold-accent);">Employee Portal</span>
         </div>
         <div class="preview-tabs">
@@ -375,25 +388,25 @@
           <button class="preview-tab-btn" onclick="loadPreview('dept-head.html', 'Department Head', this)">Dept Head</button>
           <button class="preview-tab-btn" onclick="loadPreview('hr.html', 'HR Management', this)">HR</button>
           <button class="preview-tab-btn" onclick="loadPreview('ceo.html', 'CEO Executive Suite', this)">CEO</button>
-          <a id="fullscreen-link" href="employee.html" target="_blank" class="preview-tab-btn" style="background: rgba(203, 176, 148, 0.15); color: var(--gold-accent); text-decoration: none; border-color: rgba(203,176,148,0.3);">⤢ Launch Fullscreen</a>
+          <a id="fullscreen-link" href="employee.html" target="_blank" class="preview-tab-btn" style="background: rgba(203, 176, 148, 0.15); color: var(--gold-accent); text-decoration: none; border-color: rgba(203,176,148,0.3);"><i class="fa-solid fa-up-right-from-square"></i> Fullscreen</a>
         </div>
       </div>
 
       <!-- Color Combination Quick Selector Bar -->
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.4); border-radius: 14px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; border: 1px solid rgba(255,255,255,0.08);">
-        <span style="font-size: 12px; color: #cbd5e1; font-weight: 700;">🎨 Luxury Color Combinations:</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: rgba(0,0,0,0.4); border-radius: 12px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; border: 1px solid rgba(255,255,255,0.08);">
+        <span style="font-size: 11.5px; color: #cbd5e1; font-weight: 700;"><i class="fa-solid fa-palette"></i> Luxury Color Palettes:</span>
         <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="theme-btn-group">
           <button class="preview-tab-btn active" id="combo-btn-maroon" onclick="switchThemeDirect('maroon', this)" style="background: #490410; border-color: #dfc8af; color: #f8f1ea;">
-            🍷 Combo 1: Burgundy & Sand
+            Combo 1: Burgundy & Sand
           </button>
           <button class="preview-tab-btn" id="combo-btn-onyx" onclick="switchThemeDirect('onyx', this)" style="background: #111115; border-color: #dfc8af; color: #dfc8af;">
-            🖤 Combo 2: Onyx & Sand
+            Combo 2: Onyx & Sand
           </button>
           <button class="preview-tab-btn" id="combo-btn-navy" onclick="switchThemeDirect('navy', this)" style="background: #0f172a; border-color: #d4af37; color: #fef9e7;">
-            👑 Combo 3: Navy & Gold
+            Combo 3: Navy & Gold
           </button>
           <button class="preview-tab-btn" id="combo-btn-emerald" onclick="switchThemeDirect('emerald', this)" style="background: #044330; border-color: #eab308; color: #f0fdf4;">
-            💎 Combo 4: Emerald & Gold
+            Combo 4: Emerald & Gold
           </button>
         </div>
       </div>

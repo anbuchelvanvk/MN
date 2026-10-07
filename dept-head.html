@@ -6,17 +6,17 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family - Department Head Portal</title>
+  <title>MN Family — Department Head Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="portal.css">
 </head>
 <body>
 
   <!-- Top Role Switcher / Quick Return Bar -->
   <div class="role-switcher-banner">
-    <span>Logged in as <strong>Vikram Reddy (Head of Operations & Crafting)</strong></span>
+    <span>Department Lead: <strong>Vikram Reddy (Operations & Crafting)</strong></span>
     <a href="index.html">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      Role Switcher
+      <i class="fa-solid fa-arrow-right-arrow-left"></i> Switch Role
     </a>
   </div>
 
@@ -33,9 +33,9 @@
         </div>
       </div>
       <div class="header-actions">
-        <span class="role-tag-pill dept">Dept Head</span>
+        <span class="role-tag-pill lead"><i class="fa-solid fa-shield-halved"></i> Dept Head</span>
         <button class="icon-btn" onclick="nudgeDeptStaff()" title="Send Shift Proof Nudge to Operations Team">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <i class="fa-regular fa-bell"></i>
           <span class="badge-dot"></span>
         </button>
       </div>
@@ -57,8 +57,8 @@
               </div>
               <div class="hero-role">Head of Operations & Workshop Crafting</div>
               <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
-                <span class="hero-dept-tag">Operations (8 Team Members)</span>
-                <span class="badge-rag green">1 Trainee on 2-Wk Probation</span>
+                <span class="hero-dept-tag"><i class="fa-solid fa-users"></i> Operations (8 Members)</span>
+                <span class="badge-rag green"><span class="badge-dot"></span> 1 Trainee Active</span>
               </div>
             </div>
           </div>
@@ -67,37 +67,37 @@
         <!-- 3 KPIs -->
         <div class="kpi-grid col-3">
           <div class="kpi-card" onclick="switchTab('tasks')">
-            <span class="kpi-label">Active Tasks</span>
+            <span class="kpi-label"><i class="fa-solid fa-list-check"></i> Active</span>
             <span class="kpi-value gold" id="kpi-open-tasks">6</span>
           </div>
           <div class="kpi-card" onclick="switchTab('tasks')">
-            <span class="kpi-label">Postponed</span>
+            <span class="kpi-label"><i class="fa-regular fa-clock"></i> Postponed</span>
             <span class="kpi-value red" id="kpi-postponed-tasks">1</span>
           </div>
           <div class="kpi-card" onclick="switchTab('mentorship')">
-            <span class="kpi-label">Mentorship</span>
+            <span class="kpi-label"><i class="fa-solid fa-user-graduate"></i> Mentorship</span>
             <span class="kpi-value green">1 Active</span>
           </div>
         </div>
 
         <!-- Quick Primary Actions (Assign Dept Task & Nudge Team) -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
           <button class="btn-primary" onclick="openModal('modal-assign-task')">
-            <span>+</span> Assign Dept Task
+            <i class="fa-solid fa-plus"></i> Assign Dept Task
           </button>
           <button class="btn-navy" onclick="nudgeDeptStaff()">
-            🔔 Nudge Operations Staff
+            <i class="fa-solid fa-bell"></i> Nudge Team
           </button>
         </div>
 
-        <!-- Team Tasks with Proof & Postpone Reasons Preview -->
+        <!-- Team Tasks Monitor -->
         <div class="content-card">
           <div class="card-header-row">
             <div>
-              <div class="card-title">Department "Things To Do" Monitor</div>
-              <span style="font-size: 11.5px; color: var(--text-muted);">View attached proof & employee postponement reasons</span>
+              <div class="card-title"><i class="fa-solid fa-list-check"></i> Department Operational Monitor</div>
+              <span style="font-size: 11px; color: var(--text-muted);">Attached proof verification and employee postponement reasons</span>
             </div>
-            <a class="card-action-link" onclick="switchTab('tasks')">All</a>
+            <a class="card-action-link" onclick="switchTab('tasks')">View All</a>
           </div>
 
           <div class="item-list" id="overview-tasks-container">
@@ -106,13 +106,13 @@
         </div>
 
         <!-- Mentorship & Trainee Status Card -->
-        <div class="content-card" style="border-left: 4px solid var(--gold-accent);">
+        <div class="content-card" style="border-left: 3px solid var(--gold-accent);">
           <div class="card-header-row">
-            <div class="card-title">🎓 Trainee Mentorship & Daily Reviews</div>
+            <div class="card-title"><i class="fa-solid fa-user-graduate"></i> Trainee Mentorship & Daily Reviews</div>
             <a class="card-action-link" onclick="switchTab('mentorship')">View Diary</a>
           </div>
-          <div style="background: var(--bg-card-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 12px; line-height: 1.4;">
-            <strong>Rohan Soni (Master Diamond Setter):</strong> 2-Week Probation active. 2 of 3 training modules completed. Last learning diary: <em>"Completed 18K antique bridal choker prong alignment test."</em>
+          <div style="background: var(--bg-card-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 11.5px; line-height: 1.4;">
+            <strong>Rohan Soni (Master Diamond Setter):</strong> 2-Week Probation active. 2 of 3 modules completed. Latest learning: <em>"Completed 18K antique bridal choker prong alignment test."</em>
           </div>
         </div>
 
@@ -121,8 +121,8 @@
       <!-- TAB 2: FULL TEAM -->
       <section id="tab-team" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Operations Team Directory</h2>
-          <span style="font-size: 12px; color: var(--text-muted);">8 Members</span>
+          <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Operations Team Directory</h2>
+          <span style="font-size: 11.5px; color: var(--text-muted);">8 Members</span>
         </div>
 
         <div class="item-list" id="dept-team-container">
@@ -134,10 +134,12 @@
       <section id="tab-tasks" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Department Task Oversight</h2>
-            <p style="font-size: 11.5px; color: var(--text-muted);">Track completion proof and employee postponement reasons</p>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Department Task Oversight</h2>
+            <p style="font-size: 11px; color: var(--text-muted);">Proof verification and postponement audits</p>
           </div>
-          <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="openModal('modal-assign-task')">+ Assign</button>
+          <button class="btn-primary" style="padding: 5px 12px; font-size: 11.5px;" onclick="openModal('modal-assign-task')">
+            <i class="fa-solid fa-plus"></i> Assign
+          </button>
         </div>
 
         <div class="item-list" id="full-dept-tasks-container">
@@ -149,66 +151,66 @@
       <section id="tab-mentorship" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Mentorship & Daily Diary Reviews</h2>
-            <p style="font-size: 11.5px; color: var(--text-muted);">First-week daily learning diary logs from assigned trainees</p>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Mentorship & Daily Diary Reviews</h2>
+            <p style="font-size: 11px; color: var(--text-muted);">First-week daily learning diary logs from assigned trainees</p>
           </div>
         </div>
 
-        <div class="content-card" style="margin-bottom: 14px;">
+        <div class="content-card" style="margin-bottom: 12px;">
           <div class="card-header-row">
             <div>
-              <strong style="font-size: 14px; color: var(--navy-dark);">Rohan Soni (Trainee)</strong>
-              <div style="font-size: 11.5px; color: var(--text-muted);">Master Diamond Setter • 2-Week Probation</div>
+              <strong style="font-size: 13.5px; color: var(--navy-dark);">Rohan Soni (Trainee)</strong>
+              <div style="font-size: 11px; color: var(--text-muted);">Master Diamond Setter • 2-Week Probation</div>
             </div>
             <span class="badge-rag green">85% Ready</span>
           </div>
 
-          <div class="card-title" style="font-size: 12.5px; margin: 10px 0 6px 0;">Mandatory Training SOP Checklist:</div>
-          <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 8px; background: #f0fdf4; border-radius: 6px;">
-              <span>✓ 1. BIS Hallmark Laser Inscription</span>
+          <div class="card-title" style="font-size: 12px; margin: 8px 0 6px 0;">Mandatory Training SOP Checklist:</div>
+          <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11.5px; padding: 5px 8px; background: #f0fdf4; border-radius: 4px;">
+              <span><i class="fa-solid fa-check" style="color: #10b981;"></i> 1. BIS Hallmark Laser Inscription</span>
               <strong style="color: #047857;">Signed Off</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 8px; background: #f0fdf4; border-radius: 6px;">
-              <span>✓ 2. Precision Micro-Prong Setting</span>
+            <div style="display: flex; justify-content: space-between; font-size: 11.5px; padding: 5px 8px; background: #f0fdf4; border-radius: 4px;">
+              <span><i class="fa-solid fa-check" style="color: #10b981;"></i> 2. Precision Micro-Prong Setting</span>
               <strong style="color: #047857;">Signed Off</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 8px; background: #fffbeb; border-radius: 6px;">
-              <span>⏳ 3. Sweepings Recovery & Vault Inward</span>
-              <button class="btn-primary" style="font-size: 10px; padding: 2px 6px;" onclick="showToast('Signed off Sweepings module for Rohan!')">Sign Off</button>
+            <div style="display: flex; justify-content: space-between; font-size: 11.5px; padding: 5px 8px; background: #fffbeb; border-radius: 4px;">
+              <span><i class="fa-regular fa-clock" style="color: #d97706;"></i> 3. Sweepings Recovery & Vault Inward</span>
+              <button class="btn-primary" style="font-size: 10px; padding: 2px 6px;" onclick="showToast('Signed off Sweepings module for Rohan.')">Sign Off</button>
             </div>
           </div>
 
-          <div class="card-title" style="font-size: 12.5px; margin-bottom: 6px;">1st Week Daily Reviews Submitted:</div>
-          <div class="diary-review-item">
-            <div class="diary-review-header">
-              <span>Day 1 (Oct 01)</span>
+          <div class="card-title" style="font-size: 12px; margin-bottom: 6px;">1st Week Daily Reviews Submitted:</div>
+          <div style="padding: 7px 9px; background: var(--bg-card-subtle); border-radius: var(--radius-xs); border: 1px solid var(--border-light); margin-bottom: 6px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+              <strong>Day 1 (Oct 01)</strong>
               <span class="badge-rag green">Rated 5/5</span>
             </div>
-            <p>Calibrated micro-welding station and gold bullion requisition paperwork.</p>
+            <p style="font-size:11.5px; color:var(--text-main);">Calibrated micro-welding station and gold bullion requisition documentation.</p>
           </div>
-          <div class="diary-review-item">
-            <div class="diary-review-header">
-              <span>Day 2 (Oct 02)</span>
+          <div style="padding: 7px 9px; background: var(--bg-card-subtle); border-radius: var(--radius-xs); border: 1px solid var(--border-light);">
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
+              <strong>Day 2 (Oct 02)</strong>
               <span class="badge-rag green">Rated 5/5</span>
             </div>
-            <p>Completed 18K antique bridal choker prong alignment test with zero diamond fracture.</p>
+            <p style="font-size:11.5px; color:var(--text-main);">Completed 18K antique bridal choker prong alignment test with zero diamond fracture.</p>
           </div>
         </div>
       </section>
 
       <!-- TAB 5: PROFILE -->
       <section id="tab-profile" class="tab-pane" style="display: none;">
-        <div class="hero-card" style="text-align: center; padding: 24px;">
-          <div class="avatar-initials lg" style="margin: 0 auto 12px auto;">VR</div>
-          <h2 style="font-size: 19px; font-weight: 700; color: #ffffff;">Vikram Reddy</h2>
-          <p style="font-size: 13px; color: #cbd5e1;">Head of Operations & Crafting</p>
-          <div style="margin-top: 8px;">
-            <span class="role-tag-pill dept">Department Lead</span>
+        <div class="hero-card" style="text-align: center; padding: 20px;">
+          <div class="avatar-initials lg" style="margin: 0 auto 10px auto;">VR</div>
+          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Vikram Reddy</h2>
+          <p style="font-size: 12px; color: #cbd5e1;">Head of Operations & Crafting</p>
+          <div style="margin-top: 6px;">
+            <span class="role-tag-pill lead"><i class="fa-solid fa-shield-halved"></i> Department Lead</span>
           </div>
         </div>
 
-        <button class="btn-navy btn-full" onclick="showToast('Logged out securely')">Sign Out</button>
+        <button class="btn-navy btn-full" onclick="showToast('Logged out securely.')">Sign Out</button>
       </section>
 
     </main>
@@ -216,19 +218,19 @@
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('overview')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <i class="fa-solid fa-house"></i>
         <span>Overview</span>
       </div>
       <div class="nav-item" onclick="switchTab('tasks')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+        <i class="fa-solid fa-list-check"></i>
         <span>Deliverables</span>
       </div>
       <div class="nav-item" onclick="switchTab('mentorship')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <i class="fa-solid fa-user-graduate"></i>
         <span>Mentorship</span>
       </div>
       <div class="nav-item" onclick="switchTab('team')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <i class="fa-solid fa-users"></i>
         <span>Team</span>
       </div>
     </nav>
@@ -238,11 +240,11 @@
   <div class="modal-backdrop" id="modal-assign-task">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">🛡️ Assign Operations Task</h3>
+        <h3 class="modal-title"><i class="fa-solid fa-plus"></i> Assign Operations Task</h3>
         <button class="modal-close" onclick="closeModal('modal-assign-task')">✕</button>
       </div>
       <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-        As Department Head, assign prioritized deliverables directly into your staff member's daily queue.
+        Assign prioritized deliverables directly into your staff member's daily queue.
       </p>
 
       <form onsubmit="handleAssignTaskSubmit(event)">
@@ -274,7 +276,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-primary btn-full">Assign Into Staff Things To Do</button>
+        <button type="submit" class="btn-primary btn-full"><i class="fa-solid fa-paper-plane"></i> Assign Task to Staff Queue</button>
       </form>
     </div>
   </div>
@@ -283,13 +285,13 @@
   <div class="modal-backdrop" id="modal-lead-proof">
     <div class="modal-sheet">
       <div class="modal-header">
-        <h3 class="modal-title">🔍 Staff Proof Inspection</h3>
+        <h3 class="modal-title"><i class="fa-regular fa-eye"></i> Staff Proof Inspection</h3>
         <button class="modal-close" onclick="closeModal('modal-lead-proof')">✕</button>
       </div>
-      <img id="leadProofImg" src="" style="width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid var(--border-light);" alt="Proof">
-      <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 12px;">
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Logged: <span id="leadProofTime" style="font-weight: 700; color: var(--text-main);"></span></div>
-        <div style="font-size: 13px; color: var(--text-main); line-height: 1.4;" id="leadProofContent"></div>
+      <img id="leadProofImg" src="" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid var(--border-light);" alt="Proof">
+      <div style="background: var(--bg-card-subtle); padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Logged Time: <span id="leadProofTime" style="font-weight: 700; color: var(--text-main);"></span></div>
+        <div style="font-size: 12.5px; color: var(--text-main); line-height: 1.4;" id="leadProofContent"></div>
       </div>
       <button class="btn-navy btn-full" onclick="closeModal('modal-lead-proof')">Close</button>
     </div>
@@ -330,17 +332,19 @@
       return `
         <div class="task-item-card ${isCompleted ? 'has-proof' : ''} ${isPostponed ? 'is-postponed' : ''}">
           <div class="task-top-row">
-            <div style="font-size: 18px; flex-shrink: 0; margin-top: 1px;">${isCompleted ? '✅' : (isPostponed ? '⏳' : '📌')}</div>
+            <div class="custom-checkbox ${isCompleted ? 'checked' : ''}">
+              ${isCompleted ? '<i class="fa-solid fa-check"></i>' : (isPostponed ? '<i class="fa-regular fa-clock" style="color:var(--rag-yellow);"></i>' : '<i class="fa-regular fa-circle" style="color:#cbd5e1;"></i>')}
+            </div>
             <div class="task-main-info">
-              <div class="task-title" style="${isCompleted ? 'text-decoration:line-through; opacity:0.75;' : ''}">${task.title}</div>
+              <div class="task-title">${task.title}</div>
               <div class="task-meta-row">
-                <span class="authority-pill lead">Owner: ${task.empId === 'MN-1024' ? 'Adithi S.' : 'Rohan S.'}</span>
+                <span class="authority-pill lead"><i class="fa-solid fa-user"></i> ${task.empId === 'MN-1024' ? 'Adithi S.' : 'Rohan S.'}</span>
                 <span class="priority-pill ${task.priority === 'Critical SLA' ? 'high' : 'medium'}">${task.priority}</span>
                 <span>Due: ${task.due}</span>
                 ${isCompleted && task.proof ? `
                   <span class="proof-tag" onclick="viewStaffProof('${task.id}')">
                     <img class="proof-thumb" src="${task.proof.photoUrl || ''}" alt="P">
-                    ✓ Verified Proof
+                    <i class="fa-solid fa-circle-check"></i> Verified Proof
                   </span>
                 ` : ''}
               </div>
@@ -349,7 +353,7 @@
 
           ${isPostponed && task.postponeInfo ? `
             <div class="postponed-callout">
-              <strong>⏳ Postponed to ${task.postponeInfo.postponedTo}:</strong> "${task.postponeInfo.reason}"
+              <strong><i class="fa-regular fa-clock"></i> Postponed to ${task.postponeInfo.postponedTo}:</strong> "${task.postponeInfo.reason}"
             </div>
           ` : ''}
         </div>
@@ -361,13 +365,13 @@
       document.getElementById('dept-team-container').innerHTML = emps.map(emp => `
         <div class="team-member-row">
           <div class="member-info">
-            <div class="avatar-initials" style="width: 38px; height: 38px;">${emp.initials}</div>
+            <div class="avatar-initials" style="width: 36px; height: 36px; font-size:13px;">${emp.initials}</div>
             <div>
               <div class="member-name">${emp.name}</div>
               <div class="member-role">${emp.role} • Probation: ${emp.probationWeeks} Wks</div>
             </div>
           </div>
-          <span class="badge-rag green"><span class="badge-dot"></span> On Track</span>
+          <span class="badge-rag green"><span class="badge-dot"></span> Active</span>
         </div>
       `).join('');
     }
@@ -392,7 +396,7 @@
       renderOverviewTasks();
       renderDeptTasks();
       window.MNStore.playNotificationSound();
-      showToast('🛡️ Task assigned directly into staff member\'s daily queue!');
+      showToast('Task assigned to staff member.');
       document.getElementById('assign-title').value = '';
     }
 
@@ -408,7 +412,7 @@
 
     function nudgeDeptStaff() {
       window.MNStore.playNotificationSound();
-      showToast('🔔 Shift Proof Reminder sent to all Operations artisans!');
+      showToast('Shift proof reminder sent to Operations staff.');
     }
 
     function switchTab(tabId) {
