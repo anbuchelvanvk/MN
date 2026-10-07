@@ -6,8 +6,86 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>MN Family - Executive CEO Suite</title>
+  <title>MN Family — Executive CEO Suite</title>
   <link rel="stylesheet" href="portal.css">
+  <style>
+    /* Executive Chart & Visual Styles */
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .chart-bar-row {
+      margin-bottom: 10px;
+    }
+    .chart-bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--navy-dark);
+      margin-bottom: 4px;
+    }
+    .chart-bar-track {
+      width: 100%;
+      height: 10px;
+      background: var(--bg-card-subtle);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+    }
+    .chart-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+    
+    /* Donut Visualization */
+    .donut-visual-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 0;
+    }
+    .donut-svg-box {
+      width: 100px;
+      height: 100px;
+      flex-shrink: 0;
+    }
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11.5px;
+      flex: 1;
+    }
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    /* Excel Download Box */
+    .excel-download-card {
+      background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+      color: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+  </style>
 </head>
 <body>
 
@@ -34,9 +112,8 @@
       </div>
       <div class="header-actions">
         <span class="role-tag-pill ceo">CEO Suite</span>
-        <button class="icon-btn" onclick="showToast('Executive brief: All systems operational')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          <span class="badge-dot"></span>
+        <button class="icon-btn" onclick="exportAuditExcel()" title="Download Full Excel Audit Report">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         </button>
       </div>
     </header>
@@ -44,146 +121,304 @@
     <!-- Main Content -->
     <main class="portal-content">
       
-      <!-- TAB 1: EXECUTIVE SUITE -->
+      <!-- TAB 1: EXECUTIVE HUB -->
       <section id="tab-executive" class="tab-pane active">
         <!-- CEO Hero Card -->
         <div class="hero-card">
           <div class="hero-profile">
-            <div class="avatar-initials" style="background: linear-gradient(135deg, #c59b27 0%, #785a07 100%);">SI</div>
+            <div class="avatar-initials" style="background: linear-gradient(135deg, #fef08a 0%, #d4af37 100%);">SI</div>
             <div class="hero-info">
               <div class="hero-name">
                 Suresh Iyer
-                <span class="badge-rag green"><span class="badge-dot"></span> 94% Healthy</span>
+                <span class="badge-rag green"><span class="badge-dot"></span> 94% On-Track</span>
               </div>
               <div class="hero-role">Managing Director & CEO</div>
-              <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
-                <span class="hero-dept-tag">142 Employees • 6 Depts</span>
-                <span class="badge-rag green">Universal Task Authority Active</span>
+              <div style="display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
+                <span class="hero-dept-tag">142 Staff • 6 Units</span>
+                <span class="hero-id-tag" style="color: #fde68a;">Executive Command Center</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- 5. 10:00 AM Store Opening Readiness Gate Banner -->
+        <div class="content-card" style="border-left: 4px solid var(--rag-green); background: #fcfffd;">
+          <div class="card-header-row">
+            <div>
+              <span class="badge-rag green" style="margin-bottom: 3px;">
+                <span class="badge-dot"></span> 10:00 AM Opening Gate: 100% Ready
+              </span>
+              <h4 style="font-size: 14.5px; font-weight: 800; color: var(--navy-dark);">All 6 Departments Signed Off</h4>
+            </div>
+            <button class="btn-primary" style="font-size: 11px; padding: 4px 10px;" onclick="openModal('modal-readiness-detail')">
+              View Checklist
+            </button>
+          </div>
+          <div style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">
+            ✓ Housekeeping (Deep Clean) • ✓ Vault (Display Issued) • ✓ Security (360° Clear) • ✓ Sales (Counters Set) • ✓ Rates Synced
           </div>
         </div>
 
         <!-- 4 Executive KPIs -->
         <div class="kpi-grid col-4">
-          <div class="kpi-card">
+          <div class="kpi-card" onclick="switchTab('analytics')">
             <span class="kpi-label">Deliverables</span>
             <span class="kpi-value gold">384</span>
-            <span class="kpi-sub">Across enterprise</span>
+            <span class="kpi-sub">Total company</span>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" onclick="switchTab('analytics')">
             <span class="kpi-label">Proof Verified</span>
             <span class="kpi-value green">298</span>
             <span class="kpi-sub">77.6% on-time</span>
           </div>
           <div class="kpi-card" onclick="switchTab('delays')">
-            <span class="kpi-label">Postponed / Reasons</span>
+            <span class="kpi-label">Postponed</span>
             <span class="kpi-value red">18</span>
-            <span class="kpi-sub">Review justifications</span>
+            <span class="kpi-sub">Review reasons</span>
           </div>
-          <div class="kpi-card">
-            <span class="kpi-label">100% Active</span>
-            <span class="kpi-value green">92%</span>
-            <span class="kpi-sub">Staff authorized</span>
+          <div class="kpi-card" onclick="openModal('modal-blockers')">
+            <span class="kpi-label">Blockers</span>
+            <span class="kpi-value yellow">1 Active</span>
+            <span class="kpi-sub">Sales ↔ Workshop</span>
           </div>
         </div>
 
-        <!-- Executive Action: Universal Task Assigner -->
-        <div style="margin-bottom: 14px;">
-          <button class="btn-primary btn-full" onclick="openCeoAssignModal()" style="font-size: 13px; padding: 10px;">
-            👑 CEO Special Directive: Assign Task to Any Employee
+        <!-- Primary Action: CEO Direct Executive Push -->
+        <div style="margin-bottom: 12px;">
+          <button class="btn-primary btn-full" onclick="openCeoAssignModal()" style="font-size: 13px; padding: 11px;">
+            👑 CEO Special Directive: Push Task to Any Employee
           </button>
         </div>
 
-        <!-- Organization RAG Distribution Bar -->
+        <!-- 2. Active Cross-Department Blocker Alert -->
+        <div class="content-card" style="border-left: 4px solid var(--rag-yellow); background: #fffdfa;">
+          <div class="card-header-row">
+            <div class="card-title" style="color: #92400e;">
+              🚨 Active Cross-Department Blocker
+            </div>
+            <button class="btn-task-action proof" onclick="resolveActiveBlocker()">
+              ✓ Resolve Blocker
+            </button>
+          </div>
+          <p style="font-size: 12px; color: var(--text-main); line-height: 1.4;">
+            <strong>Showroom Sales (Rahul M.)</strong> raised blocker on <strong>Workshop Crafting</strong>: <br>
+            <em>"Custom 22K bridal bangle sizing not handed over by 3 PM; customer wedding trial at 4:30 PM."</em>
+          </p>
+        </div>
+
+        <!-- 1. Inter-Department Handover Pipeline Preview -->
         <div class="content-card">
           <div class="card-header-row">
-            <div class="card-title">Enterprise Health Distribution</div>
-            <span style="font-size: 12px; font-weight: 700; color: var(--navy-dark);">142 Staff</span>
+            <div>
+              <div class="card-title">🔄 Inter-Department Handover Pipeline</div>
+              <span style="font-size: 11px; color: var(--text-muted);">Chain of Custody: Workshop → Assay QA → Showroom</span>
+            </div>
+            <a class="card-action-link" onclick="switchTab('handovers')">View (2)</a>
           </div>
-          <div style="display: flex; height: 12px; border-radius: 99px; overflow: hidden; margin-bottom: 10px; background: #e2e8f0;">
-            <div style="width: 66%; background: #10b981;" title="Green: 94 Staff"></div>
-            <div style="width: 22%; background: #f59e0b;" title="Yellow: 32 Staff"></div>
-            <div style="width: 12%; background: #ef4444;" title="Red: 16 Staff"></div>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <span style="color: #047857; font-weight: 600;">🟢 94 Green (66%)</span>
-            <span style="color: #b45309; font-weight: 600;">🟡 32 Yellow (22%)</span>
-            <span style="color: #b91c1c; font-weight: 600;">🔴 16 Red (12%)</span>
+
+          <div style="background: var(--bg-card-subtle); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--navy-dark); margin-bottom: 4px;">
+              <span>Navaratna Bridal Choker Lot #402 (184.5g)</span>
+              <span class="badge-rag yellow">Step 2 of 3</span>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px;">
+              Currently at: <strong>Quality & Assay QA (Adithi Sharma)</strong> for Laser BIS Hallmarking.
+            </div>
+            <button class="btn-navy" style="font-size: 10.5px; padding: 4px 10px;" onclick="simulateAdvanceHandover('HO-801')">
+              ⏩ Advance to Showroom Showcase
+            </button>
           </div>
         </div>
 
-        <!-- Executive Delays & Postponement Reasons Callout -->
-        <div class="content-card" style="border-left: 4px solid var(--rag-red);">
-          <div class="card-header-row">
-            <div class="card-title" style="color: #b91c1c;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              Recent Postponement Reasons Logged by Staff
-            </div>
-            <a class="card-action-link" onclick="switchTab('delays')">All (18)</a>
+      </section>
+
+      <!-- TAB 2: GRAPHICAL ANALYTICS & CHARTS -->
+      <section id="tab-analytics" class="tab-pane" style="display: none;">
+        <div class="card-header-row" style="margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Executive Analytics & Reports</h2>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Visual graphical breakdown of completion rates & Excel exports</p>
           </div>
-          <div class="item-list">
-            <div style="background: #fffdfa; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12px; border: 1px solid var(--rag-yellow-border);">
-              <strong>Adithi Sharma (Operations):</strong> "Evening Gold Craft Waste & Sweepings Recovery Log" postponed to Tomorrow 08:30 AM. <br>
-              <span style="color: #92400e;">Reason: "Late bridal jewellery custom sizing order delayed workshop furnace shutdown by 1 hour."</span>
+        </div>
+
+        <!-- Excel Export Banner -->
+        <div class="excel-download-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <strong style="font-size: 14.5px; color: #fef08a;">📥 Executive Excel Data Downloads</strong>
+              <p style="font-size: 11.5px; color: #dcfce7; margin-top: 2px;">Download complete spreadsheet audit ledgers & department compliance data.</p>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+            <button class="btn-primary" style="font-size: 11.5px; padding: 8px;" onclick="exportAuditExcel()">
+              📊 Download Tasks Ledger (.CSV)
+            </button>
+            <button class="btn-primary" style="font-size: 11.5px; padding: 8px; background: #ffffff; color: #064e3b;" onclick="exportDeptComplianceExcel()">
+              📑 Dept Compliance (.CSV)
+            </button>
+          </div>
+        </div>
+
+        <!-- CHART 1: 6-Department SOP Completion Rate (Bar Chart) -->
+        <div class="chart-card">
+          <div class="card-title" style="margin-bottom: 12px;">
+            📊 6-Department SOP Completion Rate
+          </div>
+
+          <div class="chart-bar-row">
+            <div class="chart-bar-header">
+              <span>Housekeeping & Facility Care</span>
+              <strong style="color: var(--rag-green);">100%</strong>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill" style="width: 100%; background: var(--rag-green);"></div>
+            </div>
+          </div>
+
+          <div class="chart-bar-row">
+            <div class="chart-bar-header">
+              <span>Vault & High-Security Logistics</span>
+              <strong style="color: var(--rag-green);">96%</strong>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill" style="width: 96%; background: var(--rag-green);"></div>
+            </div>
+          </div>
+
+          <div class="chart-bar-row">
+            <div class="chart-bar-header">
+              <span>Finance & Bullion Accounts</span>
+              <strong style="color: var(--rag-green);">94%</strong>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill" style="width: 94%; background: var(--rag-green);"></div>
+            </div>
+          </div>
+
+          <div class="chart-bar-row">
+            <div class="chart-bar-header">
+              <span>Showroom & Luxury Retail</span>
+              <strong style="color: var(--rag-green);">92%</strong>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill" style="width: 92%; background: var(--rag-green);"></div>
+            </div>
+          </div>
+
+          <div class="chart-bar-row">
+            <div class="chart-bar-header">
+              <span>Fine Jewellery Operations & Crafting</span>
+              <strong style="color: var(--gold-dark);">88%</strong>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill" style="width: 88%; background: var(--gold-primary);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHART 2: Overall Enterprise Status (Donut Representation) -->
+        <div class="chart-card">
+          <div class="card-title" style="margin-bottom: 10px;">
+            🍩 Enterprise Task Distribution (384 Deliverables)
+          </div>
+
+          <div class="donut-visual-container">
+            <svg class="donut-svg-box" viewBox="0 0 36 36">
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" stroke-width="4.5"></path>
+              <!-- Completed 77.6% (Green) -->
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="4.5" stroke-dasharray="77.6, 100"></path>
+              <!-- In Progress 17.7% (Yellow) -->
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f59e0b" stroke-width="4.5" stroke-dasharray="17.7, 100" stroke-dashoffset="-77.6"></path>
+              <!-- Postponed 4.7% (Red) -->
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ef4444" stroke-width="4.5" stroke-dasharray="4.7, 100" stroke-dashoffset="-95.3"></path>
+              <text x="18" y="20.5" text-anchor="middle" font-size="6.5" font-weight="800" fill="#0f172a">77.6%</text>
+            </svg>
+
+            <div class="donut-legend">
+              <div class="donut-legend-item">
+                <span><span class="legend-dot" style="background:#10b981;"></span>Proof Verified</span>
+                <strong>298 (77.6%)</strong>
+              </div>
+              <div class="donut-legend-item">
+                <span><span class="legend-dot" style="background:#f59e0b;"></span>In Progress</span>
+                <strong>68 (17.7%)</strong>
+              </div>
+              <div class="donut-legend-item">
+                <span><span class="legend-dot" style="background:#ef4444;"></span>Postponed / Reasons</span>
+                <strong>18 (4.7%)</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHART 3: 8. Repeat Delay Root Cause Analytics -->
+        <div class="chart-card">
+          <div class="card-title" style="margin-bottom: 8px;">
+            🧠 Repeat Delay Root Cause Analytics (18 Postponements)
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+            Systemic pattern analysis from employee postponement justifications:
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="background: var(--bg-card-subtle); padding: 8px 10px; border-radius: var(--radius-xs);">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                <span>Late Bridal Custom Sizing Orders (Operations)</span>
+                <span style="color: var(--gold-dark);">7 Cases (39%)</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">
+                💡 <em>Insight: Custom sizing appointments extended past 6 PM furnace shutdown.</em>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card-subtle); padding: 8px 10px; border-radius: var(--radius-xs);">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                <span>Customer Rescheduled Bridal Trial (Sales)</span>
+                <span style="color: var(--gold-dark);">4 Cases (22%)</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">
+                💡 <em>Insight: Customer delayed VIP lounge trial to weekend.</em>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-card-subtle); padding: 8px 10px; border-radius: var(--radius-xs);">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+                <span>Gov Hallmarking / Billing Network Latency</span>
+                <span style="color: var(--gold-dark);">4 Cases (22%)</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">
+                💡 <em>Insight: Server slowdown on external BIS portal.</em>
+              </div>
             </div>
           </div>
         </div>
 
       </section>
 
-      <!-- TAB 2: DEPARTMENTS -->
-      <section id="tab-depts" class="tab-pane" style="display: none;">
-        <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 14px;">All 6 Departments</h2>
+      <!-- TAB 3: INTER-DEPT HANDOVERS & PIPELINES -->
+      <section id="tab-handovers" class="tab-pane" style="display: none;">
+        <div class="card-header-row" style="margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Inter-Department Handovers</h2>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Chain of Custody Tracking: Workshop → Assay → Showroom</p>
+          </div>
+        </div>
+
+        <div class="item-list" id="ceo-handovers-list">
+          <!-- Injected via renderHandovers() -->
+        </div>
+      </section>
+
+      <!-- TAB 4: DELAYS & REASONS AUDIT -->
+      <section id="tab-delays" class="tab-pane" style="display: none;">
+        <div class="card-header-row" style="margin-bottom: 12px;">
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark);">Postponed Tasks & Reasons Audit</h2>
+            <p style="font-size: 11.5px; color: var(--text-muted);">Full transparency on why deliverables were rescheduled</p>
+          </div>
+        </div>
         
         <div class="item-list">
-          <div class="content-card">
-            <div class="card-header-row">
-              <div>
-                <strong style="font-size: 14px;">Fine Jewellery Operations</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Lead: Vikram Reddy • 34 Craftsmen</div>
-              </div>
-              <span class="badge-rag green">88% Healthy</span>
-            </div>
-          </div>
-
-          <div class="content-card">
-            <div class="card-header-row">
-              <div>
-                <strong style="font-size: 14px;">Showroom & Luxury Retail</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Lead: Ananya Sen • 48 Sales Specialists</div>
-              </div>
-              <span class="badge-rag green">92% Healthy</span>
-            </div>
-          </div>
-
-          <div class="content-card">
-            <div class="card-header-row">
-              <div>
-                <strong style="font-size: 14px;">Housekeeping & Facility Care</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Lead: K. Natarajan • 14 Staff</div>
-              </div>
-              <span class="badge-rag green">95% Healthy</span>
-            </div>
-          </div>
-
-          <div class="content-card">
-            <div class="card-header-row">
-              <div>
-                <strong style="font-size: 14px;">Vault & High-Security Logistics</strong>
-                <div style="font-size: 11px; color: var(--text-muted);">Lead: Major R. Pillai • 18 Personnel</div>
-              </div>
-              <span class="badge-rag green">96% Healthy</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 3: DELAYS & REASONS MONITOR -->
-      <section id="tab-delays" class="tab-pane" style="display: none;">
-        <h2 style="font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 14px;">Postponed Tasks & Reasons Audit</h2>
-        
-        <div class="item-list" id="ceo-postponed-list">
           <div class="task-item-card is-postponed">
             <div class="task-top-row">
               <div style="font-size: 18px; flex-shrink: 0; margin-top: 1px;">⏳</div>
@@ -191,7 +426,7 @@
                 <div class="task-title">Evening Gold Craft Waste & Sweepings Recovery Log</div>
                 <div class="task-meta-row">
                   <span class="authority-pill lead">Owner: Adithi Sharma (Operations)</span>
-                  <span class="priority-pill medium">Postponed to Tomorrow</span>
+                  <span class="priority-pill medium">Postponed to Tomorrow 08:30 AM</span>
                 </div>
               </div>
             </div>
@@ -202,10 +437,10 @@
         </div>
       </section>
 
-      <!-- TAB 4: PROFILE -->
+      <!-- TAB 5: PROFILE -->
       <section id="tab-profile" class="tab-pane" style="display: none;">
         <div class="hero-card" style="text-align: center; padding: 24px;">
-          <div class="avatar-initials lg" style="margin: 0 auto 12px auto; background: linear-gradient(135deg, #c59b27 0%, #785a07 100%);">SI</div>
+          <div class="avatar-initials lg" style="margin: 0 auto 12px auto; background: linear-gradient(135deg, #fef08a 0%, #d4af37 100%);">SI</div>
           <h2 style="font-size: 19px; font-weight: 700; color: #ffffff;">Suresh Iyer</h2>
           <p style="font-size: 13px; color: #cbd5e1;">Managing Director & CEO</p>
           <div style="margin-top: 8px;">
@@ -218,19 +453,23 @@
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
+    <!-- Bottom Navigation Bar (5 tabs) -->
     <nav class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('executive')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         <span>Executive</span>
       </div>
-      <div class="nav-item" onclick="switchTab('depts')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-        <span>Departments</span>
+      <div class="nav-item" onclick="switchTab('analytics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="12" width="4" height="8" rx="1"></rect><rect x="10" y="8" width="4" height="12" rx="1"></rect><rect x="17" y="4" width="4" height="16" rx="1"></rect></svg>
+        <span>Analytics</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('handovers')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+        <span>Handovers</span>
       </div>
       <div class="nav-item" onclick="switchTab('delays')">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <span>Postponed (18)</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Delays (18)</span>
       </div>
       <div class="nav-item" onclick="switchTab('profile')">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -247,7 +486,7 @@
         <button class="modal-close" onclick="closeModal('modal-ceo-assign')">✕</button>
       </div>
       <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
-        As Managing Director & CEO, you hold executive power to assign critical deliverables directly to any employee across all 6 departments.
+        As Managing Director & CEO, you hold executive power to assign critical directives directly to any employee across all 6 departments.
       </p>
 
       <form onsubmit="handleCeoAssignSubmit(event)">
@@ -260,7 +499,7 @@
 
         <div class="form-group">
           <label class="form-label">Executive Directive Title</label>
-          <input type="text" id="ceo-task-title" class="form-input" placeholder="e.g., Priority Hallmark Inspection for Royal Emerald Choker Lot #88" required>
+          <input type="text" id="ceo-task-title" class="form-input" placeholder="e.g., Expedited Hallmark Assay for Royal Choker Lot #402" required>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -278,9 +517,45 @@
         </div>
 
         <button type="submit" class="btn-primary btn-full">
-          Transmit CEO Directive to Employee
+          Transmit CEO Directive to Employee Queue
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: 10:00 AM STORE OPENING READINESS DETAIL -->
+  <div class="modal-backdrop" id="modal-readiness-detail">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">🟢 10:00 AM Store Opening Gates</h3>
+        <button class="modal-close" onclick="closeModal('modal-readiness-detail')">✕</button>
+      </div>
+      <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 12px;">
+        Synchronized readiness status from all 6 departments before customer store opening.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="padding: 8px 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; font-size: 12px;">
+          <strong>✓ Housekeeping (09:20 AM):</strong> Floor deep clean & velvet display glass mirror polish verified by Selvi M.
+        </div>
+        <div style="padding: 8px 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; font-size: 12px;">
+          <strong>✓ Vault & Logistics (09:35 AM):</strong> Morning counter trays issued & dual-signed by Major R. Pillai.
+        </div>
+        <div style="padding: 8px 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; font-size: 12px;">
+          <strong>✓ Security & CCTV (09:40 AM):</strong> 360° CCTV scan & emergency exit sensor clearance signed off.
+        </div>
+        <div style="padding: 8px 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; font-size: 12px;">
+          <strong>✓ Operations & Assay (09:45 AM):</strong> Digital 0.001g scales calibrated & laser hallmarking active.
+        </div>
+        <div style="padding: 8px 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; font-size: 12px;">
+          <strong>✓ Showroom Sales (09:50 AM):</strong> Staff groomed, velvet spotlights calibrated to 4000K daylight.
+        </div>
+        <div style="padding: 8px 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0; font-size: 12px;">
+          <strong>✓ Finance & Billing (09:52 AM):</strong> Daily 22K gold rate (₹6,805/g) synchronized on billing POS.
+        </div>
+      </div>
+
+      <button class="btn-navy btn-full" style="margin-top: 14px;" onclick="closeModal('modal-readiness-detail')">Close</button>
     </div>
   </div>
 
@@ -289,6 +564,10 @@
 
   <script src="ecosystem-data.js"></script>
   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHandovers();
+    });
+
     function openCeoAssignModal() {
       const emps = window.MNStore.getAllEmployees();
       const select = document.getElementById('ceo-target-emp');
@@ -321,6 +600,66 @@
       document.getElementById('ceo-task-title').value = '';
     }
 
+    function renderHandovers() {
+      const container = document.getElementById('ceo-handovers-list');
+      if (!container) return;
+
+      const list = window.MNStore.data.handovers || [];
+      container.innerHTML = list.map(h => `
+        <div class="content-card" style="margin-bottom: 12px;">
+          <div class="card-header-row">
+            <div>
+              <strong style="font-size: 14px; color: var(--navy-dark);">${h.batch}</strong>
+              <div style="font-size: 11px; color: var(--text-muted);">${h.fromDept} ➔ ${h.toDept} • Assigned: ${h.assignedTo}</div>
+            </div>
+            <span class="badge-rag ${h.status === 'completed' ? 'green' : 'yellow'}">${h.status === 'completed' ? 'Done' : 'Active'}</span>
+          </div>
+
+          <div style="margin: 8px 0; display: flex; flex-direction: column; gap: 4px;">
+            ${h.steps.map(s => `
+              <div style="display:flex; justify-content:space-between; font-size:11.5px; padding: 4px 6px; background: ${s.status === 'done' ? '#f0fdf4' : (s.status === 'in_progress' ? '#fffbeb' : 'var(--bg-card-subtle)')}; border-radius: 4px;">
+                <span>${s.status === 'done' ? '✓' : (s.status === 'in_progress' ? '⏳' : '○')} ${s.name}</span>
+                <strong>${s.completedBy || s.dept}</strong>
+              </div>
+            `).join('')}
+          </div>
+
+          ${h.status !== 'completed' ? `
+            <button class="btn-primary" style="font-size: 11px; padding: 5px 10px; width: 100%; margin-top: 4px;" onclick="simulateAdvanceHandover('${h.id}')">
+              ⏩ Advance to Next Custody Stage
+            </button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function simulateAdvanceHandover(id) {
+      window.MNStore.advanceHandover(id);
+      renderHandovers();
+      window.MNStore.playNotificationSound();
+      showToast('🔄 Handover advanced along Chain of Custody!');
+    }
+
+    function resolveActiveBlocker() {
+      const blk = window.MNStore.data.blockers[0];
+      if (blk) {
+        window.MNStore.resolveBlocker(blk.id);
+        window.MNStore.playNotificationSound();
+        showToast('✅ Cross-Department Blocker marked resolved!');
+        setTimeout(() => location.reload(), 800);
+      }
+    }
+
+    function exportAuditExcel() {
+      window.MNStore.exportTasksToCSV();
+      showToast('📥 Downloading Complete Tasks Audit Ledger (.CSV / Excel)...');
+    }
+
+    function exportDeptComplianceExcel() {
+      window.MNStore.exportDepartmentComplianceCSV();
+      showToast('📥 Downloading Department Compliance Report (.CSV / Excel)...');
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
       const target = document.getElementById('tab-' + tabId);
@@ -329,7 +668,7 @@
       const navItems = document.querySelectorAll('.nav-item');
       navItems.forEach(item => item.classList.remove('active'));
 
-      const tabsMap = { 'executive': 0, 'depts': 1, 'delays': 2, 'profile': 3 };
+      const tabsMap = { 'executive': 0, 'analytics': 1, 'handovers': 2, 'delays': 3, 'profile': 4 };
       if (tabsMap[tabId] !== undefined) {
         navItems[tabsMap[tabId]].classList.add('active');
       }

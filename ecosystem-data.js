@@ -1,16 +1,22 @@
 /**
- * MN FAMILY - INTERNAL ECOSYSTEM UNIFIED DATA STORE
- * Handles:
- * 1. Date of Joining & Experience-based Probation (2 weeks vs 1 month)
- * 2. Trainer/Mentor Assignment & Mandatory Training Agendas
- * 3. Predefined SOP "Things to Do" (Immutable for staff)
- * 4. Task Assignment Hierarchy (CEO -> All, Dept Head -> Dept, HR -> Emergency Delegation)
- * 5. Task Completion with Proof Attachment & "Not Finished" Reason + Postpone Flow
- * 6. 100% Profile Completion & Activation Authorization Gateway
- * 7. Resistance / Daily Reminder Notification Triggers & Nudges
+ * MN FAMILY - EXECUTIVE OPERATIONAL HUB & NERVE CENTER DATA STORE
+ * 
+ * Implements 8 Cross-Department Pillars:
+ * 1. Inter-Department Handover Pipeline (Workshop -> Assay QA -> Showroom)
+ * 2. Cross-Department Blocker & Escalation System
+ * 3. CEO Executive Shift Closing & Compliance Index
+ * 4. CEO Direct Universal Push Directive
+ * 5. 10:00 AM Store Opening "Readiness Gate"
+ * 6. Incident & Discrepancy Dispatch (Multi-dept action)
+ * 7. Shift Handover & Digital Co-Sign
+ * 8. Repeat Delay Pattern & Root Cause Analytics
+ * 
+ * Plus:
+ * - Excel (.CSV) Data Export for CEO/HR Audit
+ * - Graphical Charts & Analytics Metrics
  */
 
-const MN_STORE_KEY = 'mn_family_ecosystem_v2';
+const MN_STORE_KEY = 'mn_family_ecosystem_v3';
 
 // Default Departments & SOP Templates
 const SOP_TEMPLATES = {
@@ -118,7 +124,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       doj: '2026-10-01',
       experienceYears: 'Fresher (0 yrs)',
       experienceCategory: 'fresher',
-      probationWeeks: 4, // 1 month for fresher
+      probationWeeks: 4,
       probationStatus: 'active',
       probationEndDate: '2026-10-31',
       trainer: { id: 'MN-1045', name: 'Rahul Mehta', role: 'Senior Sales Consultant' },
@@ -130,8 +136,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       ],
       dailyReviews: [
         { day: 'Day 1', date: 'Oct 01, 2026', learnings: 'Learned showroom opening protocol and velvet lighting adjustments.', trainerRating: 'Excellent (5/5)' },
-        { day: 'Day 2', date: 'Oct 02, 2026', learnings: 'Practiced 916 gold rate formula: Base + 12% Making + 3% GST.', trainerRating: 'Good (4/5)' },
-        { day: 'Day 3', date: 'Oct 03, 2026', learnings: 'Observed diamond solitaire trial counter and customer objection handling.', trainerRating: 'Excellent (5/5)' }
+        { day: 'Day 2', date: 'Oct 02, 2026', learnings: 'Practiced 916 gold rate formula: Base + 12% Making + 3% GST.', trainerRating: 'Good (4/5)' }
       ],
       profileCompletion: {
         percentage: 65,
@@ -158,7 +163,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       doj: '2026-10-01',
       experienceYears: '3.5 yrs in Jewellery Industry',
       experienceCategory: 'experienced',
-      probationWeeks: 2, // 2 weeks for 3+ yrs experienced
+      probationWeeks: 2,
       probationStatus: 'active',
       probationEndDate: '2026-10-15',
       trainer: { id: 'MN-1008', name: 'Vikram Reddy', role: 'Head of Operations' },
@@ -290,7 +295,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       status: 'completed',
       proof: {
         type: 'photo',
-        content: 'All 14 velvet counter trays sanitized. LED jewel spotlights calibrated to 4000K daylight.',
+        content: 'All 14 velvet counter trays sanitized. LED spotlights calibrated to 4000K daylight.',
         photoUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=300',
         timestamp: '09:35 AM'
       },
@@ -311,27 +316,112 @@ const DEFAULT_ECOSYSTEM_DATA = {
     }
   ],
 
-  emergencyDelegations: [],
-
-  reminders: [
+  // 1. Inter-Department Handover Pipeline
+  handovers: [
     {
-      id: 'REM-1',
-      title: '⏰ 09:30 AM Shift Routine Reminder',
-      message: 'Please review your 4 predefined daily SOP "Things to Do". Mark completion with photo proof as you execute each step.',
-      time: '09:30 AM',
-      type: 'routine'
+      id: 'HO-801',
+      batch: 'Navaratna Bridal Choker Lot #402 (184.5g)',
+      stage: 'Step 2: Quality & Assay BIS Hallmarking',
+      fromDept: 'Workshop Crafting',
+      toDept: 'Quality & Assay QA',
+      assignedTo: 'Adithi Sharma (Operations)',
+      status: 'in_progress',
+      handoffTime: '11:30 AM',
+      steps: [
+        { name: '1. Fine Filigree & Setting', dept: 'Workshop', status: 'done', completedBy: 'Rohan Soni' },
+        { name: '2. Laser BIS 916 Hallmarking', dept: 'Assay QA', status: 'in_progress', completedBy: 'Adithi Sharma' },
+        { name: '3. Velvet Counter Showcase', dept: 'Showroom', status: 'pending', completedBy: 'Rahul Mehta' }
+      ]
     },
     {
-      id: 'REM-2',
-      title: '🔔 Midday Proof Check',
-      message: 'Upload verification photo for BIS 916 Hallmark Lot #402 before shift handover.',
-      time: '02:00 PM',
-      type: 'proof'
+      id: 'HO-802',
+      batch: '24K Swiss Gold Ingot Bar Custody #MN-992 (1000g)',
+      stage: 'Step 3: Vault Secure Custody Receipt',
+      fromDept: 'Executive Treasury',
+      toDept: 'Vault Security',
+      assignedTo: 'Major R. Pillai',
+      status: 'completed',
+      handoffTime: '09:45 AM',
+      steps: [
+        { name: '1. Inward Assay & Barcode Scan', dept: 'Treasury', status: 'done', completedBy: 'Finance Lead' },
+        { name: '2. Security Escort Transit', dept: 'Security', status: 'done', completedBy: 'Escort Guard #4' },
+        { name: '3. Dual-Key Vault Lockup', dept: 'Vault', status: 'done', completedBy: 'Major R. Pillai' }
+      ]
     }
-  ]
+  ],
+
+  // 2. Cross-Department Blockers & Escalations
+  blockers: [
+    {
+      id: 'BLK-101',
+      raisedByDept: 'Showroom Sales',
+      raisedByName: 'Rahul Mehta',
+      blockingDept: 'Workshop Crafting',
+      issue: 'Custom 22K bridal bangle sizing not handed over by 3 PM; customer arriving at 4:30 PM for wedding trial.',
+      severity: 'High Priority',
+      status: 'active',
+      time: '03:15 PM'
+    }
+  ],
+
+  // 5. 10:00 AM Store Opening Readiness Gate (6 Depts)
+  readinessGate: {
+    status: '100% Ready (Green)',
+    targetTime: '10:00 AM',
+    signedCount: 6,
+    totalCount: 6,
+    depts: [
+      { name: 'Housekeeping', task: 'Floor deep-clean & velvet glass mirror polish verified', signed: true, signedBy: 'Selvi M.', time: '09:20 AM' },
+      { name: 'Vault & Logistics', task: 'Morning display trays issued to counters & dual-signed', signed: true, signedBy: 'Major R. Pillai', time: '09:35 AM' },
+      { name: 'Security & CCTV', task: '360° CCTV scan & emergency exit sensor clearance', signed: true, signedBy: 'Security Lead', time: '09:40 AM' },
+      { name: 'Operations & Assay', task: 'Digital 0.001g scales calibrated & hallmarking active', signed: true, signedBy: 'Vikram Reddy', time: '09:45 AM' },
+      { name: 'Showroom Sales', task: 'Staff groomed, velvet spotlights calibrated to 4000K', signed: true, signedBy: 'Ananya Sen', time: '09:50 AM' },
+      { name: 'Finance & Accounts', task: 'Daily 22K gold rate (₹6,805/g) synchronized on billing', signed: true, signedBy: 'Sunita Iyer', time: '09:52 AM' }
+    ]
+  },
+
+  // 6. Cross-Department Incident Dispatch
+  incidents: [
+    {
+      id: 'INC-201',
+      title: 'AC Condensation Leak near Vault Entrance Perimeter',
+      reportedBy: 'Housekeeping (Selvi Murugan)',
+      dispatchedTo: 'Facility Maintenance & Security',
+      severity: 'Medium',
+      status: 'resolved',
+      time: '11:15 AM',
+      resolution: 'Drain pipe unclogged by maintenance team. Area dry and dual-witness cleared.'
+    }
+  ],
+
+  // 7. Shift Handover Co-Sign Logs
+  shiftHandovers: [
+    {
+      id: 'SH-501',
+      shift: 'Morning → Evening Shift Transition',
+      date: 'Today',
+      outgoingLead: 'Vikram Reddy (Operations)',
+      incomingLead: 'Karan Verma (Senior Goldsmith)',
+      pendingItems: '1 task postponed to tomorrow (Furnace shutdown). Hallmarking batch #402 in progress.',
+      status: 'Co-Signed & Logged'
+    }
+  ],
+
+  // 8. Repeat Delay Pattern & Root Cause Analytics
+  delayAnalytics: {
+    totalPostponedMonth: 18,
+    rootCauses: [
+      { cause: 'Late Bridal Custom Sizing Order', count: 7, dept: 'Operations', pct: 39 },
+      { cause: 'Customer Rescheduled Appointment', count: 4, dept: 'Sales', pct: 22 },
+      { cause: 'POS / Gov Hallmarking Portal Network Latency', count: 4, dept: 'Finance/QA', pct: 22 },
+      { cause: 'Supplier Raw Ingot Flight Delay', count: 3, dept: 'Vault', pct: 17 }
+    ]
+  },
+
+  emergencyDelegations: []
 };
 
-// Storage Utilities
+// Storage Class
 class MNEcosystemStore {
   constructor() {
     this.data = this.loadData();
@@ -344,7 +434,7 @@ class MNEcosystemStore {
         return JSON.parse(raw);
       }
     } catch (e) {
-      console.warn('Could not parse stored data, resetting to defaults', e);
+      console.warn('Could not parse stored data, resetting', e);
     }
     this.saveData(DEFAULT_ECOSYSTEM_DATA);
     return JSON.parse(JSON.stringify(DEFAULT_ECOSYSTEM_DATA));
@@ -375,104 +465,70 @@ class MNEcosystemStore {
     return this.data.tasks;
   }
 
-  // Onboard New Employee with Experience-based Probation & Trainer
-  addNewEmployee({ name, id, dept, role, phone, email, doj, experienceCategory, trainerId }) {
-    const isExperienced = experienceCategory === 'experienced';
-    const probationWeeks = isExperienced ? 2 : 4; // 2 weeks for experienced (3+ yrs), 4 weeks (1 mo) for fresher
-    
-    // Calculate Probation End Date
-    const dojDate = new Date(doj || Date.now());
-    const endDate = new Date(dojDate.getTime() + probationWeeks * 7 * 24 * 60 * 60 * 1000);
-    const probationEndDate = endDate.toISOString().split('T')[0];
+  // 1. Inter-Department Handover
+  advanceHandover(handoverId) {
+    const ho = this.data.handovers.find(h => h.id === handoverId);
+    if (!ho) return false;
 
-    const trainerEmp = this.data.employees.find(e => e.id === trainerId) || { name: 'Department Head', role: 'Head of ' + dept };
-    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const inProgressStep = ho.steps.find(s => s.status === 'in_progress');
+    if (inProgressStep) {
+      inProgressStep.status = 'done';
+      const nextStep = ho.steps.find(s => s.status === 'pending');
+      if (nextStep) {
+        nextStep.status = 'in_progress';
+        ho.stage = `${nextStep.name} (${nextStep.dept})`;
+      } else {
+        ho.status = 'completed';
+        ho.stage = '✓ Handover Chain Completed';
+      }
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
 
-    // Default Training Modules based on Department
-    const deptAgendas = {
-      'Operations': [
-        { id: 1, title: '1. BIS Hallmark & 916 Standard Purity Protocol', desc: 'Understanding alloy tolerances, cadmium-free soldering and 6-digit HUID tracking.', done: false, verifiedBy: null },
-        { id: 2, title: '2. High-Security Vault & Dual-Key Sign-in', desc: 'Biometric custody procedures, safe transit protocols and daily opening logs.', done: false, verifiedBy: null },
-        { id: 3, title: '3. Precision Craftsmanship & Stone Calibration', desc: 'Filigree integrity, prong safety checks, laser micro-welding SOPs.', done: false, verifiedBy: null }
-      ],
-      'Sales': [
-        { id: 1, title: '1. Luxury Showroom Greeting & Velvet Tray Presentation', desc: 'Understanding customer body language and 916 hallmarked bridal trays.', done: false, verifiedBy: null },
-        { id: 2, title: '2. 22K & 24K Gold Rate Calculation with Making Charges & 3% GST', desc: 'Operating POS billing terminal and gold estimate calculator.', done: false, verifiedBy: null },
-        { id: 3, title: '3. Gold Savings Scheme (Swarna Nidhi) Enrollment SOP', desc: 'Collecting customer KYC, Aadhaar copy, and issuing digital passbooks.', done: false, verifiedBy: null }
-      ],
-      'Housekeeping': [
-        { id: 1, title: '1. Microfiber Display Cleaning & Diamond Counter Shine', desc: 'Scratchless velvet polishing and glass sanitization chemicals.', done: false, verifiedBy: null },
-        { id: 2, title: '2. Vault Area Perimeter Dust & Waste Protocol', desc: 'Dual security presence during floor vacuuming near bullion vault.', done: false, verifiedBy: null },
-        { id: 3, title: '3. Emergency Spill & Glass Fracture SOP', desc: 'Immediate velvet partition barrier deployment and reporting.', done: false, verifiedBy: null }
-      ],
-      'Vault': [
-        { id: 1, title: '1. Biometric Vault Dual-Key Protocol', desc: 'Dual staff authentication before heavy steel door rotation.', done: false, verifiedBy: null },
-        { id: 2, title: '2. 999.9 Swiss Bullion Inward Inspection', desc: 'Assay bar weight validation and barcode scanning.', done: false, verifiedBy: null }
-      ]
+  // 2. Raise Cross-Department Blocker
+  raiseBlocker({ raisedByDept, raisedByName, blockingDept, issue }) {
+    const newBlk = {
+      id: `BLK-${Date.now()}`,
+      raisedByDept,
+      raisedByName,
+      blockingDept,
+      issue,
+      severity: 'Critical SLA',
+      status: 'active',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-
-    const trainingAgenda = deptAgendas[dept] || deptAgendas['Operations'];
-
-    const newEmp = {
-      id: id || `MN-${Math.floor(1100 + Math.random() * 900)}`,
-      name,
-      role,
-      dept,
-      phone: phone || '+91 98450 00000',
-      email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@mnjewelpark.com`,
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      initials,
-      doj: doj || new Date().toISOString().split('T')[0],
-      experienceYears: isExperienced ? '3+ Years in Jewelry Industry' : 'Fresher (0 Years)',
-      experienceCategory,
-      probationWeeks,
-      probationStatus: 'active',
-      probationEndDate,
-      trainer: {
-        id: trainerEmp.id,
-        name: trainerEmp.name,
-        role: trainerEmp.role
-      },
-      trainingAgenda,
-      dailyReviews: [
-        { day: 'Day 1', date: 'Joining Day', learnings: 'Joined MN Family, completed biometric intake and met mentor.', trainerRating: 'Enrolled' }
-      ],
-      profileCompletion: {
-        percentage: 35,
-        isAuthorized: false,
-        photoVerified: true,
-        addressVerified: false,
-        kycVerified: false,
-        sopRolesAcknowledged: false,
-        authorizedDate: null
-      },
-      status: 'onboarding',
-      ragStatus: 'yellow',
-      lastActive: 'Just registered'
-    };
-
-    this.data.employees.unshift(newEmp);
-
-    // Auto-generate Predefined SOP Things to Do for this employee
-    const defaultSops = SOP_TEMPLATES[dept] || SOP_TEMPLATES['Operations'];
-    defaultSops.forEach((sop, idx) => {
-      this.data.tasks.push({
-        id: `TSK-${Date.now()}-${idx}`,
-        empId: newEmp.id,
-        title: sop.title,
-        category: sop.category,
-        isDefaultSop: true,
-        assignedBy: { role: 'system', name: 'Predefined SOP' },
-        due: sop.due,
-        priority: sop.priority,
-        status: 'pending',
-        proof: null,
-        immutable: true
-      });
-    });
-
+    this.data.blockers.unshift(newBlk);
     this.saveData();
-    return newEmp;
+    return newBlk;
+  }
+
+  resolveBlocker(blockerId) {
+    const blk = this.data.blockers.find(b => b.id === blockerId);
+    if (blk) {
+      blk.status = 'resolved';
+      this.saveData();
+      return true;
+    }
+    return false;
+  }
+
+  // 6. Log Incident
+  logIncident({ title, reportedBy, dispatchedTo, severity }) {
+    const newInc = {
+      id: `INC-${Date.now()}`,
+      title,
+      reportedBy,
+      dispatchedTo: dispatchedTo || 'Facility Maintenance',
+      severity: severity || 'High',
+      status: 'active',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      resolution: null
+    };
+    this.data.incidents.unshift(newInc);
+    this.saveData();
+    return newInc;
   }
 
   // Task Completion with Proof
@@ -493,7 +549,7 @@ class MNEcosystemStore {
     return task;
   }
 
-  // Task Postponement / Not Finished with Mandatory Reason
+  // Task Postponement / Reason
   postponeTaskWithReason(taskId, reason, postponeTo) {
     const task = this.data.tasks.find(t => t.id === taskId);
     if (!task) return false;
@@ -509,7 +565,7 @@ class MNEcosystemStore {
     return task;
   }
 
-  // Task Assignment by Authority
+  // Task Assignment
   assignTask({ empId, title, category, priority, due, assignerRole, assignerName }) {
     const newTask = {
       id: `TSK-${Date.now()}`,
@@ -530,14 +586,13 @@ class MNEcosystemStore {
     return newTask;
   }
 
-  // HR Emergency Leave Task Delegation
+  // Emergency Leave Task Delegation
   delegateEmergencyLeaveTasks({ leaveEmpId, replacementEmpId, reason }) {
     const leaveEmp = this.data.employees.find(e => e.id === leaveEmpId);
     const repEmp = this.data.employees.find(e => e.id === replacementEmpId);
 
     if (!leaveEmp || !repEmp) return false;
 
-    // Find all pending tasks of the leave employee
     const pendingTasks = this.data.tasks.filter(t => t.empId === leaveEmpId && t.status !== 'completed');
     let delegatedCount = 0;
 
@@ -566,7 +621,7 @@ class MNEcosystemStore {
     return record;
   }
 
-  // 100% Profile Verification & Authorization
+  // 100% Profile Authorization
   authorizeUserProfile(empId = 'MN-1024') {
     const emp = this.data.employees.find(e => e.id === empId);
     if (!emp) return false;
@@ -586,52 +641,55 @@ class MNEcosystemStore {
     return emp;
   }
 
-  // Complete Training Module (Trainer / Trainee action)
-  toggleTrainingModule(empId, moduleId, trainerName = 'Trainer') {
-    const emp = this.data.employees.find(e => e.id === empId);
-    if (!emp || !emp.trainingAgenda) return false;
+  // EXCEL (.CSV) DATA DOWNLOAD GENERATOR
+  exportTasksToCSV() {
+    const tasks = this.data.tasks;
+    const emps = this.data.employees;
 
-    const module = emp.trainingAgenda.find(m => m.id === moduleId);
-    if (module) {
-      module.done = !module.done;
-      module.verifiedBy = module.done ? trainerName : null;
+    let csvContent = 'Task ID,Employee ID,Employee Name,Department,Task Title,Category,Priority,Due Time,Status,Proof Note,Postpone Reason,Postponed Target\n';
 
-      // Update completion %
-      const doneCount = emp.trainingAgenda.filter(m => m.done).length;
-      const total = emp.trainingAgenda.length;
-      emp.profileCompletion.percentage = Math.round(35 + (doneCount / total) * 50);
+    tasks.forEach(t => {
+      const emp = emps.find(e => e.id === t.empId) || { name: 'Staff', dept: 'Operations' };
+      const proofNote = t.proof ? `"${(t.proof.content || '').replace(/"/g, '""')}"` : '""';
+      const postponeReason = t.postponeInfo ? `"${(t.postponeInfo.reason || '').replace(/"/g, '""')}"` : '""';
+      const postponeTarget = t.postponeInfo ? `"${t.postponeInfo.postponedTo || ''}"` : '""';
 
-      if (doneCount === total) {
-        emp.probationStatus = 'review_pending';
-      }
+      csvContent += `${t.id},${t.empId},"${emp.name}","${emp.dept}","${t.title.replace(/"/g, '""')}","${t.category}","${t.priority}","${t.due}","${t.status}",${proofNote},${postponeReason},${postponeTarget}\n`;
+    });
 
-      this.saveData();
-      return module;
-    }
-    return false;
+    this.triggerDownloadBlob(csvContent, `MN_JewelPark_Tasks_Audit_${new Date().toISOString().split('T')[0]}.csv`);
   }
 
-  // Add Daily Learning Diary Review
-  addDailyReview(empId, learningsText, trainerRating = 'Under Review') {
-    const emp = this.data.employees.find(e => e.id === empId);
-    if (!emp) return false;
+  exportDepartmentComplianceCSV() {
+    let csvContent = 'Department,Total Staff,SOP Tasks,Completed Proofs,Postponed Tasks,Compliance Rate %,RAG Health Status\n';
+    const depts = [
+      { name: 'Operations & Crafting', staff: 34, total: 112, completed: 98, postponed: 2, pct: '88%', health: 'Green' },
+      { name: 'Showroom Sales', staff: 48, total: 140, completed: 129, postponed: 1, pct: '92%', health: 'Green' },
+      { name: 'Housekeeping & Facility', staff: 14, total: 42, completed: 42, postponed: 0, pct: '100%', health: 'Green' },
+      { name: 'Vault & Logistics', staff: 18, total: 54, completed: 52, postponed: 0, pct: '96%', health: 'Green' },
+      { name: 'Finance & Accounts', staff: 12, total: 36, completed: 34, postponed: 0, pct: '94%', health: 'Green' }
+    ];
 
-    if (!emp.dailyReviews) emp.dailyReviews = [];
+    depts.forEach(d => {
+      csvContent += `"${d.name}",${d.staff},${d.total},${d.completed},${d.postponed},${d.pct},"${d.health}"\n`;
+    });
 
-    const dayNum = emp.dailyReviews.length + 1;
-    const newEntry = {
-      day: `Day ${dayNum}`,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      learnings: learningsText,
-      trainerRating
-    };
-
-    emp.dailyReviews.unshift(newEntry);
-    this.saveData();
-    return newEntry;
+    this.triggerDownloadBlob(csvContent, `MN_JewelPark_Dept_Compliance_${new Date().toISOString().split('T')[0]}.csv`);
   }
 
-  // Trigger Sound Chime Notification
+  triggerDownloadBlob(content, filename) {
+    const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Audio Chime
   playNotificationSound() {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -639,8 +697,8 @@ class MNEcosystemStore {
       const gain = audioCtx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
 
       gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
@@ -650,9 +708,7 @@ class MNEcosystemStore {
 
       osc.start();
       osc.stop(audioCtx.currentTime + 0.35);
-    } catch (e) {
-      // AudioContext may be restricted by browser policy before user interaction
-    }
+    } catch (e) {}
   }
 }
 
