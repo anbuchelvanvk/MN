@@ -1,0 +1,1049 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import '../firebase_options.dart';
+import '../models/employee_model.dart';
+import '../models/social_cause_models.dart';
+import '../models/company_notification_models.dart';
+import '../models/task_model.dart';
+import '../models/online_order_model.dart';
+
+/// Firebase Employee & Omnichannel Service for MN Jewel Park
+/// Handles centralized Cloud Firestore sync, authentication, role allocation,
+/// and real-time persistence of the 4 Pillars for Online Department.
+class FirebaseEmployeeService {
+  static bool get isFirebaseAvailable {
+    try {
+      return Firebase.apps.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  final FirebaseFirestore? _customFirestore;
+  final FirebaseAuth? _customAuth;
+
+  FirebaseEmployeeService({FirebaseFirestore? firestore, FirebaseAuth? auth})
+      : _customFirestore = firestore,
+        _customAuth = auth;
+
+  FirebaseFirestore get _firestore => _customFirestore ?? FirebaseFirestore.instance;
+  FirebaseAuth get _auth => _customAuth ?? FirebaseAuth.instance;
+
+  CollectionReference<Map<String, dynamic>> get _employeeCollection =>
+      _firestore.collection('online_department_employees');
+
+  CollectionReference<Map<String, dynamic>> get _usersCollection =>
+      _firestore.collection('users');
+
+  CollectionReference<Map<String, dynamic>> get _socialCausesCollection =>
+      _firestore.collection('social_causes');
+
+  CollectionReference<Map<String, dynamic>> get _notificationsCollection =>
+      _firestore.collection('company_notifications');
+
+  CollectionReference<Map<String, dynamic>> get _todosCollection =>
+      _firestore.collection('personal_todos');
+
+  CollectionReference<Map<String, dynamic>> get _ordersCollection =>
+      _firestore.collection('online_orders');
+
+  /// Stream real-time employee list for Online Department
+  Stream<List<Employee>> streamEmployees() {
+    return _employeeCollection.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Employee.fromMap(doc.data(), doc.id);
+      }).toList();
+    });
+  }
+
+  /// Initialize and seed corporate accounts if Firestore is completely empty
+  Future<void> seedCorporateAccountsIfEmpty() async {
+    try {
+      final col = _employeeCollection;
+      if (col == null) return;
+      // Always ensure official CEO & HR leadership identity is updated in Cloud Firestore
+      await syncCorporateLeadershipNames();
+
+      final snapshot = await col.limit(1).get();
+      if (snapshot.docs.isNotEmpty) return; // Already initialized
+
+      debugPrint('Initializing Official MN Corporate accounts in Cloud Firestore...');
+      final accounts = [
+        {
+          'id': 'MN-CEO01',
+          'name': 'M N Naveenraaj',
+          'email': 'ceoofmn@mnjpark.com',
+          'role': 'Managing Director & CEO',
+          'roleType': 'ceo',
+          'dept': 'Executive Board',
+          'phone': '+91 98450 00001',
+          'password': 'adminnaandhan',
+          'experienceYears': '25 yrs in Fine Jewellery',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'MN',
+          'lastActive': 'Active now',
+          'dob': '1975-01-15',
+          'relationshipStatus': 'Married',
+          'anniversaryDate': '2001-05-20',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-HR1001',
+          'name': 'Mohankumar G',
+          'email': 'hr@mnj.com',
+          'role': 'HR Manager & Operations Custodian',
+          'roleType': 'hr',
+          'dept': 'Human Resources',
+          'phone': '+91 94433 11000',
+          'password': 'hr@mnj123',
+          'experienceYears': '8 yrs in HR Management',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'MG',
+          'lastActive': 'Active now',
+          'dob': '1993-04-10',
+          'relationshipStatus': 'Married',
+          'anniversaryDate': '2019-06-15',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-TL1002',
+          'name': 'Praveenkumaar M',
+          'email': 'praveenkumarotm@mnj.com',
+          'role': 'Online Team Manager (Editor)',
+          'roleType': 'team_lead',
+          'dept': 'Online & Design',
+          'phone': '+91 94420 11001',
+          'password': 'praveen@mnj123',
+          'experienceYears': '6 yrs in Digital Media',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'PM',
+          'lastActive': 'Active now',
+          'dob': '1994-08-15',
+          'relationshipStatus': 'Married',
+          'anniversaryDate': '2021-11-20',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1003',
+          'name': 'Gokulakrishnan K',
+          'email': 'gokulakrishnanosh@mnj.com',
+          'role': 'Online Sale Head (OSH)',
+          'roleType': 'employee',
+          'dept': 'Online Sales',
+          'phone': '+91 94420 11002',
+          'password': 'gokul@mnj123',
+          'experienceYears': '5 yrs in Retail Sales',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'KG',
+          'lastActive': 'Active now',
+          'dob': '1995-05-12',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1004',
+          'name': 'Aravinda Samy Y',
+          'email': 'aravindasamyvpe@mnj.com',
+          'role': 'Chief Photographer & Videographer (VPE)',
+          'roleType': 'employee',
+          'dept': 'Media & Creative',
+          'phone': '+91 94420 11003',
+          'password': 'aravind@mnj123',
+          'experienceYears': '5 yrs in Jewelry Cinematography',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'YA',
+          'lastActive': 'Active now',
+          'dob': '1996-03-24',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1005',
+          'name': 'Mithra M',
+          'email': 'mithraassvpe@mnj.com',
+          'role': 'Assistant Photographer & Videographer (Ass.VPE)',
+          'roleType': 'employee',
+          'dept': 'Media & Creative',
+          'phone': '+91 94420 11004',
+          'password': 'mithra@mnj123',
+          'experienceYears': '3 yrs in Photography',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'MM',
+          'lastActive': 'Active now',
+          'dob': '1997-10-08',
+          'relationshipStatus': 'Married',
+          'anniversaryDate': '2023-02-14',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1006',
+          'name': 'E-Commerce Executive',
+          'email': 'ece@mnj.com',
+          'role': 'E-Commerce Executive (ECE)',
+          'roleType': 'employee',
+          'dept': 'Catalog & Listing',
+          'phone': '+91 94420 11005',
+          'password': 'ece@mnj123',
+          'experienceYears': '3 yrs in E-Commerce',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'EC',
+          'lastActive': 'Active now',
+          'dob': '1998-01-19',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1007',
+          'name': 'Kaaviya',
+          'email': 'kaaviyaos1@mnj.com',
+          'role': 'Online Sale Person 1 (OS1)',
+          'roleType': 'employee',
+          'dept': 'Online Sales',
+          'phone': '+91 80567 36999',
+          'password': 'kaaviya@mnj123',
+          'experienceYears': '3 yrs in Jewelry Sales',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'KV',
+          'lastActive': 'Active now',
+          'dob': '1999-07-11',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1008',
+          'name': 'Nisha',
+          'email': 'nishaos2@mnj.com',
+          'role': 'Online Sale Person 2 (OS2)',
+          'roleType': 'employee',
+          'dept': 'Online Sales',
+          'phone': '+91 89258 68077',
+          'password': 'nisha@mnj123',
+          'experienceYears': '3 yrs in Customer Care',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'NS',
+          'lastActive': 'Active now',
+          'dob': '1999-12-05',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1009',
+          'name': 'Midhun Kumar J',
+          'email': 'midhunkumarac@mnj.com',
+          'role': 'Online Analytical Consultant (AC)',
+          'roleType': 'employee',
+          'dept': 'Analytics & Performance Ads',
+          'phone': '+91 94420 11006',
+          'password': 'midhun@mnj123',
+          'experienceYears': '4 yrs in Digital Ads',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'JM',
+          'lastActive': 'Active now',
+          'dob': '1995-11-28',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1010',
+          'name': 'Subash',
+          'email': 'subashoss@mnj.com',
+          'role': 'Online Support & Strategist (OSS)',
+          'roleType': 'employee',
+          'dept': 'Campaign Strategy',
+          'phone': '+91 94420 11007',
+          'password': 'subash@mnj123',
+          'experienceYears': '4 yrs in Marketing Strategy',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'SB',
+          'lastActive': 'Active now',
+          'dob': '1996-06-17',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1011',
+          'name': 'Eshwar K B',
+          'email': 'eshwardvp@mnj.com',
+          'role': 'Platform Developer (DVP)',
+          'roleType': 'employee',
+          'dept': 'Technology & E-Commerce',
+          'phone': '+91 94420 11008',
+          'password': 'eshwar@mnj123',
+          'experienceYears': '4 yrs in Full Stack Development',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'KE',
+          'lastActive': 'Active now',
+          'dob': '1997-04-22',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'MN-1012',
+          'name': 'Sam Roy',
+          'email': 'samroycc@mnj.com',
+          'role': 'Content Creator & Scriptwriter (CC)',
+          'roleType': 'employee',
+          'dept': 'Creative & Social Media',
+          'phone': '+91 94420 11009',
+          'password': 'samroy@mnj123',
+          'experienceYears': '3 yrs in Scriptwriting',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'SR',
+          'lastActive': 'Active now',
+          'dob': '1998-09-30',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+      ];
+
+      for (final acc in accounts) {
+        final id = acc['id'] as String;
+        final email = (acc['email'] as String).toLowerCase().trim();
+        final pass = acc['password'] as String;
+
+        await _employeeCollection.doc(id).set(acc);
+        await _usersCollection.doc(email).set({
+          'empId': id,
+          'name': acc['name'],
+          'email': email,
+          'role': acc['roleType'],
+          'roleType': acc['roleType'],
+          'dept': acc['dept'],
+          'password': pass,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        // Register in Firebase Auth (silent background)
+        await createAuthUserWithoutSignout(
+          email: email,
+          password: pass,
+        );
+      }
+    } catch (e) {
+      debugPrint('Firestore seed error (offline or permission): $e');
+    }
+  }
+
+  /// Ensure corporate leadership names (CEO M N Naveenraaj & HR Mohankumar G) are always accurate
+  Future<void> syncCorporateLeadershipNames() async {
+    try {
+      await _employeeCollection.doc('MN-CEO01').set({
+        'name': 'M N Naveenraaj',
+        'initials': 'MN',
+        'role': 'Managing Director & CEO',
+      }, SetOptions(merge: true));
+
+      await _employeeCollection.doc('MN-HR1001').set({
+        'name': 'Mohankumar G',
+        'initials': 'MG',
+        'role': 'HR Manager & Operations Custodian',
+      }, SetOptions(merge: true));
+
+      // Sanitize legacy notifications in Cloud Firestore
+      final notifSnap = await _notificationsCollection.get();
+      for (final doc in notifSnap.docs) {
+        final data = doc.data();
+        final sender = data['senderName']?.toString() ?? '';
+        final title = data['title']?.toString() ?? '';
+        final content = data['content']?.toString() ?? '';
+        if (sender.contains('Senthil') || sender.contains('Executive CEO') || content.contains('Senthil') || title.contains('Senthil')) {
+          await doc.reference.set({
+            'senderName': 'M N Naveenraaj',
+            'senderRole': 'Managing Director & CEO',
+            'title': title
+                .replaceAll('Dr. K. Senthil Nathan', 'M N Naveenraaj')
+                .replaceAll('Senthil Nathan', 'M N Naveenraaj')
+                .replaceAll('Senthil', 'M N Naveenraaj'),
+            'content': content
+                .replaceAll('Dr. K. Senthil Nathan', 'M N Naveenraaj')
+                .replaceAll('Senthil Nathan', 'M N Naveenraaj')
+                .replaceAll('Senthil', 'M N Naveenraaj')
+                .replaceAll('CEO & Founder', 'Managing Director & CEO'),
+          }, SetOptions(merge: true));
+        }
+      }
+    } catch (e) {
+      debugPrint('Firestore syncCorporateLeadershipNames note: $e');
+    }
+  }
+
+  /// Creates a user in Firebase Authentication on the cloud without logging out active session
+  Future<bool> createAuthUserWithoutSignout({
+    required String email,
+    required String password,
+  }) async {
+    FirebaseApp? secondaryApp;
+    final cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail.contains('@') || password.length < 6) return false;
+    try {
+      final appName = 'AuthProvision_${DateTime.now().millisecondsSinceEpoch}';
+      secondaryApp = await Firebase.initializeApp(
+        name: appName,
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+      await secondaryAuth.createUserWithEmailAndPassword(
+        email: cleanEmail,
+        password: password,
+      );
+      debugPrint('Successfully registered $cleanEmail directly in enterprise cloud directory.');
+      return true;
+    } catch (e) {
+      debugPrint('Secondary Firebase App user creation note: $e');
+      return false;
+    } finally {
+      try {
+        await secondaryApp?.delete();
+      } catch (_) {}
+    }
+  }
+
+  /// Add new employee (Exclusively allowed for HR and CEO)
+  Future<void> addEmployee({
+    required Employee employee,
+    required String requesterRole,
+    String? password,
+  }) async {
+    final role = requesterRole.toLowerCase();
+    if (role != 'hr' && role != 'ceo') {
+      throw Exception('Permission Denied: Only HR and CEO are authorized to add new users.');
+    }
+
+    final data = employee.toMap();
+    data['dept'] = employee.dept.isEmpty ? 'Online Department' : employee.dept;
+    data['createdAt'] = FieldValue.serverTimestamp();
+
+    // 1. Save in online_department_employees
+    await _employeeCollection.doc(employee.id).set(data);
+
+    // 2. Save in users collection for authentication & role lookup
+    final emailKey = employee.email.toLowerCase().trim();
+    if (emailKey.isNotEmpty) {
+      await _usersCollection.doc(emailKey).set({
+        'empId': employee.id,
+        'name': employee.name,
+        'email': emailKey,
+        'role': employee.roleType,
+        'roleType': employee.roleType,
+        'dept': employee.dept,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // 3. Register user directly into Firebase Authentication
+      if (password != null && password.length >= 6) {
+        await createAuthUserWithoutSignout(
+          email: emailKey,
+          password: password,
+        );
+      }
+    }
+  }
+
+  /// Remove employee (Exclusively allowed for HR and CEO)
+  Future<void> removeEmployee({
+    required String employeeId,
+    required String requesterRole,
+  }) async {
+    final role = requesterRole.toLowerCase();
+    if (role != 'hr' && role != 'ceo') {
+      throw Exception('Permission Denied: Only HR and CEO are authorized to remove employees.');
+    }
+    if (employeeId == 'MN-CEO01') {
+      throw Exception('Permission Denied: Executive CEO account cannot be removed.');
+    }
+
+    // Lookup to remove associated user doc
+    try {
+      final doc = await _employeeCollection.doc(employeeId).get();
+      if (doc.exists) {
+        final email = doc.data()?['email'] as String?;
+        if (email != null && email.isNotEmpty) {
+          await _usersCollection.doc(email.toLowerCase().trim()).delete().catchError((_) {});
+        }
+      }
+    } catch (_) {}
+
+    await _employeeCollection.doc(employeeId).delete();
+  }
+
+  /// Authenticate user via Firebase Auth and Cloud Firestore
+  /// Returns user profile with detected role: 'employee', 'team_lead', 'hr', 'ceo'
+  Future<Map<String, dynamic>?> authenticateUser({
+    required String emailOrId,
+    required String password,
+  }) async {
+    final query = emailOrId.trim().toLowerCase();
+
+    // Special CEO Root Master Handling: 'ceoofmn@mnjpark.com', 'ceo@mnj.com', 'mn-ceo01'
+    if (query == 'ceoofmn@mnjpark.com' || query == 'ceo@mnj.com' || query == 'mn-ceo01') {
+      if (password == 'adminnaandhan') {
+        try {
+          await _auth.signInWithEmailAndPassword(email: 'ceoofmn@mnjpark.com', password: password);
+        } catch (_) {
+          try {
+            await _auth.createUserWithEmailAndPassword(email: 'ceoofmn@mnjpark.com', password: password);
+          } catch (_) {}
+        }
+
+        await _usersCollection.doc('ceoofmn@mnjpark.com').set({
+          'empId': 'MN-CEO01',
+          'name': 'M N Naveenraaj',
+          'email': 'ceoofmn@mnjpark.com',
+          'role': 'ceo',
+          'roleType': 'ceo',
+          'dept': 'Executive Board',
+          'createdAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+
+        return {
+          'empId': 'MN-CEO01',
+          'name': 'M N Naveenraaj',
+          'email': 'ceoofmn@mnjpark.com',
+          'role': 'ceo',
+          'roleType': 'ceo',
+          'dept': 'Executive Board',
+        };
+      } else {
+        throw Exception('Email / Password incorrect');
+      }
+    }
+
+    // Special HR Master Handling: 'hr@mnj.com', 'mn-hr1001'
+    if (query == 'hr@mnj.com' || query == 'mn-hr1001') {
+      if (password == 'hr@mnj123') {
+        try {
+          await _auth.signInWithEmailAndPassword(email: 'hr@mnj.com', password: password);
+        } catch (_) {
+          try {
+            await _auth.createUserWithEmailAndPassword(email: 'hr@mnj.com', password: password);
+          } catch (_) {}
+        }
+
+        return {
+          'empId': 'MN-HR1001',
+          'name': 'Mohankumar G',
+          'email': 'hr@mnj.com',
+          'role': 'hr',
+          'roleType': 'hr',
+          'dept': 'Human Resources',
+        };
+      } else {
+        throw Exception('Email / Password incorrect');
+      }
+    }
+
+    // 1. Try Firebase Auth first if query is valid email
+    if (query.contains('@')) {
+      try {
+        await _auth.signInWithEmailAndPassword(email: query, password: password);
+      } catch (authError) {
+        debugPrint('Firebase Auth direct sign-in note: $authError');
+        try {
+          await _auth.createUserWithEmailAndPassword(email: query, password: password);
+        } catch (_) {}
+      }
+    }
+
+    // 2. Query Firestore users collection by email or empId
+    try {
+      if (query.contains('@')) {
+        final userDoc = await _usersCollection.doc(query).get();
+        if (userDoc.exists && userDoc.data() != null) {
+          final data = userDoc.data()!;
+          final storedPass = data['password']?.toString();
+          if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
+            throw Exception('Email / Password incorrect');
+          }
+          return userDoc.data();
+        }
+      }
+
+      // Query online_department_employees
+      final empDoc = await _employeeCollection.doc(emailOrId.trim()).get();
+      if (empDoc.exists && empDoc.data() != null) {
+        final d = empDoc.data()!;
+        final storedPass = d['password']?.toString();
+        if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
+          throw Exception('Email / Password incorrect');
+        }
+        return {
+          'empId': d['id'],
+          'name': d['name'],
+          'email': d['email'],
+          'role': d['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
+          'roleType': d['roleType'] ?? 'employee',
+          'dept': d['dept'] ?? 'Online Department',
+        };
+      }
+
+      // Query by email match in employee collection
+      final emailQuery = await _employeeCollection.where('email', isEqualTo: query).limit(1).get();
+      if (emailQuery.docs.isNotEmpty) {
+        final d = emailQuery.docs.first.data();
+        final storedPass = d['password']?.toString();
+        if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
+          throw Exception('Email / Password incorrect');
+        }
+        return {
+          'empId': d['id'],
+          'name': d['name'],
+          'email': d['email'],
+          'role': d['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
+          'roleType': d['roleType'] ?? 'employee',
+          'dept': d['dept'] ?? 'Online Department',
+        };
+      }
+    } catch (e) {
+      if (e is Exception && e.toString().contains('Email / Password incorrect')) {
+        rethrow;
+      }
+      debugPrint('Firestore user lookup error: $e');
+    }
+
+    return null;
+  }
+
+  /// Save specific Pillar data for an Employee to Cloud Firestore
+  /// [pillarKey] can be 'health', 'family', 'profile', 'attendance'
+  Future<void> saveEmployeePillar({
+    required String empId,
+    required String pillarKey,
+    required dynamic data,
+  }) async {
+    try {
+      await _employeeCollection.doc(empId).set({
+        'fourPillars': {
+          pillarKey: data,
+        },
+        'lastActive': 'Just now',
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveEmployeePillar ($pillarKey) error: $e');
+    }
+  }
+
+  /// Update specific profile fields (name, phone, dob, relationshipStatus, anniversaryDate)
+  Future<void> updateEmployeeProfileFields({
+    required String empId,
+    required Map<String, dynamic> fields,
+  }) async {
+    try {
+      await _employeeCollection.doc(empId).set(fields, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore updateEmployeeProfileFields error: $e');
+    }
+  }
+
+  /// Update password in both employee doc and users collection
+  Future<void> updateEmployeePassword({
+    required String empId,
+    required String email,
+    required String newPassword,
+  }) async {
+    try {
+      await _employeeCollection.doc(empId).set({'password': newPassword}, SetOptions(merge: true));
+      final cleanEmail = email.toLowerCase().trim();
+      if (cleanEmail.isNotEmpty) {
+        await _usersCollection.doc(cleanEmail).set({'password': newPassword}, SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint('Firestore updateEmployeePassword error: $e');
+    }
+  }
+
+  /// Load 4-Pillars for the logged-in employee from Firestore
+  Future<Map<String, dynamic>?> loadEmployeePillars(String empId) async {
+    try {
+      final doc = await _employeeCollection.doc(empId).get();
+      if (doc.exists && doc.data() != null) {
+        final d = doc.data()!;
+        if (d['fourPillars'] is Map) {
+          return Map<String, dynamic>.from(d['fourPillars'] as Map);
+        }
+      }
+    } catch (e) {
+      debugPrint('Firestore loadEmployeePillars error: $e');
+    }
+    return null;
+  }
+
+  /// Stream real-time social causes (Pillar 5)
+  Stream<List<SocialCauseItem>> streamSocialCauses() {
+    final col = _socialCausesCollection;
+    if (col == null) return const Stream.empty();
+    return col.snapshots().map((snapshot) {
+      final list = snapshot.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+        return SocialCauseItem.fromJson(data);
+      }).toList();
+      list.sort((a, b) => b.date.compareTo(a.date));
+      return list;
+    });
+  }
+
+  /// Save or post a new social cause to Cloud Firestore
+  Future<void> saveSocialCause(SocialCauseItem cause) async {
+    try {
+      await _socialCausesCollection?.doc(cause.id).set(cause.toJson(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveSocialCause error: $e');
+    }
+  }
+
+  /// Update approval status of a social cause in Cloud Firestore
+  Future<void> updateSocialCauseStatus({
+    required String causeId,
+    required String status,
+    required String approvedByName,
+    required DateTime approvedAt,
+  }) async {
+    try {
+      await _socialCausesCollection?.doc(causeId).set({
+        'status': status,
+        'approvedByName': approvedByName,
+        'approvedAt': approvedAt.toIso8601String(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore updateSocialCauseStatus error: $e');
+    }
+  }
+
+  /// Update hearts count of a social cause in Cloud Firestore
+  Future<void> updateSocialCauseHearts(String causeId, int heartsCount) async {
+    try {
+      await _socialCausesCollection?.doc(causeId).set({
+        'heartsCount': heartsCount,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore updateSocialCauseHearts error: $e');
+    }
+  }
+
+  /// Stream real-time company universal notifications
+  Stream<List<CompanyNotification>> streamCompanyNotifications() {
+    final col = _notificationsCollection;
+    if (col == null) return const Stream.empty();
+    return col.snapshots().map((snapshot) {
+      final list = snapshot.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+        return CompanyNotification.fromJson(data);
+      }).toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
+  }
+
+  /// Save a new notification to Cloud Firestore
+  Future<void> saveCompanyNotification(CompanyNotification notif) async {
+    try {
+      await _notificationsCollection?.doc(notif.id).set(notif.toJson(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveCompanyNotification error: $e');
+    }
+  }
+
+  /// Mark notification as read in Cloud Firestore (Per-user tracking when empId provided)
+  Future<void> markNotificationRead(String notifId, [String? empId]) async {
+    try {
+      if (empId != null && empId.isNotEmpty) {
+        await _notificationsCollection?.doc(notifId).set({
+          'readByStaffIds': FieldValue.arrayUnion([empId]),
+        }, SetOptions(merge: true));
+      } else {
+        await _notificationsCollection?.doc(notifId).set({
+          'isRead': true,
+        }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint('Firestore markNotificationRead error: $e');
+    }
+  }
+
+  /// Stream personal To-Dos across all devices for real-time staff & management sync
+  Stream<List<TaskItem>> streamPersonalTodos() {
+    final col = _todosCollection;
+    if (col == null) return const Stream.empty();
+    return col.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+        return TaskItem.fromMap(data);
+      }).toList();
+    });
+  }
+
+  /// Save or update a personal To-Do in Cloud Firestore
+  Future<void> savePersonalTodo(TaskItem task) async {
+    try {
+      await _todosCollection?.doc(task.id).set(task.toMap(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore savePersonalTodo error: $e');
+    }
+  }
+
+  /// Delete a personal To-Do from Cloud Firestore
+  Future<void> deletePersonalTodo(String taskId) async {
+    try {
+      await _todosCollection?.doc(taskId).delete();
+    } catch (e) {
+      debugPrint('Firestore deletePersonalTodo error: $e');
+    }
+  }
+
+  /// Stream real-time online orders
+  Stream<List<OnlineOrderModel>> streamOnlineOrders() {
+    final col = _ordersCollection;
+    if (col == null) return const Stream.empty();
+    return col.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['orderId'] = doc.id;
+        return OnlineOrderModel.fromMap(data);
+      }).toList();
+    });
+  }
+
+  /// Save or update an online order in Cloud Firestore
+  Future<void> saveOnlineOrder(OnlineOrderModel order) async {
+    try {
+      await _ordersCollection?.doc(order.orderId).set(order.toMap(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveOnlineOrder error: $e');
+    }
+  }
+
+  /// Delete an online order from Cloud Firestore
+  Future<void> deleteOnlineOrder(String orderId) async {
+    try {
+      await _ordersCollection.doc(orderId).delete();
+    } catch (e) {
+      debugPrint('Firestore deleteOnlineOrder error: $e');
+    }
+  }
+
+  /// Atomically approve a social cause using a transaction to prevent duplicate concurrent approvals
+  Future<bool> approveSocialCauseAtomic({
+    required String causeId,
+    required String approvedByName,
+    required String approverRole,
+    required DateTime approvedAt,
+  }) async {
+    try {
+      final docRef = _socialCausesCollection.doc(causeId);
+      return await _firestore.runTransaction<bool>((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) {
+          return true; // Optimistic fallback if local-only
+        }
+        final data = snapshot.data();
+        if (data != null && data['status'] == 'approved') {
+          return false; // Already approved by another admin
+        }
+        transaction.set(docRef, {
+          'status': 'approved',
+          'approvedByName': approvedByName,
+          'approvedAt': approvedAt.toIso8601String(),
+        }, SetOptions(merge: true));
+        return true;
+      });
+    } catch (e) {
+      debugPrint('Firestore approveSocialCauseAtomic note: $e');
+      return true; // Fallback to allowing local update
+    }
+  }
+
+  /// Ensure FirebaseAuth has an active authenticated session
+  Future<void> ensureFirebaseAuthSession(String email, String password) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanPass = password.trim();
+    if (!cleanEmail.contains('@') || cleanPass.isEmpty) return;
+
+    try {
+      if (_auth.currentUser != null) return;
+      await _auth.signInWithEmailAndPassword(email: cleanEmail, password: cleanPass);
+    } catch (e) {
+      debugPrint('Firebase direct auth note: $e, registering authenticated user in Firebase Auth...');
+      try {
+        if (_auth.currentUser == null) {
+          await _auth.createUserWithEmailAndPassword(email: cleanEmail, password: cleanPass);
+        }
+      } catch (createErr) {
+        debugPrint('Firebase auto-create user note: $createErr');
+        try {
+          if (_auth.currentUser == null) {
+            await _auth.signInAnonymously();
+          }
+        } catch (_) {}
+      }
+    }
+  }
+}

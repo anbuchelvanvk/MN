@@ -92,7 +92,7 @@
 
   <!-- Top Role Switcher / Quick Return Bar -->
   <div class="role-switcher-banner">
-    <span>Executive: <strong>Suresh Iyer (Managing Director & CEO)</strong></span>
+    <span>Executive: <strong>M N Naveenraaj (Managing Director & CEO)</strong></span>
     <a href="index.html">
       <i class="fa-solid fa-arrow-right-arrow-left"></i> Switch Role
     </a>
@@ -126,10 +126,10 @@
         <!-- CEO Hero Card -->
         <div class="hero-card">
           <div class="hero-profile">
-            <div class="avatar-initials" style="background: linear-gradient(135deg, #fef08a 0%, #d4af37 100%);">SI</div>
+            <div class="avatar-initials" style="background: linear-gradient(135deg, #fef08a 0%, #d4af37 100%);">MN</div>
             <div class="hero-info">
               <div class="hero-name">
-                Suresh Iyer
+                M N Naveenraaj
                 <span class="badge-rag green"><span class="badge-dot"></span> 94% Compliant</span>
               </div>
               <div class="hero-role">Managing Director & CEO</div>
@@ -227,6 +227,63 @@
             <button class="btn-navy" style="font-size: 11px; padding: 5px 12px;" onclick="simulateAdvanceHandover('HO-801')">
               <i class="fa-solid fa-arrow-right"></i> Advance to Showroom Counter
             </button>
+          </div>
+        </div>
+
+        <!-- Live Workforce Biometric Attendance & Shift In/Out Roster -->
+        <div class="content-card" style="border-top: 3px solid #10b981;">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title">
+                <i class="fa-solid fa-fingerprint" style="color: #10b981;"></i> eSSL Biometric Attendance & Shift In/Out
+              </div>
+              <span style="font-size: 11px; color: var(--text-muted);">Real-time check-in, lunch break & check-out times</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-primary" style="font-size: 10.5px; padding: 4px 8px; background: #10b981;" onclick="window.MNStore.exportBiometricAttendanceCSV()">
+                <i class="fa-solid fa-file-excel"></i> Export CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Roster KPI Grid -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0;">
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); padding: 8px; border-radius: var(--radius-sm); text-align: center;">
+              <div style="font-size: 14px; font-weight: 700; color: #10b981;">6</div>
+              <div style="font-size: 9.5px; color: var(--text-muted);">On-Time In</div>
+            </div>
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); padding: 8px; border-radius: var(--radius-sm); text-align: center;">
+              <div style="font-size: 14px; font-weight: 700; color: #f59e0b;">1</div>
+              <div style="font-size: 9.5px; color: var(--text-muted);">Late In</div>
+            </div>
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); padding: 8px; border-radius: var(--radius-sm); text-align: center;">
+              <div style="font-size: 14px; font-weight: 700; color: #3b82f6;">1</div>
+              <div style="font-size: 9.5px; color: var(--text-muted);">On Lunch</div>
+            </div>
+            <div style="background: var(--bg-card-subtle); border: 1px solid var(--border-light); padding: 8px; border-radius: var(--radius-sm); text-align: center;">
+              <div style="font-size: 14px; font-weight: 700; color: #8b5cf6;">1</div>
+              <div style="font-size: 9.5px; color: var(--text-muted);">Shift Done</div>
+            </div>
+          </div>
+
+          <!-- Dynamic Roster Table -->
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border-light); color: var(--navy-dark);">
+                  <th style="padding: 6px 4px;">Staff Name</th>
+                  <th style="padding: 6px 4px;">Dept</th>
+                  <th style="padding: 6px 4px;">In Time</th>
+                  <th style="padding: 6px 4px;">Lunch Break</th>
+                  <th style="padding: 6px 4px;">Out Time</th>
+                  <th style="padding: 6px 4px;">Net Hours</th>
+                  <th style="padding: 6px 4px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="ceo-biometric-roster-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -686,6 +743,31 @@
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2400);
     }
+
+    function renderCeoBiometricRoster() {
+      const tbody = document.getElementById('ceo-biometric-roster-body');
+      if (!tbody || !window.MNStore) return;
+      const data = window.MNStore.getTodayBiometricAttendance();
+      tbody.innerHTML = data.map(item => `
+        <tr style="border-bottom: 1px solid var(--border-light);">
+          <td style="padding: 7px 4px; font-weight: 600; color: var(--navy-dark);">${item.name} <span style="font-size: 9px; color: var(--text-muted);">(${item.id})</span></td>
+          <td style="padding: 7px 4px; color: var(--text-muted);">${item.dept}</td>
+          <td style="padding: 7px 4px; font-weight: 700; color: #10b981;">${item.inTime}</td>
+          <td style="padding: 7px 4px;">${item.lunchOut !== '--' ? item.lunchOut + ' - ' + item.lunchIn + ' (' + item.lunchDurationMins + 'm)' : '<span style="color:var(--text-muted);">No Break</span>'}</td>
+          <td style="padding: 7px 4px; font-weight: 600;">${item.outTime}</td>
+          <td style="padding: 7px 4px; font-weight: 700; color: var(--navy-dark);">${item.netHours}</td>
+          <td style="padding: 7px 4px;">
+            <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; background: ${item.statusColor}22; color: ${item.statusColor}; border: 1px solid ${item.statusColor}55;">
+              ${item.status}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCeoBiometricRoster();
+    });
   </script>
   <script src="theme-switcher.js"></script>
 </body>

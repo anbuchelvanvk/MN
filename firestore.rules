@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to inspect the requester's role
+    function getUserRole() {
+      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : (request.auth != null && request.auth.token.role != null ? request.auth.token.role : 'employee');
+    }
+
+    function isHR() {
+      return getUserRole() == 'hr';
+    }
+
+    function isCEO() {
+      return getUserRole() == 'ceo';
+    }
+
+    function canManageUsers() {
+      return isHR() || isCEO();
+    }
+
+    function isTeamLead() {
+      return getUserRole() == 'team_lead' || getUserRole() == 'dept_head';
+    }
+
+    // User Authentication Profiles
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.uid == userId || canManageUsers());
+    }
+
+    // Online Department Staff Directory
+    match /online_department_employees/{employeeId} {
+      // Allow reading staff directory
+      allow read: if true;
+
+      // ⚠️ STRICT ENFORCEMENT: ONLY HR AND CEO CAN ADD (CREATE) OR REMOVE (DELETE) EMPLOYEES
+      allow create: if request.auth != null && canManageUsers();
+      allow delete: if request.auth != null && canManageUsers();
+
+      // HR, Team Lead, and individual employee can update their profile & 4 Pillars
+      allow update: if request.auth != null;
+    }
+
+    // Biometric Attendance Punches (from eSSL eTimeTrackLite)
+    match /attendance_punches/{punchId} {
+      allow read: if request.auth != null;
+      allow write, create: if request.auth != null;
+    }
+
+    // Tasks & Directives
+    match /tasks/{taskId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && (canManageUsers() || isTeamLead());
+      allow delete: if request.auth != null && canManageUsers();
+    }
+
+    // Social Causes (Pillar 5)
+    match /social_causes/{causeId} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+      allow delete: if request.auth != null && canManageUsers();
+    }
+
+    // Company Universal Notifications
+    match /company_notifications/{notifId} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+      allow delete: if request.auth != null && canManageUsers();
+    }
+  }
+}
+

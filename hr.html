@@ -49,12 +49,12 @@
         <!-- Quick Action & Greeting Header -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
           <div>
-            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Workforce & Onboarding Management</h2>
-            <span style="font-size: 11px; color: var(--text-muted);">Probation rules, mentor allocation & emergency task delegation</span>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Workforce & Credentials Management</h2>
+            <span style="font-size: 11px; color: var(--text-muted);">Staff directory, credentials management & emergency task delegation</span>
           </div>
           <div style="display: flex; gap: 6px;">
             <button class="btn-primary" onclick="openAddEmpModal()">
-              <i class="fa-solid fa-user-plus"></i> Add Hire
+              <i class="fa-solid fa-user-plus"></i> Add Staff
             </button>
             <button class="btn-navy" style="font-size: 11px; padding: 6px 10px;" onclick="openEmergencyDelegationModal()">
               <i class="fa-solid fa-handshake"></i> Delegate Leave
@@ -66,17 +66,17 @@
         <div class="kpi-grid col-4">
           <div class="kpi-card" onclick="switchTab('employees')">
             <span class="kpi-label"><i class="fa-solid fa-users"></i> Total Staff</span>
-            <span class="kpi-value gold" id="kpi-total-staff">142</span>
-            <span class="kpi-sub">Across 6 units</span>
+            <span class="kpi-value gold" id="kpi-total-staff">13</span>
+            <span class="kpi-sub">Confirmed staff</span>
           </div>
-          <div class="kpi-card" onclick="switchTab('onboarding')">
-            <span class="kpi-label"><i class="fa-solid fa-user-graduate"></i> Onboarding</span>
-            <span class="kpi-value yellow" id="kpi-onboarding-count">2</span>
-            <span class="kpi-sub">Active probation</span>
+          <div class="kpi-card" onclick="switchTab('employees')">
+            <span class="kpi-label"><i class="fa-solid fa-user-check"></i> Present</span>
+            <span class="kpi-value green" id="kpi-onboarding-count">13</span>
+            <span class="kpi-sub">On active duty</span>
           </div>
           <div class="kpi-card" onclick="openEmergencyDelegationModal()">
             <span class="kpi-label"><i class="fa-regular fa-calendar-days"></i> Leave Cover</span>
-            <span class="kpi-value red">1</span>
+            <span class="kpi-value red">0</span>
             <span class="kpi-sub">Task delegation</span>
           </div>
           <div class="kpi-card" onclick="openModal('modal-nudge-all')">
@@ -86,13 +86,13 @@
           </div>
         </div>
 
-        <!-- Active Probation & Onboarding Pipeline -->
+        <!-- Staff Directory & Credentials Access Card -->
         <div class="content-card">
           <div class="card-header-row">
             <div class="card-title">
-              <i class="fa-solid fa-user-graduate"></i> Active Probation & Mentorship Pipeline
+              <i class="fa-solid fa-key"></i> Staff Directory & Credentials Management
             </div>
-            <a class="card-action-link" onclick="switchTab('onboarding')">View All</a>
+            <a class="card-action-link" onclick="switchTab('employees')">View All</a>
           </div>
 
           <div class="item-list" id="dashboard-onboarding-list">
@@ -117,6 +117,40 @@
             <div style="background: var(--bg-card-subtle); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 11.5px;">
               <strong>Adithi Sharma (Operations)</strong> was covered by <strong>Karan Verma</strong> on Oct 06 (2 tasks covered).
             </div>
+          </div>
+        </div>
+
+        <!-- Live Workforce Biometric Attendance & Lunch Compliance -->
+        <div class="content-card" style="border-top: 3px solid #10b981;">
+          <div class="card-header-row">
+            <div>
+              <div class="card-title">
+                <i class="fa-solid fa-fingerprint" style="color: #10b981;"></i> Biometric Attendance & Lunch Compliance
+              </div>
+              <span style="font-size: 11px; color: var(--text-muted);">eSSL eTimeTrackLite 12.2 Sync • Lunch policy: max 45m</span>
+            </div>
+            <button class="btn-primary" style="font-size: 10.5px; padding: 4px 8px; background: #10b981;" onclick="window.MNStore.exportBiometricAttendanceCSV()">
+              <i class="fa-solid fa-file-excel"></i> Export Roll
+            </button>
+          </div>
+
+          <div style="overflow-x: auto; margin-top: 8px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border-light); color: var(--navy-dark);">
+                  <th style="padding: 6px 4px;">Staff Name</th>
+                  <th style="padding: 6px 4px;">Dept</th>
+                  <th style="padding: 6px 4px;">In Time</th>
+                  <th style="padding: 6px 4px;">Lunch Break</th>
+                  <th style="padding: 6px 4px;">Out Time</th>
+                  <th style="padding: 6px 4px;">Net Hours</th>
+                  <th style="padding: 6px 4px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="hr-biometric-roster-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -151,15 +185,15 @@
         </div>
       </section>
 
-      <!-- TAB 3: ONBOARDING & PROBATION TRACKER -->
+      <!-- TAB 3: STAFF CREDENTIALS & ACCESS -->
       <section id="tab-onboarding" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Probation & Training Management</h2>
-            <p style="font-size: 11px; color: var(--text-muted);">Experience-based probation rules (2 Weeks vs 1 Month) & Mentor reviews</p>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Staff Credentials & Access</h2>
+            <p style="font-size: 11px; color: var(--text-muted);">View staff passwords, copy credentials, or execute password resets</p>
           </div>
           <button class="btn-primary" style="font-size: 11.5px; padding: 5px 10px;" onclick="openAddEmpModal()">
-            <i class="fa-solid fa-plus"></i> New Onboarding
+            <i class="fa-solid fa-plus"></i> New Staff
           </button>
         </div>
 
@@ -171,8 +205,8 @@
       <!-- TAB 4: PROFILE -->
       <section id="tab-profile" class="tab-pane" style="display: none;">
         <div class="hero-card" style="text-align: center; padding: 20px;">
-          <div class="avatar-initials lg" style="margin: 0 auto 10px auto;">MK</div>
-          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Meera Krishnan</h2>
+          <div class="avatar-initials lg" style="margin: 0 auto 10px auto;">MG</div>
+          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Mohankumar G</h2>
           <p style="font-size: 12px; color: #cbd5e1;">Head of People & HR Operations</p>
           <div style="margin-top: 6px;">
             <span class="role-tag-pill hr"><i class="fa-solid fa-user-gear"></i> HR Administrator</span>
@@ -183,12 +217,12 @@
           <div class="card-title" style="margin-bottom: 12px;"><i class="fa-solid fa-sliders"></i> HR Administrative Scope</div>
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
             <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Probation Policy</span>
-              <strong>Calculated from jewellery experience</strong>
+              <span style="color: var(--text-muted);">Staff Policy</span>
+              <strong>Confirmed Corporate Employees</strong>
             </div>
             <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
-              <span style="color: var(--text-muted);">Mentor Assignment</span>
-              <strong>Designate departmental senior staff</strong>
+              <span style="color: var(--text-muted);">Password Assistance</span>
+              <strong>HR reveals, copies & resets passwords</strong>
             </div>
             <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
               <span style="color: var(--text-muted);">Emergency Task Delegation</span>
@@ -213,8 +247,8 @@
         <span>Staff Directory</span>
       </div>
       <div class="nav-item" onclick="switchTab('onboarding')">
-        <i class="fa-solid fa-user-graduate"></i>
-        <span>Probation</span>
+        <i class="fa-solid fa-key"></i>
+        <span>Credentials</span>
       </div>
       <div class="nav-item" onclick="switchTab('profile')">
         <i class="fa-solid fa-user"></i>
@@ -242,8 +276,34 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <div class="form-group">
+            <label class="form-label">Role Allocation (Online Dept)</label>
+            <select id="new-emp-role-type" class="form-select" onchange="document.getElementById('new-emp-role').value = this.value === 'team_lead' ? 'Online Department Team Lead' : 'Online Department Executive';">
+              <option value="employee" selected>👤 Employee (Staff Member)</option>
+              <option value="team_lead">🛡️ Team Lead (Department Leader)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Designation / Role Title</label>
+            <input type="text" id="new-emp-role" class="form-input" value="Online Department Executive" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
+            <label class="form-label">Official Email (Login ID)</label>
+            <input type="email" id="new-emp-email" class="form-input" placeholder="staff@mnjewelpark.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">App Password</label>
+            <input type="text" id="new-emp-password" class="form-input" value="password123" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group">
             <label class="form-label">Department</label>
             <select id="new-emp-dept" class="form-select" onchange="updateTrainerDropdown()">
+              <option value="Online Department" selected>Online Department</option>
               <option value="Operations">Operations & Crafting</option>
               <option value="Sales">Sales & Showroom</option>
               <option value="Housekeeping">Housekeeping</option>
@@ -252,21 +312,10 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Designation / Role</label>
-            <input type="text" id="new-emp-role" class="form-input" placeholder="e.g., Jewellery Stylist" required>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div class="form-group">
-            <label class="form-label">Date of Joining</label>
-            <input type="date" id="new-emp-doj" class="form-input" value="2026-10-08" required>
-          </div>
-          <div class="form-group">
             <label class="form-label">Industry Experience</label>
             <select id="new-emp-exp" class="form-select" onchange="updateProbationRulePreview()">
-              <option value="experienced">Experienced (3+ Yrs) → 2 Wks Probation</option>
-              <option value="fresher">Fresher (0 Yrs) → 1 Month Probation</option>
+              <option value="experienced">Experienced (3+ Yrs) → 2 Wks</option>
+              <option value="fresher">Fresher (0 Yrs) → 1 Month</option>
             </select>
           </div>
         </div>
@@ -363,6 +412,30 @@
   <!-- Toast Notification -->
   <div class="toast-msg" id="toast">Saved!</div>
 
+  <!-- Firebase Web SDK & Firestore Real-Time Sync -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPgk_EG0XcF0oh2WAv2ygB8gpSN5D6uQw",
+      authDomain: "mn-family.firebaseapp.com",
+      projectId: "mn-family",
+      storageBucket: "mn-family.firebasestorage.app",
+      messagingSenderId: "736904967615",
+      appId: "1:736904967615:web:6eb7195a4faba2357a5d0a",
+      measurementId: "G-ZCNTXZL5SQ"
+    };
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      window.firestoreDb = firebase.firestore();
+      console.log('Firebase initialized on HR Web Portal');
+    } catch(e) {
+      console.warn('Firebase Web offline mode:', e);
+    }
+  </script>
+
   <script src="ecosystem-data.js"></script>
   <script>
     let activeDeptFilter = 'all';
@@ -372,6 +445,22 @@
       renderDirectory();
       renderFullOnboarding();
       updateTrainerDropdown();
+
+      // Listen for Real-Time Firestore updates across Android, iOS, and Web
+      if (window.firestoreDb) {
+        window.firestoreDb.collection('online_department_employees').onSnapshot(snapshot => {
+          if (!snapshot.empty) {
+            const remoteEmps = [];
+            snapshot.forEach(doc => remoteEmps.push(doc.data()));
+            if (remoteEmps.length > 0) {
+              window.MNStore.data.employees = remoteEmps;
+              renderDashboard();
+              renderDirectory();
+              renderFullOnboarding();
+            }
+          }
+        }, err => console.warn('Firestore live sync note:', err));
+      }
     });
 
     function renderDashboard() {
@@ -426,8 +515,9 @@
               ` : `
                 <span class="badge-rag yellow"><span class="badge-dot"></span> ${emp.profileCompletion ? emp.profileCompletion.percentage : 60}% Active</span>
               `}
-              <div style="margin-top: 4px;">
+              <div style="margin-top: 4px; display: flex; gap: 4px; justify-content: flex-end;">
                 <button class="btn-nudge-test" style="font-size: 9.5px; padding: 2px 6px;" onclick="nudgeIndividual('${emp.name}')"><i class="fa-regular fa-bell"></i> Nudge</button>
+                <button class="btn-nudge-test" style="font-size: 9.5px; padding: 2px 6px; color: #ef4444; border-color: #ef4444;" onclick="confirmRemoveEmployee('${emp.id}', '${emp.name}')"><i class="fa-solid fa-trash"></i> Remove</button>
               </div>
             </div>
           </div>
@@ -506,15 +596,19 @@
       const name = document.getElementById('new-emp-name').value;
       const dept = document.getElementById('new-emp-dept').value;
       const role = document.getElementById('new-emp-role').value;
-      const doj = document.getElementById('new-emp-doj').value;
+      const roleType = document.getElementById('new-emp-role-type').value;
+      const email = document.getElementById('new-emp-email').value;
+      const password = document.getElementById('new-emp-password').value;
       const exp = document.getElementById('new-emp-exp').value;
-      const trainerId = document.getElementById('new-emp-trainer').value;
+      const trainerId = document.getElementById('new-emp-trainer') ? document.getElementById('new-emp-trainer').value : 'LEAD';
 
       const newEmp = window.MNStore.addNewEmployee({
         name,
         dept,
         role,
-        doj,
+        roleType,
+        email,
+        password,
         experienceCategory: exp,
         trainerId
       });
@@ -524,7 +618,22 @@
       renderDirectory();
       renderFullOnboarding();
       window.MNStore.playNotificationSound();
-      showToast(`${name} registered with ${newEmp.probationWeeks} wks probation & mentor.`);
+      showToast(`${name} registered as ${roleType === 'team_lead' ? 'Team Lead' : 'Employee'} in Firebase!`);
+
+      if (window.firestoreDb) {
+        window.firestoreDb.collection('online_department_employees').doc(newEmp.id).set(newEmp)
+          .catch(err => console.warn('Firestore write note:', err));
+        if (email) {
+          window.firestoreDb.collection('users').doc(email.toLowerCase().trim()).set({
+            empId: newEmp.id,
+            name: newEmp.name,
+            email: email.toLowerCase().trim(),
+            role: roleType,
+            roleType: roleType,
+            dept: dept
+          }).catch(err => console.warn('Firestore user note:', err));
+        }
+      }
     }
 
     function openEmergencyDelegationModal() {
@@ -568,6 +677,22 @@
     function nudgeIndividual(name) {
       window.MNStore.playNotificationSound();
       showToast(`Reminder sent to ${name}.`);
+    }
+
+    function confirmRemoveEmployee(empId, empName) {
+      if (confirm(`Are you sure you want to remove ${empName} (${empId}) from Online Department?\n\nThis action can only be performed by HR Management.`)) {
+        window.MNStore.removeEmployee(empId);
+        renderDashboard();
+        renderDirectory();
+        renderFullOnboarding();
+        window.MNStore.playNotificationSound();
+        showToast(`${empName} removed by HR.`);
+
+        if (window.firestoreDb) {
+          window.firestoreDb.collection('online_department_employees').doc(empId).delete()
+            .catch(err => console.warn('Firestore delete note:', err));
+        }
+      }
     }
 
     function sendBroadcastNudge() {
@@ -624,6 +749,35 @@
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2400);
     }
+
+    function renderHrBiometricRoster() {
+      const tbody = document.getElementById('hr-biometric-roster-body');
+      if (!tbody || !window.MNStore) return;
+      const data = window.MNStore.getTodayBiometricAttendance();
+      tbody.innerHTML = data.map(item => `
+        <tr style="border-bottom: 1px solid var(--border-light);">
+          <td style="padding: 7px 4px; font-weight: 600; color: var(--navy-dark);">${item.name} <span style="font-size: 9px; color: var(--text-muted);">(${item.id})</span></td>
+          <td style="padding: 7px 4px; color: var(--text-muted);">${item.dept}</td>
+          <td style="padding: 7px 4px; font-weight: 700; color: #10b981;">${item.inTime}</td>
+          <td style="padding: 7px 4px;">
+            ${item.lunchOut !== '--' 
+              ? item.lunchOut + ' - ' + item.lunchIn + ' ' + (item.lunchDurationMins > 45 ? '<span style="color:#ef4444;font-weight:700;">(' + item.lunchDurationMins + 'm ⚠️)</span>' : '(' + item.lunchDurationMins + 'm)') 
+              : '<span style="color:var(--text-muted);">No Break</span>'}
+          </td>
+          <td style="padding: 7px 4px; font-weight: 600;">${item.outTime}</td>
+          <td style="padding: 7px 4px; font-weight: 700; color: var(--navy-dark);">${item.netHours}</td>
+          <td style="padding: 7px 4px;">
+            <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; background: ${item.statusColor}22; color: ${item.statusColor}; border: 1px solid ${item.statusColor}55;">
+              ${item.status}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderHrBiometricRoster();
+    });
   </script>
   <script src="theme-switcher.js"></script>
 </body>

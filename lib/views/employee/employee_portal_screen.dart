@@ -1,0 +1,1749 @@
+import '../../core/widgets/task_action_dialogs.dart';
+import '../../core/widgets/logout_confirm_dialog.dart';
+import '../../core/widgets/cross_dept_blocker_section.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/widgets/liquid_glass.dart';
+import '../../core/widgets/role_app_bar.dart';
+import '../../models/task_model.dart';
+import '../../providers/ecosystem_provider.dart';
+import '../../services/image_optimization_service.dart';
+import '../auth/pillars_popup_dialog.dart';
+import '../pillars/social_cause_pillar_screen.dart';
+import '../../core/widgets/company_notification_sheet.dart';
+import '../pillars/attendance_pillar_screen.dart';
+import '../../core/widgets/emergency_permission_modal.dart';
+import '../../core/widgets/emergency_medical_leave_modal.dart';
+import 'employee_profile_screen.dart';
+import '../orders/online_orders_handler_screen.dart';
+
+class EmployeePortalScreen extends StatefulWidget {
+  const EmployeePortalScreen({super.key});
+
+  @override
+  State<EmployeePortalScreen> createState() => _EmployeePortalScreenState();
+}
+
+class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
+  int _activeBottomNav = 0; // 0: Home, 1: Tasks, 2: Academy, 3: Profile
+  String _taskFilter = 'all'; // 'all', 'pending', 'postponed', 'completed'
+
+  @override
+  void initState() {
+    super.initState();
+    // Display the 4-button closable popup once the user is logged in
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        PillarsPopupDialog.show(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.watch<EcosystemProvider>();
+    final emp = eco.currentEmployee;
+    final allTasks = eco.currentEmployeeTasks;
+
+    final filteredTasks = allTasks.where((t) {
+      if (_taskFilter == 'all') return true;
+      return t.status == _taskFilter;
+    }).toList();
+
+    final pendingCount = allTasks.where((t) => t.isPending).length;
+
+    return Scaffold(
+      backgroundColor: AppColors.burgundyBg,
+      appBar: RoleAppBar(
+        roleName: 'Employee',
+        userName: '${emp.name} (${emp.straightCutRole})',
+        roleColor: AppColors.goldPrimary,
+        roleIcon: Icons.person_outline,
+        onBellPressed: () => CompanyNotificationSheet.show(context),
+      ),
+      body: IndexedStack(
+        index: _activeBottomNav,
+        children: [
+          // Screen 0: Home Dashboard
+          _buildHomeDashboard(context, eco, emp, pendingCount, filteredTasks),
+
+          // Screen 1: Full Tasks (Things To Do)
+          _buildFullTasksScreen(context, eco, emp, filteredTasks),
+
+          // Screen 2: Social Cause (Pillar 5)
+          const SocialCausePillarScreen(isStandalone: false),
+
+          // Screen 3: Digital Vault & Profile Audit
+          _buildProfileVaultScreen(context, eco, emp),
+        ],
+      ),
+      bottomNavigationBar: _buildGlassBottomNav(context),
+    );
+  }
+
+  Widget _buildGlassBottomNav(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.burgundySurface,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.sandBorder,
+            width: 1.2,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(child: _navItem(0, Icons.dashboard_outlined, 'Home')),
+              Expanded(child: _navItem(1, Icons.checklist_outlined, 'SOP Tasks')),
+              Expanded(child: _navItem(2, Icons.volunteer_activism_outlined, 'Social Cause')),
+              Expanded(child: _navItem(3, Icons.badge_outlined, 'ID Vault')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int index, IconData icon, String label) {
+    final isSelected = _activeBottomNav == index;
+    return InkWell(
+      onTap: () => setState(() => _activeBottomNav = index),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? AppColors.sandGold : AppColors.textMuted,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? AppColors.sandGold : AppColors.textMuted,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomeDashboard(
+    BuildContext context,
+    EcosystemProvider eco,
+    dynamic emp,
+    int pendingCount,
+    List<TaskItem> filteredTasks,
+  ) {
+    return RefreshIndicator(
+      color: AppColors.sandGold,
+      backgroundColor: AppColors.burgundyCard,
+      onRefresh: () => eco.refreshAllData(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Hero Profile Card
+          LiquidGlassCard(
+            padding: const EdgeInsets.all(14),
+            borderRadius: 18,
+            child: Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: AppColors.goldGradient,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.goldPrimary.withOpacity(0.3),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      emp.initials,
+                      style: const TextStyle(
+                        fontFamily: 'Cinzel',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              emp.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          LiquidGlassPill(
+                            label: 'On Track',
+                            color: AppColors.ragGreen,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        emp.role,
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          _smallTag(Icons.diamond_outlined, emp.dept),
+                          _smallTag(Icons.badge_outlined, 'ID: ${emp.id}'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // 4 Action Tiles Grid
+          Row(
+            children: [
+              _actionTile(
+                icon: Icons.checklist,
+                title: 'Things To Do',
+                badgeText: '$pendingCount Pending',
+                badgeColor: AppColors.ragYellow,
+                onTap: () => setState(() => _activeBottomNav = 1),
+              ),
+              const SizedBox(width: 8),
+              _actionTile(
+                icon: Icons.volunteer_activism_outlined,
+                title: 'Social Cause',
+                badgeText: 'Pillar 5',
+                badgeColor: const Color(0xFFEF4444),
+                onTap: () => setState(() => _activeBottomNav = 2),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _actionTile(
+                icon: Icons.timer_outlined,
+                title: 'Ask Permission',
+                badgeText: '${eco.permissionHoursRemaining.toStringAsFixed(1)}h Left',
+                badgeColor: const Color(0xFFF59E0B),
+                onTap: () => EmergencyPermissionModal.show(context),
+              ),
+              const SizedBox(width: 8),
+              _actionTile(
+                icon: Icons.local_hospital_outlined,
+                title: 'Medical Leave',
+                badgeText: 'Prescription Req.',
+                badgeColor: const Color(0xFFEF4444),
+                onTap: () => EmergencyMedicalLeaveModal.show(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LiquidGlassButton(
+            label: 'Open Attendance Ledger & Scanner',
+            icon: Icons.fingerprint,
+            isPrimary: false,
+            height: 36,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Online Orders Handler (Dedicated Quick Access for OS1, OS2 & Sales Team)
+          if (emp.id == 'MN-1007' || emp.id == 'MN-1008' || emp.role.toLowerCase().contains('sales') || emp.role.toLowerCase().contains('online')) ...[
+            LiquidGlassCard(
+              padding: const EdgeInsets.all(14),
+              borderRadius: 16,
+              borderColor: const Color(0xFFF59E0B).withOpacity(0.4),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withOpacity(0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.shopping_bag_outlined, color: Color(0xFFF59E0B), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Online Orders',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Track & manage customer orders',
+                          style: TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.sandGold),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+
+          // Today's Operational Agenda Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Flexible(
+                          child: Text(
+                            "Today's Tasks",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '(${filteredTasks.length})',
+                          style: const TextStyle(fontSize: 12, color: AppColors.goldPrimary, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Daily SOP Routines',
+                      style: TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => setState(() => _activeBottomNav = 1),
+                child: const Text('View All', style: TextStyle(fontSize: 12, color: AppColors.goldPrimary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Task List
+          ...filteredTasks.take(4).map((task) => _taskCard(context, eco, task)),
+          const SizedBox(height: 20),
+
+          // Cross-Department Blocker Escalation
+          CrossDeptBlockerSection(department: emp.dept),
+          const SizedBox(height: 20),
+
+          // Logout Button with confirmation
+          LogoutConfirmDialog.buildButton(context),
+          const SizedBox(height: 24),
+        ],
+      ),
+    ),
+  );
+}
+
+  Widget _buildFullTasksScreen(
+    BuildContext context,
+    EcosystemProvider eco,
+    dynamic emp,
+    List<TaskItem> filteredTasks,
+  ) {
+    return RefreshIndicator(
+      color: AppColors.sandGold,
+      backgroundColor: AppColors.burgundyCard,
+      onRefresh: () => eco.refreshAllData(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Daily SOP Tasks',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Operational Deliverables',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.add, size: 14, color: AppColors.burgundyBg),
+                label: const Text(
+                  '+ Add To-Do',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.burgundyBg),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.sandGold,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 2,
+                ),
+                onPressed: () => _showAddTodoDialog(context, eco, emp),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Filter Segmented Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _filterChip('all', 'All Tasks'),
+                _filterChip('pending', 'Pending'),
+                _filterChip('postponed', 'Postponed'),
+                _filterChip('completed', 'Completed'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Render filtered list
+          if (filteredTasks.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: Text(
+                  'No $_taskFilter tasks found.',
+                  style: const TextStyle(color: Color(0xFF64748B)),
+                ),
+              ),
+            )
+          else
+            ...filteredTasks.map((task) => _taskCard(context, eco, task)),
+        ],
+      ),
+    ),
+  );
+}
+
+  void _showCannotDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: AppColors.sandGold),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.shield_outlined, color: AppColors.sandGold, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'HR Removal Required',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Per MN Jewel Park operational guidelines, employees cannot delete assigned or personal to-do tasks directly.',
+              style: TextStyle(fontSize: 12, color: AppColors.sandLight, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.burgundySurface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.sandBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'To remove this to-do, please contact HR Administration:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                  ),
+                  SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.phone, size: 13, color: AppColors.sandGold),
+                      SizedBox(width: 6),
+                      Text('Mohankumar G (HR): +91 94433 11000', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.email_outlined, size: 13, color: AppColors.sandGold),
+                      SizedBox(width: 6),
+                      Text('Email: hr@mnj.com', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Understood', style: TextStyle(color: AppColors.sandGold, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddTodoDialog(BuildContext context, EcosystemProvider eco, dynamic emp) {
+    final titleCtrl = TextEditingController();
+    final categoryCtrl = TextEditingController();
+    final dueCtrl = TextEditingController();
+    String selectedPriority = 'Standard';
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.burgundyCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: AppColors.sandGold),
+          ),
+          title: Row(
+            children: const [
+              Icon(Icons.add_task, color: AppColors.sandGold, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Add Personal To-Do',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('To-Do Title / Task', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: titleCtrl,
+                  style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Call customer Mr. Vignesh regarding bridal bangle...',
+                    hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: AppColors.burgundySurface,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                const Text('Category', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: categoryCtrl,
+                  style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Customer Follow-up, Daily Check, Inventory...',
+                    hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: AppColors.burgundySurface,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Due Time', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: dueCtrl,
+                            style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+                            decoration: InputDecoration(
+                              hintText: '05:00 PM',
+                              hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                              filled: true,
+                              fillColor: AppColors.burgundySurface,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Priority', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                          const SizedBox(height: 6),
+                          Container(
+                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.burgundySurface,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.sandBorder),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                value: selectedPriority,
+                                dropdownColor: AppColors.burgundyCard,
+                                style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+                                items: const [
+                                  DropdownMenuItem(value: 'Standard', child: Text('Standard')),
+                                  DropdownMenuItem(value: 'High', child: Text('High')),
+                                  DropdownMenuItem(value: 'Critical SLA', child: Text('Critical SLA')),
+                                ],
+                                onChanged: (v) {
+                                  if (v != null) setDialogState(() => selectedPriority = v);
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Note: To remove this task later, please contact HR.',
+                  style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.sandGold,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                final title = titleCtrl.text.trim();
+                if (title.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a task title')),
+                  );
+                  return;
+                }
+                eco.addEmployeePersonalTodo(
+                  empId: emp.id,
+                  title: title,
+                  category: categoryCtrl.text.trim().isEmpty ? 'General' : categoryCtrl.text.trim(),
+                  dueTime: dueCtrl.text.trim().isEmpty ? '06:00 PM' : dueCtrl.text.trim(),
+                  priority: selectedPriority,
+                );
+                Navigator.pop(dialogCtx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Color(0xFF10B981),
+                    content: Text('Personal to-do added successfully!'),
+                  ),
+                );
+              },
+              child: const Text('Add To-Do', style: TextStyle(color: AppColors.burgundyBg, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileVaultScreen(
+    BuildContext context,
+    EcosystemProvider eco,
+    dynamic emp,
+  ) {
+    return RefreshIndicator(
+      color: AppColors.sandGold,
+      backgroundColor: AppColors.burgundyCard,
+      onRefresh: () => eco.refreshAllData(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Digital Gold ID Card
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2C2411), Color(0xFF141208)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(color: AppColors.goldPrimary, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.goldPrimary.withOpacity(0.2),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.goldPrimary),
+                          ),
+                          child: ClipOval(
+                            child: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'MN JEWEL PARK',
+                          style: TextStyle(fontFamily: 'Cinzel', fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.goldLight),
+                        ),
+                      ],
+                    ),
+                    const Text(
+                      'STAFF SMART ID',
+                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.goldPrimary, letterSpacing: 1),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 26,
+                      backgroundColor: AppColors.goldPrimary,
+                      child: Text(emp.initials, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(emp.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text(emp.role, style: const TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+                          const SizedBox(height: 4),
+                          Text('EMP ID: ${emp.id}', style: const TextStyle(fontSize: 11, color: AppColors.goldLight, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(color: Colors.white12, height: 1),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Dept: ${emp.dept}', style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1))),
+                    Text('DOJ: ${emp.doj}', style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1))),
+                    const Text('Status: VERIFIED', style: TextStyle(fontSize: 10.5, color: AppColors.ragGreen, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Personal Profile & Password Actions Card
+          LiquidGlassCard(
+            padding: const EdgeInsets.all(16),
+            borderRadius: 18,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.manage_accounts_outlined, color: AppColors.sandGold, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Personal Details & Security',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    LiquidGlassPill(label: 'CONFIDENTIAL', color: AppColors.sandGold),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _personalInfoRow('Mobile Phone', emp.phone.isNotEmpty ? emp.phone : '+91 94420 11000'),
+                _personalInfoRow('Official Email', emp.email),
+                _personalInfoRow('Date of Birth (DOB)', emp.dob.isNotEmpty ? emp.dob : '1996-05-15'),
+                _personalInfoRow('Relationship', emp.relationshipStatus.isNotEmpty ? emp.relationshipStatus : 'Single'),
+                if (emp.relationshipStatus == 'Married')
+                  _personalInfoRow('Anniversary Date', emp.anniversaryDate.isNotEmpty ? emp.anniversaryDate : '2022-01-20'),
+                const SizedBox(height: 14),
+                LiquidGlassButton(
+                  label: 'Edit Profile & Change Password',
+                  icon: Icons.edit_note,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Profile Clearance Checklist Card
+          LiquidGlassCard(
+            padding: const EdgeInsets.all(16),
+            borderRadius: 18,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Enterprise Compliance & KYC Checklist',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                const SizedBox(height: 12),
+                _clearanceRow('1. Biometric Photo Identity', emp.profileCompletion.photoVerified),
+                _clearanceRow('2. Residential Address Proof & Aadhaar', emp.profileCompletion.addressVerified),
+                _clearanceRow('3. Government Tax KYC & PAN Card', emp.profileCompletion.kycVerified),
+                _clearanceRow('4. Daily SOP Role Responsibilities Signed', emp.profileCompletion.sopRolesAcknowledged),
+                const SizedBox(height: 12),
+                LiquidGlassButton(
+                  label: 'Update Clearance Status',
+                  icon: Icons.edit_note,
+                  onPressed: () => _openProfileWizard(context, eco, emp),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Logout Button with confirmation
+          LogoutConfirmDialog.buildButton(context),
+          const SizedBox(height: 24),
+        ],
+      ),
+    ),
+  );
+}
+
+  Widget _personalInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8))),
+          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  Widget _clearanceRow(String title, bool verified) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 12, color: Color(0xFFCBD5E1))),
+          Icon(
+            verified ? Icons.check_circle : Icons.cancel_outlined,
+            size: 16,
+            color: verified ? AppColors.ragGreen : AppColors.ragRed,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip(String filter, String label) {
+    final isSelected = _taskFilter == filter;
+    return GestureDetector(
+      onTap: () => setState(() => _taskFilter = filter),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.goldPrimary : Colors.white.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.goldPrimary : Colors.white.withOpacity(0.12),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.black : const Color(0xFFCBD5E1),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionTile({
+    required IconData icon,
+    required String title,
+    required String badgeText,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: LiquidGlassCard(
+        onTap: onTap,
+        padding: const EdgeInsets.all(12),
+        margin: EdgeInsets.zero,
+        borderRadius: 16,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 16, color: AppColors.goldBright),
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: badgeColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      badgeText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: badgeColor),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _smallTag(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: const Color(0xFF94A3B8)),
+          const SizedBox(width: 4),
+          Text(text, style: const TextStyle(fontSize: 9.5, color: Color(0xFFCBD5E1))),
+        ],
+      ),
+    );
+  }
+
+  Widget _taskCard(BuildContext context, EcosystemProvider eco, TaskItem task) {
+    Color statusColor;
+    String statusLabel;
+    IconData statusIcon;
+
+    if (task.isCompleted) {
+      statusColor = AppColors.ragGreen;
+      statusLabel = 'Completed';
+      statusIcon = Icons.check_circle;
+    } else if (task.isPostponed) {
+      statusColor = AppColors.ragRed;
+      statusLabel = 'Postponed';
+      statusIcon = Icons.schedule;
+    } else {
+      statusColor = AppColors.ragYellow;
+      statusLabel = 'Pending';
+      statusIcon = Icons.pending;
+    }
+
+    return InkWell(
+      onTap: () => TaskActionDialogs.handleTaskTap(context, eco, task),
+      borderRadius: BorderRadius.circular(16),
+      child: LiquidGlassCard(
+        padding: const EdgeInsets.all(13),
+        borderRadius: 16,
+        borderColor: task.isPending
+            ? AppColors.goldPrimary.withOpacity(0.25)
+            : (task.isCompleted ? AppColors.ragGreen.withOpacity(0.3) : Colors.white.withOpacity(0.08)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                LiquidGlassPill(label: statusLabel, color: statusColor, icon: statusIcon),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time, size: 12, color: Color(0xFF94A3B8)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Due: ${task.due}',
+                      style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1), fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () => _showCannotDeleteDialog(context),
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.delete_outline, size: 12, color: Color(0xFFEF4444)),
+                            SizedBox(width: 2),
+                            Text(
+                              'Remove',
+                              style: TextStyle(fontSize: 9, color: Color(0xFFEF4444), fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          const SizedBox(height: 8),
+          Text(
+            task.title,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: task.isCompleted ? const Color(0xFF64748B) : Colors.white,
+              decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+              decorationColor: task.isCompleted ? AppColors.ragGreen : null,
+              decorationThickness: 2.0,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.goldPrimary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  task.category,
+                  style: const TextStyle(fontSize: 9.5, color: AppColors.goldBright, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'By: ${task.assignedByName}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                ),
+              ),
+            ],
+          ),
+
+          // Attached Proof View
+          if (task.proof != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.ragGreen.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      task.proof!.photoUrl ?? '',
+                      width: 42,
+                      height: 42,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 42,
+                        height: 42,
+                        color: Colors.black38,
+                        child: const Icon(Icons.image, size: 18, color: Colors.white38),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.verified, size: 12, color: AppColors.ragGreen),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Verified at ${task.proof!.timestamp}',
+                              style: const TextStyle(fontSize: 10, color: AppColors.ragGreen, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          task.proof!.content,
+                          style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1)),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Postponed Reason View
+          if (task.postponeInfo != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.ragRed.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.ragRed.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 16, color: AppColors.ragRed),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Rescheduled to: ${task.postponeInfo!.postponedTo}',
+                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.ragRed),
+                        ),
+                        Text(
+                          'Reason: ${task.postponeInfo!.reason}',
+                          style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1)),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Interactive Action Buttons
+          if (task.isPending) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: LiquidGlassButton(
+                    label: 'Complete Task',
+                    icon: Icons.check_circle_outline,
+                    height: 36,
+                    onPressed: () => TaskActionDialogs.showCompletionModal(context, eco, task),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: LiquidGlassButton(
+                    label: 'Postpone',
+                    icon: Icons.history_toggle_off,
+                    isPrimary: false,
+                    height: 36,
+                    onPressed: () => _openPostponeDialog(context, eco, task),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (task.isCompleted) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.check_circle, size: 14, color: AppColors.ragGreen),
+                    SizedBox(width: 5),
+                    Text(
+                      'Completed & Verified',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
+                    ),
+                  ],
+                ),
+                InkWell(
+                  onTap: () => TaskActionDialogs.showRevertDialog(context, eco, task),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.undo, size: 11, color: Color(0xFFEF4444)),
+                        SizedBox(width: 3),
+                        Text(
+                          'Uncheck',
+                          style: TextStyle(fontSize: 9.5, color: Color(0xFFEF4444), fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+  }
+
+  // --- DIALOGS ---
+
+  void _openPostponeDialog(BuildContext context, EcosystemProvider eco, TaskItem task) {
+    String selectedReason = 'Late bridal custom sizing order delayed workshop furnace shutdown.';
+    String rescheduleTime = 'Tomorrow 08:30 AM';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 18,
+                right: 18,
+                top: 18,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 18,
+              ),
+              decoration: const BoxDecoration(
+                color: AppColors.burgundyCard,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Postpone Operational Task',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white70),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const Text(
+                    'Postponing requires operational SLA justification for Dept Head review.',
+                    style: TextStyle(fontSize: 11, color: AppColors.ragRed),
+                  ),
+                  const SizedBox(height: 12),
+
+                  const Text('Select Reason:', style: TextStyle(fontSize: 11.5, color: Color(0xFFCBD5E1))),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: selectedReason,
+                    dropdownColor: AppColors.burgundySurface,
+                    style: const TextStyle(fontSize: 11.5, color: Colors.white),
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.06),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'Late bridal custom sizing order delayed workshop furnace shutdown.',
+                        child: Text('Custom sizing delay'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Customer rescheduled appointment / bridal trial postponed.',
+                        child: Text('Customer rescheduled'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Government BIS Hallmarking Portal Latency.',
+                        child: Text('Hallmarking delay'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Supplier Raw Ingot Bar delayed in transit.',
+                        child: Text('Supplier material delay'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setModalState(() => selectedReason = val);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+
+                  const Text('New Time:', style: TextStyle(fontSize: 11.5, color: Color(0xFFCBD5E1))),
+                  const SizedBox(height: 4),
+                  TextFormField(
+                    initialValue: rescheduleTime,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.06),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    ),
+                    onChanged: (v) => rescheduleTime = v,
+                  ),
+                  const SizedBox(height: 16),
+                  LiquidGlassButton(
+                    label: 'Confirm Postponement',
+                    icon: Icons.schedule,
+                    color: AppColors.ragRed,
+                    onPressed: () {
+                      eco.postponeTask(task.id, reason: selectedReason, postponedTo: rescheduleTime);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Task postponed and logged for executive review.')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+          },
+        );
+      },
+    );
+  }
+
+  void _openProfileWizard(BuildContext context, EcosystemProvider eco, dynamic emp) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            final pc = emp.profileCompletion;
+            return Container(
+              padding: const EdgeInsets.all(18),
+              decoration: const BoxDecoration(
+                color: AppColors.burgundyCard,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Profile Verification Wizard', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                    ],
+                  ),
+                  Text('Progress: ${pc.percentage}% • ${pc.isAuthorized ? "VERIFIED" : "ACTION REQUIRED"}', style: const TextStyle(fontSize: 11.5, color: AppColors.goldBright)),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    title: const Text('1. Photo Identity Verified', style: TextStyle(color: Colors.white, fontSize: 12.5)),
+                    subtitle: const Text('Biometric pass verified', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    value: pc.photoVerified,
+                    activeColor: AppColors.goldPrimary,
+                    onChanged: (v) {
+                      eco.verifyProfileStep(emp.id, photo: v);
+                      setModalState(() {});
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('2. Residential Address Proof', style: TextStyle(color: Colors.white, fontSize: 12.5)),
+                    subtitle: const Text('Utility bill & Aadhaar copy verified', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    value: pc.addressVerified,
+                    activeColor: AppColors.goldPrimary,
+                    onChanged: (v) {
+                      eco.verifyProfileStep(emp.id, address: v);
+                      setModalState(() {});
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('3. Government Tax KYC & PAN Card', style: TextStyle(color: Colors.white, fontSize: 12.5)),
+                    subtitle: const Text('PAN linked to payroll portal', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    value: pc.kycVerified,
+                    activeColor: AppColors.goldPrimary,
+                    onChanged: (v) {
+                      eco.verifyProfileStep(emp.id, kyc: v);
+                      setModalState(() {});
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('4. Predefined Daily SOP Responsibilities', style: TextStyle(color: Colors.white, fontSize: 12.5)),
+                    subtitle: const Text('Digitally signed and acknowledged', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    value: pc.sopRolesAcknowledged,
+                    activeColor: AppColors.goldPrimary,
+                    onChanged: (v) {
+                      eco.verifyProfileStep(emp.id, sop: v);
+                      setModalState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  LiquidGlassButton(
+                    label: 'Save & Close Wizard',
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openRequestPermissionDialog(BuildContext context, EcosystemProvider eco) {
+    double selectedHours = 1.0;
+    final reasonController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final willExceed = (eco.totalPermissionHoursUsed + selectedHours) > eco.monthlyPermissionHoursLimit;
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.timer_outlined, color: AppColors.sandGold, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Ask Permission',
+                                style: GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                              ),
+                            ],
+                          ),
+                          IconButton(icon: const Icon(Icons.close, color: AppColors.sandPrimary), onPressed: () => Navigator.pop(ctx)),
+                        ],
+                      ),
+                      Text(
+                        'Monthly Quota: ${eco.permissionHoursRemaining.toStringAsFixed(1)}h remaining of ${eco.monthlyPermissionHoursLimit.toStringAsFixed(1)}h',
+                        style: const TextStyle(fontSize: 11, color: AppColors.sandGold),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Hours Duration Selector
+                      Text('Requested Duration:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                      const SizedBox(height: 6),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [0.5, 1.0, 1.5, 2.0].map((h) {
+                            final isSel = selectedHours == h;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text('${h}h ${h == 0.5 ? "(30 min)" : ""}'),
+                                selected: isSel,
+                                selectedColor: AppColors.sandGold,
+                                backgroundColor: AppColors.burgundyCard,
+                                labelStyle: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSel ? AppColors.burgundyBg : AppColors.sandLight,
+                                ),
+                                onSelected: (_) => setModalState(() => selectedHours = h),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Reason Field
+                      Text('Reason for Permission:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: reasonController,
+                        style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                        decoration: InputDecoration(
+                          hintText: 'e.g. Bank token appointment, doctor visit, urgent home work',
+                          hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
+                          filled: true,
+                          fillColor: AppColors.burgundyCard,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandGold)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                      ),
+                      if (willExceed) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.4)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.warning_amber, size: 14, color: Color(0xFFEF4444)),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Note: This request exceeds your monthly 2.0h quota and will trigger a half-day deduction upon approval.',
+                                  style: TextStyle(fontSize: 10, color: Color(0xFFFCA5A5)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 18),
+
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.send_outlined, size: 16),
+                          label: Text(
+                            'Submit Request to HR (${selectedHours}h)',
+                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12.5),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF10B981),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () {
+                            final reason = reasonController.text.trim().isEmpty ? 'Personal Permission' : reasonController.text.trim();
+                            eco.requestEmployeePermission(
+                              empId: eco.currentEmployee.id,
+                              requestedHours: selectedHours,
+                              reason: reason,
+                            );
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: const Color(0xFF10B981),
+                                content: Text('Permission request for ${selectedHours}h sent to HR for approval.'),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openLeaveModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(18),
+          decoration: const BoxDecoration(
+            color: Color(0xFF13151F),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Leave Request Submission', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+              const Text('Available Balance: 14 Days • Annual Paid Leave', style: TextStyle(fontSize: 11.5, color: AppColors.goldLight)),
+              const SizedBox(height: 12),
+              const Text('Leave Category:', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+              const SizedBox(height: 4),
+              DropdownButtonFormField<String>(
+                value: 'Casual Leave (1 Day)',
+                dropdownColor: AppColors.burgundySurface,
+                style: const TextStyle(fontSize: 12, color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.06),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'Casual Leave (1 Day)', child: Text('Casual Leave (1 Day)')),
+                  DropdownMenuItem(value: 'Medical / Emergency Leave (2 Days)', child: Text('Medical / Emergency Leave (2 Days)')),
+                  DropdownMenuItem(value: 'Family Function (3 Days)', child: Text('Family Function (3 Days)')),
+                ],
+                onChanged: (_) {},
+              ),
+              const SizedBox(height: 16),
+              LiquidGlassButton(
+                label: 'Submit for HR Approval',
+                icon: Icons.send,
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Leave application submitted for HR review.')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

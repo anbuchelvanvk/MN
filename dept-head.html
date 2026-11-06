@@ -52,13 +52,13 @@
             <div class="avatar-initials">VR</div>
             <div class="hero-info">
               <div class="hero-name">
-                Vikram Reddy
-                <span class="hero-id-tag" style="color: #cbd5e1;">Lead #VR-08</span>
+                Mr. M. Praveen Kumar
+                <span class="hero-id-tag" style="color: #cbd5e1;">Lead #MN-OTM01</span>
               </div>
-              <div class="hero-role">Head of Operations & Workshop Crafting</div>
+              <div class="hero-role">Team Lead (OTM) • Operations</div>
               <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap;">
-                <span class="hero-dept-tag"><i class="fa-solid fa-users"></i> Operations (8 Members)</span>
-                <span class="badge-rag green"><span class="badge-dot"></span> 1 Trainee Active</span>
+                <span class="hero-dept-tag"><i class="fa-solid fa-users"></i> Operations (11 Members)</span>
+                <span class="badge-rag green"><span class="badge-dot"></span> Confirmed Staff Team</span>
               </div>
             </div>
           </div>
@@ -75,8 +75,8 @@
             <span class="kpi-value red" id="kpi-postponed-tasks">1</span>
           </div>
           <div class="kpi-card" onclick="switchTab('mentorship')">
-            <span class="kpi-label"><i class="fa-solid fa-user-graduate"></i> Mentorship</span>
-            <span class="kpi-value green">1 Active</span>
+            <span class="kpi-label"><i class="fa-solid fa-person-circle-exclamation"></i> Absent Staff</span>
+            <span class="kpi-value green" id="kpi-absent-staff">0 Absent</span>
           </div>
         </div>
 
@@ -105,14 +105,14 @@
           </div>
         </div>
 
-        <!-- Mentorship & Trainee Status Card -->
+        <!-- Absentee SOP Reallocation Hub Card -->
         <div class="content-card" style="border-left: 3px solid var(--gold-accent);">
           <div class="card-header-row">
-            <div class="card-title"><i class="fa-solid fa-user-graduate"></i> Trainee Mentorship & Daily Reviews</div>
-            <a class="card-action-link" onclick="switchTab('mentorship')">View Diary</a>
+            <div class="card-title"><i class="fa-solid fa-person-circle-exclamation"></i> Absentee Management & Work Delegation</div>
+            <a class="card-action-link" onclick="switchTab('mentorship')">Open Hub</a>
           </div>
           <div style="background: var(--bg-card-subtle); padding: 10px; border-radius: var(--radius-sm); font-size: 11.5px; line-height: 1.4;">
-            <strong>Rohan Soni (Master Diamond Setter):</strong> 2-Week Probation active. 2 of 3 modules completed. Latest learning: <em>"Completed 18K antique bridal choker prong alignment test."</em>
+            <strong>Shift Continuity:</strong> When team members are absent, TL Praveen can immediately shift tasks to tomorrow or reassign them to available teammates.
           </div>
         </div>
 
@@ -122,7 +122,7 @@
       <section id="tab-team" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Operations Team Directory</h2>
-          <span style="font-size: 11.5px; color: var(--text-muted);">8 Members</span>
+          <span style="font-size: 11.5px; color: var(--text-muted);">11 Confirmed Members</span>
         </div>
 
         <div class="item-list" id="dept-team-container">
@@ -147,32 +147,34 @@
         </div>
       </section>
 
-      <!-- TAB 4: MENTORSHIP & PROBATION DIARY -->
+      <!-- TAB 4: ABSENTEE & SHIFT HUB -->
       <section id="tab-mentorship" class="tab-pane" style="display: none;">
         <div class="card-header-row" style="margin-bottom: 12px;">
           <div>
-            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Mentorship & Daily Diary Reviews</h2>
-            <p style="font-size: 11px; color: var(--text-muted);">First-week daily learning diary logs from assigned trainees</p>
+            <h2 style="font-size: 17px; font-weight: 700; color: var(--navy-dark);">Absentee & Shift Continuity Hub</h2>
+            <p style="font-size: 11px; color: var(--text-muted);">Shift SOP deliverables to next day or reassign to present colleagues</p>
           </div>
         </div>
 
         <div class="content-card" style="margin-bottom: 12px;">
           <div class="card-header-row">
             <div>
-              <strong style="font-size: 13.5px; color: var(--navy-dark);">Rohan Soni (Trainee)</strong>
-              <div style="font-size: 11px; color: var(--text-muted);">Master Diamond Setter • 2-Week Probation</div>
+              <strong style="font-size: 13.5px; color: var(--navy-dark);">Team Attendance Continuity Status</strong>
+              <div style="font-size: 11px; color: var(--text-muted);">Standard Konar SOP Work Allocation System</div>
             </div>
-            <span class="badge-rag green">85% Ready</span>
+            <span class="badge-rag green">100% Operational</span>
           </div>
 
-          <div class="card-title" style="font-size: 12px; margin: 8px 0 6px 0;">Mandatory Training SOP Checklist:</div>
+          <div class="card-title" style="font-size: 12px; margin: 8px 0 6px 0;">Standard Operational Procedures:</div>
           <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; font-size: 11.5px; padding: 5px 8px; background: #f0fdf4; border-radius: 4px;">
-              <span><i class="fa-solid fa-check" style="color: #10b981;"></i> 1. BIS Hallmark Laser Inscription</span>
-              <strong style="color: #047857;">Signed Off</strong>
+              <span><i class="fa-solid fa-check" style="color: #10b981;"></i> 1. Gold Rate Daily Synchronization (10:30 AM & 04:00 PM)</span>
+              <strong style="color: #047857;">Active (OS1)</strong>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 11.5px; padding: 5px 8px; background: #f0fdf4; border-radius: 4px;">
-              <span><i class="fa-solid fa-check" style="color: #10b981;"></i> 2. Precision Micro-Prong Setting</span>
+              <span><i class="fa-solid fa-check" style="color: #10b981;"></i> 2. Daily Instagram Reel & Media Upload</span>
+              <strong style="color: #047857;">Active (VPE)</strong>
+            </div>
               <strong style="color: #047857;">Signed Off</strong>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 11.5px; padding: 5px 8px; background: #fffbeb; border-radius: 4px;">

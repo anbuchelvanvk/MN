@@ -1,0 +1,287 @@
+import 'package:flutter/material.dart';
+
+/// Ring 3: Grooming inspection item audited by HR
+class GroomingAuditItem {
+  final String id;
+  final String empId;
+  final DateTime date;
+  final String category; // 'Haircut & Shave', 'Uniform & Ironing', 'ID Badge & Lapel', 'Footwear', 'Hygiene & Fragrance'
+  final int pointsChange; // Positive (reward) or Negative (penalty), e.g. +10, -15
+  final String reason;
+  final String auditedBy;
+  final bool isApproved;
+
+  GroomingAuditItem({
+    required this.id,
+    required this.empId,
+    required this.date,
+    required this.category,
+    required this.pointsChange,
+    required this.reason,
+    this.auditedBy = 'HR Department',
+    this.isApproved = true,
+  });
+
+  String get dateFormatted {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+/// Ring 5: Permission & Late Arrival request with auto 2-hr balance & 1 CL rule
+class PermissionRecord {
+  final String id;
+  final String empId;
+  final DateTime date;
+  final double requestedHours; // e.g. 2.0 hrs
+  final double actualHoursUsed; // e.g. 1.0 hr
+  final String reason;
+  final String status; // 'Approved', 'Pending', 'Pending HR & CEO', 'Granted by HR (Pending CEO Approval)', 'Pending CEO', 'Rejected'
+  final bool isHalfDayTriggered; // True if monthly > 2 hrs
+  final bool isCasualLeave; // True if taken as CL (max 1/month)
+  final bool isSalaryDeducted; // True if exceeding 1 CL
+  final String grantedBy; // 'HR Direct Grant' or 'Employee Request'
+  final bool isEmergency;
+  final String? employeeName;
+  final String? department;
+  final String? requesterRole; // 'Employee', 'Team Lead', 'HR', 'CEO'
+  final bool isOver2Hours; // True if requested > 2h or monthly balance exceeded (Orange flag)
+  final String? hrApprovedBy;
+  final String? ceoApprovedBy;
+
+  PermissionRecord({
+    required this.id,
+    required this.empId,
+    required this.date,
+    required this.requestedHours,
+    required this.actualHoursUsed,
+    required this.reason,
+    this.status = 'Approved',
+    this.isHalfDayTriggered = false,
+    this.isCasualLeave = false,
+    this.isSalaryDeducted = false,
+    this.grantedBy = 'HR Direct Grant',
+    this.isEmergency = false,
+    this.employeeName,
+    this.department,
+    this.requesterRole,
+    this.isOver2Hours = false,
+    this.hrApprovedBy,
+    this.ceoApprovedBy,
+  });
+
+  /// Hours saved back to the employee's account
+  double get creditedBackHours => (requestedHours - actualHoursUsed).clamp(0.0, requestedHours);
+
+  /// Status helper getters
+  bool get isPendingHr =>
+      status == 'Pending' || status == 'Pending HR' || status == 'Pending HR & CEO';
+
+  bool get isPendingCeo =>
+      status == 'Pending CEO' ||
+      status == 'Granted by HR (Pending CEO Approval)' ||
+      (status == 'Pending HR & CEO' && requesterRole != 'HR');
+
+  bool get isOrangeFlagged => isOver2Hours || requestedHours > 2.0 || isHalfDayTriggered;
+
+  String get dateFormatted {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+/// Emergency Medical Leave Record with Mandatory Doctor Prescription (Compressed <= 150 KB)
+class MedicalLeaveRecord {
+  final String id;
+  final String empId;
+  final String empName;
+  final String empRole;
+  final String department;
+  final DateTime date;
+  final int days; // Number of days requested
+  final String reason;
+  final String prescriptionBase64; // Compressed <= 150 KB
+  final String status; // 'Pending HR & CEO', 'Granted by HR (Pending CEO Approval)', 'Pending CEO', 'Approved', 'Rejected'
+  final String? hrApprovedBy;
+  final String? ceoApprovedBy;
+  final DateTime? reviewedAt;
+  final bool isEmergency;
+
+  MedicalLeaveRecord({
+    required this.id,
+    required this.empId,
+    required this.empName,
+    required this.empRole,
+    required this.department,
+    required this.date,
+    required this.days,
+    required this.reason,
+    required this.prescriptionBase64,
+    this.status = 'Pending HR & CEO',
+    this.hrApprovedBy,
+    this.ceoApprovedBy,
+    this.reviewedAt,
+    this.isEmergency = true,
+  });
+
+  bool get isPendingHr =>
+      status == 'Pending' || status == 'Pending HR' || status == 'Pending HR & CEO';
+
+  bool get isPendingCeo =>
+      status == 'Pending CEO' ||
+      status == 'Granted by HR (Pending CEO Approval)' ||
+      (status == 'Pending HR & CEO' && empRole != 'HR' && empRole != 'HR Manager');
+
+  String get dateFormatted {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+/// Ring 4: Individual Sales Log for Jewellery Consultants
+class SalesRecord {
+  final String id;
+  final String empId;
+  final String billNumber;
+  final DateTime date;
+  final String itemCategory; // '22K Gold Jewellery', 'Diamond & Solitaire', 'Polki & Antique', 'Silver Artifacts'
+  final double amountInInr;
+  final double weightGrams;
+  final String customerName;
+
+  SalesRecord({
+    required this.id,
+    required this.empId,
+    required this.billNumber,
+    required this.date,
+    required this.itemCategory,
+    required this.amountInInr,
+    required this.weightGrams,
+    required this.customerName,
+  });
+
+  String get formattedAmount {
+    if (amountInInr >= 100000) {
+      return '₹${(amountInInr / 100000).toStringAsFixed(2)} Lakhs';
+    }
+    return '₹${amountInInr.toStringAsFixed(0)}';
+  }
+
+  String get dateFormatted {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]}';
+  }
+}
+
+/// CEO Role Allocation Definition with Perks & Responsibilities
+class RoleAllocationConfig {
+  final String roleName; // 'Dept Head', 'HR', 'Employee', 'CEO (Admin)'
+  final String department;
+  final List<String> responsibilities;
+  final List<String> perks;
+  final Color badgeColor;
+  final IconData icon;
+
+  const RoleAllocationConfig({
+    required this.roleName,
+    required this.department,
+    required this.responsibilities,
+    required this.perks,
+    required this.badgeColor,
+    required this.icon,
+  });
+
+  static const List<String> availableDepartments = [
+    'Gold Jewellery',
+    'Diamond & Polki',
+    'Antique & Bridal',
+    'Billing & Cash Vault',
+    'Inventory & Hallmarking',
+    'HR & Admin',
+    'Executive CEO Office',
+    'Sales Operations'
+  ];
+
+  static const List<String> standardRoles = [
+    'Employee',
+    'Dept Head',
+    'HR',
+    'CEO (Admin)'
+  ];
+
+  static Map<String, RoleAllocationConfig> defaultRoleProfiles = {
+    'CEO (Admin)': const RoleAllocationConfig(
+      roleName: 'CEO (Admin)',
+      department: 'Executive CEO Office',
+      responsibilities: [
+        'Universal directive injection across all units',
+        'Executive role & privilege allocation',
+        'Full financial & gold vault audit authorization',
+        'Strategic showroom expansion and procurement oversight',
+        'Emergency operational overrides'
+      ],
+      perks: [
+        'Executive suite clearance with zero access restrictions',
+        'Direct override on special jewellery discount pricing',
+        'Executive travel & protocol allowance',
+        'Supreme company governance authority'
+      ],
+      badgeColor: Color(0xFFD4AF37), // Sand Gold
+      icon: Icons.workspace_premium,
+    ),
+    'Dept Head': const RoleAllocationConfig(
+      roleName: 'Dept Head',
+      department: 'Gold Jewellery',
+      responsibilities: [
+        'Assigning tasks & shift responsibilities to floor staff',
+        'Counter gold weight balance check & morning readiness gate',
+        'Shift handover sign-offs and incident mitigation',
+        'First-tier approval of staff permission slips'
+      ],
+      perks: [
+        'Task delegation privileges over junior employees',
+        'Authorizing customer negotiation discounts up to 3%',
+        'Priority schedule flexibility',
+        'Departmental performance commission bonus'
+      ],
+      badgeColor: Color(0xFF3B82F6), // Royal Blue
+      icon: Icons.shield_outlined,
+    ),
+    'HR': const RoleAllocationConfig(
+      roleName: 'HR',
+      department: 'HR & Admin',
+      responsibilities: [
+        'Grooming audits & uniform standards enforcement (+/- points)',
+        'Managing 26-day attendance ratio & in-app biometric sync',
+        'Leave & permission tracking (2 hr monthly balance & 1 CL rule)',
+        'Original certificates custody in company safe vault'
+      ],
+      perks: [
+        'Company-wide grooming point evaluation & salary deduction control',
+        'Staff onboarding and probation clearance authority',
+        'Direct hotline to CEO Office',
+        'HR confidential personnel locker access'
+      ],
+      badgeColor: Color(0xFF10B981), // Emerald Green
+      icon: Icons.manage_accounts,
+    ),
+    'Employee': const RoleAllocationConfig(
+      roleName: 'Employee',
+      department: 'Sales Operations',
+      responsibilities: [
+        'Customer luxury jewelry consultation & sales closure',
+        'Daily grooming, uniform, and personal presentation compliance',
+        'Punctual in-app thumb impression login before 09:30 AM',
+        'Completing shift handover checklist before counter exit'
+      ],
+      perks: [
+        'Monthly sales commission tier qualification',
+        '2.0 hours flexible monthly emergency permission balance',
+        '1 paid Casual Leave per calendar month',
+        'Access to MN Family Wellness & Tier Rewards'
+      ],
+      badgeColor: Color(0xFF8B5CF6), // Purple
+      icon: Icons.person_outline,
+    ),
+  };
+}

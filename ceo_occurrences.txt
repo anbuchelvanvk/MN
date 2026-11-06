@@ -1,0 +1,44 @@
+.\app.js:65: role: 'Managing Director & CEO',
+.\ceo.html:9: <title>MN Family - Executive CEO Suite</title>
+.\ceo.html:95: <span>Executive: <strong>Suresh Iyer (Managing Director & CEO)</strong></span>
+.\ceo.html:135: <div class="hero-role">Managing Director & CEO</div>
+.\ceo.html:499: <p style="font-size: 12px; color: #cbd5e1;">Managing Director & CEO</p>
+.\ecosystem-data.js:58: id: 'MN-CEO01',
+.\ecosystem-data.js:59: name: 'Executive CEO',
+.\ecosystem-data.js:60: role: 'Managing Director & CEO',
+.\ecosystem-data.js:111: trainer: { name: 'Executive CEO', role: 'Managing Director' },
+.\ecosystem-data.js:111: trainer: { name: 'Executive CEO', role: 'Managing Director' },
+.\ecosystem-data.js:136: trainer: { name: 'Executive CEO', role: 'Managing Director' },
+.\ecosystem-data.js:136: trainer: { name: 'Executive CEO', role: 'Managing Director' },
+.\ecosystem-data.js:750: { id: 'MN-1001', name: 'Suresh Iyer', dept: 'Executive CEO Office', role: 'Managing Director & CEO', inTime: '09:05 AM', lunchOut: '--', lunchIn: '--', lunchDurationMins: 0, outTime: 'On Duty', netHours: '8.3 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+.\ecosystem-data.js:750: { id: 'MN-1001', name: 'Suresh Iyer', dept: 'Executive CEO Office', role: 'Managing Director & CEO', inTime: '09:05 AM', lunchOut: '--', lunchIn: '--', lunchDurationMins: 0, outTime: 'On Duty', netHours: '8.3 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+.\index.html:366: <div class="role-name">Executive CEO Suite</div>
+.\lib\models\profile_pillar_models.dart:126: 'Executive CEO Office',
+.\lib\models\profile_pillar_models.dart:140: department: 'Executive CEO Office',
+.\lib\providers\ecosystem_provider.dart:22: String _activeEmpId = 'MN-CEO01';
+.\lib\providers\ecosystem_provider.dart:1155: id: 'MN-CEO01',
+.\lib\providers\ecosystem_provider.dart:1156: name: 'Executive CEO',
+.\lib\providers\ecosystem_provider.dart:1157: role: 'Managing Director & CEO',
+.\lib\providers\ecosystem_provider.dart:2704: if (empId == 'MN-CEO01' || _employees.any((e) => e.id == empId && e.roleType.toLowerCase() == 'ceo')) {
+.\lib\providers\ecosystem_provider.dart:2705: _notificationMessage = 'Action Denied: Executive CEO account cannot be removed.';
+.\lib\providers\ecosystem_provider.dart:3196: actingEmpId == 'MN-CEO01' ||
+.\lib\services\firebase_employee_service.dart:59: 'id': 'MN-CEO01',
+.\lib\services\firebase_employee_service.dart:60: 'name': 'Executive CEO',
+.\lib\services\firebase_employee_service.dart:62: 'role': 'Managing Director & CEO',
+.\lib\services\firebase_employee_service.dart:559: if (employeeId == 'MN-CEO01') {
+.\lib\services\firebase_employee_service.dart:560: throw Exception('Permission Denied: Executive CEO account cannot be removed.');
+.\lib\services\firebase_employee_service.dart:599: 'empId': 'MN-CEO01',
+.\lib\services\firebase_employee_service.dart:600: 'name': 'Executive CEO',
+.\lib\services\firebase_employee_service.dart:609: 'empId': 'MN-CEO01',
+.\lib\services\firebase_employee_service.dart:610: 'name': 'Executive CEO',
+.\lib\services\firebase_employee_service.dart:671: if (query == 'ceoofmn@mnjpark.com' || query == 'mn-ceo01') {
+.\lib\services\firebase_employee_service.dart:673: 'empId': 'MN-CEO01',
+.\lib\services\firebase_employee_service.dart:674: 'name': 'Executive CEO',
+.\lib\views\ceo\ceo_suite_screen.dart:57: userName: '${eco.currentEmployee.name} (Managing Director & CEO)',
+.\lib\views\dept_head\dept_head_portal_screen.dart:842: e.role.toLowerCase().contains('managing director') ||
+.\lib\views\dept_head\dept_head_portal_screen.dart:1102: e.role.toLowerCase().contains('managing director') ||
+.\lib\views\hr\hr_portal_screen.dart:384: emp.id.toUpperCase() != 'MN-CEO01' &&
+.\lib\views\hr\hr_portal_screen.dart:767: if (emp.roleType.toLowerCase() == 'ceo' || emp.id == 'MN-CEO01') {
+.\lib\views\hr\hr_portal_screen.dart:771: content: Text('Action Denied: Executive CEO account cannot be removed.'),
+.\lib\views\hub\hub_screen.dart:240: title: 'Executive CEO Suite',
+.\lib\views\orders\online_orders_handler_screen.dart:52: eco.activeEmpId == 'MN-CEO01' ||

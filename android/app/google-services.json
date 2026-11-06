@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "736904967615",
+    "project_id": "mn-family",
+    "storage_bucket": "mn-family.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:736904967615:android:a1d29d24ee93c31e7a5d0a",
+        "android_client_info": {
+          "package_name": "com.mnjewelpark.mn_family_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATecCL26uNJTVPL2WBSRQV9PRcqwBU8y8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

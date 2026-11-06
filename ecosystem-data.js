@@ -51,160 +51,30 @@ const SOP_TEMPLATES = {
   ]
 };
 
-// Initial Seed Data
+// Initial Clean Corporate Seed Data (Master CEO Account + 12 Official Konar Book Roles)
 const DEFAULT_ECOSYSTEM_DATA = {
   employees: [
     {
-      id: 'MN-1024',
-      name: 'Adithi Sharma',
-      role: 'Fine Jewellery Operations Executive',
-      dept: 'Operations',
-      phone: '+91 98450 12345',
-      email: 'adithi.s@mnjewelpark.com',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-      initials: 'AS',
-      doj: '2025-01-15',
-      experienceYears: '3.5 yrs in Jewellery Industry',
-      experienceCategory: 'experienced',
-      probationWeeks: 2,
-      probationStatus: 'cleared',
-      probationEndDate: '2025-01-29',
-      trainer: { name: 'Vikram Reddy', role: 'Head of Operations' },
-      profileCompletion: {
-        percentage: 100,
-        isAuthorized: true,
-        photoVerified: true,
-        addressVerified: true,
-        kycVerified: true,
-        sopRolesAcknowledged: true,
-        authorizedDate: '2026-02-10'
-      },
-      status: 'active',
-      ragStatus: 'green',
-      lastActive: 'Just now'
-    },
-    {
-      id: 'MN-1045',
-      name: 'Rahul Mehta',
-      role: 'Senior Sales Consultant',
-      dept: 'Sales',
-      phone: '+91 98450 22334',
-      email: 'rahul.m@mnjewelpark.com',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
-      initials: 'RM',
-      doj: '2024-06-10',
-      experienceYears: '5 yrs in Jewellery Industry',
-      experienceCategory: 'experienced',
-      probationWeeks: 2,
-      probationStatus: 'cleared',
-      probationEndDate: '2024-06-24',
-      trainer: { name: 'Ananya Sen', role: 'Sales Lead' },
-      profileCompletion: {
-        percentage: 100,
-        isAuthorized: true,
-        photoVerified: true,
-        addressVerified: true,
-        kycVerified: true,
-        sopRolesAcknowledged: true,
-        authorizedDate: '2026-01-14'
-      },
-      status: 'active',
-      ragStatus: 'green',
-      lastActive: '15 mins ago'
-    },
-    {
-      id: 'MN-1089',
-      name: 'Kavya Senthil',
-      role: 'Junior Retail Associate',
-      dept: 'Sales',
-      phone: '+91 98450 77889',
-      email: 'kavya.s@mnjewelpark.com',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
-      initials: 'KS',
-      doj: '2026-10-01',
-      experienceYears: 'Fresher (0 yrs)',
-      experienceCategory: 'fresher',
-      probationWeeks: 4,
-      probationStatus: 'active',
-      probationEndDate: '2026-10-31',
-      trainer: { id: 'MN-1045', name: 'Rahul Mehta', role: 'Senior Sales Consultant' },
-      trainingAgenda: [
-        { id: 1, title: '1. Luxury Showroom Greeting & Velvet Tray Presentation', desc: 'Understanding customer body language and 916 hallmarked bridal trays.', done: true, verifiedBy: 'Rahul Mehta' },
-        { id: 2, title: '2. 22K & 24K Gold Rate Calculation with Making Charges & 3% GST', desc: 'Operating POS billing terminal and gold estimate calculator.', done: true, verifiedBy: 'Rahul Mehta' },
-        { id: 3, title: '3. Gold Savings Scheme (Swarna Nidhi) Enrollment SOP', desc: 'Collecting customer KYC, Aadhaar copy, and issuing digital passbooks.', done: false, verifiedBy: null },
-        { id: 4, title: '4. High-Security Solitaire Return & Weighing Scale Verification', desc: '0.001g digital scale calibration before customer handover.', done: false, verifiedBy: null }
-      ],
-      dailyReviews: [
-        { day: 'Day 1', date: 'Oct 01, 2026', learnings: 'Learned showroom opening protocol and velvet lighting adjustments.', trainerRating: 'Excellent (5/5)' },
-        { day: 'Day 2', date: 'Oct 02, 2026', learnings: 'Practiced 916 gold rate formula: Base + 12% Making + 3% GST.', trainerRating: 'Good (4/5)' }
-      ],
-      profileCompletion: {
-        percentage: 65,
-        isAuthorized: false,
-        photoVerified: true,
-        addressVerified: true,
-        kycVerified: false,
-        sopRolesAcknowledged: false,
-        authorizedDate: null
-      },
-      status: 'onboarding',
-      ragStatus: 'yellow',
-      lastActive: '1 hr ago'
-    },
-    {
-      id: 'MN-1094',
-      name: 'Rohan Soni',
-      role: 'Master Diamond Setter & Goldsmith',
-      dept: 'Operations',
-      phone: '+91 98450 33445',
-      email: 'rohan.s@mnjewelpark.com',
+      id: 'MN-CEO01',
+      name: 'M N Naveenraaj',
+      role: 'Managing Director & CEO',
+      roleType: 'ceo',
+      dept: 'Executive Board',
+      phone: '+91 98450 00001',
+      email: 'ceoofmn@mnjpark.com',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
-      initials: 'RS',
-      doj: '2026-10-01',
-      experienceYears: '3.5 yrs in Jewellery Industry',
+      initials: 'MN',
+      doj: '2020-01-01',
+      experienceYears: '25 yrs in Fine Jewellery & Luxury Retail',
       experienceCategory: 'experienced',
-      probationWeeks: 2,
-      probationStatus: 'active',
-      probationEndDate: '2026-10-15',
-      trainer: { id: 'MN-1008', name: 'Vikram Reddy', role: 'Head of Operations' },
-      trainingAgenda: [
-        { id: 1, title: '1. BIS Hallmark Laser Inscription & HUID Compliance', desc: '6-digit alphanumeric code registration with government portal.', done: true, verifiedBy: 'Vikram Reddy' },
-        { id: 2, title: '2. High-Precision Micro-Prong Diamond Setting', desc: 'Microscope claw calibration for VVS1 solitaires with zero weight loss.', done: true, verifiedBy: 'Vikram Reddy' },
-        { id: 3, title: '3. Daily Sweepings Recovery & Vault Inward Balance', desc: 'Dust trap filtration and 0.001g alloy variance signoff.', done: false, verifiedBy: null }
-      ],
-      dailyReviews: [
-        { day: 'Day 1', date: 'Oct 01, 2026', learnings: 'Calibrated micro-welding station and gold bullion requisition paperwork.', trainerRating: 'Outstanding (5/5)' },
-        { day: 'Day 2', date: 'Oct 02, 2026', learnings: 'Completed 18K antique bridal choker prong alignment test.', trainerRating: 'Outstanding (5/5)' }
-      ],
-      profileCompletion: {
-        percentage: 85,
-        isAuthorized: false,
-        photoVerified: true,
-        addressVerified: true,
-        kycVerified: true,
-        sopRolesAcknowledged: false,
-        authorizedDate: null
-      },
-      status: 'onboarding',
-      ragStatus: 'green',
-      lastActive: '30 mins ago'
-    },
-    {
-      id: 'MN-1102',
-      name: 'Selvi Murugan',
-      role: 'Senior Housekeeping & Sanitation Specialist',
-      dept: 'Housekeeping',
-      phone: '+91 98450 99112',
-      email: 'selvi.m@mnjewelpark.com',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
-      initials: 'SM',
-      doj: '2025-03-01',
-      experienceYears: '4 yrs in Hospitality/Housekeeping',
-      experienceCategory: 'experienced',
-      probationWeeks: 2,
+      probationWeeks: 0,
       probationStatus: 'cleared',
-      probationEndDate: '2025-03-15',
-      trainer: { name: 'K. Natarajan', role: 'Facility Lead' },
+      probationEndDate: '2020-01-01',
+      password: 'adminnaandhan',
+      dob: '1980-05-15',
+      relationshipStatus: 'Married',
+      anniversaryDate: '2008-11-20',
+      trainer: { name: 'Executive Board', role: 'Board of Directors' },
       profileCompletion: {
         percentage: 100,
         isAuthorized: true,
@@ -212,210 +82,343 @@ const DEFAULT_ECOSYSTEM_DATA = {
         addressVerified: true,
         kycVerified: true,
         sopRolesAcknowledged: true,
-        authorizedDate: '2026-03-01'
+        authorizedDate: '2020-01-01'
       },
       status: 'active',
       ragStatus: 'green',
-      lastActive: '5 mins ago'
-    }
-  ],
-
-  tasks: [
-    {
-      id: 'TSK-101',
-      empId: 'MN-1024',
-      title: 'Daily 22K Gold Vault Weight Reconciliation',
-      category: 'Vault & Purity Assay',
-      isDefaultSop: true,
-      assignedBy: { role: 'system', name: 'Predefined SOP' },
-      due: '11:00 AM',
-      priority: 'Critical SLA',
-      status: 'completed',
-      proof: {
-        type: 'photo',
-        content: 'Vault weight balance sheet verified: 4,820.450g matched with master ledger #MN-V22.',
-        photoUrl: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&q=80&w=300',
-        timestamp: '10:45 AM'
-      },
-      immutable: true
+      lastActive: 'Active now'
     },
     {
-      id: 'TSK-102',
-      empId: 'MN-1024',
-      title: 'BIS 916 Hallmark & 6-Digit HUID Laser Verification for Batch #402',
-      category: 'BIS 916 Hallmarking',
-      isDefaultSop: true,
-      assignedBy: { role: 'dept_head', name: 'Vikram Reddy (Dept Head)' },
-      due: '02:30 PM',
-      priority: 'Critical SLA',
-      status: 'pending',
-      proof: null,
-      immutable: true
-    },
-    {
-      id: 'TSK-103',
-      empId: 'MN-1024',
-      title: 'Executive Navaratna Bridal Necklace Expedited Polish',
-      category: 'CEO Special Directive',
-      isDefaultSop: false,
-      assignedBy: { role: 'ceo', name: 'Suresh Iyer (CEO)' },
-      due: '05:00 PM',
-      priority: 'Critical SLA',
-      status: 'pending',
-      proof: null,
-      immutable: true
-    },
-    {
-      id: 'TSK-104',
-      empId: 'MN-1024',
-      title: 'Evening Gold Craft Waste & Sweepings Recovery Log',
-      category: 'Loss Prevention',
-      isDefaultSop: true,
-      assignedBy: { role: 'system', name: 'Predefined SOP' },
-      due: '06:45 PM',
-      priority: 'Standard',
-      status: 'postponed',
-      proof: null,
-      postponeInfo: {
-        reason: 'Late bridal jewellery custom sizing order delayed workshop furnace shutdown by 1 hour.',
-        postponedTo: 'Tomorrow 08:30 AM',
-        postponedAt: '06:15 PM'
-      },
-      immutable: true
-    },
-    {
-      id: 'TSK-105',
-      empId: 'MN-1045',
-      title: 'Morning Velvet Counter Tray Sanitization & Lighting Check',
-      category: 'Showroom SOP',
-      isDefaultSop: true,
-      assignedBy: { role: 'system', name: 'Predefined SOP' },
-      due: '09:45 AM',
-      priority: 'High',
-      status: 'completed',
-      proof: {
-        type: 'photo',
-        content: 'All 14 velvet counter trays sanitized. LED spotlights calibrated to 4000K daylight.',
-        photoUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=300',
-        timestamp: '09:35 AM'
-      },
-      immutable: true
-    },
-    {
-      id: 'TSK-106',
-      empId: 'MN-1089',
-      title: 'Customer Gold Savings Scheme & KYC Verification',
-      category: 'Customer Relations',
-      isDefaultSop: true,
-      assignedBy: { role: 'system', name: 'Predefined SOP' },
-      due: '01:00 PM',
-      priority: 'Standard',
-      status: 'pending',
-      proof: null,
-      immutable: true
-    }
-  ],
-
-  // 1. Inter-Department Handover Pipeline
-  handovers: [
-    {
-      id: 'HO-801',
-      batch: 'Navaratna Bridal Choker Lot #402 (184.5g)',
-      stage: 'Step 2: Quality & Assay BIS Hallmarking',
-      fromDept: 'Workshop Crafting',
-      toDept: 'Quality & Assay QA',
-      assignedTo: 'Adithi Sharma (Operations)',
-      status: 'in_progress',
-      handoffTime: '11:30 AM',
-      steps: [
-        { name: '1. Fine Filigree & Setting', dept: 'Workshop', status: 'done', completedBy: 'Rohan Soni' },
-        { name: '2. Laser BIS 916 Hallmarking', dept: 'Assay QA', status: 'in_progress', completedBy: 'Adithi Sharma' },
-        { name: '3. Velvet Counter Showcase', dept: 'Showroom', status: 'pending', completedBy: 'Rahul Mehta' }
-      ]
-    },
-    {
-      id: 'HO-802',
-      batch: '24K Swiss Gold Ingot Bar Custody #MN-992 (1000g)',
-      stage: 'Step 3: Vault Secure Custody Receipt',
-      fromDept: 'Executive Treasury',
-      toDept: 'Vault Security',
-      assignedTo: 'Major R. Pillai',
-      status: 'completed',
-      handoffTime: '09:45 AM',
-      steps: [
-        { name: '1. Inward Assay & Barcode Scan', dept: 'Treasury', status: 'done', completedBy: 'Finance Lead' },
-        { name: '2. Security Escort Transit', dept: 'Security', status: 'done', completedBy: 'Escort Guard #4' },
-        { name: '3. Dual-Key Vault Lockup', dept: 'Vault', status: 'done', completedBy: 'Major R. Pillai' }
-      ]
-    }
-  ],
-
-  // 2. Cross-Department Blockers & Escalations
-  blockers: [
-    {
-      id: 'BLK-101',
-      raisedByDept: 'Showroom Sales',
-      raisedByName: 'Rahul Mehta',
-      blockingDept: 'Workshop Crafting',
-      issue: 'Custom 22K bridal bangle sizing not handed over by 3 PM; customer arriving at 4:30 PM for wedding trial.',
-      severity: 'High Priority',
+      id: 'MN-HR01',
+      name: 'Mohankumar G',
+      role: 'Head of Human Resources',
+      roleType: 'hr',
+      dept: 'HR & People Ops',
+      phone: '+91 94433 11000',
+      email: 'hr@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
+      initials: 'MG',
+      doj: '2021-03-01',
+      experienceYears: '8 yrs HR Management',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'hr@mnj123',
+      dob: '1992-04-10',
+      relationshipStatus: 'Married',
+      anniversaryDate: '2019-06-12',
+      trainer: { name: 'Executive CEO', role: 'Managing Director' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
       status: 'active',
-      time: '03:15 PM'
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-OTM01',
+      name: 'Mr. M. Praveen Kumar',
+      role: 'Team Lead (OTM)',
+      roleType: 'team_lead',
+      dept: 'Operations',
+      phone: '+91 98450 11001',
+      email: 'praveenkumarotm@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200',
+      initials: 'PK',
+      doj: '2021-06-15',
+      experienceYears: '6 yrs in Store Operations',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'praveen@mnj123',
+      dob: '1994-08-22',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Executive CEO', role: 'Managing Director' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-OSH01',
+      name: 'Mr. K. Gokulakrishnan',
+      role: 'Online Sale Head (OSH)',
+      roleType: 'employee',
+      dept: 'Sales',
+      phone: '+91 98450 11002',
+      email: 'gokulakrishnanosh@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+      initials: 'GK',
+      doj: '2022-01-10',
+      experienceYears: '5 yrs Luxury Jewellery Sales',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'gokul@mnj123',
+      dob: '1995-12-05',
+      relationshipStatus: 'Married',
+      anniversaryDate: '2022-02-14',
+      trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-VPE01',
+      name: 'Mr. Y. Aravinda Samy',
+      role: 'Chief Photographer & Video Editor (VPE)',
+      roleType: 'employee',
+      dept: 'Media',
+      phone: '+91 98450 11003',
+      email: 'aravindasamyvpe@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200',
+      initials: 'AS',
+      doj: '2022-04-01',
+      experienceYears: '4 yrs Jewelry Cinematography',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'aravind@mnj123',
+      dob: '1996-03-18',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-AVPE01',
+      name: 'Mrs. M. Mithra',
+      role: 'Assistant Photographer & Videographer (Ass.VPE)',
+      roleType: 'employee',
+      dept: 'Media',
+      phone: '+91 98450 11004',
+      email: 'mithraassvpe@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+      initials: 'MM',
+      doj: '2022-07-15',
+      experienceYears: '3 yrs Media Production',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'mithra@mnj123',
+      dob: '1997-09-25',
+      relationshipStatus: 'Married',
+      anniversaryDate: '2023-01-20',
+      trainer: { name: 'Mr. Y. Aravinda Samy', role: 'VPE' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-ECE01',
+      name: 'E-Commerce Executive',
+      role: 'E-Commerce Executive (ECE)',
+      roleType: 'employee',
+      dept: 'Technology',
+      phone: '+91 98450 11005',
+      email: 'ece@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
+      initials: 'EC',
+      doj: '2022-09-01',
+      experienceYears: '3 yrs Catalog & Inventory Ops',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'ece@mnj123',
+      dob: '1996-11-14',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-OS101',
+      name: 'Ms. Kaaviya',
+      role: 'Online Sale Person 1 (OS1)',
+      roleType: 'employee',
+      dept: 'Sales',
+      phone: '+91 98450 11006',
+      email: 'kaaviyaos1@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+      initials: 'MK',
+      doj: '2023-01-05',
+      experienceYears: '2.5 yrs Luxury Jewelry Consultation',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'kaaviya@mnj123',
+      dob: '1998-02-18',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Mr. K. Gokulakrishnan', role: 'OSH' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-OS201',
+      name: 'Ms. Nisha',
+      role: 'Online Sale Person 2 (OS2)',
+      roleType: 'employee',
+      dept: 'Sales',
+      phone: '+91 98450 11007',
+      email: 'nishaos2@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=200',
+      initials: 'MN',
+      doj: '2023-02-10',
+      experienceYears: '2 yrs Jewelry Consultation',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'nisha@mnj123',
+      dob: '1999-07-30',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Mr. K. Gokulakrishnan', role: 'OSH' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-AC01',
+      name: 'Mr. J. Midhun Kumar',
+      role: 'Online Analytical Consultant (AC)',
+      roleType: 'employee',
+      dept: 'Accounts',
+      phone: '+91 98450 11008',
+      email: 'midhunkumarac@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
+      initials: 'MK',
+      doj: '2023-03-01',
+      experienceYears: '4 yrs Financial & Inventory Auditing',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'midhun@mnj123',
+      dob: '1995-10-12',
+      relationshipStatus: 'Married',
+      anniversaryDate: '2021-05-18',
+      trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-OSS01',
+      name: 'Mr. Subash',
+      role: 'Online Support & Strategist (OSS)',
+      roleType: 'employee',
+      dept: 'Operations',
+      phone: '+91 98450 11009',
+      email: 'subashoss@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=200',
+      initials: 'MS',
+      doj: '2023-04-15',
+      experienceYears: '3 yrs Dispatch & Packaging Logistics',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'subash@mnj123',
+      dob: '1997-06-08',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-DVP01',
+      name: 'Mr. K.B. Eshwar',
+      role: 'Developer (DVP)',
+      roleType: 'employee',
+      dept: 'Technology',
+      phone: '+91 98450 11010',
+      email: 'eshwardvp@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200',
+      initials: 'KE',
+      doj: '2023-05-01',
+      experienceYears: '4 yrs Fullstack Development & Shopify ERP',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'eshwar@mnj123',
+      dob: '1996-01-28',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
+    },
+    {
+      id: 'MN-CC01',
+      name: 'Mr. Sam Roy',
+      role: 'Content Creator (CC)',
+      roleType: 'employee',
+      dept: 'Media',
+      phone: '+91 98450 11011',
+      email: 'samroycc@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200',
+      initials: 'SR',
+      doj: '2023-06-01',
+      experienceYears: '3 yrs Social Media & Copywriting',
+      experienceCategory: 'experienced',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      password: 'samroy@mnj123',
+      dob: '1998-08-19',
+      relationshipStatus: 'Single',
+      trainer: { name: 'Mr. Y. Aravinda Samy', role: 'VPE' },
+      profileCompletion: { percentage: 100, isAuthorized: true, photoVerified: true, addressVerified: true, kycVerified: true, sopRolesAcknowledged: true },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active now'
     }
   ],
 
-  // 5. 10:00 AM Store Opening Readiness Gate (6 Depts)
+  tasks: [],
+  handovers: [],
+  blockers: [],
+
   readinessGate: {
-    status: '100% Ready (Green)',
+    status: 'Pending Setup (0/6 Signed)',
     targetTime: '10:00 AM',
-    signedCount: 6,
+    signedCount: 0,
     totalCount: 6,
     depts: [
-      { name: 'Housekeeping', task: 'Floor deep-clean & velvet glass mirror polish verified', signed: true, signedBy: 'Selvi M.', time: '09:20 AM' },
-      { name: 'Vault & Logistics', task: 'Morning display trays issued to counters & dual-signed', signed: true, signedBy: 'Major R. Pillai', time: '09:35 AM' },
-      { name: 'Security & CCTV', task: '360° CCTV scan & emergency exit sensor clearance', signed: true, signedBy: 'Security Lead', time: '09:40 AM' },
-      { name: 'Operations & Assay', task: 'Digital 0.001g scales calibrated & hallmarking active', signed: true, signedBy: 'Vikram Reddy', time: '09:45 AM' },
-      { name: 'Showroom Sales', task: 'Staff groomed, velvet spotlights calibrated to 4000K', signed: true, signedBy: 'Ananya Sen', time: '09:50 AM' },
-      { name: 'Finance & Accounts', task: 'Daily 22K gold rate (₹6,805/g) synchronized on billing', signed: true, signedBy: 'Sunita Iyer', time: '09:52 AM' }
+      { name: 'Housekeeping', task: 'Floor deep-clean & velvet glass mirror polish verified', signed: false, signedBy: '', time: '--' },
+      { name: 'Vault & Logistics', task: 'Morning display trays issued to counters', signed: false, signedBy: '', time: '--' },
+      { name: 'Security & CCTV', task: '360° CCTV scan & emergency exit sensor clearance', signed: false, signedBy: '', time: '--' },
+      { name: 'Operations & Assay', task: 'Digital 0.001g scales calibrated & hallmarking active', signed: false, signedBy: '', time: '--' },
+      { name: 'Showroom Sales', task: 'Staff groomed, velvet spotlights calibrated to 4000K', signed: false, signedBy: '', time: '--' },
+      { name: 'Finance & Accounts', task: 'Daily 22K gold rate synchronized on billing', signed: false, signedBy: '', time: '--' }
     ]
   },
 
-  // 6. Cross-Department Incident Dispatch
-  incidents: [
-    {
-      id: 'INC-201',
-      title: 'AC Condensation Leak near Vault Entrance Perimeter',
-      reportedBy: 'Housekeeping (Selvi Murugan)',
-      dispatchedTo: 'Facility Maintenance & Security',
-      severity: 'Medium',
-      status: 'resolved',
-      time: '11:15 AM',
-      resolution: 'Drain pipe unclogged by maintenance team. Area dry and dual-witness cleared.'
-    }
-  ],
+  incidents: [],
+  shiftHandovers: [],
 
-  // 7. Shift Handover Co-Sign Logs
-  shiftHandovers: [
-    {
-      id: 'SH-501',
-      shift: 'Morning → Evening Shift Transition',
-      date: 'Today',
-      outgoingLead: 'Vikram Reddy (Operations)',
-      incomingLead: 'Karan Verma (Senior Goldsmith)',
-      pendingItems: '1 task postponed to tomorrow (Furnace shutdown). Hallmarking batch #402 in progress.',
-      status: 'Co-Signed & Logged'
-    }
-  ],
-
-  // 8. Repeat Delay Pattern & Root Cause Analytics
   delayAnalytics: {
-    totalPostponedMonth: 18,
-    rootCauses: [
-      { cause: 'Late Bridal Custom Sizing Order', count: 7, dept: 'Operations', pct: 39 },
-      { cause: 'Customer Rescheduled Appointment', count: 4, dept: 'Sales', pct: 22 },
-      { cause: 'POS / Gov Hallmarking Portal Network Latency', count: 4, dept: 'Finance/QA', pct: 22 },
-      { cause: 'Supplier Raw Ingot Flight Delay', count: 3, dept: 'Vault', pct: 17 }
-    ]
+    totalPostponedMonth: 0,
+    rootCauses: []
   },
 
   emergencyDelegations: []
@@ -641,6 +644,55 @@ class MNEcosystemStore {
     return emp;
   }
 
+  // Add Employee (Restricted to HR)
+  addNewEmployee({ name, role, roleType, dept, phone, email, experienceCategory, experienceYears, trainerName }) {
+    const isFresher = experienceCategory === 'fresher';
+    const initials = name.split(' ').map(e => e ? e[0] : '').slice(0, 2).join('').toUpperCase();
+    const newEmp = {
+      id: `MN-${1100 + this.data.employees.length}`,
+      name,
+      role: role || (roleType === 'team_lead' ? 'Operations Team Lead' : 'Operations Executive'),
+      roleType: roleType || 'employee',
+      dept: dept || 'Operations',
+      phone: phone || '',
+      email: email || 'staff@mnj.com',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200',
+      initials: initials || 'EM',
+      doj: 'Today',
+      experienceYears: experienceYears || 'Confirmed Corporate Staff',
+      experienceCategory: experienceCategory || 'standard',
+      probationWeeks: 0,
+      probationStatus: 'cleared',
+      probationEndDate: 'Completed',
+      trainer: { name: trainerName || 'Praveen Kumar', role: 'Team Lead' },
+      profileCompletion: {
+        percentage: 100,
+        isAuthorized: true,
+        photoVerified: true,
+        addressVerified: true,
+        kycVerified: true,
+        sopRolesAcknowledged: true
+      },
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Just registered'
+    };
+    this.data.employees.unshift(newEmp);
+    this.saveData();
+    return newEmp;
+  }
+
+  // Remove Employee (Restricted to HR)
+  removeEmployee(empId) {
+    const idx = this.data.employees.findIndex(e => e.id === empId);
+    if (idx !== -1) {
+      const removed = this.data.employees.splice(idx, 1)[0];
+      this.saveData();
+      return removed;
+    }
+    return null;
+  }
+
   // EXCEL (.CSV) DATA DOWNLOAD GENERATOR
   exportTasksToCSV() {
     const tasks = this.data.tasks;
@@ -675,6 +727,28 @@ class MNEcosystemStore {
     });
 
     this.triggerDownloadBlob(csvContent, `MN_JewelPark_Dept_Compliance_${new Date().toISOString().split('T')[0]}.csv`);
+  }
+
+  exportBiometricAttendanceCSV() {
+    const list = this.getTodayBiometricAttendance();
+    let csvContent = 'Employee ID,Staff Name,Department,Role,Shift In Time,Lunch Out Time,Lunch In Time,Lunch Duration (Mins),Shift Out Time,Net Hours Worked,Status\n';
+    list.forEach(item => {
+      csvContent += `"${item.id}","${item.name}","${item.dept}","${item.role}","${item.inTime}","${item.lunchOut}","${item.lunchIn}",${item.lunchDurationMins},"${item.outTime}","${item.netHours}","${item.status}"\n`;
+    });
+    this.triggerDownloadBlob(csvContent, `eSSL_Attendance_Roster_${new Date().toISOString().split('T')[0]}.csv`);
+  }
+
+  getTodayBiometricAttendance() {
+    return [
+      { id: 'MN-1024', name: 'Adithi Sharma', dept: 'Operations', role: 'Fine Jewellery Operations Executive', inTime: '09:14 AM', lunchOut: '--', lunchIn: '--', lunchDurationMins: 0, outTime: 'On Duty', netHours: '8.2 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+      { id: 'MN-1045', name: 'Rahul Mehta', dept: 'Sales', role: 'Senior Sales Consultant', inTime: '09:24 AM', lunchOut: '01:10 PM', lunchIn: '01:52 PM', lunchDurationMins: 42, outTime: 'On Duty', netHours: '7.8 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+      { id: 'MN-1089', name: 'Kavya Senthil', dept: 'Sales', role: 'Junior Retail Associate', inTime: '09:42 AM', lunchOut: '01:30 PM', lunchIn: '--', lunchDurationMins: 28, outTime: 'On Duty', netHours: '6.4 hrs', status: 'On Lunch Break', statusColor: '#f59e0b' },
+      { id: 'MN-1094', name: 'Rohan Soni', dept: 'Operations', role: 'Master Diamond Setter & Goldsmith', inTime: '09:08 AM', lunchOut: '01:00 PM', lunchIn: '01:45 PM', lunchDurationMins: 45, outTime: '06:15 PM', netHours: '8.3 hrs', status: 'Shift Completed', statusColor: '#8b5cf6' },
+      { id: 'MN-1102', name: 'Selvi Murugan', dept: 'Housekeeping', role: 'Senior Housekeeping Specialist', inTime: '08:50 AM', lunchOut: '12:45 PM', lunchIn: '01:30 PM', lunchDurationMins: 45, outTime: 'On Duty', netHours: '8.5 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+      { id: 'MN-1008', name: 'Vikram Reddy', dept: 'Gold Jewellery', role: 'Dept Head', inTime: '09:18 AM', lunchOut: '--', lunchIn: '--', lunchDurationMins: 0, outTime: 'On Duty', netHours: '8.1 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+      { id: 'MN-1012', name: 'Meera Krishnan', dept: 'HR & Admin', role: 'Head of HR', inTime: '09:20 AM', lunchOut: '--', lunchIn: '--', lunchDurationMins: 0, outTime: 'On Duty', netHours: '8.0 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+      { id: 'MN-1001', name: 'Suresh Iyer', dept: 'Executive CEO Office', role: 'Managing Director & CEO', inTime: '09:05 AM', lunchOut: '--', lunchIn: '--', lunchDurationMins: 0, outTime: 'On Duty', netHours: '8.3 hrs', status: 'Present (On-Time)', statusColor: '#10b981' },
+    ];
   }
 
   triggerDownloadBlob(content, filename) {

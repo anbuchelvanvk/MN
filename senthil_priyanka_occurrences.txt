@@ -1,0 +1,3 @@
+.\ecosystem-data.js:93: name: 'Priyanka HR',
+.\ecosystem-data.js:745: { id: 'MN-1089', name: 'Kavya Senthil', dept: 'Sales', role: 'Junior Retail Associate', inTime: '09:42 AM', lunchOut: '01:30 PM', lunchIn: '--', lunchDurationMins: 28, outTime: 'On Duty', netHours: '6.4 hrs', status: 'On Lunch Break', statusColor: '#f59e0b' },
+.\hr.html:209: <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Priyanka HR</h2>

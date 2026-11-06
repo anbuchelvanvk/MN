@@ -1,0 +1,1832 @@
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../models/family_models.dart';
+import '../../providers/ecosystem_provider.dart';
+
+class FamilyPillarScreen extends StatefulWidget {
+  const FamilyPillarScreen({super.key});
+
+  @override
+  State<FamilyPillarScreen> createState() => _FamilyPillarScreenState();
+}
+
+class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
+  int _selectedSectionIndex = 0; // 0: Family Time, 1: Friends Time, 2: How You Spent Time (Logger), 3: Activity Diary
+  String _diaryFilter = 'All'; // 'All', 'Family', 'Friends & Colleagues'
+
+  // Activity Logger Form Controllers & State
+  String _logCategory = 'Family'; // 'Family' or 'Friends & Colleagues'
+  String _selectedPresetName = '';
+  String _selectedEmoji = '👨‍👩‍👧‍👦';
+  String _selectedSubCategory = '';
+  double _loggedHours = 1.0;
+  final TextEditingController _customActivityController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+
+  // Family Welfare Settings
+  final TextEditingController _emergencyContactController = TextEditingController();
+  final TextEditingController _familyMembersController = TextEditingController();
+  bool _dinnerTogetherToday = false;
+
+  @override
+  void dispose() {
+    _customActivityController.dispose();
+    _notesController.dispose();
+    _emergencyContactController.dispose();
+    _familyMembersController.dispose();
+    super.dispose();
+  }
+
+  void _selectPreset(FamilyActivityPreset preset) {
+    setState(() {
+      _selectedPresetName = preset.name;
+      _selectedEmoji = preset.iconEmoji;
+      _selectedSubCategory = preset.subCategory;
+      _loggedHours = preset.defaultHours;
+      _customActivityController.text = preset.name;
+    });
+  }
+
+  void _onCategorySwitched(String category) {
+    setState(() {
+      _logCategory = category;
+      if (category == 'Family') {
+        _selectPreset(FamilyActivityPreset.familyPresets.first);
+      } else {
+        _selectPreset(FamilyActivityPreset.friendsColleaguesPresets.first);
+      }
+    });
+  }
+
+  void _submitActivity(EcosystemProvider eco) {
+    final activityName = _customActivityController.text.trim();
+    if (activityName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Please enter or select an activity name.'),
+        ),
+      );
+      return;
+    }
+
+    if (_loggedHours <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Please specify hours greater than 0.'),
+        ),
+      );
+      return;
+    }
+
+    eco.addFamilyActivity(
+      activityName: activityName,
+      category: _logCategory,
+      subCategory: _selectedSubCategory,
+      hoursSpent: _loggedHours,
+      iconEmoji: _selectedEmoji,
+      notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+    );
+
+    _notesController.clear();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.burgundyPrimary,
+        content: Text(
+          'Logged "$activityName" ($_loggedHours hrs with $_logCategory)!',
+          style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight),
+        ),
+      ),
+    );
+
+    // Switch to diary section to view newly logged activity
+    setState(() {
+      _selectedSectionIndex = 3;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.watch<EcosystemProvider>();
+
+    return Scaffold(
+      backgroundColor: AppColors.burgundyBg,
+      appBar: AppBar(
+        backgroundColor: AppColors.burgundyBg,
+        elevation: 0,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'FAMILY PILLAR',
+          style: GoogleFonts.cinzel(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: AppColors.sandLight,
+            letterSpacing: 0.8,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.family_restroom, size: 14, color: AppColors.sandGold),
+                    const SizedBox(width: 5),
+                    Text(
+                      '${eco.totalOverallSocialHoursToday.toStringAsFixed(1)}h Total',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Hero Welcome Card
+              _buildHeroHeader(eco),
+              const SizedBox(height: 16),
+
+              // 4 Interactive Navigation Section Cards
+              _buildFourSectionSelector(eco),
+              const SizedBox(height: 16),
+
+              // Active Section Content
+              _buildActiveSectionContent(context, eco),
+              const SizedBox(height: 85),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: _selectedSectionIndex != 2
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.sandGold,
+              foregroundColor: AppColors.burgundyBg,
+              elevation: 4,
+              icon: const Icon(Icons.add_circle, size: 20),
+              label: Text(
+                'Log Time / Activity',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12.5),
+              ),
+              onPressed: () {
+                setState(() => _selectedSectionIndex = 2);
+              },
+            )
+          : null,
+    );
+  }
+
+  // =========================================================================
+  // 1. HERO HEADER
+  // =========================================================================
+
+  Widget _buildHeroHeader(EcosystemProvider eco) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyPrimary,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.sandBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.burgundyPrimary.withOpacity(0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.burgundySurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+            ),
+            child: const Text('👨‍👩‍👧‍👦', style: TextStyle(fontSize: 28)),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Family & Friends Time',
+                  style: GoogleFonts.cinzel(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandLight,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Dedicated hours for loved ones, family support, and quality life with friends & colleagues.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: AppColors.sandPrimary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // 2. FOUR SECTIONS SELECTOR (Top 4 Interactive Modules)
+  // =========================================================================
+
+  Widget _buildFourSectionSelector(EcosystemProvider eco) {
+    final familyHours = eco.totalFamilyHoursToday;
+    final friendsHours = eco.totalFriendsHoursToday;
+    final totalActivities = eco.familyActivityLogs.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'PILLAR MODULES',
+                style: GoogleFonts.cinzel(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.sandGold,
+                  letterSpacing: 0.6,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              'Tap to open',
+              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Grid of 4 Module Cards
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 1.35,
+          children: [
+            _buildModuleCard(
+              index: 0,
+              title: 'Family Time',
+              emoji: '👨‍👩‍👧‍👦',
+              metric: '${familyHours.toStringAsFixed(1)} hrs',
+              subtitle: 'Cherished moments',
+              badge: familyHours > 0 ? 'Cherished' : 'Log Time',
+              badgeColor: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
+            ),
+            _buildModuleCard(
+              index: 1,
+              title: 'Friends & Peers',
+              emoji: '🤝',
+              metric: '${friendsHours.toStringAsFixed(1)} hrs',
+              subtitle: 'Peer camaraderie',
+              badge: friendsHours > 0 ? 'Connected' : 'Log Time',
+              badgeColor: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
+            ),
+            _buildModuleCard(
+              index: 2,
+              title: 'Log Activity',
+              emoji: '✍️',
+              metric: '+ Add Activity',
+              subtitle: 'Log hours & memories',
+              badge: 'Logger',
+              badgeColor: AppColors.sandGold,
+            ),
+            _buildModuleCard(
+              index: 3,
+              title: 'Activity Diary',
+              emoji: '📋',
+              metric: '$totalActivities Entries',
+              subtitle: '${eco.totalOverallSocialHoursToday.toStringAsFixed(1)} hrs total',
+              badge: 'History',
+              badgeColor: const Color(0xFFA855F7),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModuleCard({
+    required int index,
+    required String title,
+    required String emoji,
+    required String metric,
+    required String subtitle,
+    required String badge,
+    required Color badgeColor,
+  }) {
+    final isSelected = _selectedSectionIndex == index;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => setState(() => _selectedSectionIndex = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.burgundyCard : AppColors.burgundySurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+            width: isSelected ? 1.8 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.sandGold.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 20)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: badgeColor.withOpacity(0.5), width: 0.8),
+                  ),
+                  child: Text(
+                    badge,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.bold,
+                      color: badgeColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  metric,
+                  style: GoogleFonts.cinzel(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? AppColors.sandLight : AppColors.sandPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? AppColors.sandGold : AppColors.sandPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // 3. ACTIVE SECTION CONTENT ROUTER
+  // =========================================================================
+
+  Widget _buildActiveSectionContent(BuildContext context, EcosystemProvider eco) {
+    switch (_selectedSectionIndex) {
+      case 0:
+        return _buildSection1TotalFamily(context, eco);
+      case 1:
+        return _buildSection2TotalFriends(context, eco);
+      case 2:
+        return _buildSection3HowYouSpentTime(context, eco);
+      case 3:
+      default:
+        return _buildSection4ActivityDiary(context, eco);
+    }
+  }
+
+  // =========================================================================
+  // SECTION 1: TOTAL TIME SPENT WITH THE FAMILY
+  // =========================================================================
+
+  Widget _buildSection1TotalFamily(BuildContext context, EcosystemProvider eco) {
+    final familyHours = eco.totalFamilyHoursToday;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Section Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '1. FAMILY TIME',
+                    style: GoogleFonts.cinzel(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Quality Family Time',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle, color: AppColors.sandGold, size: 26),
+              tooltip: 'Log Family Activity',
+              onPressed: () {
+                _onCategorySwitched('Family');
+                setState(() => _selectedSectionIndex = 2);
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Hero Family Hours Card
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.sandBorder),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'TODAY\'S FAMILY TIME',
+                          style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              familyHours.toStringAsFixed(1),
+                              style: GoogleFonts.cinzel(
+                                fontSize: 38,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandLight,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'hours',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.sandPrimary),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          familyHours > 0 ? 'Cherished quality time logged today' : 'No forced targets • Spend time at your own pace',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Heart & Harmony Badge
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.burgundySurface,
+                      border: Border.all(
+                        color: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
+                        width: 3.0,
+                      ),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FaIcon(
+                            familyHours > 0 ? FontAwesomeIcons.solidHeart : FontAwesomeIcons.peopleRoof,
+                            size: 18,
+                            color: familyHours > 0 ? const Color(0xFFEC4899) : AppColors.sandGold,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            familyHours > 0 ? 'Cherished' : 'Relax',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Unforced encouragement banner
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.favorite_outline, color: AppColors.sandGold, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Genuine, stress-free presence with loved ones. Every moment counts.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Quick Time Increments
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Quick Log:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Row(
+                    children: [0.5, 1.0, 2.0].map((h) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            eco.addFamilyActivity(
+                              activityName: 'Quality Family Time',
+                              category: 'Family',
+                              subCategory: 'General Bonding',
+                              hoursSpent: h,
+                              iconEmoji: '❤️',
+                              notes: 'Direct family time increment',
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: AppColors.burgundyPrimary,
+                                content: Text('Added +$h hr to family time!'),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.burgundySurface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.sandBorder),
+                            ),
+                            child: Text(
+                              '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandGold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Family Core Checklist & Commitments
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.sandBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'DAILY FAMILY HABITS & COMMITMENT',
+                style: GoogleFonts.cinzel(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+              ),
+              const SizedBox(height: 10),
+
+              // Evening Dinner Checkbox
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: CheckboxListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  activeColor: AppColors.burgundyPrimary,
+                  checkColor: AppColors.sandGold,
+                  title: Text(
+                    'Evening Dinner Together Today',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.sandLight,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Shared family meal without phones or digital distractions',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                  ),
+                  value: _dinnerTogetherToday,
+                  onChanged: (v) {
+                    setState(() => _dinnerTogetherToday = v ?? false);
+                    if (v == true) {
+                      eco.addFamilyActivity(
+                        activityName: 'Family Dinner Together',
+                        category: 'Family',
+                        subCategory: 'Evening Meal',
+                        hoursSpent: 1.0,
+                        iconEmoji: '🍽️',
+                        notes: 'Evening dinner together logged from checklist',
+                      );
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Emergency Contact Row
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Family Members: ${_familyMembersController.text.isNotEmpty ? _familyMembersController.text : "Not Set (Tap Edit Info)"}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                        ),
+                        Text(
+                          'Emergency: ${_emergencyContactController.text.isNotEmpty ? _emergencyContactController.text : "Need to be added"}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: AppColors.sandGold),
+                    icon: const Icon(Icons.edit, size: 14),
+                    label: const Text('Edit Info', style: TextStyle(fontSize: 11)),
+                    onPressed: () => _openEditFamilyInfoDialog(context),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Action CTA
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.burgundySurface,
+            foregroundColor: AppColors.sandGold,
+            side: const BorderSide(color: AppColors.sandGold, width: 1.0),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+          icon: const Icon(Icons.add, size: 18),
+          label: Text(
+            'Log Specific Activity with Family',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12.5),
+          ),
+          onPressed: () {
+            _onCategorySwitched('Family');
+            setState(() => _selectedSectionIndex = 2);
+          },
+        ),
+      ],
+    );
+  }
+
+  // =========================================================================
+  // SECTION 2: TOTAL TIME SPENT WITH FRIENDS / COLLEAGUES
+  // =========================================================================
+
+  Widget _buildSection2TotalFriends(BuildContext context, EcosystemProvider eco) {
+    final friendsHours = eco.totalFriendsHoursToday;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Section Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '2. FRIENDS & PEERS',
+                    style: GoogleFonts.cinzel(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Social Connections',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle, color: AppColors.sandGold, size: 26),
+              tooltip: 'Log Friends Activity',
+              onPressed: () {
+                _onCategorySwitched('Friends & Colleagues');
+                setState(() => _selectedSectionIndex = 2);
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Hero Friends Hours Card
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.sandBorder),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'TODAY\'S SOCIAL & PEER TIME',
+                          style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              friendsHours.toStringAsFixed(1),
+                              style: GoogleFonts.cinzel(
+                                fontSize: 38,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandLight,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'hours',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.sandPrimary),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          friendsHours > 0 ? 'Peer connection & camaraderie on record' : 'Relaxed team bonding without forced quotas',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Peer Badge
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.burgundySurface,
+                      border: Border.all(
+                        color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
+                        width: 3.0,
+                      ),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          FaIcon(
+                            friendsHours > 0 ? FontAwesomeIcons.handshake : FontAwesomeIcons.mugSaucer,
+                            size: 18,
+                            color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            friendsHours > 0 ? 'Connected' : 'Social',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Unforced encouragement banner
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.group_outlined, color: AppColors.sandGold, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Meaningful peer conversations and team support with no artificial targets.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Quick Time Increments
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Quick Log:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Row(
+                    children: [0.5, 1.0, 2.0].map((h) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            eco.addFamilyActivity(
+                              activityName: 'Chai / Coffee Catchup',
+                              category: 'Friends & Colleagues',
+                              subCategory: 'Casual Hangout',
+                              hoursSpent: h,
+                              iconEmoji: '☕',
+                              notes: 'Direct friends & colleagues time increment',
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: AppColors.burgundyPrimary,
+                                content: Text('Added +$h hr to friends & colleagues time!'),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppColors.burgundySurface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.sandBorder),
+                            ),
+                            child: Text(
+                              '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandGold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Social Wellbeing Insight Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.sandBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'WHY WORKPLACE & PEER BONDS MATTER',
+                style: GoogleFonts.cinzel(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Healthy banter, sharing chai, sports with colleagues, and casual laughs dramatically reduce workplace stress and elevate psychological safety.',
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary, height: 1.35),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Action CTA
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.burgundySurface,
+            foregroundColor: AppColors.sandGold,
+            side: const BorderSide(color: AppColors.sandGold, width: 1.0),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+          icon: const Icon(Icons.add, size: 18),
+          label: Text(
+            'Log Specific Activity with Friends / Colleagues',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12.5),
+          ),
+          onPressed: () {
+            _onCategorySwitched('Friends & Colleagues');
+            setState(() => _selectedSectionIndex = 2);
+          },
+        ),
+      ],
+    );
+  }
+
+  // =========================================================================
+  // SECTION 3: HOW DID YOU SPEND YOUR TIME WITH THEM? (ACTIVITY LOGGER)
+  // =========================================================================
+
+  Widget _buildSection3HowYouSpentTime(BuildContext context, EcosystemProvider eco) {
+    final isFamily = _logCategory == 'Family';
+    final presets = isFamily
+        ? FamilyActivityPreset.familyPresets
+        : FamilyActivityPreset.friendsColleaguesPresets;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Section Header
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '3. LOG ACTIVITY',
+              style: GoogleFonts.cinzel(
+                fontSize: 13.5,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandLight,
+                letterSpacing: 0.5,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Log Your Time',
+              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // Main Logger Card
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.sandBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Step 1: Who was this with? (Segmented Choice)
+              Text(
+                'STEP 1: COMPANION',
+                style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildChoiceButton(
+                      title: 'Family',
+                      emoji: '👨‍👩‍👧‍👦',
+                      isSelected: isFamily,
+                      onTap: () => _onCategorySwitched('Family'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildChoiceButton(
+                      title: 'Friends & Peers',
+                      emoji: '🤝',
+                      isSelected: !isFamily,
+                      onTap: () => _onCategorySwitched('Friends & Colleagues'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Step 2: Choose Preset Template or Custom Name
+              Text(
+                'STEP 2: ACTIVITY',
+                style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+              ),
+              const SizedBox(height: 8),
+
+              // Presets Carousel Chips
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: presets.map((p) {
+                    final isChosen = _selectedPresetName == p.name;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ActionChip(
+                        avatar: Text(p.iconEmoji, style: const TextStyle(fontSize: 15)),
+                        label: Text(p.name),
+                        backgroundColor: isChosen ? AppColors.burgundyPrimary : AppColors.burgundySurface,
+                        side: BorderSide(
+                          color: isChosen ? AppColors.sandGold : AppColors.sandBorder,
+                          width: isChosen ? 1.4 : 0.8,
+                        ),
+                        labelStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: isChosen ? FontWeight.bold : FontWeight.normal,
+                          color: isChosen ? AppColors.sandGold : AppColors.sandPrimary,
+                        ),
+                        onPressed: () => _selectPreset(p),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Custom Activity Input Field
+              TextField(
+                controller: _customActivityController,
+                style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                decoration: InputDecoration(
+                  labelText: 'Activity Name',
+                  labelStyle: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 11.5),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(_selectedEmoji, style: const TextStyle(fontSize: 18)),
+                  ),
+                  hintText: 'e.g. Shopping for festival / Helping with science project',
+                  hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
+                  filled: true,
+                  fillColor: AppColors.burgundySurface,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sandGold)),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Step 3: Hours Spent
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'STEP 3: DURATION',
+                      style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundySurface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                    ),
+                    child: Text(
+                      '${_loggedHours.toStringAsFixed(1)}h (${(_loggedHours * 60).toInt()}m)',
+                      style: GoogleFonts.cinzel(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Quick Hour Presets
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [0.5, 1.0, 1.5, 2.0, 3.0, 4.0].map((h) {
+                    final isSelected = _loggedHours == h;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => setState(() => _loggedHours = h),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.sandGold : AppColors.burgundySurface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: isSelected ? AppColors.sandGold : AppColors.sandBorder),
+                          ),
+                          child: Text(
+                            h == 0.5 ? '30m' : (h % 1 == 0 ? '${h.toInt()}h' : '${h}h'),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? AppColors.burgundyBg : AppColors.sandPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Hours Fine-tuning Stepper
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, color: AppColors.sandGold),
+                    onPressed: () {
+                      if (_loggedHours > 0.25) {
+                        setState(() => _loggedHours -= 0.25);
+                      }
+                    },
+                  ),
+                  Expanded(
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: AppColors.sandGold,
+                        inactiveTrackColor: AppColors.burgundySurface,
+                        thumbColor: AppColors.sandGold,
+                        overlayColor: AppColors.sandGold.withOpacity(0.2),
+                      ),
+                      child: Slider(
+                        value: _loggedHours.clamp(0.25, 8.0),
+                        min: 0.25,
+                        max: 8.0,
+                        divisions: 31,
+                        onChanged: (val) {
+                          setState(() => _loggedHours = (val * 4).round() / 4);
+                        },
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline, color: AppColors.sandGold),
+                    onPressed: () {
+                      if (_loggedHours < 8.0) {
+                        setState(() => _loggedHours += 0.25);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Step 4: Notes (Optional)
+              Text(
+                'STEP 4: NOTES',
+                style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _notesController,
+                maxLines: 2,
+                style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                decoration: InputDecoration(
+                  hintText: 'e.g. Hearty laughter, kids solved maths fractions, mom felt joyful...',
+                  hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
+                  filled: true,
+                  fillColor: AppColors.burgundySurface,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Submit Button
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.sandGold,
+                  foregroundColor: AppColors.burgundyBg,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.check_circle_outline, size: 20),
+                label: Text(
+                  'Record & Add to Activity Diary',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                onPressed: () => _submitActivity(eco),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChoiceButton({
+    required String title,
+    required String emoji,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.burgundyPrimary : AppColors.burgundySurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+            width: isSelected ? 1.6 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? AppColors.sandGold : AppColors.sandLight,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // SECTION 4: TODAY'S ACTIVITY DIARY & BALANCE BREAKDOWN
+  // =========================================================================
+
+  Widget _buildSection4ActivityDiary(BuildContext context, EcosystemProvider eco) {
+    final allLogs = eco.familyActivityLogs;
+    final filteredLogs = _diaryFilter == 'All'
+        ? allLogs
+        : allLogs.where((a) => a.category == _diaryFilter).toList();
+
+    final familyHours = eco.totalFamilyHoursToday;
+    final friendsHours = eco.totalFriendsHoursToday;
+    final totalHours = eco.totalOverallSocialHoursToday;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Section Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '4. ACTIVITY DIARY',
+                    style: GoogleFonts.cinzel(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${allLogs.length} logged today',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add_circle, color: AppColors.sandGold, size: 26),
+              tooltip: 'Add New Activity',
+              onPressed: () => setState(() => _selectedSectionIndex = 2),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Visual Balance Breakdown Bar
+        if (totalHours > 0)
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.sandBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'DAILY TIME RATIO',
+                      style: GoogleFonts.cinzel(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                    ),
+                    Text(
+                      'Total: ${totalHours.toStringAsFixed(1)} hrs',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Multi-Segment Proportion Bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Row(
+                    children: [
+                      if (familyHours > 0)
+                        Expanded(
+                          flex: (familyHours * 100).toInt(),
+                          child: Container(height: 10, color: const Color(0xFFA855F7)),
+                        ),
+                      if (friendsHours > 0)
+                        Expanded(
+                          flex: (friendsHours * 100).toInt(),
+                          child: Container(height: 10, color: AppColors.sandGold),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Legend
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Row(
+                      children: [
+                        Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFA855F7))),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Family: ${familyHours.toStringAsFixed(1)}h (${((familyHours / totalHours) * 100).toInt()}%)',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.sandGold)),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Friends/Colleagues: ${friendsHours.toStringAsFixed(1)}h (${((friendsHours / totalHours) * 100).toInt()}%)',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 14),
+
+        // Filter Chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: ['All', 'Family', 'Friends & Colleagues'].map((cat) {
+              final isSelected = _diaryFilter == cat;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(cat),
+                  selected: isSelected,
+                  selectedColor: AppColors.burgundyPrimary,
+                  backgroundColor: AppColors.burgundySurface,
+                  side: BorderSide(color: isSelected ? AppColors.sandGold : AppColors.sandBorder),
+                  labelStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppColors.sandGold : AppColors.sandPrimary,
+                  ),
+                  onSelected: (val) {
+                    if (val) setState(() => _diaryFilter = cat);
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Timeline List
+        if (filteredLogs.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.sandBorder),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.sentiment_dissatisfied_outlined, size: 30, color: AppColors.textMuted),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No activities logged under "$_diaryFilter" yet today.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.sandGold,
+                      foregroundColor: AppColors.burgundyBg,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Add Activity', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    onPressed: () => setState(() => _selectedSectionIndex = 2),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: filteredLogs.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (ctx, idx) {
+              final log = filteredLogs[idx];
+              final isFam = log.category == 'Family';
+
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundyCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Icon
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: AppColors.burgundySurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isFam ? const Color(0xFFA855F7).withOpacity(0.5) : AppColors.sandGold.withOpacity(0.5),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(log.iconEmoji, style: const TextStyle(fontSize: 20)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Title & Subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: isFam
+                                      ? const Color(0xFFA855F7).withOpacity(0.18)
+                                      : AppColors.sandGold.withOpacity(0.18),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  log.category,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: isFam ? const Color(0xFFA855F7) : AppColors.sandGold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                log.timeString,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            log.activityName,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.sandLight,
+                            ),
+                          ),
+                          if (log.notes != null && log.notes!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                log.notes!,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Hours Badge & Delete
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.burgundySurface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                          ),
+                          child: Text(
+                            '+${log.hoursSpent.toStringAsFixed(1)} hrs',
+                            style: GoogleFonts.cinzel(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandGold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.ragRed),
+                          onPressed: () {
+                            eco.deleteFamilyActivity(log.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: AppColors.burgundyPrimary,
+                                content: Text('Activity removed.'),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  // =========================================================================
+  // EDIT FAMILY INFO DIALOG
+  // =========================================================================
+
+  void _openEditFamilyInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: AppColors.burgundyCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.sandGold, width: 1.2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Family Welfare Settings',
+                  style: GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _familyMembersController,
+                  keyboardType: TextInputType.number,
+                  style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Total Family Members',
+                    labelStyle: const TextStyle(color: AppColors.sandPrimary, fontSize: 12),
+                    filled: true,
+                    fillColor: AppColors.burgundySurface,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _emergencyContactController,
+                  style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                  decoration: InputDecoration(
+                    labelText: 'Emergency Contact Number',
+                    labelStyle: const TextStyle(color: AppColors.sandPrimary, fontSize: 12),
+                    filled: true,
+                    fillColor: AppColors.burgundySurface,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary)),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.sandGold,
+                        foregroundColor: AppColors.burgundyBg,
+                      ),
+                      onPressed: () {
+                        setState(() {});
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: AppColors.burgundyPrimary,
+                            content: Text('Family info updated successfully!'),
+                          ),
+                        );
+                      },
+                      child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
