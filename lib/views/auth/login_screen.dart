@@ -10,7 +10,6 @@ import '../employee/employee_portal_screen.dart';
 import '../dept_head/dept_head_portal_screen.dart';
 import '../hr/hr_portal_screen.dart';
 import '../ceo/ceo_suite_screen.dart';
-import '../client_concept/concept_home_welcome_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isSwitchAccount;
@@ -617,33 +616,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 48,
                                 onPressed: _handleLogin,
                               ),
-                        const SizedBox(height: 16),
-                        Center(
-                          child: OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF620013),
-                              side: BorderSide(color: const Color(0xFF620013).withOpacity(0.35), width: 1.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              backgroundColor: const Color(0xFFDECEBE).withOpacity(0.2),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const ConceptHomeWelcomeScreen()),
-                              );
-                            },
-                            icon: const Icon(Icons.palette_outlined, size: 16, color: Color(0xFF620013)),
-                            label: Text(
-                              'Preview Client Concept UI (V2)',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF620013),
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
