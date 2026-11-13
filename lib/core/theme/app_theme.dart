@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppThemes {
-  static ThemeData get whiteMagentaTheme {
+  static ThemeData get burgundySandTheme {
     final textTheme = GoogleFonts.plusJakartaSansTextTheme(
       ThemeData.light().textTheme,
     ).copyWith(
@@ -14,7 +14,7 @@ class AppThemes {
         letterSpacing: 1.2,
       ),
       displayMedium: GoogleFonts.plusJakartaSans(
-        color: AppColors.magentaPrimary,
+        color: AppColors.burgundyPrimary,
         fontSize: 20,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.8,
@@ -25,7 +25,7 @@ class AppThemes {
         fontWeight: FontWeight.w700,
       ),
       titleMedium: GoogleFonts.plusJakartaSans(
-        color: AppColors.magentaPrimary,
+        color: AppColors.burgundyPrimary,
         fontSize: 15,
         fontWeight: FontWeight.w600,
       ),
@@ -44,10 +44,10 @@ class AppThemes {
     return ThemeData(
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.whiteBg,
-      primaryColor: AppColors.magentaPrimary,
+      primaryColor: AppColors.burgundyPrimary,
       colorScheme: const ColorScheme.light(
-        primary: AppColors.magentaPrimary,
-        secondary: AppColors.magentaAccent,
+        primary: AppColors.burgundyPrimary,
+        secondary: AppColors.sandGold,
         surface: AppColors.pureWhite,
         error: AppColors.ragRed,
       ),
@@ -64,7 +64,7 @@ class AppThemes {
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
         centerTitle: false,
-        iconTheme: const IconThemeData(color: AppColors.magentaPrimary),
+        iconTheme: const IconThemeData(color: AppColors.burgundyPrimary),
         titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -75,6 +75,6 @@ class AppThemes {
     );
   }
 
-  // Alias for backward compatibility
-  static ThemeData get burgundySandTheme => whiteMagentaTheme;
+  // Backward compatibility alias
+  static ThemeData get whiteMagentaTheme => burgundySandTheme;
 }
