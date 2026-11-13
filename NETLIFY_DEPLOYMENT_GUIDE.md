@@ -57,3 +57,4 @@ To use your own company domain (e.g. `family.mnjpark.com`):
 2. Enter your domain name.
 3. Add the CNAME record in your domain DNS registrar (GoDaddy, Cloudflare, Namecheap, etc.) pointing to your Netlify site.
 4. Netlify will automatically generate a free Let's Encrypt SSL/TLS certificate.
+
