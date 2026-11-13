@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../theme/app_colors.dart';
 import '../../views/auth/login_screen.dart';
 
 class LogoutConfirmDialog {
@@ -8,21 +7,21 @@ class LogoutConfirmDialog {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.burgundyCard,
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.sandBorder),
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         title: Row(
           children: [
-            const Icon(Icons.logout_rounded, color: AppColors.sandGold, size: 22),
+            const Icon(Icons.logout_rounded, color: Color(0xFFE11D48), size: 22),
             const SizedBox(width: 8),
             Text(
               'Logout',
-              style: GoogleFonts.cinzel(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.sandGold,
+                color: const Color(0xFF0F172A),
               ),
             ),
           ],
@@ -31,33 +30,34 @@ class LogoutConfirmDialog {
           'Do you want to logout?',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            color: AppColors.sandLight,
+            color: const Color(0xFF475569),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              'No',
+              'Cancel',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textMuted,
+                color: const Color(0xFF64748B),
               ),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              backgroundColor: const Color(0xFFE11D48),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              elevation: 0,
             ),
             onPressed: () {
               Navigator.pop(ctx);
               SessionManager.logout(context);
             },
             child: Text(
-              'Yes',
+              'Logout',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -76,19 +76,19 @@ class LogoutConfirmDialog {
       margin: const EdgeInsets.only(top: 16, bottom: 24),
       child: OutlinedButton.icon(
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFEF4444),
-          side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.6), width: 1.2),
+          foregroundColor: const Color(0xFFE11D48),
+          side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
           padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          backgroundColor: const Color(0xFFEF4444).withOpacity(0.08),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          backgroundColor: const Color(0xFFFFF1F2),
         ),
-        icon: const Icon(Icons.logout_rounded, size: 18, color: Color(0xFFEF4444)),
+        icon: const Icon(Icons.logout_rounded, size: 18, color: Color(0xFFE11D48)),
         label: Text(
           'Logout',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFFEF4444),
+            color: const Color(0xFFE11D48),
             letterSpacing: 0.5,
           ),
         ),

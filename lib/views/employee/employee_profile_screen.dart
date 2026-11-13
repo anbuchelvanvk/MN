@@ -30,6 +30,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   late String _relationshipStatus;
+  late String _gender;
   bool _obscureOldPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
@@ -47,6 +48,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
     _dobController = TextEditingController(text: emp.dob);
     _anniversaryController = TextEditingController(text: emp.anniversaryDate);
     _relationshipStatus = emp.relationshipStatus.isNotEmpty ? emp.relationshipStatus : 'Single';
+    _gender = emp.gender.isNotEmpty ? emp.gender : 'Male';
   }
 
   @override
@@ -70,14 +72,14 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
       lastDate: now,
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.sandGold,
-              onPrimary: Colors.black,
-              surface: AppColors.burgundySurface,
-              onSurface: AppColors.sandLight,
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.magentaPrimary,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textDark,
             ),
-            dialogBackgroundColor: AppColors.burgundyCard,
+            dialogBackgroundColor: Colors.white,
           ),
           child: child!,
         );
@@ -100,6 +102,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
       dob: _dobController.text.trim(),
       relationshipStatus: _relationshipStatus,
       anniversaryDate: _relationshipStatus == 'Married' ? _anniversaryController.text.trim() : '',
+      gender: _gender,
     );
 
     if (!mounted) return;
@@ -192,7 +195,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
             Expanded(
               child: Text(
                 'Forgot Your Password?',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandLight,
@@ -302,7 +305,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.sandGold,
-              foregroundColor: Colors.black,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Understood'),
@@ -342,10 +345,10 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     backgroundColor: AppColors.goldPrimary,
                     child: Text(
                       emp.initials,
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -356,10 +359,10 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                       children: [
                         Text(
                           emp.name,
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.textDark,
                           ),
                         ),
                         Text(
@@ -398,7 +401,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         Expanded(
                           child: Text(
                             'Personal Information',
-                            style: GoogleFonts.cinzel(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 14.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -454,6 +457,31 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     ),
                     const SizedBox(height: 14),
 
+                    // Gender (For Grooming Standards Allocation)
+                    _buildFieldLabel('Gender (Attire & Grooming Allocation)'),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: _gender,
+                      dropdownColor: AppColors.burgundySurface,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: AppColors.sandLight,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.sandPrimary),
+                      decoration: _buildInputDecoration('Select Gender', Icons.wc_outlined),
+                      items: const [
+                        DropdownMenuItem(value: 'Male', child: Text('Male')),
+                        DropdownMenuItem(value: 'Female', child: Text('Female')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _gender = val);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
                     // Relationship Status
                     _buildFieldLabel('Relationship Status'),
                     const SizedBox(height: 6),
@@ -506,7 +534,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         icon: _isSavingProfile
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                             : const Icon(Icons.check, size: 18),
                         label: Text(
                           _isSavingProfile ? 'Saving Details...' : 'Save Personal Details',
@@ -514,7 +542,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.sandGold,
-                          foregroundColor: Colors.black,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
@@ -543,7 +571,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         Expanded(
                           child: Text(
                             'Password Security',
-                            style: GoogleFonts.cinzel(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 14.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,

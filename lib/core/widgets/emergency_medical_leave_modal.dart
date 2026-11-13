@@ -86,8 +86,8 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final activeEmp = eco.currentEmployee;
-    final empId = widget.empId ?? activeEmp?.id ?? 'EMP-01';
-    final role = widget.empRole ?? activeEmp?.role ?? 'Employee';
+    final empId = widget.empId ?? activeEmp.id;
+    final role = widget.empRole ?? activeEmp.role;
 
     final effectiveDays = _isCustomDays
         ? (int.tryParse(_customDaysController.text.trim()) ?? 1)
@@ -115,7 +115,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: const Color(0xFFCBD5E1),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -128,10 +128,10 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: AppColors.ragRed.withOpacity(0.18),
+                      color: const Color(0xFFFFF1F2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const FaIcon(FontAwesomeIcons.kitMedical, color: AppColors.ragRed, size: 16),
+                    child: const FaIcon(FontAwesomeIcons.kitMedical, color: Color(0xFFE11D48), size: 16),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -140,7 +140,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                       children: [
                         Text(
                           'EMERGENCY MEDICAL LEAVE',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -162,7 +162,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                   ),
                 ],
               ),
-              const Divider(color: Colors.white12, height: 20),
+              const Divider(color: Color(0xFFE2E8F0), height: 20),
 
               // Days Selector
               Text(
@@ -189,10 +189,10 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                         _isCustomDays = true;
                       });
                     },
-                    selectedColor: AppColors.sandGold,
-                    backgroundColor: Colors.white.withOpacity(0.06),
+                    selectedColor: AppColors.magentaPrimary,
+                    backgroundColor: AppColors.cardSurface,
                     labelStyle: TextStyle(
-                      color: _isCustomDays ? Colors.black : Colors.white,
+                      color: _isCustomDays ? Colors.white : AppColors.textDark,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -204,18 +204,18 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                 TextField(
                   controller: _customDaysController,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: AppColors.textDark, fontSize: 13),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: 'Enter number of days',
-                    labelStyle: const TextStyle(color: AppColors.sandGold, fontSize: 11),
+                    labelStyle: const TextStyle(color: AppColors.magentaPrimary, fontSize: 11),
                     suffixText: 'Days',
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.05),
+                    fillColor: AppColors.cardSurface,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: AppColors.sandGold),
+                      borderSide: const BorderSide(color: AppColors.magentaPrimary),
                     ),
                   ),
                 ),
@@ -228,23 +228,23 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.sandGold,
+                  color: AppColors.magentaPrimary,
                 ),
               ),
               const SizedBox(height: 6),
               TextField(
                 controller: _reasonController,
                 maxLines: 2,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                 decoration: InputDecoration(
                   hintText: 'e.g. Severe viral fever, eye infection, prescribed bed rest...',
-                  hintStyle: const TextStyle(color: Colors.white30, fontSize: 11),
+                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.05),
+                  fillColor: AppColors.cardSurface,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.sandGold),
+                    borderSide: const BorderSide(color: AppColors.magentaPrimary),
                   ),
                 ),
               ),
@@ -284,9 +284,9 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                   padding: const EdgeInsets.all(20),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.04),
+                    color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: const Column(
                     children: [
@@ -300,7 +300,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.04),
+                    color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppColors.ragGreen, width: 1.2),
                   ),
@@ -323,11 +323,11 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
+                                const Row(
                                   children: [
-                                    const Icon(Icons.check_circle, color: AppColors.ragGreen, size: 14),
-                                    const SizedBox(width: 4),
-                                    const Text(
+                                    Icon(Icons.check_circle, color: AppColors.ragGreen, size: 14),
+                                    SizedBox(width: 4),
+                                    Text(
                                       'Prescription Attached',
                                       style: TextStyle(color: AppColors.ragGreen, fontWeight: FontWeight.bold, fontSize: 11),
                                     ),
@@ -360,16 +360,16 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.ragRed.withOpacity(0.08),
+                    color: const Color(0xFFFFF1F2),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.ragRed.withOpacity(0.4), width: 1),
+                    border: Border.all(color: const Color(0xFFFECDD3), width: 1),
                   ),
                   child: Column(
                     children: [
                       const Text(
                         'Without doctor prescription, medical leave cannot be submitted or accepted.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFFFCA5A5), fontSize: 10.5),
+                        style: TextStyle(color: Color(0xFFE11D48), fontSize: 10.5, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -419,8 +419,8 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _prescriptionBase64 != null ? AppColors.sandGold : Colors.white24,
-                    foregroundColor: _prescriptionBase64 != null ? Colors.black : Colors.white54,
+                    backgroundColor: _prescriptionBase64 != null ? AppColors.magentaPrimary : AppColors.sandBorder.withOpacity(0.5),
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -485,10 +485,10 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
           _selectedDays = days;
         });
       },
-      selectedColor: AppColors.sandGold,
-      backgroundColor: Colors.white.withOpacity(0.06),
+      selectedColor: AppColors.magentaPrimary,
+      backgroundColor: AppColors.cardSurface,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.black : Colors.white,
+        color: isSelected ? Colors.white : AppColors.textDark,
         fontWeight: FontWeight.bold,
       ),
     );

@@ -78,6 +78,8 @@ class OnlineOrderModel {
   final String brand; // 'Vadivam' or 'MN Jewel Park'
   final String expectedDeliveryDate; // YYYY-MM-DD
   final String createdAt;
+  final String? jewelleryCategory; // 'Pendant', 'Chain', 'Bracelet', 'Earrings'
+  final Map<String, dynamic>? jewelleryRequirements;
   String status; // 'active', 'completed', 'overdue', 'reallocated'
   String? reallocatedToEmpId;
   String? reallocatedToName;
@@ -95,6 +97,8 @@ class OnlineOrderModel {
     required this.brand,
     required this.expectedDeliveryDate,
     required this.createdAt,
+    this.jewelleryCategory,
+    this.jewelleryRequirements,
     this.status = 'active',
     this.reallocatedToEmpId,
     this.reallocatedToName,
@@ -152,6 +156,8 @@ class OnlineOrderModel {
     'brand': brand,
     'expectedDeliveryDate': expectedDeliveryDate,
     'createdAt': createdAt,
+    'jewelleryCategory': jewelleryCategory,
+    'jewelleryRequirements': jewelleryRequirements,
     'status': status,
     'reallocatedToEmpId': reallocatedToEmpId,
     'reallocatedToName': reallocatedToName,
@@ -181,6 +187,10 @@ class OnlineOrderModel {
       brand: map['brand'] ?? 'MN Jewel Park',
       expectedDeliveryDate: map['expectedDeliveryDate'] ?? '',
       createdAt: map['createdAt'] ?? '',
+      jewelleryCategory: map['jewelleryCategory'],
+      jewelleryRequirements: map['jewelleryRequirements'] != null
+          ? Map<String, dynamic>.from(map['jewelleryRequirements'] as Map)
+          : null,
       status: map['status'] ?? 'active',
       reallocatedToEmpId: map['reallocatedToEmpId'],
       reallocatedToName: map['reallocatedToName'],

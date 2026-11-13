@@ -1,77 +1,108 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Rich Velvet Burgundy Canvas & Backgrounds
-  static const Color burgundyBg = Color(0xFF140206);
-  static const Color burgundySurface = Color(0xFF22030A);
-  static const Color burgundyGlass = Color(0xCC28040C);
-  static const Color burgundyCard = Color(0xFF28040C);
-  static const Color burgundyAccent = Color(0xFF8B152B);
-  static const Color burgundySubtle = Color(0x334A0713);
+  // --- Modern Luxury White & Magenta Canvas & Backgrounds ---
+  static const Color whiteBg = Color(0xFFF9FAFC);          // Luminous soft white canvas
+  static const Color pureWhite = Color(0xFFFFFFFF);        // Crisp pure white
+  static const Color cardWhite = Color(0xFFFFFFFF);        // Pure white card
+  static const Color backgroundWhite = Color(0xFFF9FAFC);  // Canvas background
+  static const Color surfaceWhite = Color(0xFFFFFFFF);     // Card & dialog surface
+  static const Color glassWhite = Color(0xF5FFFFFF);       // Translucent white frosted glass
+  static const Color glassCard = Color(0xF2FFFFFF);        // Translucent card glass
 
-  // Backward compatibility aliases (all mapped strictly to velvet burgundy canvas)
-  static const Color pureWhite = Color(0xFF140206);
-  static const Color backgroundWhite = Color(0xFF140206);
-  static const Color surfaceWhite = Color(0xFF22030A);
-  static const Color glassWhite = Color(0xCC28040C);
-  static const Color glassCard = Color(0xCC28040C);
+  // --- Signature Luxury Magenta Accents ---
+  static const Color magentaPrimary = Color(0xFFE11D48);   // Vibrant executive Rose-Magenta (#E11D48)
+  static const Color magentaDark = Color(0xFF9F1239);      // Deep executive magenta (#9F1239)
+  static const Color magentaDeep = Color(0xFF881337);      // Deepest magenta (#881337)
+  static const Color magentaLight = Color(0xFFFB7185);     // Soft rose pink (#FB7185)
+  static const Color magentaAccent = Color(0xFFD946EF);    // Radiant electric orchid (#D946EF)
+  static const Color magentaSubtle = Color(0xFFFFF1F4);    // Soft pastel blush wash
+  static const Color magentaBorder = Color(0x33E11D48);    // Faint magenta border
+  static const Color magentaHighlight = Color(0x1FE11D48); // Item selection wash
 
-  static const Color burgundyPrimary = Color(0xFF8B152B);
-  static const Color burgundyLight = Color(0xFFA81D37);
-  static const Color burgundyDark = Color(0xFF140206);
+  // --- Backward Compatibility Aliases (Burgundy -> Modern White & Magenta) ---
+  static const Color burgundyBg = Color(0xFFF9FAFC);       // Soft luminous white canvas
+  static const Color burgundySurface = Color(0xFFFFFFFF);  // Crisp pure white surface
+  static const Color cardSurface = Color(0xFFFFFFFF);      // Crisp pure white card surface
+  static const Color burgundyGlass = Color(0xF8FFFFFF);    // Frosted white glass
+  static const Color burgundyCard = Color(0xFFFFFFFF);     // Crisp pure white card
+  static const Color burgundyAccent = Color(0xFFE11D48);   // Vibrant signature magenta
+  static const Color burgundySubtle = Color(0xFFFFF1F4);   // Soft blush wash
+  static const Color burgundyPrimary = Color(0xFFE11D48);  // Vibrant signature magenta
+  static const Color burgundyLight = Color(0xFFFB7185);    // Soft rose
+  static const Color burgundyDark = Color(0xFF9F1239);     // Deep magenta
 
-  // Signature Champagne Sand & Gold Palette
-  static const Color sandPrimary = Color(0xFFDFC8AF);
-  static const Color sandLight = Color(0xFFFBF4EB);
-  static const Color sandGold = Color(0xFFE8CF8B);
-  static const Color sandDark = Color(0xFFB89877);
-  static const Color sandBorder = Color(0x40DFC8AF);
-  static const Color sandHighlight = Color(0x26DFC8AF);
+  // --- Signature Sand & Gold Mapped to Magenta & Slate Palette ---
+  static const Color sandPrimary = Color(0xFFE11D48);      // Signature vibrant magenta accent
+  static const Color sandLight = Color(0xFF0F172A);        // Deep slate charcoal for headers on white canvas
+  static const Color sandGold = Color(0xFFBE185D);         // Rich magenta-rose
+  static const Color sandDark = Color(0xFF9F1239);         // Deep magenta
+  static const Color sandBorder = Color(0xFFF1F5F9);       // Clean neutral hairline border
+  static const Color sandHighlight = Color(0xFFFFF1F4);    // Soft blush wash
 
-  // Backward-compatible color aliases
-  static const Color goldPrimary = Color(0xFFDFC8AF);
-  static const Color goldLight = Color(0xFFFBF4EB);
-  static const Color goldBright = Color(0xFFE8CF8B);
-  static const Color goldDark = Color(0xFFB89877);
-  static const Color goldSand = Color(0xFFDFC8AF);
+  // --- Backward-compatible Gold Aliases ---
+  static const Color goldPrimary = Color(0xFFE11D48);
+  static const Color goldLight = Color(0xFF0F172A);
+  static const Color goldBright = Color(0xFFBE185D);
+  static const Color goldDark = Color(0xFF9F1239);
+  static const Color goldSand = Color(0xFFE11D48);
 
-  // High-Contrast Crisp Typography on Dark Burgundy
-  static const Color textLight = Color(0xFFFBF4EB);
-  static const Color textDark = Color(0xFFFBF4EB); // Mapped to champagne light on burgundy
-  static const Color textSand = Color(0xFFDFC8AF);
-  static const Color textBurgundy = Color(0xFFFBF4EB);
-  static const Color textMuted = Color(0xFFBCA69D);
+  // --- High-Contrast Crisp Typography on White/Light Canvas ---
+  static const Color textDark = Color(0xFF0F172A);         // Deep slate charcoal (headers, prominent text)
+  static const Color textPrimary = Color(0xFF1E293B);      // Primary body slate
+  static const Color textSecondary = Color(0xFF475569);    // Secondary subtext slate
+  static const Color textLight = Color(0xFF0F172A);        // Mapped to dark slate on light cards
+  static const Color textWhite = Color(0xFFFFFFFF);        // White text on magenta buttons/badges
+  static const Color textSand = Color(0xFFBE185D);         // Rich magenta accent text
+  static const Color textBurgundy = Color(0xFFE11D48);     // Vibrant magenta text
+  static const Color textMuted = Color(0xFF64748B);        // Crisp muted slate for hints and timestamps
+  static const Color textMagenta = Color(0xFFBE123C);      // Bold magenta text
 
-  // Status & Traffic RAG
+  // --- Status & Traffic RAG (Refined with pastel backgrounds) ---
   static const Color ragGreen = Color(0xFF10B981);
+  static const Color ragGreenBg = Color(0xFFECFDF5);
   static const Color ragYellow = Color(0xFFF59E0B);
-  static const Color ragRed = Color(0xFFFF5252); // High-contrast Vivid Coral Red
-  static const Color statusBlue = Color(0xFF3B82F6);
-  static const Color statusPurple = Color(0xFFA855F7);
+  static const Color ragYellowBg = Color(0xFFFFFBEB);
+  static const Color ragRed = Color(0xFFE11D48);           // High-contrast vivid magenta-red
+  static const Color ragRedBg = Color(0xFFFFF1F2);
+  static const Color statusBlue = Color(0xFF2563EB);
+  static const Color statusPurple = Color(0xFF9333EA);
 
-  // Luxury Gradients
+  // --- Modern White & Magenta Luxury Gradients ---
+  static const LinearGradient magentaGradient = LinearGradient(
+    colors: [Color(0xFFE11D48), Color(0xFFC026D3)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   static const LinearGradient burgundyGradient = LinearGradient(
-    colors: [Color(0xFF8B152B), Color(0xFF500814), Color(0xFF22030A)],
+    colors: [Color(0xFFE11D48), Color(0xFFBE185D), Color(0xFFA21CAF)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient sandGradient = LinearGradient(
-    colors: [Color(0xFFFBF4EB), Color(0xFFDFC8AF), Color(0xFFB89877)],
+    colors: [Color(0xFFFFFFFF), Color(0xFFFFF1F4)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient goldGradient = LinearGradient(
-    colors: [Color(0xFFFFF2A3), Color(0xFFE8CF8B), Color(0xFFB89877)],
+    colors: [Color(0xFFE11D48), Color(0xFFD946EF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient cardGradient = LinearGradient(
+    colors: [Color(0xFFFFFFFF), Color(0xFFFFF9FA)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient liquidShine = LinearGradient(
     colors: [
-      Color(0x26FFFFFF),
-      Color(0x0AFFFFFF),
+      Color(0x1FE11D48),
+      Color(0x0AE11D48),
       Color(0x00FFFFFF),
     ],
     begin: Alignment.topLeft,

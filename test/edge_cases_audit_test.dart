@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:mn_family_app/core/theme/app_colors.dart';
-import 'package:mn_family_app/models/task_model.dart';
-import 'package:mn_family_app/models/ecosystem_models.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 import 'package:mn_family_app/views/auth/pillars_popup_dialog.dart';
 import 'package:mn_family_app/views/employee/employee_portal_screen.dart';

@@ -236,7 +236,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     child: Text(
                       '${e.name} (${e.straightCutRole}) • On Duty',
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                      style: const TextStyle(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -326,7 +326,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                   child: Text(
                     '${e.name} (${e.straightCutRole}) • Off Duty',
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: Colors.white70),
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ),
               ],
@@ -446,7 +446,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
             width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: const Color(0xFFCBD5E1),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -472,7 +472,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     children: [
                       Text(
                         'ASSIGN TASKS TO OTHERS',
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -603,7 +603,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
             ),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white, fontSize: 11.5),
+              style: const TextStyle(color: AppColors.textDark, fontSize: 11.5),
               onChanged: (val) => setState(() => _searchQuery = val),
               decoration: InputDecoration(
                 isDense: true,
@@ -646,7 +646,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                       isExpanded: true,
                       icon: const Icon(Icons.arrow_drop_down, color: AppColors.sandGold, size: 20),
                       dropdownColor: AppColors.burgundySurface,
-                      style: const TextStyle(fontSize: 11, color: Colors.white),
+                      style: const TextStyle(fontSize: 11, color: AppColors.textDark),
                       items: departments.map((d) {
                         return DropdownMenuItem<String>(
                           value: d,
@@ -655,7 +655,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 11,
-                              color: d == _selectedDeptFilter ? AppColors.goldBright : Colors.white70,
+                              color: d == _selectedDeptFilter ? AppColors.magentaPrimary : AppColors.textSecondary,
                               fontWeight: d == _selectedDeptFilter ? FontWeight.bold : FontWeight.normal,
                             ),
                           ),
@@ -731,7 +731,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               const SizedBox(height: 14),
               Text(
                 isFiltered ? 'No Staff Found' : 'All Staff Present Today',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -789,7 +789,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               Expanded(
                 child: Text(
                   'ABSENT STAFF (A TO Z)',
-                  style: GoogleFonts.cinzel(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandLight,
@@ -831,12 +831,21 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFEF4444).withOpacity(0.25) : AppColors.burgundySurface,
+                      color: isSelected ? const Color(0xFFE11D48) : AppColors.cardSurface,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFFEF4444) : AppColors.sandBorder,
+                        color: isSelected ? const Color(0xFFE11D48) : AppColors.sandBorder,
                         width: isSelected ? 1.4 : 1.0,
                       ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFFE11D48).withOpacity(0.25),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -846,8 +855,8 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                           height: 22,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isSelected ? const Color(0xFFEF4444) : AppColors.sandGold.withOpacity(0.2),
-                            border: Border.all(color: isSelected ? Colors.white : AppColors.sandGold, width: 0.8),
+                            color: isSelected ? Colors.white.withOpacity(0.25) : AppColors.magentaSubtle,
+                            border: Border.all(color: isSelected ? Colors.white : AppColors.magentaBorder, width: 0.8),
                           ),
                           alignment: Alignment.center,
                           child: Text(
@@ -855,7 +864,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              color: isSelected ? Colors.white : AppColors.sandGold,
+                              color: isSelected ? Colors.white : AppColors.magentaPrimary,
                             ),
                           ),
                         ),
@@ -868,14 +877,14 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
-                                color: isSelected ? Colors.white : AppColors.sandLight,
+                                color: isSelected ? Colors.white : AppColors.textDark,
                               ),
                             ),
                             Text(
                               '$taskCount pending tasks',
                               style: TextStyle(
                                 fontSize: 9.5,
-                                color: isSelected ? const Color(0xFFFCA5A5) : AppColors.textMuted,
+                                color: isSelected ? Colors.white.withOpacity(0.9) : AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -916,7 +925,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                             Expanded(
                               child: Text(
                                 selectedAbsentEmp.name,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -929,7 +938,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                               ),
                               child: const Text(
                                 'ABSENT',
-                                style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFFFCA5A5)),
+                                style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: AppColors.ragRed),
                               ),
                             ),
                           ],
@@ -994,12 +1003,12 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                                 isExpanded: true,
                                 value: batchValue,
                                 dropdownColor: AppColors.burgundySurface,
-                                style: const TextStyle(color: Colors.white, fontSize: 11),
+                                style: const TextStyle(color: AppColors.textDark, fontSize: 11),
                                 decoration: InputDecoration(
                                   isDense: true,
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                   filled: true,
-                                  fillColor: Colors.white.withOpacity(0.06),
+                                  fillColor: AppColors.cardSurface,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: const BorderSide(color: AppColors.sandBorder),
@@ -1021,8 +1030,8 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                             const SizedBox(width: 8),
                             ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.goldPrimary,
-                                foregroundColor: Colors.black,
+                                backgroundColor: AppColors.magentaPrimary,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
@@ -1066,7 +1075,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               children: [
                 Text(
                   'PENDING TASKS (${absentTasks.length})',
-                  style: GoogleFonts.cinzel(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandLight,
@@ -1100,9 +1109,6 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (ctx, idx) {
                   final task = absentTasks[idx];
-                  final currentTarget = eligibleAssignees.any((e) => e.id == _selectedTargetColleagueByTask[task.id])
-                      ? _selectedTargetColleagueByTask[task.id]
-                      : (eligibleAssignees.isNotEmpty ? eligibleAssignees.first.id : null);
 
                   return Container(
                     padding: const EdgeInsets.all(12),
@@ -1120,7 +1126,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                             Expanded(
                               child: Text(
                                 task.title,
-                                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1141,7 +1147,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                                 style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
-                                  color: task.priority == 'Critical SLA' ? const Color(0xFFFCA5A5) : AppColors.sandGold,
+                                  color: task.priority == 'Critical SLA' ? AppColors.ragRed : AppColors.sandGold,
                                 ),
                               ),
                             ),
@@ -1185,12 +1191,12 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                                       isExpanded: true,
                                       value: taskAssigneeValue,
                                       dropdownColor: AppColors.burgundySurface,
-                                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                                      style: const TextStyle(color: AppColors.textDark, fontSize: 11),
                                       decoration: InputDecoration(
                                         isDense: true,
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                                         filled: true,
-                                        fillColor: Colors.white.withOpacity(0.06),
+                                        fillColor: AppColors.cardSurface,
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(8),
                                           borderSide: const BorderSide(color: AppColors.sandBorder),
@@ -1212,8 +1218,8 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                                   const SizedBox(width: 8),
                                   ElevatedButton.icon(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.sandGold,
-                                      foregroundColor: Colors.black,
+                                      backgroundColor: AppColors.magentaPrimary,
+                                      foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                     ),
@@ -1249,7 +1255,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.04),
+                              color: AppColors.magentaSubtle,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -1324,7 +1330,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
         children: [
           Text(
             'DISPATCH NEW TASK TO OTHERS',
-            style: GoogleFonts.cinzel(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppColors.sandGold,
@@ -1352,7 +1358,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                   isExpanded: true,
                   value: newAssigneeVal,
                   dropdownColor: AppColors.burgundySurface,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.burgundySurface,
@@ -1377,7 +1383,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.04),
+                color: AppColors.magentaSubtle,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
               ),
@@ -1395,7 +1401,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
           const SizedBox(height: 6),
           TextField(
             controller: _newTitleController,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+            style: const TextStyle(color: AppColors.textDark, fontSize: 12),
             decoration: InputDecoration(
               hintText: 'e.g. Verify Gold Hallmark or Settle Counter Register',
               hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11.5),
@@ -1419,7 +1425,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     DropdownButtonFormField<String>(
                       value: _newPriority,
                       dropdownColor: AppColors.burgundySurface,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: AppColors.burgundySurface,
@@ -1448,7 +1454,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     DropdownButtonFormField<String>(
                       value: _newDue,
                       dropdownColor: AppColors.burgundySurface,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: AppColors.burgundySurface,

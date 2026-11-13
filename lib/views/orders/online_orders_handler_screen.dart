@@ -91,12 +91,12 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                         children: [
                           Text(
                             'SLA Overdue (${eco.overdueOnlineOrders.length})',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
                           ),
                           const SizedBox(height: 2),
                           const Text(
                             'Overdue Workflow Alert',
-                            style: TextStyle(fontSize: 10.5, color: Color(0xFFFCA5A5)),
+                            style: TextStyle(fontSize: 10.5, color: Color(0xFFEF4444)),
                           ),
                         ],
                       ),
@@ -128,14 +128,14 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                             isOS1Absent && isOS2Absent
                                 ? 'OS1 & OS2 Absent'
                                 : (isOS1Absent ? 'OS1 Absent Today' : 'OS2 Absent Today'),
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             isTLOrCeo
                                 ? 'Reassign Staff Orders'
                                 : 'Requires Lead Reallocation',
-                            style: const TextStyle(fontSize: 10.5, color: Color(0xFFFED7AA)),
+                            style: const TextStyle(fontSize: 10.5, color: Color(0xFFEA580C)),
                           ),
                         ],
                       ),
@@ -155,12 +155,12 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     children: const [
                       Text(
                         'Online Orders',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       ),
                       SizedBox(height: 2),
                       Text(
                         'Order Tracking Workflow',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                        style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -169,14 +169,14 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.sandGold,
-                    foregroundColor: AppColors.burgundyBg,
+                    backgroundColor: AppColors.magentaPrimary,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   onPressed: () => _openCreateOrderDialog(context, eco),
-                  icon: const Icon(Icons.add, size: 16, color: AppColors.burgundyBg),
-                  label: const Text('New Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: AppColors.burgundyBg)),
+                  icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                  label: const Text('New Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Colors.white)),
                 ),
               ],
             ),
@@ -203,10 +203,10 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isSelected ? brandColor.withOpacity(0.2) : Colors.white.withOpacity(0.04),
+                            color: isSelected ? brandColor.withOpacity(0.15) : AppColors.cardSurface,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isSelected ? brandColor : Colors.white.withOpacity(0.08),
+                              color: isSelected ? brandColor : AppColors.sandBorder,
                               width: isSelected ? 1.4 : 1.0,
                             ),
                           ),
@@ -230,14 +230,14 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                                     style: TextStyle(
                                       fontSize: 11.5,
                                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                      color: isSelected ? Colors.white : Colors.white70,
+                                      color: isSelected ? AppColors.textDark : AppColors.textSecondary,
                                     ),
                                   ),
                                   Text(
                                     '${ord.brand} • ${ord.completedCount}/38',
                                     style: TextStyle(
                                       fontSize: 9.5,
-                                      color: isSelected ? brandColor : const Color(0xFF94A3B8),
+                                      color: isSelected ? brandColor : AppColors.textMuted,
                                     ),
                                   ),
                                 ],
@@ -287,7 +287,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                                   children: [
                                     Text(
                                       'Order #${currentOrder.orderId}',
-                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -332,9 +332,9 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black26,
+                        color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
+                        border: Border.all(color: AppColors.sandBorder),
                       ),
                       child: Column(
                         children: [
@@ -378,7 +378,20 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: _metaField(
-                                  '6. Expected Delivery',
+                                  '6. Category',
+                                  currentOrder.jewelleryCategory ?? 'Pendant',
+                                  Icons.diamond_outlined,
+                                  highlightColor: const Color(0xFFF59E0B),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _metaField(
+                                  '7. Expected Delivery',
                                   currentOrder.expectedDeliveryDate.isNotEmpty ? currentOrder.expectedDeliveryDate : 'Not specified',
                                   Icons.calendar_today_outlined,
                                   highlightColor: AppColors.sandGold,
@@ -389,7 +402,15 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
+
+                    // 6. Dynamic Customer Jewellery Specifications Card
+                    if (currentOrder.jewelleryCategory != null &&
+                        currentOrder.jewelleryRequirements != null &&
+                        currentOrder.jewelleryRequirements!.isNotEmpty) ...[
+                      _buildJewellerySpecificationsCard(context, currentOrder),
+                      const SizedBox(height: 14),
+                    ],
 
                     // Overall Order Progress Bar
                     Row(
@@ -397,7 +418,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                       children: [
                         const Text(
                           'Order Progress',
-                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
                         Flexible(
                           child: Text(
@@ -415,7 +436,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                       child: LinearProgressIndicator(
                         value: currentOrder.progressPercentage,
                         minHeight: 8,
-                        backgroundColor: Colors.white12,
+                        backgroundColor: const Color(0xFFF1F5F9),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           currentOrder.completedCount == 38 ? AppColors.ragGreen : AppColors.sandGold,
                         ),
@@ -462,8 +483,8 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Colors.white24),
+                        foregroundColor: AppColors.textDark,
+                        side: const BorderSide(color: AppColors.sandBorder),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -476,10 +497,11 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                   Expanded(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.08),
+                        backgroundColor: AppColors.magentaPrimary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
                       ),
                       onPressed: () => _copyChecklistToClipboard(context, currentOrder),
                       icon: const Icon(Icons.copy, size: 16),
@@ -519,7 +541,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
           style: TextStyle(
             fontSize: 11.5,
             fontWeight: FontWeight.bold,
-            color: highlightColor ?? Colors.white,
+            color: highlightColor ?? AppColors.textDark,
           ),
           overflow: TextOverflow.ellipsis,
         ),
@@ -527,11 +549,169 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
           const SizedBox(height: 1),
           Text(
             subtitle,
-            style: const TextStyle(fontSize: 9.5, color: Color(0xFFCBD5E1)),
+            style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary),
             overflow: TextOverflow.ellipsis,
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildJewellerySpecificationsCard(BuildContext context, OnlineOrderModel order) {
+    final cat = order.jewelleryCategory ?? 'Jewellery';
+    final reqs = order.jewelleryRequirements ?? {};
+
+    String footerTagline;
+    if (cat == 'Pendant') {
+      footerTagline = '* Required fields. Reference images can be shared separately through WhatsApp.';
+    } else if (cat == 'Chain') {
+      footerTagline = 'Our team will review your requirements and assist you with the design, estimated weight and quotation.';
+    } else if (cat == 'Bracelet') {
+      footerTagline = 'VADIVAM by MN Jewel Park | Your Idea. Your Design. Our Craftsmanship.';
+    } else {
+      footerTagline = 'Please share your design reference images along with the completed requirements, if available.';
+    }
+
+    void copyDetails() {
+      final sb = StringBuffer();
+      sb.writeln('--- $cat Requirements ---');
+      sb.writeln('Order ID: ${order.orderId}');
+      sb.writeln('Customer: ${order.customerName}');
+      sb.writeln('Category: $cat');
+      reqs.forEach((k, v) {
+        if (v != null && v.toString().trim().isNotEmpty) {
+          sb.writeln('$k: $v');
+        }
+      });
+      sb.writeln(footerTagline);
+      Clipboard.setData(ClipboardData(text: sb.toString()));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF10B981),
+          content: Text('$cat requirements copied to clipboard!'),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.diamond_outlined, size: 16, color: Color(0xFFF59E0B)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '6. $cat Specifications',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Text(
+                      'Custom Client Order Requirements',
+                      style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: copyDetails,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.magentaSubtle,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.3), width: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.copy, size: 12, color: AppColors.magentaPrimary),
+                      SizedBox(width: 4),
+                      Text(
+                        'Copy Enquiry Details',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.magentaPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(color: Color(0xFFE2E8F0), height: 20),
+          ...reqs.entries.where((e) => e.value != null && e.value.toString().trim().isNotEmpty).map((e) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: Text(
+                      '${e.key}:',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 6,
+                    child: Text(
+                      '${e.value}',
+                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, size: 14, color: AppColors.textMuted),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    footerTagline,
+                    style: const TextStyle(fontSize: 9.5, fontStyle: FontStyle.italic, color: AppColors.textMuted),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -599,7 +779,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                             Expanded(
                               child: Text(
                                 '${stage.index}. ${stage.stageName}',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
                               ),
                             ),
                           ],
@@ -610,22 +790,25 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.06),
+                              color: isCompleted ? AppColors.ragGreen.withOpacity(0.12) : AppColors.cardSurface,
                               borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isCompleted ? AppColors.ragGreen.withOpacity(0.3) : AppColors.sandBorder,
+                              ),
                             ),
                             child: Text(
                               '$completedCount/${stage.totalItems}',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: isCompleted ? AppColors.ragGreen : Colors.white70,
+                                color: isCompleted ? AppColors.ragGreen : AppColors.textSecondary,
                               ),
                             ),
                           ),
                           const SizedBox(width: 6),
                           Icon(
                             isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                            color: Colors.white70,
+                            color: AppColors.textSecondary,
                             size: 20,
                           ),
                         ],
@@ -692,7 +875,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
 
           // Checklist Items (Expanded)
           if (isExpanded) ...[
-            const Divider(color: Colors.white10, height: 1),
+            const Divider(color: AppColors.sandBorder, height: 1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Column(
@@ -806,14 +989,14 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
       lastDate: DateTime(2030),
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.sandGold,
-              onPrimary: Colors.black,
-              surface: AppColors.burgundySurface,
-              onSurface: AppColors.sandLight,
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.magentaPrimary,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textDark,
             ),
-            dialogBackgroundColor: AppColors.burgundyCard,
+            dialogBackgroundColor: Colors.white,
           ),
           child: child!,
         );
@@ -832,6 +1015,51 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
     final customerCtrl = TextEditingController();
     String salesChannel = 'WhatsApp';
     String brand = 'MN Jewel Park'; // 'Vadivam' or 'MN Jewel Park'
+    String selectedCategory = 'Pendant'; // 'Pendant', 'Chain', 'Bracelet', 'Earrings'
+
+    // 1. Pendant state
+    String pendantType = 'Name Pendant';
+    String pendantPurity = '22K';
+    final pendantWeightCtrl = TextEditingController();
+    final pendantBudgetCtrl = TextEditingController();
+    String pendantDesignPref = 'New customised design';
+    String pendantPurchaseReq = 'Pendant only';
+    String pendantPurpose = 'Personal use';
+    String pendantRefImage = 'I have a reference image';
+    final pendantAdditionalCtrl = TextEditingController();
+
+    // 2. Chain state
+    String chainType = 'Gold Chain';
+    String chainPurity = '22K';
+    final chainWeightCtrl = TextEditingController();
+    String chainLength = '18 inches';
+    String chainDesignRef = 'As per reference image';
+    String chainPurpose = 'Regular wear';
+    final chainBudgetCtrl = TextEditingController();
+    final chainAdditionalCtrl = TextEditingController();
+
+    // 3. Bracelet state
+    String braceletType = 'Gold Bracelet';
+    String braceletPurity = '22K';
+    final braceletWeightCtrl = TextEditingController();
+    final braceletSizeCtrl = TextEditingController();
+    final braceletLengthCtrl = TextEditingController();
+    String braceletDesignRef = 'I have a reference image';
+    String braceletStonePref = 'Without stones';
+    String braceletUsage = 'Regular use';
+    final braceletBudgetCtrl = TextEditingController();
+    String braceletUploadRef = 'I have a reference image';
+    final braceletAdditionalCtrl = TextEditingController();
+
+    // 4. Earrings state
+    String earringType = 'Studs';
+    String earringPurity = '22K';
+    String earringPurchasePref = 'Pair';
+    String earringStonePref = 'With Stones';
+    String earringBackType = 'Push Back';
+    String earringUsage = 'Regular Wear';
+    final earringAdditionalCtrl = TextEditingController();
+
     final deliveryCtrl = TextEditingController(
       text: '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${(DateTime.now().day + 5).toString().padLeft(2, '0')}',
     );
@@ -857,6 +1085,89 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
             final autoHandlerId = isVadivam ? 'MN-1008' : 'MN-1007';
             final autoHandlerName = isVadivam ? 'Nisha (OS2)' : 'Kaaviya (OS1)';
 
+            Map<String, dynamic> buildCurrentCategoryData() {
+              if (selectedCategory == 'Pendant') {
+                return {
+                  'Pendant Type': pendantType,
+                  'Gold Purity': pendantPurity,
+                  'Preferred Gold Weight': pendantWeightCtrl.text.trim(),
+                  'Approximate Budget': pendantBudgetCtrl.text.trim(),
+                  'Design Preference': pendantDesignPref,
+                  'Purchase Requirement': pendantPurchaseReq,
+                  'Purpose of Purchase': pendantPurpose,
+                  'Reference Image Availability': pendantRefImage,
+                  'Additional Requirements': pendantAdditionalCtrl.text.trim(),
+                };
+              } else if (selectedCategory == 'Chain') {
+                return {
+                  'Chain Type': chainType,
+                  'Gold Purity': chainPurity,
+                  'Expected Weight': chainWeightCtrl.text.trim(),
+                  'Required Chain Length': chainLength,
+                  'Design Reference': chainDesignRef,
+                  'Purpose of Use': chainPurpose,
+                  'Expected Budget': chainBudgetCtrl.text.trim(),
+                  'Additional Requirements': chainAdditionalCtrl.text.trim(),
+                };
+              } else if (selectedCategory == 'Bracelet') {
+                return {
+                  'Bracelet Type': braceletType,
+                  'Required Purity': braceletPurity,
+                  'Approximate Weight Preference': braceletWeightCtrl.text.trim(),
+                  'Bracelet Size': braceletSizeCtrl.text.trim(),
+                  'Preferred Bracelet Length': braceletLengthCtrl.text.trim(),
+                  'Design Reference': braceletDesignRef,
+                  'Stone Preference': braceletStonePref,
+                  'Usage': braceletUsage,
+                  'Expected Budget': braceletBudgetCtrl.text.trim(),
+                  'Upload / Share Reference': braceletUploadRef,
+                  'Additional Requirements': braceletAdditionalCtrl.text.trim(),
+                };
+              } else {
+                return {
+                  'Type of Earrings': earringType,
+                  'Preferred Gold Purity': earringPurity,
+                  'Purchase Preference': earringPurchasePref,
+                  'Stone Preference': earringStonePref,
+                  'Earring Back Type': earringBackType,
+                  'Intended Usage': earringUsage,
+                  'Additional Requirements': earringAdditionalCtrl.text.trim(),
+                };
+              }
+            }
+
+            void copyEnquiryToClipboard() {
+              final data = buildCurrentCategoryData();
+              final sb = StringBuffer();
+              sb.writeln('📋 *MN JEWEL PARK / VADIVAM - ONLINE ENQUIRY DETAILS*');
+              sb.writeln('Customer: ${customerCtrl.text.trim().isNotEmpty ? customerCtrl.text.trim() : "Prospective Client"}');
+              sb.writeln('Category: $selectedCategory');
+              sb.writeln('----------------------------------------');
+              data.forEach((k, v) {
+                if (v != null && v.toString().trim().isNotEmpty) {
+                  sb.writeln('• $k: $v');
+                }
+              });
+              sb.writeln('----------------------------------------');
+              if (selectedCategory == 'Pendant') {
+                sb.writeln('* Required fields. Reference images can be shared separately through WhatsApp.');
+              } else if (selectedCategory == 'Chain') {
+                sb.writeln('Our team will review your requirements and assist you with the design, estimated weight and quotation.');
+              } else if (selectedCategory == 'Bracelet') {
+                sb.writeln('VADIVAM by MN Jewel Park | Your Idea. Your Design. Our Craftsmanship.');
+              } else {
+                sb.writeln('Please share your design reference images along with the completed requirements, if available.');
+              }
+
+              Clipboard.setData(ClipboardData(text: sb.toString()));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: Color(0xFF10B981),
+                  content: Text('Enquiry details copied to clipboard!'),
+                ),
+              );
+            }
+
             return Container(
               padding: EdgeInsets.only(
                 left: 18,
@@ -874,55 +1185,60 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Create Online Order Workflow', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                        IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                        const Expanded(
+                          child: Text(
+                            'Create Online Order Workflow',
+                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(icon: const Icon(Icons.close, color: AppColors.textMuted), onPressed: () => Navigator.pop(ctx)),
                       ],
                     ),
                     const SizedBox(height: 12),
 
                     // 1. Order ID
-                    const Text('1. Order ID / Number', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+                    const Text('1. Order ID / Number', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: orderIdCtrl,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: AppColors.cardSurface,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                       ),
                     ),
                     const SizedBox(height: 10),
 
                     // 2. Customer Name
-                    const Text('2. Customer Name', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+                    const Text('2. Customer Name', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: customerCtrl,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         hintText: 'e.g. Mrs. Priya Sundaram',
-                        hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: AppColors.cardSurface,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                       ),
                     ),
                     const SizedBox(height: 10),
 
                     // 3. Sales Channel
-                    const Text('3. Sales Channel', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+                    const Text('3. Sales Channel', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
                       value: salesChannel,
                       dropdownColor: AppColors.burgundySurface,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: AppColors.cardSurface,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                       ),
                       items: ['WhatsApp', 'Website', 'Instagram', 'Direct Call', 'Showroom'].map((c) {
                         return DropdownMenuItem(value: c, child: Text(c));
@@ -933,17 +1249,17 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // 5. 5th Dropdown: Brand (Vadivam or MN Jewel Park)
-                    const Text('5. Brand / Unit (Mandatory)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                    // 4. Brand (Vadivam or MN Jewel Park)
+                    const Text('4. Brand / Unit (Mandatory)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
                       value: brand,
                       dropdownColor: AppColors.burgundySurface,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: AppColors.cardSurface,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                       ),
                       items: const [
                         DropdownMenuItem(value: 'MN Jewel Park', child: Text('MN Jewel Park (Handled by OS1 Kaaviya)')),
@@ -955,39 +1271,453 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // 4. Handled By (Auto-locked to responsible role per rules)
+                    // 5. Handled By (Auto-locked to responsible role per rules)
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.04),
+                        color: AppColors.magentaSubtle,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white12),
+                        border: Border.all(color: AppColors.magentaBorder),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.badge, size: 16, color: AppColors.sandGold),
+                          const Icon(Icons.badge, size: 16, color: AppColors.magentaPrimary),
                           const SizedBox(width: 8),
                           Text(
-                            '4. Handled by: $autoHandlerName',
-                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
+                            '5. Handled by: $autoHandlerName (Auto-assigned)',
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
 
-                    // 6. 6th Field: Expected Delivery Date
-                    const Text('6. Expected Delivery Date', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                    // 6. NEW 6TH SECTION: Jewellery Category Dropdown & Dynamic Requirements
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.35), width: 1.2),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.diamond_outlined, size: 16, color: AppColors.magentaPrimary),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    '6. Jewellery Category',
+                                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                  ),
+                                ],
+                              ),
+                              TextButton.icon(
+                                style: TextButton.styleFrom(
+                                  backgroundColor: AppColors.magentaSubtle,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                icon: const Icon(Icons.copy_rounded, size: 12, color: AppColors.magentaPrimary),
+                                label: const Text('Copy Enquiry Details', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
+                                onPressed: copyEnquiryToClipboard,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Category Dropdown
+                          DropdownButtonFormField<String>(
+                            value: selectedCategory,
+                            dropdownColor: Colors.white,
+                            style: const TextStyle(color: AppColors.textDark, fontSize: 12.5, fontWeight: FontWeight.bold),
+                            decoration: InputDecoration(
+                              labelText: 'Select Jewellery Type',
+                              labelStyle: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                              filled: true,
+                              fillColor: Colors.white,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: 'Pendant', child: Text('1. Pendant Requirements')),
+                              DropdownMenuItem(value: 'Chain', child: Text('2. Chain Requirements')),
+                              DropdownMenuItem(value: 'Bracelet', child: Text('3. Bracelet Requirements')),
+                              DropdownMenuItem(value: 'Earrings', child: Text('4. Earring Requirements')),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) setModalState(() => selectedCategory = v);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Dynamic Category Form
+                          if (selectedCategory == 'Pendant') ...[
+                            // Pendant Type *
+                            _formDropdown(
+                              label: 'Pendant Type *',
+                              value: pendantType,
+                              items: const ['Name Pendant', 'Initial Pendant', 'God / Divine Pendant', 'Photo / Face Pendant', 'Couple Pendant', 'Mugappu Pendant', 'Custom Design'],
+                              onChanged: (v) => setModalState(() => pendantType = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Gold Purity Preference
+                            _formDropdown(
+                              label: 'Gold Purity Preference',
+                              value: pendantPurity,
+                              items: const ['22K', '18K', 'Not decided'],
+                              onChanged: (v) => setModalState(() => pendantPurity = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Preferred Gold Weight & Budget
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Preferred Gold Weight',
+                                    hint: 'e.g. 4.5 grams',
+                                    controller: pendantWeightCtrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Approximate Budget',
+                                    hint: 'e.g. ₹25,000',
+                                    controller: pendantBudgetCtrl,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            // Design Preference
+                            _formDropdown(
+                              label: 'Design Preference',
+                              value: pendantDesignPref,
+                              items: const ['New customised design', 'Based on reference image', 'Modify an existing design'],
+                              onChanged: (v) => setModalState(() => pendantDesignPref = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Purchase Requirement
+                            _formDropdown(
+                              label: 'Purchase Requirement',
+                              value: pendantPurchaseReq,
+                              items: const ['Pendant only', 'Pendant with chain', 'Not decided'],
+                              onChanged: (v) => setModalState(() => pendantPurchaseReq = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Purpose of Purchase
+                            _formDropdown(
+                              label: 'Purpose of Purchase',
+                              value: pendantPurpose,
+                              items: const ['Personal use', 'Gift', 'Wedding / Special occasion', 'Other'],
+                              onChanged: (v) => setModalState(() => pendantPurpose = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Reference Image Availability
+                            _formDropdown(
+                              label: 'Reference Image Availability',
+                              value: pendantRefImage,
+                              items: const ['I have a reference image', 'I will share later', 'I need design suggestions'],
+                              onChanged: (v) => setModalState(() => pendantRefImage = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Additional Requirements
+                            _formTextField(
+                              label: 'Additional Requirements',
+                              hint: 'Enter special instructions, font, dimensions...',
+                              controller: pendantAdditionalCtrl,
+                            ),
+                            const SizedBox(height: 10),
+                            const Text('* Required fields. Reference images can be shared separately through WhatsApp.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                          ] else if (selectedCategory == 'Chain') ...[
+                            // Chain Type
+                            _formDropdown(
+                              label: 'Chain Type',
+                              value: chainType,
+                              items: const ['Gold Chain', 'Silver Chain', 'Chain with Pendant', 'Other'],
+                              onChanged: (v) => setModalState(() => chainType = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Gold Purity
+                            _formDropdown(
+                              label: 'Gold Purity',
+                              value: chainPurity,
+                              items: const ['22K', '18K', 'Not decided'],
+                              onChanged: (v) => setModalState(() => chainPurity = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Expected Weight & Length
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Expected Weight',
+                                    hint: 'e.g. 12 grams',
+                                    controller: chainWeightCtrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Required Chain Length',
+                                    value: chainLength,
+                                    items: const ['16 inches', '18 inches', '20 inches', '22 inches', 'Other / Not decided'],
+                                    onChanged: (v) => setModalState(() => chainLength = v!),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            // Design Reference
+                            _formDropdown(
+                              label: 'Design Reference',
+                              value: chainDesignRef,
+                              items: const ['As per reference image', 'Simple & Elegant', 'Traditional', 'Fancy / Trendy', 'Create a new design'],
+                              onChanged: (v) => setModalState(() => chainDesignRef = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Purpose of Use & Budget
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Purpose of Use',
+                                    value: chainPurpose,
+                                    items: const ['Regular wear', 'Occasional wear', 'Special occasion / Gift'],
+                                    onChanged: (v) => setModalState(() => chainPurpose = v!),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Expected Budget (Optional)',
+                                    hint: 'e.g. ₹60,000',
+                                    controller: chainBudgetCtrl,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            _formTextField(
+                              label: 'Additional Requirements',
+                              hint: 'Thickness, link pattern, clasp type...',
+                              controller: chainAdditionalCtrl,
+                            ),
+                            const SizedBox(height: 10),
+                            const Text('Our team will review your requirements and assist you with the design, estimated weight and quotation.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                          ] else if (selectedCategory == 'Bracelet') ...[
+                            // Bracelet Type & Purity
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Bracelet Type',
+                                    value: braceletType,
+                                    items: const ['Gold Bracelet', 'Silver Bracelet', 'Other'],
+                                    onChanged: (v) => setModalState(() => braceletType = v!),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Required Purity',
+                                    value: braceletPurity,
+                                    items: const ['22K', '18K', '14K', 'Other'],
+                                    onChanged: (v) => setModalState(() => braceletPurity = v!),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            // Weight & Size & Length
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Weight Preference',
+                                    hint: 'e.g. 15g',
+                                    controller: braceletWeightCtrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Bracelet Size',
+                                    hint: 'e.g. 2.4 / 2.6',
+                                    controller: braceletSizeCtrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Length',
+                                    hint: 'e.g. 7 inches',
+                                    controller: braceletLengthCtrl,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            // Design Reference
+                            _formDropdown(
+                              label: 'Design Reference',
+                              value: braceletDesignRef,
+                              items: const ['I have a reference image', 'Modify an existing design', 'Create a new design', 'Need design suggestions'],
+                              onChanged: (v) => setModalState(() => braceletDesignRef = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Stone Preference
+                            _formDropdown(
+                              label: 'Stone Preference',
+                              value: braceletStonePref,
+                              items: const ['Without stones', 'With natural stones', 'With diamonds', 'With CZ / American diamonds', 'Open to suggestions'],
+                              onChanged: (v) => setModalState(() => braceletStonePref = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            // Usage & Budget
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Usage',
+                                    value: braceletUsage,
+                                    items: const ['Regular use', 'Occasional use', 'Special occasion'],
+                                    onChanged: (v) => setModalState(() => braceletUsage = v!),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formTextField(
+                                    label: 'Expected Budget',
+                                    hint: 'e.g. ₹80,000',
+                                    controller: braceletBudgetCtrl,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            _formDropdown(
+                              label: 'Upload / Share Design Reference',
+                              value: braceletUploadRef,
+                              items: const ['I have a reference image', 'Will share via WhatsApp', 'Need suggestions'],
+                              onChanged: (v) => setModalState(() => braceletUploadRef = v!),
+                            ),
+                            const SizedBox(height: 14),
+                            _formTextField(
+                              label: 'Additional Requirements',
+                              hint: 'Kada, flexible, lock type...',
+                              controller: braceletAdditionalCtrl,
+                            ),
+                            const SizedBox(height: 10),
+                            const Text('VADIVAM by MN Jewel Park | Your Idea. Your Design. Our Craftsmanship.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                          ] else ...[
+                            // Earrings: Type & Purity
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Type of Earrings',
+                                    value: earringType,
+                                    items: const ['Studs', 'Drop Earrings', 'Hanging Earrings', 'Jhumkas', 'Hoop Earrings', 'Other'],
+                                    onChanged: (v) => setModalState(() => earringType = v!),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Preferred Gold Purity',
+                                    value: earringPurity,
+                                    items: const ['22K', '18K', '14K', 'Not Sure'],
+                                    onChanged: (v) => setModalState(() => earringPurity = v!),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            // Purchase Preference & Stone Preference
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Purchase Preference',
+                                    value: earringPurchasePref,
+                                    items: const ['Pair', 'Single Piece'],
+                                    onChanged: (v) => setModalState(() => earringPurchasePref = v!),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Stone Preference',
+                                    value: earringStonePref,
+                                    items: const ['With Stones', 'Without Stones', 'Natural Gemstones', 'Diamonds', 'Not Decided'],
+                                    onChanged: (v) => setModalState(() => earringStonePref = v!),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            // Earring Back Type & Intended Usage
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Earring Back Type',
+                                    value: earringBackType,
+                                    items: const ['Push Back', 'Screw Back', 'Clip-on', 'Not Sure'],
+                                    onChanged: (v) => setModalState(() => earringBackType = v!),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _formDropdown(
+                                    label: 'Intended Usage',
+                                    value: earringUsage,
+                                    items: const ['Regular Wear', 'Occasional Wear', 'Party / Bridal Wear'],
+                                    onChanged: (v) => setModalState(() => earringUsage = v!),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            _formTextField(
+                              label: 'Additional Requirements',
+                              hint: 'Special requests, design notes...',
+                              controller: earringAdditionalCtrl,
+                            ),
+                            const SizedBox(height: 10),
+                            const Text('Please share your design reference images along with the completed requirements, if available.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 7. MOVED TO 7TH POSITION: Expected Delivery Date
+                    const Text('7. Expected Delivery Date', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: deliveryCtrl,
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: AppColors.cardSurface,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                         suffixIcon: IconButton(
-                          icon: const Icon(Icons.calendar_today, size: 16, color: AppColors.sandGold),
+                          icon: const Icon(Icons.calendar_today, size: 16, color: AppColors.magentaPrimary),
                           onPressed: () async {
                             final p = await showDatePicker(
                               context: context,
@@ -1005,7 +1735,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     const SizedBox(height: 14),
 
                     // Subcategory Due Dates (Customer Verification, Product Verification, etc.)
-                    const Text('SLA Target Due Dates for 5 Subcategories:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const Text('SLA Target Due Dates for 5 Subcategories:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                     const SizedBox(height: 6),
                     _subDateInput('1. Customer Verification Due', stage1DueCtrl, fmt),
                     _subDateInput('2. Product Verification Due', stage2DueCtrl, fmt),
@@ -1016,8 +1746,8 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
 
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.sandGold,
-                        foregroundColor: AppColors.burgundyBg,
+                        backgroundColor: AppColors.magentaPrimary,
+                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(46),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
@@ -1036,6 +1766,8 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                         stages['stage4']?.dueDate = stage4DueCtrl.text.trim();
                         stages['stage5']?.dueDate = stage5DueCtrl.text.trim();
 
+                        final reqMap = buildCurrentCategoryData();
+
                         final newOrder = OnlineOrderModel(
                           orderId: orderIdCtrl.text.trim(),
                           customerName: customerCtrl.text.trim(),
@@ -1043,6 +1775,8 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                           handledByEmpId: autoHandlerId,
                           handledByName: isVadivam ? 'Nisha' : 'Kaaviya',
                           brand: brand,
+                          jewelleryCategory: selectedCategory,
+                          jewelleryRequirements: reqMap,
                           expectedDeliveryDate: deliveryCtrl.text.trim(),
                           createdAt: fmt(DateTime.now()),
                           stages: stages,
@@ -1056,7 +1790,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: AppColors.ragGreen,
-                            content: Text('Order #${newOrder.orderId} created for $brand!'),
+                            content: Text('Order #${newOrder.orderId} ($selectedCategory) created for $brand!'),
                           ),
                         );
                       },
@@ -1072,6 +1806,56 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
     );
   }
 
+  Widget _formDropdown({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: items.contains(value) ? value : items.first,
+      dropdownColor: Colors.white,
+      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
+      ),
+      items: items.map((it) => DropdownMenuItem(value: it, child: Text(it))).toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _formTextField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+  }) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        hintText: hint,
+        hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
+      ),
+    );
+  }
+
   Widget _subDateInput(String label, TextEditingController ctrl, String Function(DateTime) fmt) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -1079,7 +1863,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
         children: [
           Expanded(
             flex: 3,
-            child: Text(label, style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1))),
+            child: Text(label, style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
           ),
           Expanded(
             flex: 2,
@@ -1087,12 +1871,12 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
               height: 34,
               child: TextField(
                 controller: ctrl,
-                style: const TextStyle(color: Colors.white, fontSize: 11),
+                style: const TextStyle(color: AppColors.textDark, fontSize: 11),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.06),
+                  fillColor: AppColors.cardSurface,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.sandBorder)),
                 ),
               ),
             ),
@@ -1122,7 +1906,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
               Expanded(
                 child: Text(
                   'TL Reassign Order #${order.orderId}',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
                 ),
               ),
             ],
@@ -1133,19 +1917,19 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
             children: [
               Text(
                 'Primary Handler for ${order.brand} is ${order.primaryResponsibleRole}. Use this if the staff is absent or overloaded to maintain SLA.',
-                style: const TextStyle(fontSize: 11.5, color: Color(0xFFCBD5E1), height: 1.3),
+                style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.3),
               ),
               const SizedBox(height: 12),
-              const Text('Reassign To Available Staff Member:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+              const Text('Reassign To Available Staff Member:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
                 value: selectedEmp,
                 dropdownColor: AppColors.burgundySurface,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.06),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  fillColor: AppColors.cardSurface,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                 ),
                 items: staffList.map((e) {
                   final isAbsent = eco.isEmployeeAbsent(e.id);
@@ -1200,9 +1984,9 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.burgundyCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Colors.white24)),
-        title: const Text('Reset Checklist?', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
-        content: const Text('Are you sure you want to clear all checked items for this order?', style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.sandBorder)),
+        title: const Text('Reset Checklist?', style: TextStyle(color: AppColors.textDark, fontSize: 15, fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to clear all checked items for this order?', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Color(0xFF94A3B8)))),
           ElevatedButton(
@@ -1289,16 +2073,16 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
             const SizedBox(height: 20),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
-                foregroundColor: AppColors.burgundyBg,
+                backgroundColor: AppColors.magentaPrimary,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               ),
               onPressed: () => _openCreateOrderDialog(context, eco),
-              icon: const Icon(Icons.add, size: 16, color: AppColors.burgundyBg),
+              icon: const Icon(Icons.add, size: 16, color: Colors.white),
               label: const Text(
                 'Create Order',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.burgundyBg),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
               ),
             ),
           ],

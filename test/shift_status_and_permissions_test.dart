@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mn_family_app/models/attendance_models.dart';
-import 'package:mn_family_app/models/profile_pillar_models.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 
 void main() {
@@ -60,7 +59,7 @@ void main() {
 
       final summary = EmployeeDailyAttendanceSummary(
         employeeId: 'MN-1002',
-        employeeName: 'Praveenkumaar M',
+        employeeName: 'Praveenkumar M',
         department: 'Online Department',
         role: 'Team Lead',
         avatar: '',

@@ -76,13 +76,14 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
       lastDate: now.add(const Duration(days: 365)),
       builder: (ctx, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.sandGold,
-              onPrimary: Colors.black,
-              surface: AppColors.burgundyCard,
-              onSurface: AppColors.sandLight,
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.magentaPrimary,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textDark,
             ),
+            dialogBackgroundColor: Colors.white,
           ),
           child: child!,
         );
@@ -168,15 +169,15 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.burgundyCard,
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const FaIcon(FontAwesomeIcons.fileCode, size: 16, color: AppColors.sandGold),
+            const FaIcon(FontAwesomeIcons.fileCode, size: 16, color: AppColors.magentaPrimary),
             const SizedBox(width: 8),
             Text(
               'Audit Preview (${lines.length} Lines)',
-              style: GoogleFonts.cinzel(color: AppColors.sandLight, fontSize: 14, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -184,21 +185,21 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
           width: double.maxFinite,
           height: 360,
           child: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.burgundyBg,
+              color: const Color(0xFF0F172A),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.sandBorder),
+              border: Border.all(color: const Color(0xFF334155)),
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SingleChildScrollView(
                 child: SelectableText(
                   previewLines.join('\n'),
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 10,
-                    color: Color(0xFFCBD5E1),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: const Color(0xFFF8FAFC),
+                    height: 1.4,
                   ),
                 ),
               ),
@@ -211,15 +212,15 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
               Navigator.pop(ctx);
               _handleExport(eco, copyOnly: true);
             },
-            child: const Text('Copy CSV', style: TextStyle(color: AppColors.sandGold)),
+            child: Text('Copy CSV', style: GoogleFonts.plusJakartaSans(color: AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sandGold, foregroundColor: Colors.black),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.magentaPrimary, foregroundColor: Colors.white),
             onPressed: () {
               Navigator.pop(ctx);
               _handleExport(eco, copyOnly: false);
             },
-            child: const Text('Export File'),
+            child: Text('Export File', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -278,7 +279,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                     children: [
                       Text(
                         widget.isTeamLead ? 'Export Team Audit' : 'Export Audit Ledger',
-                        style: GoogleFonts.cinzel(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                       ),
                       Text(
                         widget.isTeamLead ? 'Team Tasks & Attendance' : 'Corporate CSV Reports',
@@ -428,7 +429,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                                 value: 'all',
                                 child: Text(
                                   widget.isTeamLead ? 'All Team Members (${staffList.length})' : 'All Staff Members',
-                                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: AppColors.textDark, fontSize: 12, fontWeight: FontWeight.bold),
                                 ),
                               ),
                               ...staffList.map(
@@ -533,12 +534,12 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const FaIcon(FontAwesomeIcons.fileArrowDown, size: 15, color: Colors.black),
+                          : const FaIcon(FontAwesomeIcons.fileArrowDown, size: 15, color: Colors.white),
                       label: Text(
                         _isExporting ? 'Generating CSV...' : 'Export & Share',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
                       ),
                       onPressed: _isExporting ? null : () => _handleExport(eco, copyOnly: false),
                     ),
@@ -561,7 +562,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
         const SizedBox(width: 6),
         Text(
           title,
-          style: GoogleFonts.cinzel(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.sandLight),
         ),
       ],
     );
@@ -582,11 +583,11 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.14) : Colors.white.withOpacity(0.03),
+          color: isSelected ? color.withOpacity(0.12) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? color : AppColors.sandBorder.withOpacity(0.3),
-            width: isSelected ? 1.4 : 0.8,
+            color: isSelected ? color : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.5 : 1.0,
           ),
         ),
         child: Row(
@@ -599,15 +600,18 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? Colors.white : AppColors.sandLight,
+                      color: isSelected ? color : AppColors.textDark,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 9.5, color: isSelected ? AppColors.sandLight.withOpacity(0.85) : AppColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 9.5,
+                      color: isSelected ? AppColors.textDark : AppColors.textMuted,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -617,7 +621,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
             if (isSelected)
               Icon(Icons.check_circle, size: 16, color: color)
             else
-              const Icon(Icons.radio_button_unchecked, size: 14, color: Colors.white24),
+              const Icon(Icons.radio_button_unchecked, size: 14, color: Color(0xFF94A3B8)),
           ],
         ),
       ),
@@ -634,7 +638,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
       labelStyle: TextStyle(
         fontSize: 11,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-        color: isSelected ? Colors.black : AppColors.sandLight,
+        color: isSelected ? Colors.white : AppColors.sandLight,
       ),
       side: BorderSide(
         color: isSelected ? AppColors.sandGold : AppColors.sandBorder,

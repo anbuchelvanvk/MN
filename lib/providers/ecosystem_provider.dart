@@ -13,6 +13,8 @@ import '../models/profile_pillar_models.dart';
 import '../models/konar_tasks_catalog.dart';
 import '../models/social_cause_models.dart';
 import '../models/company_notification_models.dart';
+import '../models/personal_note_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/online_order_model.dart';
 import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
@@ -87,9 +89,42 @@ class EcosystemProvider extends ChangeNotifier {
 
   double get totalOverallSocialHoursToday => totalFamilyHoursToday + totalFriendsHoursToday;
 
-  // Profile Pillar 3 & Document Custody State
+  // Profile Pillar 3 & Document Custody State (Per-Employee Scoped)
   List<OriginalDocumentItem> _originalDocuments = [];
   List<OriginalDocumentItem> get originalDocuments => _originalDocuments;
+  final Map<String, List<OriginalDocumentItem>> _employeeDocuments = {};
+
+  List<OriginalDocumentItem> getEmployeeDocuments(String empId) {
+    if (_employeeDocuments.containsKey(empId)) {
+      return _employeeDocuments[empId]!;
+    }
+    if (empId == _activeEmpId) {
+      return _originalDocuments;
+    }
+    return [];
+  }
+
+  Future<List<OriginalDocumentItem>> loadEmployeeDocuments(String empId) async {
+    if (_employeeDocuments.containsKey(empId) && _employeeDocuments[empId]!.isNotEmpty) {
+      return _employeeDocuments[empId]!;
+    }
+    try {
+      final pillars = await _firebaseEmployeeService.loadEmployeePillars(empId);
+      if (pillars != null && pillars['documents'] is List) {
+        final list = (pillars['documents'] as List)
+            .map((d) => OriginalDocumentItem.fromMap(Map<String, dynamic>.from(d as Map)))
+            .toList();
+        _employeeDocuments[empId] = list;
+        if (empId == _activeEmpId) {
+          _originalDocuments = list;
+        }
+        notifyListeners();
+        return list;
+      }
+    } catch (_) {}
+    _employeeDocuments.putIfAbsent(empId, () => []);
+    return _employeeDocuments[empId]!;
+  }
 
   int get totalOriginalsCount => _originalDocuments.length;
   int get submittedOriginalsCount => _originalDocuments.where((d) => d.status == DocumentSubmissionStatus.submitted).length;
@@ -104,37 +139,72 @@ class EcosystemProvider extends ChangeNotifier {
     return submittedMandatory / mandatory.length;
   }
 
-  // Profile Pillar 3: 6-Ring Subsystem State
-  // Ring 1: Monthly Attendance Ratio (26 working days)
-  final int _totalWorkingDaysInMonth = 26;
+  // Profile Pillar 3: Calendar Month System (Full Calendar Month: Jan-Dec, 28/29/30/31 days)
+  // Tuesday is company weekoff; any Tuesday attendance is recorded as Overtime (OT).
+  int get totalCalendarDaysInCurrentMonth {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month + 1, 0).day;
+  }
 
-  int get totalWorkingDaysInMonth => _totalWorkingDaysInMonth;
+  int get totalWorkingDaysInMonth => totalCalendarDaysInCurrentMonth;
+
+  int daysInMonth(int year, int month) => DateTime(year, month + 1, 0).day;
+
   int get workingDaysAttended {
+    final now = DateTime.now();
     final logins = _attendancePunches
-        .where((p) => p.enrollNumber == _activeEmpId && p.punchType == AttendancePunchType.login)
+        .where((p) => p.enrollNumber == _activeEmpId &&
+                      p.punchType == AttendancePunchType.login &&
+                      p.timestamp.year == now.year &&
+                      p.timestamp.month == now.month)
         .map((p) => '${p.timestamp.year}-${p.timestamp.month}-${p.timestamp.day}')
         .toSet();
     return logins.length;
   }
-  double get monthlyAttendancePercentage =>
-      _totalWorkingDaysInMonth <= 0 || workingDaysAttended == 0
-          ? 0.0
-          : ((workingDaysAttended / _totalWorkingDaysInMonth) * 100.0).clamp(0.0, 100.0);
 
-  // Ring 3: Grooming Audits (HR Point Additions & Penalties)
+  /// Number of Tuesday Overtime days worked in current month
+  int get tuesdayOvertimeDaysAttended {
+    final now = DateTime.now();
+    final otLogins = _attendancePunches
+        .where((p) => p.enrollNumber == _activeEmpId &&
+                      p.punchType == AttendancePunchType.login &&
+                      p.timestamp.year == now.year &&
+                      p.timestamp.month == now.month &&
+                      p.timestamp.weekday == DateTime.tuesday)
+        .map((p) => '${p.timestamp.year}-${p.timestamp.month}-${p.timestamp.day}')
+        .toSet();
+    return otLogins.length;
+  }
+
+  double get monthlyAttendancePercentage {
+    final totalDays = totalCalendarDaysInCurrentMonth;
+    final attended = workingDaysAttended;
+    if (totalDays <= 0 || attended == 0) return 0.0;
+    return ((attended / totalDays) * 100.0).clamp(0.0, 100.0);
+  }
+
+  // Ring 3: Grooming Audits (Daily Attire & Uniform Compliance - 50 Pts Max converted to %)
   List<GroomingAuditItem> _groomingAudits = [];
   List<GroomingAuditItem> get groomingAudits => _groomingAudits;
   List<GroomingAuditItem> get currentEmployeeGroomingAudits =>
       _groomingAudits.where((g) => g.empId == _activeEmpId).toList();
 
-  int get groomingScore {
-    if (currentEmployeeGroomingAudits.isEmpty) return 0;
-    int score = 0;
-    for (final a in currentEmployeeGroomingAudits) {
-      score += a.pointsChange;
-    }
-    return score.clamp(0, 100);
+  int getEmployeeGroomingDailyPoints(String empId) {
+    final audits = getEmployeeGroomingAudits(empId);
+    if (audits.isEmpty) return 0;
+    return audits.first.pointsEarned.clamp(0, 50);
   }
+
+  double getEmployeeGroomingPercentage(String empId) {
+    final audits = getEmployeeGroomingAudits(empId);
+    if (audits.isEmpty) return 0.0;
+    final pts = getEmployeeGroomingDailyPoints(empId);
+    return ((pts / 50.0) * 100.0).clamp(0.0, 100.0);
+  }
+
+  int get groomingDailyPoints => getEmployeeGroomingDailyPoints(_activeEmpId);
+  double get groomingPercentage => getEmployeeGroomingPercentage(_activeEmpId);
+  int get groomingScore => groomingPercentage.round();
 
   // Ring 4: Individual Sales Revenue Tracker
   List<SalesRecord> _salesRecords = [];
@@ -229,8 +299,23 @@ class EcosystemProvider extends ChangeNotifier {
   // Company Universal Notification Feed (Birthdays, Milestones, Social Deeds, Management Broadcasts, SOP To-Dos)
   List<CompanyNotification> _companyNotifications = [];
   List<CompanyNotification> get companyNotifications => _companyNotifications;
-  int get unreadNotificationCount => _companyNotifications.where((n) => !n.isReadBy(_activeEmpId)).length;
+  List<CompanyNotification> get activeCompanyNotifications =>
+      _companyNotifications.where((n) => !n.isDismissedBy(_activeEmpId)).toList();
+  int get unreadNotificationCount =>
+      _companyNotifications.where((n) => !n.isDismissedBy(_activeEmpId) && !n.isReadBy(_activeEmpId)).length;
   final Set<String> _notifiedCompanyNotifIds = {};
+  int _notifSequence = 0;
+
+  // Personal Notes (Strictly private & confidential per active user)
+  List<PersonalNote> _personalNotes = [];
+  List<PersonalNote> get myPersonalNotes {
+    final list = _personalNotes.where((n) => n.ownerEmpId == _activeEmpId).toList();
+    list.sort((a, b) {
+      if (a.isPinned != b.isPinned) return a.isPinned ? -1 : 1;
+      return b.updatedAt.compareTo(a.updatedAt);
+    });
+    return list;
+  }
 
   void _syncAndPushIncomingNotifications(List<CompanyNotification> remoteNotifs) {
     for (final notif in remoteNotifs) {
@@ -540,10 +625,14 @@ class EcosystemProvider extends ChangeNotifier {
       String netHoursStr = '--';
       String statusStr = 'No Punch';
       Color statusColor = const Color(0xFF64748B);
+      bool isOvertime = false;
+      bool isWeekoff = false;
+      final isTuesday = targetDate.weekday == DateTime.tuesday;
 
-      if (targetDate.weekday == DateTime.sunday && dayPunches.isEmpty) {
-        statusStr = 'Weekly Off';
+      if (isTuesday && dayPunches.isEmpty) {
+        statusStr = 'Tuesday (Week-off)';
         statusColor = const Color(0xFF94A3B8);
+        isWeekoff = true;
       } else if (login != null) {
         final endTime = resolvedLogout?.timestamp ?? (isToday ? DateTime.now() : login.timestamp);
         int lunchMins = 0;
@@ -559,7 +648,11 @@ class EcosystemProvider extends ChangeNotifier {
 
         final isOnTime = (login.timestamp.hour < 9) || (login.timestamp.hour == 9 && login.timestamp.minute <= 30);
 
-        if (isToday) {
+        if (isTuesday) {
+          isOvertime = true;
+          statusStr = 'Tuesday Overtime (${hrs}h ${mins}m)';
+          statusColor = const Color(0xFF8B5CF6);
+        } else if (isToday) {
           final isOnLunch = lunchOut != null && (lunchIn == null || lunchOut.timestamp.isAfter(lunchIn.timestamp));
           if (isOnLunch) {
             statusStr = 'On Lunch Break';
@@ -583,9 +676,10 @@ class EcosystemProvider extends ChangeNotifier {
           }
         }
       } else {
-        if (targetDate.weekday == DateTime.sunday) {
-          statusStr = 'Weekly Off';
+        if (isTuesday) {
+          statusStr = 'Tuesday (Week-off)';
           statusColor = const Color(0xFF94A3B8);
+          isWeekoff = true;
         } else {
           statusStr = 'Absent';
           statusColor = const Color(0xFFEF4444);
@@ -602,6 +696,129 @@ class EcosystemProvider extends ChangeNotifier {
         netHours: netHoursStr,
         status: statusStr,
         statusColor: statusColor,
+        isOvertime: isOvertime,
+        isWeekoff: isWeekoff,
+      ));
+    }
+
+    return records;
+  }
+
+  /// Full monthly calendar attendance records (Jan to Dec, 28/29/30/31 full calendar days)
+  /// Tuesday is weekoff, but if attendance is marked it is recorded as Tuesday Overtime (OT).
+  List<EmployeeActivityDayRecord> getMonthlyAttendanceForEmployee(String empId, {int? year, int? month}) {
+    final now = DateTime.now();
+    final y = year ?? now.year;
+    final m = month ?? now.month;
+    final totalDays = DateTime(y, m + 1, 0).day;
+    final List<EmployeeActivityDayRecord> records = [];
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    for (int day = 1; day <= totalDays; day++) {
+      final targetDate = DateTime(y, m, day);
+      final isToday = (y == now.year && m == now.month && day == now.day);
+      final isFuture = targetDate.isAfter(DateTime(now.year, now.month, now.day));
+      final dayName = days[targetDate.weekday - 1];
+      final monthName = months[targetDate.month - 1];
+      final dateLabel = isToday ? 'Today ($monthName $day)' : '$dayName, $monthName $day';
+      final isTuesday = targetDate.weekday == DateTime.tuesday;
+
+      final dayPunches = _attendancePunches.where((p) =>
+        p.enrollNumber == empId &&
+        p.timestamp.year == targetDate.year &&
+        p.timestamp.month == targetDate.month &&
+        p.timestamp.day == targetDate.day
+      ).toList();
+
+      final logins = dayPunches.where((p) => p.punchType == AttendancePunchType.login).toList()
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      final logouts = dayPunches.where((p) => p.punchType == AttendancePunchType.logout).toList()
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      final lunchOuts = dayPunches.where((p) => p.punchType == AttendancePunchType.breakOut).toList()
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      final lunchIns = dayPunches.where((p) => p.punchType == AttendancePunchType.breakIn).toList()
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+      final login = logins.isNotEmpty ? logins.first : null;
+      final lunchOut = lunchOuts.isNotEmpty ? lunchOuts.first : null;
+      final lunchIn = lunchIns.isNotEmpty ? lunchIns.first : null;
+      AttendancePunchRecord? resolvedLogout = logouts.isNotEmpty ? logouts.first : null;
+
+      final inStr = login?.timeString ?? '--:-- --';
+      final lunchOutStr = lunchOut?.timeString ?? '--:-- --';
+      final lunchInStr = lunchIn?.timeString ?? '--:-- --';
+      final outStr = resolvedLogout?.timeString ?? (isToday && login != null ? 'Active / On Duty' : '--:-- --');
+
+      String netHoursStr = '--';
+      String statusStr = 'No Punch';
+      Color statusColor = const Color(0xFF64748B);
+      bool isOvertime = false;
+      bool isWeekoff = false;
+
+      if (login != null) {
+        final endTime = resolvedLogout?.timestamp ?? (isToday ? DateTime.now() : login.timestamp);
+        int lunchMins = 0;
+        if (lunchOut != null) {
+          final endL = lunchIn?.timestamp ?? (isToday ? DateTime.now() : lunchOut.timestamp);
+          lunchMins = endL.difference(lunchOut.timestamp).inMinutes.clamp(0, 300);
+        }
+        final grossMins = endTime.difference(login.timestamp).inMinutes;
+        final netMins = (grossMins - lunchMins).clamp(0, 24 * 60);
+        final hrs = netMins ~/ 60;
+        final mins = netMins % 60;
+        netHoursStr = '${hrs}h ${mins}m';
+
+        if (isTuesday) {
+          isOvertime = true;
+          statusStr = 'Tuesday Overtime (${hrs}h ${mins}m)';
+          statusColor = const Color(0xFF8B5CF6);
+        } else if (isToday) {
+          final isOnLunch = lunchOut != null && (lunchIn == null || lunchOut.timestamp.isAfter(lunchIn.timestamp));
+          if (isOnLunch) {
+            statusStr = 'On Lunch Break';
+            statusColor = const Color(0xFFF59E0B);
+          } else if (resolvedLogout != null) {
+            statusStr = 'Shift Over (${hrs}h ${mins}m)';
+            statusColor = const Color(0xFF10B981);
+          } else {
+            statusStr = 'Active • On Duty';
+            statusColor = const Color(0xFF10B981);
+          }
+        } else {
+          statusStr = resolvedLogout != null ? 'Shift Over (${hrs}h ${mins}m)' : 'Present (${hrs}h ${mins}m)';
+          statusColor = const Color(0xFF10B981);
+        }
+      } else {
+        if (isTuesday) {
+          isWeekoff = true;
+          statusStr = isFuture ? 'Upcoming (Tuesday Week-off)' : 'Tuesday (Week-off)';
+          statusColor = const Color(0xFF94A3B8);
+        } else if (isFuture) {
+          statusStr = 'Upcoming';
+          statusColor = const Color(0xFF64748B);
+        } else if (isToday) {
+          statusStr = 'Not Checked In';
+          statusColor = const Color(0xFFF59E0B);
+        } else {
+          statusStr = 'Absent';
+          statusColor = const Color(0xFFEF4444);
+        }
+      }
+
+      records.add(EmployeeActivityDayRecord(
+        date: targetDate,
+        dateLabel: dateLabel,
+        loginTime: inStr,
+        logoutTime: outStr,
+        lunchOutTime: lunchOutStr,
+        lunchInTime: lunchInStr,
+        netHours: netHoursStr,
+        status: statusStr,
+        statusColor: statusColor,
+        isOvertime: isOvertime,
+        isWeekoff: isWeekoff,
       ));
     }
 
@@ -781,12 +998,12 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
-    // Ring 1: Monthly Attendance (26 Days)
-    if (monthlyAttendancePercentage >= 90.0) {
+    // Ring 1: Monthly Attendance (Calendar Month System)
+    if (monthlyAttendancePercentage >= 80.0) {
       lags.add(PillarLagItem(
         pillarTitle: 'Pillar 3: Monthly Attendance',
         status: 'Good (Green)',
-        description: 'Attended $workingDaysAttended of $_totalWorkingDaysInMonth days (${monthlyAttendancePercentage.toStringAsFixed(1)}%).',
+        description: 'Attended $workingDaysAttended of $totalCalendarDaysInCurrentMonth calendar days (${monthlyAttendancePercentage.toStringAsFixed(1)}%). Tuesday Overtime: $tuesdayOvertimeDaysAttended day(s).',
         improvementAction: 'Great attendance record this month.',
         isCompromised: false,
         indicatorColor: const Color(0xFF10B981),
@@ -795,20 +1012,20 @@ class EcosystemProvider extends ChangeNotifier {
     } else {
       lags.add(PillarLagItem(
         pillarTitle: 'Pillar 3: Monthly Attendance',
-        status: monthlyAttendancePercentage >= 80 ? 'Below Target (Yellow)' : 'Low Attendance (Red)',
-        description: 'Attended only $workingDaysAttended of $_totalWorkingDaysInMonth days (${monthlyAttendancePercentage.toStringAsFixed(1)}%).',
-        improvementAction: 'Try to avoid unplanned leaves to keep a Green status.',
+        status: monthlyAttendancePercentage >= 60 ? 'Below Target (Yellow)' : 'Low Attendance (Red)',
+        description: 'Attended only $workingDaysAttended of $totalCalendarDaysInCurrentMonth calendar days (${monthlyAttendancePercentage.toStringAsFixed(1)}%). Tuesday Overtime: $tuesdayOvertimeDaysAttended day(s).',
+        improvementAction: 'Maintain regular daily check-ins to keep a Green status.',
         isCompromised: true,
-        indicatorColor: monthlyAttendancePercentage >= 80 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
+        indicatorColor: monthlyAttendancePercentage >= 60 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
         icon: Icons.event_busy,
       ));
     }
 
-    // Ring 3: Grooming Standards (HR Points)
-    if (groomingScore >= 80) {
+    // Ring 3: Grooming Standards (Daily 50 Pts Max converted to %)
+    if (groomingPercentage >= 80) {
       lags.add(PillarLagItem(
         pillarTitle: 'Pillar 3: Grooming & Uniform',
-        status: 'Great ($groomingScore/100 pts)',
+        status: 'Great (${groomingPercentage.toStringAsFixed(0)}% • $groomingDailyPoints/50 pts)',
         description: 'Clean uniform, proper haircut, and ID card all verified.',
         improvementAction: 'Keep up the neat and clean presentation.',
         isCompromised: false,
@@ -818,11 +1035,11 @@ class EcosystemProvider extends ChangeNotifier {
     } else {
       lags.add(PillarLagItem(
         pillarTitle: 'Pillar 3: Grooming & Uniform',
-        status: 'Needs Improvement ($groomingScore/100 pts)',
-        description: 'Grooming score is below 80. Please follow dress code guidelines.',
+        status: 'Needs Improvement (${groomingPercentage.toStringAsFixed(0)}% • $groomingDailyPoints/50 pts)',
+        description: 'Grooming compliance is below 80%. Please follow dress code guidelines.',
         improvementAction: 'Speak with HR to review uniform and haircut requirements.',
         isCompromised: true,
-        indicatorColor: groomingScore >= 65 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
+        indicatorColor: groomingPercentage >= 60 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
         icon: Icons.style,
       ));
     }
@@ -1018,7 +1235,8 @@ class EcosystemProvider extends ChangeNotifier {
   final Set<String> _absentEmployeeIds = {};
   final Set<String> _manuallyPresentEmployeeIds = {};
 
-  Set<String> get absentEmployeeIds => _absentEmployeeIds;
+  Set<String> get absentEmployeeIds =>
+      _employees.where((e) => isEmployeeAbsent(e.id)).map((e) => e.id).toSet();
 
   bool isEmployeeAbsent(String empId) {
     if (_manuallyPresentEmployeeIds.contains(empId)) return false;
@@ -1071,6 +1289,7 @@ class EcosystemProvider extends ChangeNotifier {
 
   EcosystemProvider() {
     _initData();
+    _loadLocalPersonalNotesAndDismissed();
     _initFirebaseSync();
   }
 
@@ -1144,9 +1363,27 @@ class EcosystemProvider extends ChangeNotifier {
 
     try {
       _notificationsSubscription = _firebaseEmployeeService.streamCompanyNotifications().listen(
-        (remoteNotifs) {
+        (remoteNotifs) async {
           _syncAndPushIncomingNotifications(remoteNotifs);
-          _companyNotifications = remoteNotifs;
+          // Preserve any local dismissed mappings across syncs
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            final dismissedRaw = prefs.getString(_dismissedNotifsStorageKey);
+            Map<String, dynamic>? dismissedMap;
+            if (dismissedRaw != null && dismissedRaw.isNotEmpty) {
+              dismissedMap = jsonDecode(dismissedRaw) as Map<String, dynamic>?;
+            }
+            _companyNotifications = remoteNotifs.map((n) {
+              if (dismissedMap != null && dismissedMap.containsKey(n.id)) {
+                final localDismissed = List<String>.from(dismissedMap[n.id] as List? ?? []);
+                final merged = {...n.dismissedByStaffIds, ...localDismissed}.toList();
+                return n.copyWith(dismissedByStaffIds: merged);
+              }
+              return n;
+            }).toList();
+          } catch (_) {
+            _companyNotifications = remoteNotifs;
+          }
           notifyListeners();
         },
         onError: (err) {
@@ -1236,7 +1473,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'M N Naveenraaj',
         role: 'Managing Director & CEO',
         roleType: 'ceo',
-        dept: 'Executive Board',
+        dept: 'Administration',
         phone: '+91 98450 00001',
         email: 'ceoofmn@mnjpark.com',
         avatar: '',
@@ -1270,7 +1507,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Mohankumar G',
         role: 'HR Manager & Operations Custodian',
         roleType: 'hr',
-        dept: 'Human Resources',
+        dept: 'Administration',
         phone: '+91 94433 11000',
         email: 'hr@mnj.com',
         avatar: '',
@@ -1301,10 +1538,10 @@ class EcosystemProvider extends ChangeNotifier {
       // 3. OTM - Online Team Manager / Team Lead (Mr. M. Praveen Kumar)
       Employee(
         id: 'MN-TL1002',
-        name: 'Praveenkumaar M',
+        name: 'Praveenkumar M',
         role: 'Online Team Manager (Editor)',
         roleType: 'team_lead',
-        dept: 'Online & Design',
+        dept: 'Online Department',
         phone: '+91 94420 11001',
         email: 'praveenkumarotm@mnj.com',
         avatar: '',
@@ -1338,7 +1575,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Gokulakrishnan K',
         role: 'Online Sale Head (OSH)',
         roleType: 'employee',
-        dept: 'Online Sales',
+        dept: 'Online Department',
         phone: '+91 94420 11002',
         email: 'gokulakrishnanosh@mnj.com',
         avatar: '',
@@ -1372,7 +1609,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Aravinda Samy Y',
         role: 'Chief Photographer & Videographer (VPE)',
         roleType: 'employee',
-        dept: 'Media & Creative',
+        dept: 'Online Department',
         phone: '+91 94420 11003',
         email: 'aravindasamyvpe@mnj.com',
         avatar: '',
@@ -1406,7 +1643,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Mithra M',
         role: 'Assistant Photographer & Videographer (Ass.VPE)',
         roleType: 'employee',
-        dept: 'Media & Creative',
+        dept: 'Online Department',
         phone: '+91 94420 11004',
         email: 'mithraassvpe@mnj.com',
         avatar: '',
@@ -1440,7 +1677,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'E-Commerce Executive',
         role: 'E-Commerce Executive (ECE)',
         roleType: 'employee',
-        dept: 'Catalog & Listing',
+        dept: 'Online Department',
         phone: '+91 94420 11005',
         email: 'ece@mnj.com',
         avatar: '',
@@ -1474,7 +1711,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Kaaviya',
         role: 'Online Sale Person 1 (OS1)',
         roleType: 'employee',
-        dept: 'Online Sales',
+        dept: 'Online Department',
         phone: '+91 80567 36999',
         email: 'kaaviyaos1@mnj.com',
         avatar: '',
@@ -1508,7 +1745,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Nisha',
         role: 'Online Sale Person 2 (OS2)',
         roleType: 'employee',
-        dept: 'Online Sales',
+        dept: 'Online Department',
         phone: '+91 89258 68077',
         email: 'nishaos2@mnj.com',
         avatar: '',
@@ -1542,7 +1779,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Midhun Kumar J',
         role: 'Online Analytical Consultant (AC)',
         roleType: 'employee',
-        dept: 'Analytics & Performance Ads',
+        dept: 'Online Department',
         phone: '+91 94420 11006',
         email: 'midhunkumarac@mnj.com',
         avatar: '',
@@ -1576,7 +1813,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Subash',
         role: 'Online Support & Strategist (OSS)',
         roleType: 'employee',
-        dept: 'Campaign Strategy',
+        dept: 'Online Department',
         phone: '+91 94420 11007',
         email: 'subashoss@mnj.com',
         avatar: '',
@@ -1610,7 +1847,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Eshwar K B',
         role: 'Platform Developer (DVP)',
         roleType: 'employee',
-        dept: 'Technology & E-Commerce',
+        dept: 'Online Department',
         phone: '+91 94420 11008',
         email: 'eshwardvp@mnj.com',
         avatar: '',
@@ -1644,7 +1881,7 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Sam Roy',
         role: 'Content Creator & Scriptwriter (CC)',
         roleType: 'employee',
-        dept: 'Creative & Social Media',
+        dept: 'Online Department',
         phone: '+91 94420 11009',
         email: 'samroycc@mnj.com',
         avatar: '',
@@ -1717,7 +1954,7 @@ class EcosystemProvider extends ChangeNotifier {
     // Attendance Pillar Punches (0 punches recorded)
     _attendancePunches = [];
 
-    // Grooming Audits (0 audits)
+    // Grooming Audits (Clean state: 0 audits until audited by HR)
     _groomingAudits = [];
 
     // Permissions & Leaves (0 records)
@@ -1770,6 +2007,64 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   // HR Grooming Point Audits
+  static const int maxDailyGroomingPoints = 50;
+  static const int pointsPerChecklistItem = 10;
+
+  static List<String> getMaleGroomingChecklist() => const [
+    'Shirt tucked in neatly',
+    'Professional hairstyle & well groomed',
+    'Full hand (full sleeve) formal shirt',
+    'Clean shave / neat beard trim',
+    'Company ID card visibly worn & formal shoes',
+  ];
+
+  static List<String> getFemaleGroomingChecklist() => const [
+    'Uniform saree properly draped & pinned',
+    'Neat hairstyle (tied / pinned back)',
+    'Company ID card visibly worn',
+    'Formal footwear / closed sandals',
+    'Professional grooming & minimal jewelry',
+  ];
+
+  List<GroomingAuditItem> getEmployeeGroomingAudits(String empId) =>
+      _groomingAudits.where((g) => g.empId == empId).toList();
+
+  int getEmployeeGroomingScore(String empId) =>
+      getEmployeeGroomingPercentage(empId).round();
+
+  void recordDailyGroomingAudit({
+    required String empId,
+    required List<String> followedItems,
+    required int pointsEarned,
+    int maxPoints = 50,
+    required String reason,
+    String auditedBy = 'HR Department',
+  }) {
+    final now = DateTime.now();
+    _groomingAudits.removeWhere((a) =>
+        a.empId == empId &&
+        a.date.year == now.year &&
+        a.date.month == now.month &&
+        a.date.day == now.day);
+
+    _groomingAudits.insert(
+      0,
+      GroomingAuditItem(
+        id: 'GRM-${now.millisecondsSinceEpoch}',
+        empId: empId,
+        date: now,
+        category: 'Daily Attire & Grooming Audit',
+        pointsChange: pointsEarned,
+        pointsEarned: pointsEarned,
+        maxPoints: maxPoints,
+        followedItems: followedItems,
+        reason: reason,
+        auditedBy: auditedBy,
+      ),
+    );
+    notifyListeners();
+  }
+
   void addGroomingAudit({
     required String empId,
     required String category,
@@ -1777,19 +2072,17 @@ class EcosystemProvider extends ChangeNotifier {
     required String reason,
     String auditedBy = 'HR Admin',
   }) {
-    _groomingAudits.insert(
-      0,
-      GroomingAuditItem(
-        id: 'GRM-${DateTime.now().millisecondsSinceEpoch}',
-        empId: empId,
-        date: DateTime.now(),
-        category: category,
-        pointsChange: pointsChange,
-        reason: reason,
-        auditedBy: auditedBy,
-      ),
+    final currentPts = getEmployeeGroomingDailyPoints(empId);
+    final newPts = (currentPts + pointsChange).clamp(0, 50);
+    final isFem = empId == 'MN-004' || empId == 'MN-006';
+    final checklist = isFem ? getFemaleGroomingChecklist() : getMaleGroomingChecklist();
+    recordDailyGroomingAudit(
+      empId: empId,
+      followedItems: pointsChange >= 0 ? checklist : [],
+      pointsEarned: newPts,
+      reason: reason,
+      auditedBy: auditedBy,
     );
-    notifyListeners();
   }
 
   // Permission & Late Arrival Request (2.0 hrs limit & 1 CL rule)
@@ -2270,6 +2563,7 @@ class EcosystemProvider extends ChangeNotifier {
     _userWeightKg = weightKg;
     _healthOnboarded = true;
     final now = DateTime.now();
+    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
     _weightHistory.insert(
       0,
       WeightHeightRecord(
@@ -2277,7 +2571,7 @@ class EcosystemProvider extends ChangeNotifier {
         heightCm: heightCm,
         bmi: currentBmi,
         date: now,
-        dateString: 'Today (${now.day}/${now.month})',
+        dateString: '${now.day} ${_monthName(now.month)} ${now.year}, $timeStr',
       ),
     );
     notifyListeners();
@@ -2297,6 +2591,7 @@ class EcosystemProvider extends ChangeNotifier {
     _userHeightCm = heightCm;
     _userWeightKg = weightKg;
     final now = DateTime.now();
+    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
     _weightHistory.insert(
       0,
       WeightHeightRecord(
@@ -2304,7 +2599,7 @@ class EcosystemProvider extends ChangeNotifier {
         heightCm: heightCm,
         bmi: currentBmi,
         date: now,
-        dateString: 'Today (${now.day}/${now.month})',
+        dateString: '${now.day} ${_monthName(now.month)} ${now.year}, $timeStr',
       ),
     );
     notifyListeners();
@@ -2327,7 +2622,7 @@ class EcosystemProvider extends ChangeNotifier {
     required double calories,
   }) {
     final now = DateTime.now();
-    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final timeStr = '${now.day} ${_monthName(now.month)} ${now.year}, ${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
     _dailyFoodLogs.insert(
       0,
       FoodLogItem(
@@ -2371,7 +2666,7 @@ class EcosystemProvider extends ChangeNotifier {
     String notes = '',
   }) {
     final now = DateTime.now();
-    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final timeStr = '${now.day} ${_monthName(now.month)} ${now.year}, ${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
     _dailyWorkoutLogs.insert(
       0,
       WorkoutLogItem(
@@ -2564,7 +2859,7 @@ class EcosystemProvider extends ChangeNotifier {
 
   // --- EMPLOYEE PROFILE & CREDENTIALS ACTIONS ---
 
-  /// Updates personal details (Name, Phone, DOB, Relationship Status, Anniversary Date)
+  /// Updates personal details (Name, Phone, DOB, Relationship Status, Anniversary Date, Gender)
   Future<void> updateEmployeePersonalDetails({
     required String empId,
     required String name,
@@ -2572,15 +2867,23 @@ class EcosystemProvider extends ChangeNotifier {
     required String dob,
     required String relationshipStatus,
     String? anniversaryDate,
+    String? gender,
   }) async {
     final idx = _employees.indexWhere((e) => e.id == empId);
     if (idx != -1) {
-      _employees[idx] = _employees[idx].copyWith(
+      final oldEmp = _employees[idx];
+      final newInitials = name.trim().split(RegExp(r'\s+')).map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase();
+      final updatedInitials = newInitials.isNotEmpty ? newInitials : oldEmp.initials;
+      final updatedGender = gender ?? oldEmp.gender;
+
+      _employees[idx] = oldEmp.copyWith(
         name: name,
+        initials: updatedInitials,
         phone: phone,
         dob: dob,
         relationshipStatus: relationshipStatus,
         anniversaryDate: relationshipStatus == 'Married' ? (anniversaryDate ?? '') : '',
+        gender: updatedGender,
       );
       notifyListeners();
 
@@ -2589,11 +2892,14 @@ class EcosystemProvider extends ChangeNotifier {
           empId: empId,
           fields: {
             'name': name,
+            'initials': updatedInitials,
             'phone': phone,
             'dob': dob,
             'relationshipStatus': relationshipStatus,
             'anniversaryDate': relationshipStatus == 'Married' ? (anniversaryDate ?? '') : '',
+            if (updatedGender.isNotEmpty) 'gender': updatedGender,
           },
+          email: oldEmp.email,
         );
       } catch (e) {
         debugPrint('Firebase profile sync note: $e');
@@ -2684,7 +2990,7 @@ class EcosystemProvider extends ChangeNotifier {
       final newEmp = _employees.firstWhere((e) => e.id == newEmpId, orElse: () => _employees.first);
 
       final byName = assignedByName ?? 'TL / Manager';
-      final byRole = assignedByRole ?? _activeRole ?? 'team_lead';
+      final byRole = assignedByRole ?? _activeRole;
 
       _tasks[idx] = t.copyWith(
         empId: newEmpId,
@@ -2727,7 +3033,7 @@ class EcosystemProvider extends ChangeNotifier {
     final fromEmp = _employees.firstWhere((e) => e.id == fromEmpId, orElse: () => _employees.first);
     final toEmp = _employees.firstWhere((e) => e.id == toEmpId, orElse: () => _employees.first);
     final byName = authorizedByName ?? 'Manager';
-    final byRole = authorizedByRole ?? _activeRole ?? 'team_lead';
+    final byRole = authorizedByRole ?? _activeRole;
 
     int count = 0;
     for (int i = 0; i < _tasks.length; i++) {
@@ -2779,7 +3085,7 @@ class EcosystemProvider extends ChangeNotifier {
       _dailyFoodLogs = [];
       _dailyWorkoutLogs = [];
       _familyActivityLogs = [];
-      _originalDocuments = [];
+      _originalDocuments = _employeeDocuments[empId] ?? [];
       _lastLoadedEmpId = empId;
     }
     checkAndResetDailySops();
@@ -2813,9 +3119,13 @@ class EcosystemProvider extends ChangeNotifier {
 
         // 3. Profile Pillar (Original Documents Custody)
         if (pillars['documents'] is List) {
-          _originalDocuments = (pillars['documents'] as List)
+          final loadedDocs = (pillars['documents'] as List)
               .map((d) => OriginalDocumentItem.fromMap(Map<String, dynamic>.from(d as Map)))
               .toList();
+          _employeeDocuments[empId] = loadedDocs;
+          if (empId == _activeEmpId) {
+            _originalDocuments = loadedDocs;
+          }
         }
 
         // 4. Attendance Pillar Punches
@@ -2847,7 +3157,7 @@ class EcosystemProvider extends ChangeNotifier {
     String? notes,
   }) {
     final now = DateTime.now();
-    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final timeStr = '${now.day} ${_monthName(now.month)} ${now.year}, ${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
     _familyActivityLogs.insert(
       0,
       FamilyActivityItem(
@@ -2911,19 +3221,76 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
-    // Category 4: Punch Sequence Validation
-    if (punchType == AttendancePunchType.logout && todayLoginPunch == null) {
-      _notificationMessage = 'Cannot record Logout: No Work Login punch found for today.';
+    // Category 4: Robust Punch Sequence Validation for target employee
+    final todayEmpPunches = _attendancePunches.where((p) =>
+      p.enrollNumber == targetId &&
+      p.timestamp.year == now.year &&
+      p.timestamp.month == now.month &&
+      p.timestamp.day == now.day
+    ).toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    final hasLogin = todayEmpPunches.any((p) => p.punchType == AttendancePunchType.login);
+    final hasLogout = todayEmpPunches.any((p) => p.punchType == AttendancePunchType.logout);
+
+    final recentLunchOut = todayEmpPunches.where((p) => p.punchType == AttendancePunchType.breakOut).toList();
+    final recentLunchIn = todayEmpPunches.where((p) => p.punchType == AttendancePunchType.breakIn).toList();
+    final isCurrentlyOnLunch = recentLunchOut.isNotEmpty &&
+        (recentLunchIn.isEmpty || recentLunchOut.first.timestamp.isAfter(recentLunchIn.first.timestamp));
+
+    if (punchType == AttendancePunchType.login && hasLogin) {
+      _notificationMessage = 'Work Login already recorded for today.';
       notifyListeners();
       return false;
     }
-    if (punchType == AttendancePunchType.breakOut && todayLoginPunch == null) {
-      _notificationMessage = 'Cannot start Lunch Break: You have not punched in for work yet.';
-      notifyListeners();
-      return false;
+    if (punchType == AttendancePunchType.logout) {
+      if (!hasLogin) {
+        _notificationMessage = 'Cannot record Logout: No Work Login punch found for today.';
+        notifyListeners();
+        return false;
+      }
+      if (hasLogout) {
+        _notificationMessage = 'Work Logout already recorded for today.';
+        notifyListeners();
+        return false;
+      }
     }
-    if (punchType == AttendancePunchType.breakIn && todayLunchOutPunch == null) {
-      _notificationMessage = 'Cannot record Lunch In: No Lunch Out punch was recorded.';
+    if (punchType == AttendancePunchType.breakOut) {
+      if (!hasLogin) {
+        _notificationMessage = 'Cannot start Lunch Break: You have not punched in for work yet.';
+        notifyListeners();
+        return false;
+      }
+      if (hasLogout) {
+        _notificationMessage = 'Cannot start Lunch Break: Already punched out for the day.';
+        notifyListeners();
+        return false;
+      }
+      if (isCurrentlyOnLunch) {
+        _notificationMessage = 'Already on Lunch Break.';
+        notifyListeners();
+        return false;
+      }
+    }
+    if (punchType == AttendancePunchType.breakIn) {
+      if (!hasLogin) {
+        _notificationMessage = 'Cannot record Lunch In: No Work Login punch found.';
+        notifyListeners();
+        return false;
+      }
+      if (!isCurrentlyOnLunch) {
+        _notificationMessage = 'Cannot record Lunch In: You are not currently on Lunch Break.';
+        notifyListeners();
+        return false;
+      }
+    }
+
+    // Debounce duplicate rapid punch: ignore identical punchType within 5 seconds
+    final lastPunchForEmp = _attendancePunches.where((p) => p.enrollNumber == targetId).firstOrNull;
+    if (lastPunchForEmp != null &&
+        lastPunchForEmp.punchType == punchType &&
+        verifiedTime.difference(lastPunchForEmp.timestamp).inSeconds.abs() < 5) {
+      debugPrint('Debounced duplicate punch: $punchType within 5s');
+      _notificationMessage = 'Punch already recorded just now.';
       notifyListeners();
       return false;
     }
@@ -3057,8 +3424,9 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Profile Pillar 3 Actions: Original Documents Custody
+  // Profile Pillar 3 Actions: Original Documents Custody (Per-Employee Scoped)
   void addOriginalDocument({
+    String? targetEmpId,
     required String title,
     required String category,
     String certificateNumber = 'N/A',
@@ -3069,56 +3437,77 @@ class EcosystemProvider extends ChangeNotifier {
     String iconEmoji = '📜',
     String? remarks,
   }) {
+    final effectiveEmpId = targetEmpId ?? _activeEmpId;
     final now = DateTime.now();
-    final dateStr = submissionDate ?? '${now.day} ${_monthName(now.month)} ${now.year}';
-    _originalDocuments.insert(
-      0,
-      OriginalDocumentItem(
-        id: 'DOC-${DateTime.now().millisecondsSinceEpoch}',
-        title: title,
-        category: category,
-        certificateNumber: certificateNumber,
-        status: status,
-        submissionDate: dateStr,
-        vaultLockerRef: vaultLockerRef,
-        isMandatory: isMandatory,
-        iconEmoji: iconEmoji,
-        remarks: remarks,
-      ),
+    final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final dateStr = submissionDate ?? '${now.day} ${_monthName(now.month)} ${now.year}, $timeStr';
+    final newDoc = OriginalDocumentItem(
+      id: 'DOC-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      category: category,
+      certificateNumber: certificateNumber,
+      status: status,
+      submissionDate: dateStr,
+      vaultLockerRef: vaultLockerRef,
+      isMandatory: isMandatory,
+      iconEmoji: iconEmoji,
+      remarks: remarks,
     );
+
+    _employeeDocuments.putIfAbsent(effectiveEmpId, () => []);
+    _employeeDocuments[effectiveEmpId]!.insert(0, newDoc);
+
+    if (effectiveEmpId == _activeEmpId) {
+      _originalDocuments = List.from(_employeeDocuments[effectiveEmpId]!);
+    }
     notifyListeners();
 
     _firebaseEmployeeService.saveEmployeePillar(
-      empId: _activeEmpId,
+      empId: effectiveEmpId,
       pillarKey: 'documents',
-      data: _originalDocuments.map((d) => d.toMap()).toList(),
+      data: _employeeDocuments[effectiveEmpId]!.map((d) => d.toMap()).toList(),
     );
   }
 
   void updateOriginalDocumentStatus(String id, DocumentSubmissionStatus newStatus, [String? targetEmpId]) {
     final effectiveEmpId = targetEmpId ?? _activeEmpId;
-    final idx = _originalDocuments.indexWhere((d) => d.id == id);
+    final list = _employeeDocuments[effectiveEmpId] ?? _originalDocuments;
+    final idx = list.indexWhere((d) => d.id == id);
     if (idx != -1) {
-      _originalDocuments[idx] = _originalDocuments[idx].copyWith(status: newStatus);
+      final now = DateTime.now();
+      final timeStr = '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+      list[idx] = list[idx].copyWith(
+        status: newStatus,
+        submissionDate: '${now.day} ${_monthName(now.month)} ${now.year}, $timeStr',
+      );
+      _employeeDocuments[effectiveEmpId] = list;
+      if (effectiveEmpId == _activeEmpId) {
+        _originalDocuments = List.from(list);
+      }
       notifyListeners();
 
-      // Category 1, Item 4: Save to the target employee's document vault
       _firebaseEmployeeService.saveEmployeePillar(
         empId: effectiveEmpId,
         pillarKey: 'documents',
-        data: _originalDocuments.map((d) => d.toMap()).toList(),
+        data: list.map((d) => d.toMap()).toList(),
       );
     }
   }
 
-  void deleteOriginalDocument(String id) {
-    _originalDocuments.removeWhere((d) => d.id == id);
+  void deleteOriginalDocument(String id, [String? targetEmpId]) {
+    final effectiveEmpId = targetEmpId ?? _activeEmpId;
+    final list = _employeeDocuments[effectiveEmpId] ?? _originalDocuments;
+    list.removeWhere((d) => d.id == id);
+    _employeeDocuments[effectiveEmpId] = list;
+    if (effectiveEmpId == _activeEmpId) {
+      _originalDocuments = List.from(list);
+    }
     notifyListeners();
 
     _firebaseEmployeeService.saveEmployeePillar(
-      empId: _activeEmpId,
+      empId: effectiveEmpId,
       pillarKey: 'documents',
-      data: _originalDocuments.map((d) => d.toMap()).toList(),
+      data: list.map((d) => d.toMap()).toList(),
     );
   }
 
@@ -3154,7 +3543,7 @@ class EcosystemProvider extends ChangeNotifier {
       );
       if (!_tasks[idx].isDefaultSop) {
         _firebaseEmployeeService.savePersonalTodo(_tasks[idx]).catchError((err) {
-          debugPrint('Firestore complete personal todo note: ' + err.toString());
+          debugPrint('Firestore complete personal todo note: $err');
         });
       }
       notifyListeners();
@@ -3440,6 +3829,8 @@ class EcosystemProvider extends ChangeNotifier {
     required String experienceYears,
     String? trainerName,
     String password = 'password123',
+    String dob = '',
+    String gender = 'Male',
   }) {
     if (!canManageEmployees()) {
       _notificationMessage = 'Access Denied: Only HR and CEO have authorization to add users.';
@@ -3481,6 +3872,8 @@ class EcosystemProvider extends ChangeNotifier {
       ragStatus: 'green',
       lastActive: 'Just registered',
       password: password.isNotEmpty ? password : 'password123',
+      dob: dob.isNotEmpty ? dob : '01-01-2000',
+      gender: gender.isNotEmpty ? gender : 'Male',
     );
 
     _employees.add(newEmp);
@@ -3531,6 +3924,159 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  void dismissNotification(String id) {
+    final idx = _companyNotifications.indexWhere((n) => n.id == id);
+    if (idx != -1) {
+      final updatedDismissed = List<String>.from(_companyNotifications[idx].dismissedByStaffIds);
+      if (!updatedDismissed.contains(_activeEmpId)) {
+        updatedDismissed.add(_activeEmpId);
+      }
+      _companyNotifications[idx] = _companyNotifications[idx].copyWith(dismissedByStaffIds: updatedDismissed);
+      notifyListeners();
+      _saveDismissedNotificationsToLocal();
+      _firebaseEmployeeService.markNotificationDismissed(id, _activeEmpId);
+    }
+  }
+
+  void clearAllReadNotifications() {
+    bool changed = false;
+    _companyNotifications = _companyNotifications.map((n) {
+      if (n.isReadBy(_activeEmpId) && !n.isDismissedBy(_activeEmpId)) {
+        changed = true;
+        final updatedDismissed = List<String>.from(n.dismissedByStaffIds);
+        updatedDismissed.add(_activeEmpId);
+        _firebaseEmployeeService.markNotificationDismissed(n.id, _activeEmpId);
+        return n.copyWith(dismissedByStaffIds: updatedDismissed);
+      }
+      return n;
+    }).toList();
+    if (changed) {
+      notifyListeners();
+      _saveDismissedNotificationsToLocal();
+    }
+  }
+
+  // --- Personal Notes Storage & Actions (100% private to _activeEmpId) ---
+  static const String _personalNotesStorageKey = 'mn_personal_notes_storage_v1';
+  static const String _dismissedNotifsStorageKey = 'mn_dismissed_notifs_storage_v1';
+
+  Future<void> _loadLocalPersonalNotesAndDismissed() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final notesRaw = prefs.getString(_personalNotesStorageKey);
+      if (notesRaw != null && notesRaw.isNotEmpty) {
+        final decoded = jsonDecode(notesRaw) as List?;
+        if (decoded != null) {
+          _personalNotes = decoded
+              .map((e) => PersonalNote.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList();
+        }
+      }
+      final dismissedRaw = prefs.getString(_dismissedNotifsStorageKey);
+      if (dismissedRaw != null && dismissedRaw.isNotEmpty) {
+        final decoded = jsonDecode(dismissedRaw) as Map<String, dynamic>?;
+        if (decoded != null) {
+          for (int i = 0; i < _companyNotifications.length; i++) {
+            final n = _companyNotifications[i];
+            if (decoded.containsKey(n.id)) {
+              final emps = List<String>.from(decoded[n.id] as List? ?? []);
+              final merged = {...n.dismissedByStaffIds, ...emps}.toList();
+              _companyNotifications[i] = n.copyWith(dismissedByStaffIds: merged);
+            }
+          }
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading personal notes/dismissed: $e');
+    }
+  }
+
+  Future<void> _savePersonalNotesToLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = jsonEncode(_personalNotes.map((n) => n.toJson()).toList());
+      await prefs.setString(_personalNotesStorageKey, encoded);
+    } catch (e) {
+      debugPrint('Error saving personal notes: $e');
+    }
+  }
+
+  Future<void> _saveDismissedNotificationsToLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final map = <String, List<String>>{};
+      for (final n in _companyNotifications) {
+        if (n.dismissedByStaffIds.isNotEmpty) {
+          map[n.id] = n.dismissedByStaffIds;
+        }
+      }
+      await prefs.setString(_dismissedNotifsStorageKey, jsonEncode(map));
+    } catch (e) {
+      debugPrint('Error saving dismissed notifications: $e');
+    }
+  }
+
+  void addPersonalNote({
+    required String title,
+    required String content,
+    int colorIndex = 0,
+    bool isPinned = false,
+  }) {
+    final now = DateTime.now();
+    final note = PersonalNote(
+      id: 'NOTE-${now.millisecondsSinceEpoch}',
+      ownerEmpId: _activeEmpId,
+      title: title.trim().isNotEmpty ? title.trim() : 'Untitled Note',
+      content: content.trim(),
+      createdAt: now,
+      updatedAt: now,
+      colorIndex: colorIndex,
+      isPinned: isPinned,
+    );
+    _personalNotes.insert(0, note);
+    notifyListeners();
+    _savePersonalNotesToLocal();
+  }
+
+  void updatePersonalNote({
+    required String noteId,
+    String? title,
+    String? content,
+    int? colorIndex,
+    bool? isPinned,
+  }) {
+    final idx = _personalNotes.indexWhere((n) => n.id == noteId && n.ownerEmpId == _activeEmpId);
+    if (idx != -1) {
+      final curr = _personalNotes[idx];
+      _personalNotes[idx] = curr.copyWith(
+        title: title != null && title.trim().isNotEmpty ? title.trim() : curr.title,
+        content: content != null ? content.trim() : curr.content,
+        colorIndex: colorIndex ?? curr.colorIndex,
+        isPinned: isPinned ?? curr.isPinned,
+        updatedAt: DateTime.now(),
+      );
+      notifyListeners();
+      _savePersonalNotesToLocal();
+    }
+  }
+
+  void deletePersonalNote(String noteId) {
+    _personalNotes.removeWhere((n) => n.id == noteId && n.ownerEmpId == _activeEmpId);
+    notifyListeners();
+    _savePersonalNotesToLocal();
+  }
+
+  void togglePinPersonalNote(String noteId) {
+    final idx = _personalNotes.indexWhere((n) => n.id == noteId && n.ownerEmpId == _activeEmpId);
+    if (idx != -1) {
+      final curr = _personalNotes[idx];
+      _personalNotes[idx] = curr.copyWith(isPinned: !curr.isPinned, updatedAt: DateTime.now());
+      notifyListeners();
+      _savePersonalNotesToLocal();
+    }
+  }
+
   void postBroadcastNotification({
     required String title,
     String? content,
@@ -3544,7 +4090,7 @@ class EcosystemProvider extends ChangeNotifier {
       cleanRole = 'Managing Director & CEO';
     }
     final notif = CompanyNotification(
-      id: 'NOTIF-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'NOTIF-${DateTime.now().microsecondsSinceEpoch}-${++_notifSequence}',
       title: title.trim(),
       content: content != null && content.trim().isNotEmpty
           ? content.trim()
@@ -3624,8 +4170,9 @@ class EcosystemProvider extends ChangeNotifier {
       imageUrl: imageUrl,
       date: DateTime.now(),
       status: 'pending',
-      heartsCount: 1,
-      isHeartedByCurrentUser: true,
+      heartsCount: 0,
+      isHeartedByCurrentUser: false,
+      likedEmpIds: [],
     );
     _socialCauses.insert(0, newCause);
     _notificationMessage = 'Social deed submitted for HR & CEO review!';
@@ -3676,31 +4223,40 @@ class EcosystemProvider extends ChangeNotifier {
         approvedAt: approvedAt,
       );
 
-      // Auto-broadcast push notification to all staff phones as requested
+      // Notification is broadcast ONLY upon HR / CEO approval
       final notif = CompanyNotification(
-        id: 'NOTIF-SC-${DateTime.now().millisecondsSinceEpoch}',
-        title: '❤️ Social Good: ${old.employeeName} (${old.employeeRole})',
-        content: '${old.employeeName} has made ${old.causeType} - "${old.title}", worth of ₹${old.amountSpent.toStringAsFixed(0)}!',
+        id: 'NOTIF-SC-${old.id}',
+        title: '❤️ Social Cause: ${old.employeeName} (${old.employeeRole})',
+        content: '${old.employeeName} contributed to ${old.causeType} - "${old.title}" (₹${old.amountSpent.toStringAsFixed(0)}). Approved by $approverLabel. Tap to view and send your reaction!',
         type: CompanyNotificationType.socialCause,
         timestamp: approvedAt,
         senderName: approvedByName,
         senderRole: approverRole,
         isRead: false,
+        actionTag: old.id,
+        likedStaffIds: old.likedEmpIds,
       );
-      _companyNotifications.insert(0, notif);
+
+      final existingNotifIdx = _companyNotifications.indexWhere((n) => n.actionTag == causeId || n.id == 'NOTIF-SC-$causeId');
+      if (existingNotifIdx != -1) {
+        _companyNotifications[existingNotifIdx] = notif;
+      } else {
+        _companyNotifications.insert(0, notif);
+      }
       _notifiedCompanyNotifIds.add(notif.id);
+
       PushNotificationService().showNotification(
         id: notif.id,
         title: notif.title,
         body: notif.content,
         payload: notif.id,
       );
-      _notificationMessage = 'Social deed approved! Notification broadcasted to all mobiles.';
-      notifyListeners();
-
       _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
         debugPrint('Firestore save notif note: $err');
       });
+
+      _notificationMessage = 'Social deed approved! Notification broadcasted to all mobiles.';
+      notifyListeners();
     }
   }
 
@@ -3732,22 +4288,52 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
-  void toggleSocialCauseHeart(String causeId) {
-    final idx = _socialCauses.indexWhere((c) => c.id == causeId);
-    if (idx != -1) {
-      final item = _socialCauses[idx];
-      final newHearted = !item.isHeartedByCurrentUser;
-      final newCount = newHearted ? item.heartsCount + 1 : (item.heartsCount > 0 ? item.heartsCount - 1 : 0);
-      _socialCauses[idx] = item.copyWith(
-        isHeartedByCurrentUser: newHearted,
-        heartsCount: newCount,
-      );
-      notifyListeners();
+  void toggleSocialCauseReaction(String causeId, {String? reactingEmpId}) {
+    final userId = reactingEmpId ?? _activeEmpId;
+    if (userId.isEmpty) return;
 
-      _firebaseEmployeeService.updateSocialCauseHearts(causeId, newCount).catchError((err) {
-        debugPrint('Firestore updateSocialCauseHearts note: $err');
+    // 1. Update in _socialCauses
+    final causeIdx = _socialCauses.indexWhere((c) => c.id == causeId);
+    if (causeIdx != -1) {
+      final item = _socialCauses[causeIdx];
+      final updatedLikes = List<String>.from(item.likedEmpIds);
+      if (updatedLikes.contains(userId)) {
+        updatedLikes.remove(userId);
+      } else {
+        updatedLikes.add(userId);
+      }
+      _socialCauses[causeIdx] = item.copyWith(
+        likedEmpIds: updatedLikes,
+        heartsCount: updatedLikes.length,
+        isHeartedByCurrentUser: updatedLikes.contains(_activeEmpId),
+      );
+      _firebaseEmployeeService.updateSocialCauseLikes(causeId, updatedLikes).catchError((e) {
+        debugPrint('Firestore updateSocialCauseLikes note: $e');
       });
     }
+
+    // 2. Synchronize in _companyNotifications where actionTag == causeId or id == causeId
+    for (int i = 0; i < _companyNotifications.length; i++) {
+      final notif = _companyNotifications[i];
+      if (notif.actionTag == causeId || notif.id == causeId || notif.id == 'NOTIF-SC-$causeId') {
+        final notifLikes = List<String>.from(notif.likedStaffIds);
+        if (notifLikes.contains(userId)) {
+          notifLikes.remove(userId);
+        } else {
+          notifLikes.add(userId);
+        }
+        _companyNotifications[i] = notif.copyWith(likedStaffIds: notifLikes);
+        _firebaseEmployeeService.updateCompanyNotificationLikes(notif.id, notifLikes).catchError((e) {
+          debugPrint('Firestore updateCompanyNotificationLikes note: $e');
+        });
+      }
+    }
+
+    notifyListeners();
+  }
+
+  void toggleSocialCauseHeart(String causeId) {
+    toggleSocialCauseReaction(causeId);
   }
 
   // --- Employee To-Do Management Actions ---
@@ -3820,7 +4406,7 @@ class EcosystemProvider extends ChangeNotifier {
       _tasks[idx].postponeInfo = null;
       if (!_tasks[idx].isDefaultSop) {
         _firebaseEmployeeService.savePersonalTodo(_tasks[idx]).catchError((err) {
-          debugPrint('Firestore revert personal todo note: ' + err.toString());
+          debugPrint('Firestore revert personal todo note: $err');
         });
       }
       notifyListeners();

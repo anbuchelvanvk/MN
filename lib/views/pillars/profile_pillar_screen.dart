@@ -19,6 +19,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   String? _selectedDropdownDoc;
   String _activeFilter = 'All'; // 'All', 'Submitted', 'Pending'
   int _selectedRingIndex = 1; // 0: Attendance, 1: Documents, 2: Grooming, 3: Sale, 4: Permission, 5: Conduct
+  bool _isPasswordRevealed = false;
+  int _selectedCalendarMonth = DateTime.now().month;
+  final int _selectedCalendarYear = DateTime.now().year;
 
   @override
   void initState() {
@@ -54,7 +57,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         ),
         title: Text(
           'STAFF PROFILE',
-          style: GoogleFonts.cinzel(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.sandLight,
@@ -68,7 +71,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             padding: const EdgeInsets.only(right: 14),
             child: Center(
               child: LiquidGlassPill(
-                label: 'PILLAR 3',
+                label: 'OCCASIONAL',
                 color: AppColors.sandGold,
                 icon: Icons.badge_outlined,
               ),
@@ -84,6 +87,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           children: [
             // 1. Staff Profile Overview Card
             _buildStaffProfileCard(employee),
+            const SizedBox(height: 12),
+
+            // 1b. Account Security & Password Management
+            _buildAccountSecurityCard(context, provider, employee),
             const SizedBox(height: 14),
 
             // 2. The 6 Professional Profile Rings Matrix
@@ -141,6 +148,274 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   // --- WIDGET BUILDERS ---
 
+  Widget _buildAccountSecurityCard(BuildContext context, EcosystemProvider provider, dynamic employee) {
+    final empPassword = (employee.password as String?)?.isNotEmpty == true
+        ? employee.password as String
+        : 'password123';
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A0F172A),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.sandGold.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.shield_outlined, size: 16, color: AppColors.sandGold),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'ACCOUNT SECURITY & CREDENTIALS',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandGold,
+                    letterSpacing: 0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.sandGold,
+                  foregroundColor: AppColors.burgundyCard,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () => _showChangePasswordDialog(context, provider, employee),
+                icon: const Icon(Icons.lock_reset, size: 13, color: AppColors.burgundyCard),
+                label: const Text(
+                  'Change Password',
+                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.burgundyCard),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFDF2F8),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFCE7F3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.key, size: 14, color: AppColors.textMuted),
+                const SizedBox(width: 8),
+                Text(
+                  'Active Password: ',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                ),
+                Expanded(
+                  child: Text(
+                    _isPasswordRevealed ? empPassword : '••••••••',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                      letterSpacing: _isPasswordRevealed ? 0 : 1.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    _isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
+                    size: 16,
+                    color: AppColors.sandGold,
+                  ),
+                  onPressed: () => setState(() => _isPasswordRevealed = !_isPasswordRevealed),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context, EcosystemProvider provider, dynamic employee) {
+    final currentPassCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    final confirmPassCtrl = TextEditingController();
+    bool hideCurrent = true;
+    bool hideNew = true;
+    bool hideConfirm = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          backgroundColor: AppColors.burgundyCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: AppColors.sandGold.withOpacity(0.4)),
+          ),
+          title: Text(
+            'Change Account Password',
+            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Update your login credentials for official portal access.',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: currentPassCtrl,
+                  obscureText: hideCurrent,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
+                  decoration: InputDecoration(
+                    labelText: 'Current Password',
+                    labelStyle: const TextStyle(color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
+                    suffixIcon: IconButton(
+                      icon: Icon(hideCurrent ? Icons.visibility : Icons.visibility_off, size: 16, color: AppColors.sandGold),
+                      onPressed: () => setDlgState(() => hideCurrent = !hideCurrent),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: newPassCtrl,
+                  obscureText: hideNew,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
+                  decoration: InputDecoration(
+                    labelText: 'New Password',
+                    labelStyle: const TextStyle(color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
+                    suffixIcon: IconButton(
+                      icon: Icon(hideNew ? Icons.visibility : Icons.visibility_off, size: 16, color: AppColors.sandGold),
+                      onPressed: () => setDlgState(() => hideNew = !hideNew),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: confirmPassCtrl,
+                  obscureText: hideConfirm,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
+                  decoration: InputDecoration(
+                    labelText: 'Confirm New Password',
+                    labelStyle: const TextStyle(color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
+                    suffixIcon: IconButton(
+                      icon: Icon(hideConfirm ? Icons.visibility : Icons.visibility_off, size: 16, color: AppColors.sandGold),
+                      onPressed: () => setDlgState(() => hideConfirm = !hideConfirm),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.sandGold,
+                foregroundColor: AppColors.burgundyCard,
+              ),
+              onPressed: () async {
+                final currentPass = currentPassCtrl.text.trim();
+                final newPass = newPassCtrl.text.trim();
+                final confirmPass = confirmPassCtrl.text.trim();
+
+                final messenger = ScaffoldMessenger.of(context);
+
+                if (currentPass.isEmpty || newPass.isEmpty) {
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('Please fill all required password fields.'), backgroundColor: AppColors.ragRed),
+                  );
+                  return;
+                }
+                if (newPass.length < 6) {
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('New password must be at least 6 characters.'), backgroundColor: AppColors.ragRed),
+                  );
+                  return;
+                }
+                if (newPass != confirmPass) {
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('New password and confirm password do not match.'), backgroundColor: AppColors.ragRed),
+                  );
+                  return;
+                }
+
+                final success = await provider.changeEmployeePassword(
+                  empId: employee.id,
+                  oldPassword: currentPass,
+                  newPassword: newPass,
+                );
+
+                if (ctx.mounted) Navigator.pop(ctx);
+
+                if (success) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Password updated successfully!'),
+                      backgroundColor: Color(0xFF10B981),
+                    ),
+                  );
+                } else {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Incorrect current password. Please try again.'),
+                      backgroundColor: AppColors.ragRed,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Update Password', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStaffProfileCard(dynamic employee) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -148,11 +423,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         color: AppColors.burgundyCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.sandBorder),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
+            color: Color(0x0A0F172A),
             blurRadius: 14,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -164,16 +439,23 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             height: 60,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.sandGold, width: 2),
-              color: AppColors.burgundyPrimary,
+              border: Border.all(color: AppColors.magentaPrimary, width: 2),
+              gradient: AppColors.magentaGradient,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.magentaPrimary.withOpacity(0.25),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Center(
               child: Text(
                 employee.initials,
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.sandGold,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -227,20 +509,40 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    const Icon(Icons.lock_clock_outlined, size: 12, color: AppColors.textMuted),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        'Vault: Locker #B-14',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          color: AppColors.textMuted,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.sandGold.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
                       ),
+                      child: Text(
+                        'Occasional',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.sandGold,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.lock_clock_outlined, size: 12, color: AppColors.textMuted),
+                        const SizedBox(width: 3),
+                        Text(
+                          'Locker #B-14',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -261,11 +563,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         color: AppColors.burgundyCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Color(0x0A0F172A),
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -283,7 +585,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     Flexible(
                       child: Text(
                         'PROFILE RINGS',
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -332,7 +634,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   index: 0,
                   title: 'Attendance',
                   displayValue: '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%',
-                  subText: '${provider.workingDaysAttended}/26 Days',
+                  subText: '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days',
                   progress: (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
                   ringColor: provider.workingDaysAttended == 0
                       ? const Color(0xFF94A3B8)
@@ -361,19 +663,31 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildRingCard(
-                  index: 2,
-                  title: 'Grooming',
-                  displayValue: '${provider.groomingScore}p',
-                  subText: 'Attire & Hair',
-                  progress: (provider.groomingScore / 100.0).clamp(0.0, 1.0),
-                  ringColor: provider.currentEmployeeGroomingAudits.isEmpty
-                      ? const Color(0xFF94A3B8)
-                      : (provider.groomingScore >= 80 ? AppColors.sandGold : const Color(0xFFEF4444)),
-                  icon: Icons.face_retouching_natural,
-                  statusText: provider.currentEmployeeGroomingAudits.isEmpty ? '0 Audits' : 'HR Verified',
-                ),
+              Builder(
+                builder: (context) {
+                  final hasAudit = provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty;
+                  final groomingPercent = provider.getEmployeeGroomingPercentage(provider.activeEmpId);
+                  final groomingPoints = provider.getEmployeeGroomingDailyPoints(provider.activeEmpId);
+
+                  return Expanded(
+                    child: _buildRingCard(
+                      index: 2,
+                      title: 'Grooming',
+                      displayValue: hasAudit ? '${groomingPercent.toStringAsFixed(0)}%' : '0%',
+                      subText: hasAudit ? '$groomingPoints/50 Pts' : 'Pending Audit',
+                      progress: hasAudit ? (groomingPercent / 100.0).clamp(0.0, 1.0) : 0.0,
+                      ringColor: !hasAudit
+                          ? const Color(0xFF94A3B8)
+                          : (groomingPercent >= 80
+                              ? AppColors.magentaPrimary
+                              : (groomingPercent >= 60
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFFEF4444))),
+                      icon: Icons.face_retouching_natural,
+                      statusText: hasAudit ? '$groomingPoints/50 Pts' : 'Pending Audit',
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -383,13 +697,13 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Expanded(
                 child: _buildRingCard(
                   index: 3,
-                  title: 'Showroom Sale',
+                  title: 'Sales Target',
                   displayValue: '${provider.salesAchievementPercentage.toStringAsFixed(0)}%',
                   subText: '₹${(provider.totalSalesAchieved / 100000).toStringAsFixed(1)}L / ₹25L',
                   progress: (provider.salesAchievementPercentage / 100.0).clamp(0.0, 1.0),
                   ringColor: provider.totalSalesAchieved <= 0
                       ? const Color(0xFF94A3B8)
-                      : (provider.salesAchievementPercentage >= 85.0 ? AppColors.sandGold : const Color(0xFFF59E0B)),
+                      : (provider.salesAchievementPercentage >= 85.0 ? AppColors.magentaPrimary : const Color(0xFFF59E0B)),
                   icon: Icons.monetization_on_outlined,
                   statusText: provider.totalSalesAchieved <= 0
                       ? '₹0.0 Achieved'
@@ -404,7 +718,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   displayValue: '${provider.permissionHoursRemaining.toStringAsFixed(1)}h',
                   subText: '${provider.totalPermissionHoursUsed.toStringAsFixed(1)}h Used | 1 CL',
                   progress: (provider.permissionHoursRemaining / provider.monthlyPermissionHoursLimit).clamp(0.0, 1.0),
-                  ringColor: provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.sandLight,
+                  ringColor: provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.magentaPrimary,
                   icon: Icons.timer_outlined,
                   statusText: provider.isPermissionExcessHalfDay
                       ? 'Half Day'
@@ -417,7 +731,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   index: 5,
                   title: 'Ethics & Assay',
                   displayValue: provider.conductScore > 0 ? '${provider.conductScore}' : '0.0',
-                  subText: provider.conductScore > 0 ? 'Zero Hallmark Lag' : 'No Conduct Audits',
+                  subText: provider.conductScore > 0 ? 'Zero Hallmark Lag' : 'No Audits',
                   progress: provider.conductScore > 0 ? (provider.conductScore / 5.0).clamp(0.0, 1.0) : 0.0,
                   ringColor: provider.conductScore > 0 ? AppColors.ragGreen : const Color(0xFF94A3B8),
                   icon: Icons.verified_user_outlined,
@@ -447,20 +761,20 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
       borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.sandGold.withOpacity(0.15) : AppColors.burgundySurface,
+          color: isSelected ? AppColors.pureWhite : AppColors.burgundySurface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
-            width: isSelected ? 1.6 : 1.0,
+            color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder,
+            width: isSelected ? 1.8 : 1.0,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.sandGold.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: AppColors.magentaPrimary.withOpacity(0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ]
               : null,
@@ -468,30 +782,38 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         child: Column(
           children: [
             SizedBox(
-              width: 68,
-              height: 68,
+              width: 58,
+              height: 58,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 3.2,
-                    backgroundColor: AppColors.burgundyCard,
-                    valueColor: AlwaysStoppedAnimation<Color>(ringColor),
+                  SizedBox.expand(
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 2.8,
+                      backgroundColor: const Color(0xFFF1F5F9),
+                      valueColor: AlwaysStoppedAnimation<Color>(ringColor),
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(4.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(icon, size: 16, color: isSelected ? AppColors.sandGold : ringColor),
-                        const SizedBox(height: 2),
+                        Icon(
+                          icon,
+                          size: 13.5,
+                          color: isSelected ? AppColors.magentaPrimary : ringColor,
+                        ),
+                        const SizedBox(height: 1.5),
                         Text(
                           displayValue,
-                          style: GoogleFonts.cinzel(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            height: 1.0,
+                            color: AppColors.textDark,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -510,7 +832,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? AppColors.sandGold : AppColors.sandLight,
+                color: isSelected ? AppColors.magentaPrimary : AppColors.textDark,
               ),
             ),
             const SizedBox(height: 2),
@@ -547,7 +869,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   Widget _buildSubsystemTabs() {
     final tabs = [
-      {'label': '1. Attendance (26d)', 'icon': Icons.fact_check_outlined},
+      {'label': '1. Calendar Attendance', 'icon': Icons.fact_check_outlined},
       {'label': '2. Vault Custody', 'icon': Icons.lock_clock_outlined},
       {'label': '3. Grooming & Attire', 'icon': Icons.face_retouching_natural},
       {'label': '4. Showroom Sales', 'icon': Icons.monetization_on_outlined},
@@ -570,10 +892,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.sandGold.withOpacity(0.2) : AppColors.burgundySurface,
+                  color: isSelected ? AppColors.magentaPrimary : AppColors.cardSurface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+                    color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder,
                     width: isSelected ? 1.4 : 1.0,
                   ),
                 ),
@@ -582,7 +904,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     Icon(
                       tab['icon'] as IconData,
                       size: 13,
-                      color: isSelected ? AppColors.sandGold : AppColors.textMuted,
+                      color: isSelected ? Colors.white : AppColors.textMuted,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -590,7 +912,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? AppColors.sandGold : AppColors.sandLight,
+                        color: isSelected ? Colors.white : AppColors.textDark,
                       ),
                     ),
                   ],
@@ -603,15 +925,30 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
-  // --- SUBSYSTEM 0: MONTHLY ATTENDANCE (26 WORKING DAYS) ---
+  // --- SUBSYSTEM 0: MONTHLY ATTENDANCE (FULL CALENDAR JAN–DEC) ---
 
   Widget _buildMonthlyAttendanceSection(BuildContext context, EcosystemProvider provider) {
-    final percentage = provider.monthlyAttendancePercentage.toStringAsFixed(1);
+    final monthlyRecords = provider.getMonthlyAttendanceForEmployee(
+      provider.activeEmpId,
+      year: _selectedCalendarYear,
+      month: _selectedCalendarMonth,
+    );
+
+    final totalMonthDays = monthlyRecords.length;
+    final presentCount = monthlyRecords.where((r) => !r.isWeekoff && !r.isOvertime && r.loginTime != '--:-- --').length;
+    final tuesdayOtCount = monthlyRecords.where((r) => r.isOvertime).length;
+    final weekoffCount = monthlyRecords.where((r) => r.isWeekoff).length;
+    final liveAttendancePercentage = totalMonthDays > 0 ? (((presentCount + tuesdayOtCount) / totalMonthDays) * 100).round() : 0;
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Main Attendance Metric Card
+        // Main Calendar Attendance Metric Card
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -622,44 +959,69 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header with Month Selector Dropdown
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'MONTHLY ATTENDANCE RATIO',
-                        style: GoogleFonts.cinzel(
-                          fontSize: 13,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'FULL CALENDAR ATTENDANCE',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandGold,
+                            letterSpacing: 0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${monthNames[_selectedCalendarMonth - 1]} $_selectedCalendarYear • $totalMonthDays Days Full Calendar',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            color: AppColors.textMuted,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Month Picker Dropdown (Jan to Dec)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundySurface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.sandBorder),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: _selectedCalendarMonth,
+                        dropdownColor: AppColors.burgundySurface,
+                        icon: const Icon(Icons.arrow_drop_down, color: AppColors.sandGold, size: 18),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
-                          letterSpacing: 0.6,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Standard: 26 Working Days per Calendar Month',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          color: AppColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.ragGreen.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.ragGreen.withOpacity(0.5)),
-                    ),
-                    child: Text(
-                      '$percentage%',
-                      style: GoogleFonts.cinzel(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.ragGreen,
+                        items: List.generate(12, (index) {
+                          final m = index + 1;
+                          return DropdownMenuItem<int>(
+                            value: m,
+                            child: Text(monthNames[index]),
+                          );
+                        }),
+                        onChanged: (newMonth) {
+                          if (newMonth != null) {
+                            setState(() => _selectedCalendarMonth = newMonth);
+                          }
+                        },
                       ),
                     ),
                   ),
@@ -671,7 +1033,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
-                  value: (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
+                  value: (liveAttendancePercentage / 100.0).clamp(0.0, 1.0),
                   minHeight: 8,
                   backgroundColor: AppColors.burgundySurface,
                   valueColor: const AlwaysStoppedAnimation<Color>(AppColors.ragGreen),
@@ -684,8 +1046,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 children: [
                   Expanded(
                     child: _metricColumn(
-                      title: 'Standard',
-                      value: '${provider.totalWorkingDaysInMonth}',
+                      title: 'Month Total',
+                      value: '$totalMonthDays Days',
                       color: AppColors.sandLight,
                       icon: Icons.calendar_month,
                     ),
@@ -693,8 +1055,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Container(width: 1, height: 30, color: AppColors.sandBorder),
                   Expanded(
                     child: _metricColumn(
-                      title: 'Attended',
-                      value: '${provider.workingDaysAttended}',
+                      title: 'Present',
+                      value: '$presentCount Days',
                       color: AppColors.ragGreen,
                       icon: Icons.check_circle_outline,
                     ),
@@ -702,19 +1064,19 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Container(width: 1, height: 30, color: AppColors.sandBorder),
                   Expanded(
                     child: _metricColumn(
-                      title: 'Casual Leave',
-                      value: '1 Day',
-                      color: AppColors.sandGold,
-                      icon: Icons.beach_access_outlined,
+                      title: 'Tuesday OT',
+                      value: '$tuesdayOtCount OT',
+                      color: const Color(0xFF8B5CF6),
+                      icon: Icons.access_time_filled_rounded,
                     ),
                   ),
                   Container(width: 1, height: 30, color: AppColors.sandBorder),
                   Expanded(
                     child: _metricColumn(
-                      title: 'Bio Sync',
-                      value: 'Live',
-                      color: AppColors.sandPrimary,
-                      icon: Icons.fingerprint,
+                      title: 'Week-offs',
+                      value: '$weekoffCount Days',
+                      color: AppColors.sandGold,
+                      icon: Icons.beach_access_outlined,
                     ),
                   ),
                 ],
@@ -724,7 +1086,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         ),
         const SizedBox(height: 14),
 
-        // 26-Day Visual Attendance Grid
+        // Full Month Calendar Matrix Container
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -738,53 +1100,89 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '26-DAY MONTHLY PUNCH MATRIX',
-                    style: GoogleFonts.cinzel(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandLight,
+                  Expanded(
+                    child: Text(
+                      '${monthNames[_selectedCalendarMonth - 1].toUpperCase()} PUNCH MATRIX ($totalMonthDays DAYS)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandLight,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Row(
-                    children: [
-                      Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.ragGreen)),
-                      const SizedBox(width: 4),
-                      const Text('Present', style: TextStyle(fontSize: 10, color: AppColors.sandLight)),
-                      const SizedBox(width: 8),
-                      Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.sandGold)),
-                      const SizedBox(width: 4),
-                      const Text('CL', style: TextStyle(fontSize: 10, color: AppColors.sandLight)),
-                    ],
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6).withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.5)),
+                    ),
+                    child: Text(
+                      'Tuesday = Overtime (OT)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFC084FC),
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
 
-              // Calendar Grid (26 Days)
+              // Calendar Grid (All 28 to 31 Days of the Selected Month)
               Wrap(
-                spacing: 7,
-                runSpacing: 7,
-                children: List.generate(provider.totalWorkingDaysInMonth, (index) {
-                  final dayNumber = index + 1;
-                  final isCasualLeave = dayNumber == 15;
-                  final isUpcoming = dayNumber > provider.workingDaysAttended + 1;
-                  final isPresent = !isCasualLeave && !isUpcoming;
+                spacing: 6,
+                runSpacing: 6,
+                children: monthlyRecords.map((r) {
+                  final dayNumber = r.date.day;
+                  const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                  final wLabel = weekdayLabels[r.date.weekday - 1];
 
-                  Color boxColor = isPresent
-                      ? AppColors.ragGreen.withOpacity(0.18)
-                      : isCasualLeave
-                          ? AppColors.sandGold.withOpacity(0.2)
-                          : AppColors.burgundyCard;
-                  Color borderColor = isPresent
-                      ? AppColors.ragGreen.withOpacity(0.5)
-                      : isCasualLeave
-                          ? AppColors.sandGold
-                          : AppColors.sandBorder.withOpacity(0.5);
+                  Color boxColor = AppColors.burgundyCard;
+                  Color borderColor = AppColors.sandBorder.withOpacity(0.5);
+                  Color textColor = AppColors.textMuted;
+                  String statusTag = '--';
+                  IconData? icon;
+
+                  if (r.isOvertime) {
+                    boxColor = const Color(0xFF8B5CF6).withOpacity(0.2);
+                    borderColor = const Color(0xFF8B5CF6);
+                    textColor = const Color(0xFFC084FC);
+                    statusTag = 'OT';
+                    icon = Icons.bolt;
+                  } else if (r.isWeekoff) {
+                    boxColor = const Color(0xFF334155).withOpacity(0.4);
+                    borderColor = const Color(0xFF475569);
+                    textColor = const Color(0xFF94A3B8);
+                    statusTag = 'OFF';
+                    icon = Icons.beach_access;
+                  } else if (r.loginTime != '--:-- --') {
+                    boxColor = AppColors.ragGreen.withOpacity(0.18);
+                    borderColor = AppColors.ragGreen.withOpacity(0.6);
+                    textColor = AppColors.ragGreen;
+                    statusTag = 'P';
+                    icon = Icons.check;
+                  } else if (r.status == 'Absent') {
+                    boxColor = const Color(0xFFEF4444).withOpacity(0.18);
+                    borderColor = const Color(0xFFEF4444).withOpacity(0.5);
+                    textColor = const Color(0xFFEF4444);
+                    statusTag = 'A';
+                    icon = Icons.close;
+                  } else {
+                    boxColor = AppColors.burgundyCard;
+                    borderColor = AppColors.sandBorder.withOpacity(0.3);
+                    textColor = AppColors.textMuted;
+                    statusTag = '--';
+                    icon = Icons.more_horiz;
+                  }
 
                   return Container(
                     width: 44,
-                    height: 48,
+                    height: 52,
                     decoration: BoxDecoration(
                       color: boxColor,
                       borderRadius: BorderRadius.circular(8),
@@ -794,37 +1192,52 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'D$dayNumber',
-                          style: GoogleFonts.cinzel(
-                            fontSize: 9.5,
+                          '$dayNumber $wLabel',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 8.5,
                             fontWeight: FontWeight.bold,
-                            color: isPresent
-                                ? AppColors.ragGreen
-                                : isCasualLeave
-                                    ? AppColors.sandGold
-                                    : AppColors.textMuted,
+                            color: textColor,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
-                        Icon(
-                          isPresent
-                              ? Icons.check
-                              : isCasualLeave
-                                  ? Icons.beach_access
-                                  : Icons.schedule,
-                          size: 13,
-                          color: isPresent
-                              ? AppColors.ragGreen
-                              : isCasualLeave
-                                  ? AppColors.sandGold
-                                  : AppColors.textMuted,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(icon, size: 10, color: textColor),
+                            const SizedBox(width: 2),
+                            Text(
+                              statusTag,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   );
-                }),
+                }).toList(),
               ),
               const SizedBox(height: 12),
+
+              // Legend
+              Wrap(
+                spacing: 12,
+                runSpacing: 6,
+                children: [
+                  _legendPill(label: 'Present (P)', color: AppColors.ragGreen),
+                  _legendPill(label: 'Tuesday Overtime (OT)', color: const Color(0xFF8B5CF6)),
+                  _legendPill(label: 'Tuesday Week-off (OFF)', color: const Color(0xFF94A3B8)),
+                  _legendPill(label: 'Absent (A)', color: const Color(0xFFEF4444)),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Info Banner explaining Tuesday Week-off & Overtime
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -838,7 +1251,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'You need at least 90% attendance (24 out of 26 days) to keep a Green status.',
+                        'Full calendar tracking (Jan–Dec, 28-31 days). Tuesday is the company week-off; any attendance punched on Tuesday is strictly recorded as Overtime (OT). Each calendar day is logged.',
                         style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandLight),
                       ),
                     ),
@@ -852,96 +1265,155 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
+  Widget _legendPill({required String label, required Color color}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppColors.sandLight,
+          ),
+        ),
+      ],
+    );
+  }
+
   // --- SUBSYSTEM 2: GROOMING & ATTIRE ---
 
   Widget _buildGroomingSection(BuildContext context, EcosystemProvider provider) {
+    final emp = provider.currentEmployee;
+    final isFemale = emp.isFemale;
+    final dailyPoints = provider.getEmployeeGroomingDailyPoints(emp.id);
+    final percentage = provider.getEmployeeGroomingPercentage(emp.id);
+    final checklist = isFemale
+        ? EcosystemProvider.getFemaleGroomingChecklist()
+        : EcosystemProvider.getMaleGroomingChecklist();
+
+    final audits = provider.getEmployeeGroomingAudits(emp.id);
+    final hasAudit = audits.isNotEmpty;
+    final latestAudit = hasAudit ? audits.first : null;
+    final followedSet = latestAudit != null && latestAudit.followedItems.isNotEmpty
+        ? latestAudit.followedItems.toSet()
+        : <String>{};
+
+    final isCompliant = hasAudit && percentage >= 80;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Grooming Score Overview Card
-        Container(
+        // 1. Grooming Score Overview Card (Converted into Percentage & 50 Pts Max)
+        LiquidGlassCard(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
+          borderRadius: 18,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 6,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'GROOMING AUDIT',
-                          style: GoogleFonts.cinzel(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandGold,
-                            letterSpacing: 0.6,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.dry_cleaning_outlined, size: 18, color: AppColors.magentaPrimary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'GROOMING COMPLIANCE',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                          letterSpacing: 0.3,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Attire Standards',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
-                            color: AppColors.textMuted,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.sandGold.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.sandGold),
+                      color: !hasAudit
+                          ? const Color(0xFFF1F5F9)
+                          : (isCompliant ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2)),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: !hasAudit
+                            ? const Color(0xFFE2E8F0)
+                            : (isCompliant ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3)),
+                      ),
                     ),
                     child: Text(
-                      '${provider.groomingScore} / 100',
-                      style: GoogleFonts.cinzel(
-                        fontSize: 13,
+                      hasAudit ? '${percentage.toStringAsFixed(0)}% ($dailyPoints/50)' : 'Pending HR Audit',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.sandGold,
+                        color: !hasAudit
+                            ? AppColors.textSecondary
+                            : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
+              Text(
+                'Evaluated across 5 daily criteria (10 pts each, 50 pts max) and converted into compliance percentage.',
+                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 14),
 
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
-                  value: (provider.groomingScore / 100.0).clamp(0.0, 1.0),
+                  value: hasAudit ? (percentage / 100.0).clamp(0.0, 1.0) : 0.0,
                   minHeight: 8,
-                  backgroundColor: AppColors.burgundySurface,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.sandGold),
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isCompliant ? AppColors.magentaPrimary : const Color(0xFFEF4444),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
 
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.verified, size: 14, color: AppColors.ragGreen),
+                  Icon(
+                    !hasAudit
+                        ? Icons.hourglass_top
+                        : (isCompliant ? Icons.verified : Icons.info_outline),
+                    size: 15,
+                    color: !hasAudit
+                        ? AppColors.textMuted
+                        : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
+                  ),
                   const SizedBox(width: 6),
-                  Text(
-                    'Exemplary Showroom Grooming Standard (Grade A)',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.sandLight,
+                  Expanded(
+                    child: Text(
+                      !hasAudit
+                          ? 'Pending Daily Floor Audit by HR'
+                          : (percentage >= 100
+                              ? 'Exemplary Showroom Grooming Standard (100% Compliant)'
+                              : (isCompliant
+                                  ? 'Approved Daily Attire (${percentage.toStringAsFixed(0)}% • $dailyPoints/50 Pts)'
+                                  : 'Attire Standard Attention Needed (${percentage.toStringAsFixed(0)}%)')),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: !hasAudit
+                            ? AppColors.textSecondary
+                            : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
+                      ),
                     ),
                   ),
                 ],
@@ -951,75 +1423,23 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         ),
         const SizedBox(height: 14),
 
-        // Showroom Dress Code Standards Checklist
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.burgundySurface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'SHOWROOM ATTIRE CRITERIA CHECKLIST',
-                style: GoogleFonts.cinzel(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.sandLight,
-                ),
-              ),
-              const SizedBox(height: 10),
-              _groomingCheckItem(
-                title: 'Professional Haircut & Clean Shave',
-                subtitle: 'Tapered hairline, formal side-part, neatly groomed mustache/beard',
-                isCompliant: true,
-              ),
-              const Divider(color: AppColors.sandBorder, height: 14),
-              _groomingCheckItem(
-                title: 'Showroom Formal Uniform & Blazer',
-                subtitle: 'Steam-ironed navy/burgundy blazer, crisp white shirt & tailored trousers',
-                isCompliant: true,
-              ),
-              const Divider(color: AppColors.sandBorder, height: 14),
-              _groomingCheckItem(
-                title: 'Gold Lapel Pin & Showroom ID',
-                subtitle: 'Hallmarked MN insignia pinned on left lapel + magnetic photo ID',
-                isCompliant: true,
-              ),
-              const Divider(color: AppColors.sandBorder, height: 14),
-              _groomingCheckItem(
-                title: 'Polished Black Leather Oxford Footwear',
-                subtitle: 'High-gloss formal leather shoes, matched dark socks, zero scuffs',
-                isCompliant: true,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Real-Time HR Attire Audit Log
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
+        // 2. Today's Attire Criteria Breakdown (5 items x 10 pts = 50 pts)
+        LiquidGlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: 18,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
-                      'ATTIRE LEDGER',
-                      style: GoogleFonts.cinzel(
+                      isFemale ? "TODAY'S SAREE & ATTIRE CHECKLIST" : "TODAY'S FORMAL ATTIRE CHECKLIST",
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.sandGold,
+                        color: AppColors.textDark,
+                        letterSpacing: 0.3,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1027,17 +1447,103 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'By HR Meera',
+                    '50 Pts Max',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9.5,
-                      color: AppColors.textMuted,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.magentaPrimary,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
 
-              if (provider.groomingAudits.isEmpty)
+              ...checklist.map((item) {
+                final isFollowed = followedSet.contains(item);
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isFollowed ? const Color(0xFFF8FAFC) : const Color(0xFFFFF1F2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isFollowed ? const Color(0xFFE2E8F0) : const Color(0xFFFECDD3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isFollowed ? Icons.check_circle : Icons.cancel_outlined,
+                        size: 16,
+                        color: isFollowed ? const Color(0xFF059669) : const Color(0xFFE11D48),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: isFollowed ? FontWeight.w600 : FontWeight.normal,
+                            color: isFollowed ? AppColors.textDark : const Color(0xFF9F1239),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isFollowed ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          isFollowed ? '+10 Pts' : '0 Pts',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            color: isFollowed ? const Color(0xFF059669) : const Color(0xFFE11D48),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 3. Real-Time HR Attire Audit History
+        LiquidGlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: 18,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'HR GROOMING AUDIT HISTORY',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDark,
+                        letterSpacing: 0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${audits.length} Records',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              if (audits.isEmpty)
                 Text(
                   'No grooming audits recorded yet.',
                   style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
@@ -1046,20 +1552,20 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: provider.groomingAudits.length,
+                  itemCount: audits.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                   itemBuilder: (ctx, idx) {
-                    final audit = provider.groomingAudits[idx];
-                    final isPositive = audit.pointsChange >= 0;
+                    final audit = audits[idx];
+                    final auditPercent = audit.percentage;
+                    final isGood = auditPercent >= 80;
+
                     return Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.burgundySurface,
+                        color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isPositive
-                              ? AppColors.ragGreen.withOpacity(0.3)
-                              : const Color(0xFFEF4444).withOpacity(0.3),
+                          color: isGood ? const Color(0xFFE2E8F0) : const Color(0xFFFECDD3),
                         ),
                       ),
                       child: Row(
@@ -1067,17 +1573,17 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: isPositive
-                                  ? AppColors.ragGreen.withOpacity(0.2)
-                                  : const Color(0xFFEF4444).withOpacity(0.2),
+                              color: isGood ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              isPositive ? '+${audit.pointsChange} Pts' : '${audit.pointsChange} Pts',
+                              '${auditPercent.toStringAsFixed(0)}%\n${audit.pointsEarned}/50',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
-                                color: isPositive ? AppColors.ragGreen : const Color(0xFFEF4444),
+                                color: isGood ? const Color(0xFF059669) : const Color(0xFFE11D48),
+                                height: 1.1,
                               ),
                             ),
                           ),
@@ -1089,77 +1595,46 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                 Text(
                                   audit.category,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.sandLight,
+                                    color: AppColors.textDark,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   audit.reason,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
-                                    color: AppColors.textMuted,
+                                    fontSize: 10,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            audit.auditedBy.split(' ').first,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
-                              color: AppColors.sandGold,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                audit.dateFormatted,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 9, color: AppColors.textMuted),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                audit.auditedBy.split(' ').first,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 9.5,
+                                  color: AppColors.magentaPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     );
                   },
                 ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _groomingCheckItem({
-    required String title,
-    required String subtitle,
-    required bool isCompliant,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          isCompliant ? Icons.check_circle : Icons.warning_amber_rounded,
-          size: 16,
-          color: isCompliant ? AppColors.ragGreen : const Color(0xFFEF4444),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.sandLight,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  color: AppColors.textMuted,
-                ),
-              ),
             ],
           ),
         ),
@@ -1198,7 +1673,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       children: [
                         Text(
                           'SALES TARGET',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -1296,7 +1771,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             children: [
               Text(
                 'SHOWROOM TRANSACTIONS & BILLS LOG',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandLight,
@@ -1356,7 +1831,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                     ),
                                     Text(
                                       '₹${(sale.amountInInr / 100000).toStringAsFixed(2)} Lakhs',
-                                      style: GoogleFonts.cinzel(
+                                      style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.sandGold,
@@ -1426,7 +1901,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ),
           title: Text(
             'Record Showroom Customer Sale',
-            style: GoogleFonts.cinzel(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -1546,7 +2021,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       children: [
                         Text(
                           'PERMISSION & LEAVES',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -1683,7 +2158,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             children: [
               Text(
                 'LOGGED PERMISSION & ARRIVAL REQUESTS',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandLight,
@@ -1795,7 +2270,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             ),
             title: Text(
               'Request Permission / Late Arrival',
-              style: GoogleFonts.cinzel(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+              style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
             ),
             content: SingleChildScrollView(
               child: Column(
@@ -1819,11 +2294,18 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 6),
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: isSel ? AppColors.sandGold.withOpacity(0.2) : AppColors.burgundySurface,
+                                color: isSel ? AppColors.magentaPrimary : AppColors.cardSurface,
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: isSel ? AppColors.sandGold : AppColors.sandBorder),
+                                border: Border.all(color: isSel ? AppColors.magentaPrimary : AppColors.sandBorder),
                               ),
-                              child: Text('${h}h', style: TextStyle(fontSize: 11, color: isSel ? AppColors.sandGold : AppColors.sandLight)),
+                              child: Text(
+                                '${h}h',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSel ? Colors.white : AppColors.textDark,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -1846,11 +2328,18 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 6),
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: isSel ? AppColors.sandGold.withOpacity(0.2) : AppColors.burgundySurface,
+                                color: isSel ? AppColors.magentaPrimary : AppColors.cardSurface,
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: isSel ? AppColors.sandGold : AppColors.sandBorder),
+                                border: Border.all(color: isSel ? AppColors.magentaPrimary : AppColors.sandBorder),
                               ),
-                              child: Text('${h}h', style: TextStyle(fontSize: 11, color: isSel ? AppColors.sandGold : AppColors.sandLight)),
+                              child: Text(
+                                '${h}h',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSel ? Colors.white : AppColors.textDark,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -1965,7 +2454,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       children: [
                         Text(
                           'ETHICS & ASSAY',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -1994,7 +2483,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     child: Text(
                       '${provider.conductScore} / 5.0',
                       maxLines: 1,
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.ragGreen,
@@ -2063,7 +2552,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Expanded(
                 child: Text(
                   'VAULT COMPLIANCE',
-                  style: GoogleFonts.cinzel(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandGold,
@@ -2154,7 +2643,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: color,
@@ -2182,14 +2671,14 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
+        color: AppColors.pureWhite,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.sandBorder, width: 1.2),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Color(0x060F172A),
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -2202,15 +2691,15 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(Icons.fact_check_outlined, color: AppColors.sandGold, size: 18),
+                    const Icon(Icons.fact_check_outlined, color: AppColors.magentaPrimary, size: 18),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         'Custody Registry',
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.sandLight,
+                          color: AppColors.textDark,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -2227,14 +2716,12 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.sandGold, AppColors.sandPrimary],
-                    ),
+                    color: AppColors.magentaPrimary,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.sandGold.withOpacity(0.3),
-                        blurRadius: 8,
+                        color: AppColors.magentaPrimary.withOpacity(0.25),
+                        blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -2242,14 +2729,14 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.add_circle, color: AppColors.burgundyBg, size: 16),
+                      const Icon(Icons.add_circle, color: Colors.white, size: 15),
                       const SizedBox(width: 4),
                       Text(
                         'Add Certificate',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.burgundyBg,
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -2263,24 +2750,24 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             'Select prefilled standard company originals or add custom ones via the + button:',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              color: AppColors.textMuted,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 12),
 
           // PREFILLED DROPDOWN
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3),
             decoration: BoxDecoration(
-              color: AppColors.burgundySurface,
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                dropdownColor: AppColors.burgundySurface,
-                icon: const Icon(Icons.arrow_drop_down, color: AppColors.sandGold),
+                dropdownColor: AppColors.pureWhite,
+                icon: const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
                 value: _selectedDropdownDoc,
                 items: DocumentTemplates.standardOptions.map((opt) {
                   final title = opt['title']!;
@@ -2296,7 +2783,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             title,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: AppColors.sandLight,
+                              color: AppColors.textDark,
                               fontWeight: FontWeight.w500,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -2341,131 +2828,183 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
     final isAlreadyPresent = existingDoc.id.isNotEmpty;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyPrimary.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.sandBorder),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isAlreadyPresent ? 'Current Vault Status:' : 'Not in Vault Ledger yet',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                if (isAlreadyPresent)
-                  Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: existingDoc.statusColor,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        existingDoc.statusLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: existingDoc.statusColor,
-                        ),
-                      ),
-                    ],
-                  )
-                else
+    if (isAlreadyPresent) {
+      final isSubmitted = existingDoc.status == DocumentSubmissionStatus.submitted;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSubmitted ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSubmitted ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: isSubmitted ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isSubmitted ? Icons.check_circle_outline : Icons.pending_outlined,
+                size: 16,
+                color: isSubmitted ? const Color(0xFF16A34A) : const Color(0xFFD97706),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    'Ready to deposit into safe vault',
+                    isSubmitted ? 'Already Deposited in Vault' : 'Tracked as Pending in Vault',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.sandLight,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isSubmitted ? const Color(0xFF166534) : const Color(0xFF92400E),
                     ),
                   ),
-              ],
+                  const SizedBox(height: 1),
+                  Text(
+                    '${existingDoc.vaultLockerRef} • Status: ${existingDoc.statusLabel}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      color: isSubmitted ? const Color(0xFF15803D) : const Color(0xFFB45309),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          if (isAlreadyPresent)
-            OutlinedButton.icon(
-              icon: Icon(
-                existingDoc.status == DocumentSubmissionStatus.submitted
-                    ? Icons.remove_circle_outline
-                    : Icons.check_circle_outline,
-                size: 14,
-                color: AppColors.sandGold,
-              ),
-              label: Text(
-                existingDoc.status == DocumentSubmissionStatus.submitted ? 'Mark Pending' : 'Mark Submitted',
-                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.sandGold),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              ),
-              onPressed: () {
+            const SizedBox(width: 8),
+            // Clean neutral toggle button
+            InkWell(
+              onTap: () {
                 final newStatus = existingDoc.status == DocumentSubmissionStatus.submitted
                     ? DocumentSubmissionStatus.pending
                     : DocumentSubmissionStatus.submitted;
                 provider.updateOriginalDocumentStatus(existingDoc.id, newStatus);
               },
-            )
-          else
-            ElevatedButton.icon(
-              icon: const Icon(Icons.file_upload_outlined, size: 14, color: AppColors.burgundyBg),
-              label: Text(
-                'Submit to Vault',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.burgundyBg,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSubmitted ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSubmitted ? const Color(0xFF86EFAC) : const Color(0xFFFCD34D),
+                  ),
+                ),
+                child: Text(
+                  isSubmitted ? 'Mark Pending' : 'Mark Submitted',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: isSubmitted ? const Color(0xFF166534) : const Color(0xFF92400E),
+                  ),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-              onPressed: () {
-                final selectedTemplate = DocumentTemplates.standardOptions.firstWhere(
-                  (t) => t['title'] == _selectedDropdownDoc,
-                  orElse: () => {
-                    'title': _selectedDropdownDoc!,
-                    'category': 'Academic Record',
-                    'emoji': '📜',
-                  },
-                );
-
-                provider.addOriginalDocument(
-                  title: selectedTemplate['title']!,
-                  category: selectedTemplate['category'] ?? 'Academic Record',
-                  certificateNumber: 'CERT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-                  status: DocumentSubmissionStatus.submitted,
-                  vaultLockerRef: 'Safe Vault Locker #B-14',
-                  isMandatory: selectedTemplate['mandatory'] == 'true',
-                  iconEmoji: selectedTemplate['emoji'] ?? '📜',
-                );
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFF10B981),
-                    content: Text('${selectedTemplate['title']} added and deposited in safe vault!'),
-                  ),
-                );
-              },
             ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.magentaSubtle,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.inventory_2_outlined,
+              size: 16,
+              color: AppColors.magentaPrimary,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Not in Vault Ledger yet',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  'Ready to deposit into safe vault locker',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.file_upload_outlined, size: 14, color: Colors.white),
+            label: Text(
+              'Submit to Vault',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.magentaPrimary,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () {
+              final selectedTemplate = DocumentTemplates.standardOptions.firstWhere(
+                (t) => t['title'] == _selectedDropdownDoc,
+                orElse: () => {
+                  'title': _selectedDropdownDoc!,
+                  'category': 'Academic Record',
+                  'emoji': '📜',
+                },
+              );
+
+              provider.addOriginalDocument(
+                title: selectedTemplate['title']!,
+                category: selectedTemplate['category'] ?? 'Academic Record',
+                certificateNumber: 'CERT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+                status: DocumentSubmissionStatus.submitted,
+                vaultLockerRef: 'Safe Vault Locker #B-14',
+                isMandatory: selectedTemplate['mandatory'] == 'true',
+                iconEmoji: selectedTemplate['emoji'] ?? '📜',
+              );
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: const Color(0xFF10B981),
+                  content: Text('${selectedTemplate['title']} added and deposited in safe vault!'),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -2481,10 +3020,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             Expanded(
               child: Text(
                 'VAULT LEDGER',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12.5,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.sandGold,
+                  color: AppColors.textDark,
                   letterSpacing: 0.6,
                 ),
                 maxLines: 1,
@@ -2520,26 +3059,28 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   Widget _filterChip(String label, int count, {Color? activeColor}) {
     final isSelected = _activeFilter == label;
-    final highlight = activeColor ?? AppColors.sandGold;
+    final color = activeColor ?? AppColors.magentaPrimary;
 
     return InkWell(
       onTap: () => setState(() => _activeFilter = label),
       borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? highlight.withOpacity(0.2) : AppColors.burgundySurface,
+          color: isSelected ? (activeColor != null ? color.withOpacity(0.12) : const Color(0xFFFFF1F4)) : AppColors.pureWhite,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? highlight : AppColors.sandBorder,
+            color: isSelected ? color : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.4 : 1.0,
           ),
         ),
         child: Text(
           '$label ($count)',
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? highlight : AppColors.textMuted,
+            fontSize: 10.5,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? color : AppColors.textSecondary,
           ),
         ),
       ),
@@ -2547,215 +3088,287 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   }
 
   Widget _buildDocumentCard(BuildContext context, EcosystemProvider provider, OriginalDocumentItem doc) {
+    final isSubmitted = doc.status == DocumentSubmissionStatus.submitted;
+    final isVerifying = doc.status == DocumentSubmissionStatus.verifying;
+
+    final statusColor = doc.statusColor;
+    final statusBgColor = isSubmitted
+        ? const Color(0xFFF0FDF4)
+        : (isVerifying ? const Color(0xFFFFFBEB) : const Color(0xFFFFF1F2));
+    final statusBorderColor = isSubmitted
+        ? const Color(0xFFBBF7D0)
+        : (isVerifying ? const Color(0xFFFDE68A) : const Color(0xFFFECDD3));
+
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
+        color: AppColors.pureWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: doc.status == DocumentSubmissionStatus.submitted
-              ? const Color(0xFF10B981).withOpacity(0.4)
-              : const Color(0xFFEF4444).withOpacity(0.4),
+          color: isSubmitted ? const Color(0xFFE2E8F0) : const Color(0xFFFECDD3),
           width: 1.1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Color(0x060F172A),
+            blurRadius: 10,
+            offset: Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.sandBorder),
+          // 1. Top Section: Emoji Icon, Title, Mandatory Tag, Category & Certificate No
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Emoji Icon Container
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: isSubmitted ? const Color(0xFFECFDF5) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSubmitted ? const Color(0xFFA7F3D0) : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(doc.iconEmoji, style: const TextStyle(fontSize: 20)),
+                  ),
                 ),
-                child: Center(
-                  child: Text(doc.iconEmoji, style: const TextStyle(fontSize: 18)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            doc.title,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandLight,
-                            ),
-                          ),
-                        ),
-                        if (doc.isMandatory)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                            decoration: BoxDecoration(
-                              color: AppColors.sandGold.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
-                            ),
-                            child: const Text(
-                              'MANDATORY',
-                              style: TextStyle(
-                                fontSize: 8.5,
+                const SizedBox(width: 12),
+
+                // Document Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              doc.title,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.sandGold,
+                                color: AppColors.textDark,
+                                height: 1.25,
                               ),
                             ),
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${doc.category} • Cert #: ${doc.certificateNumber}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: AppColors.sandPrimary,
+                          if (doc.isMandatory) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF1F2),
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: const Color(0xFFFFE4E6)),
+                              ),
+                              child: Text(
+                                'MANDATORY',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.magentaPrimary,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Divider(color: AppColors.sandBorder, height: 1),
-          const SizedBox(height: 8),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Vault Locker & Date Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.lock_outline, size: 12, color: AppColors.textMuted),
-                        const SizedBox(width: 4),
-                        Text(
-                          doc.vaultLockerRef,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            color: AppColors.textMuted,
+                      const SizedBox(height: 5),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          Text(
+                            doc.category,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Submitted on: ${doc.submissionDate}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        color: AppColors.textMuted,
+                          if (doc.certificateNumber.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Cert #: ${doc.certificateNumber}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF475569),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Interactive Status Pill / Toggle
-              PopupMenuButton<DocumentSubmissionStatus>(
-                color: AppColors.burgundySurface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.sandBorder),
-                ),
-                initialValue: doc.status,
-                onSelected: (newStatus) {
-                  provider.updateOriginalDocumentStatus(doc.id, newStatus);
-                },
-                itemBuilder: (ctx) => [
-                  PopupMenuItem(
-                    value: DocumentSubmissionStatus.submitted,
-                    child: Row(
-                      children: const [
-                        Icon(Icons.check_circle, color: Color(0xFF10B981), size: 16),
-                        SizedBox(width: 8),
-                        Text('Submitted (Vault)', style: TextStyle(color: Color(0xFF10B981), fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: DocumentSubmissionStatus.pending,
-                    child: Row(
-                      children: const [
-                        Icon(Icons.pending, color: Color(0xFFEF4444), size: 16),
-                        SizedBox(width: 8),
-                        Text('Pending Submission', style: TextStyle(color: Color(0xFFEF4444), fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: DocumentSubmissionStatus.verifying,
-                    child: Row(
-                      children: const [
-                        Icon(Icons.hourglass_top, color: Color(0xFFF59E0B), size: 16),
-                        SizedBox(width: 8),
-                        Text('Under Verification', style: TextStyle(color: Color(0xFFF59E0B), fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                ],
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: doc.statusColor.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: doc.statusColor.withOpacity(0.5)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: doc.statusColor,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        doc.statusLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: doc.statusColor,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.arrow_drop_down, size: 14, color: doc.statusColor),
                     ],
                   ),
                 ),
-              ),
+              ],
+            ),
+          ),
 
-              const SizedBox(width: 4),
-              // Delete icon for custom items
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.textMuted),
-                onPressed: () => _confirmDeleteDocument(context, provider, doc),
-              ),
-            ],
+          // 2. Metadata Strip (Vault Locker & Submission Date & Time)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            color: const Color(0xFFF8FAFC),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 4,
+              children: [
+                // Safe Vault Locker reference
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_outline, size: 13, color: AppColors.textMuted),
+                    const SizedBox(width: 5),
+                    Text(
+                      doc.vaultLockerRef.isNotEmpty ? doc.vaultLockerRef : 'Safe Vault Locker #B-14',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                // Submission Date & Time
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time_rounded, size: 12, color: AppColors.textMuted),
+                    const SizedBox(width: 4),
+                    Text(
+                      doc.submissionDate.isNotEmpty ? 'Date: ${doc.submissionDate}' : 'Date: Pending',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
+
+          // 3. Action Footer: Status Selector Pill (Left) & Delete Icon (Right)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Interactive Status Dropdown Menu
+                PopupMenuButton<DocumentSubmissionStatus>(
+                  color: AppColors.pureWhite,
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  initialValue: doc.status,
+                  onSelected: (newStatus) {
+                    provider.updateOriginalDocumentStatus(doc.id, newStatus);
+                  },
+                  itemBuilder: (ctx) => [
+                    PopupMenuItem(
+                      value: DocumentSubmissionStatus.submitted,
+                      child: Row(
+                        children: const [
+                          Icon(Icons.check_circle, color: Color(0xFF10B981), size: 16),
+                          SizedBox(width: 8),
+                          Text('Submitted (In Safe Vault)', style: TextStyle(color: Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: DocumentSubmissionStatus.pending,
+                      child: Row(
+                        children: const [
+                          Icon(Icons.schedule, color: Color(0xFFEF4444), size: 16),
+                          SizedBox(width: 8),
+                          Text('Pending Submission', style: TextStyle(color: Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: DocumentSubmissionStatus.verifying,
+                      child: Row(
+                        children: const [
+                          Icon(Icons.hourglass_top, color: Color(0xFFF59E0B), size: 16),
+                          SizedBox(width: 8),
+                          Text('Under Verification', style: TextStyle(color: Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: statusBgColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: statusBorderColor),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: statusColor,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isSubmitted ? 'Submitted (In Safe Vault)' : doc.statusLabel,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_drop_down, size: 16, color: statusColor),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Delete Action Button
+                InkWell(
+                  onTap: () => _confirmDeleteDocument(context, provider, doc),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: const Icon(Icons.delete_outline, size: 16, color: Color(0xFF94A3B8)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -2766,27 +3379,27 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
+        color: AppColors.pureWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.sandBorder),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Center(
         child: Column(
           children: [
-            const Icon(Icons.folder_off_outlined, color: AppColors.sandGold, size: 36),
+            const Icon(Icons.folder_off_outlined, color: AppColors.magentaPrimary, size: 36),
             const SizedBox(height: 8),
             Text(
               'No documents found in this filter',
-              style: GoogleFonts.cinzel(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: AppColors.sandLight,
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Select from dropdown above or click the + button to add.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -2796,20 +3409,19 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   Widget _buildPillar4Gateway(BuildContext context, EcosystemProvider provider) {
     final tier = provider.holisticTierLevel;
-    final color = provider.holisticTierColor;
     final tierName = provider.holisticTierName;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.burgundyPrimary,
+        color: AppColors.pureWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-        boxShadow: [
+        border: Border.all(color: AppColors.magentaBorder, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: color.withOpacity(0.25),
+            color: Color(0x0A0F172A),
             blurRadius: 18,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -2822,7 +3434,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Flexible(
                 child: LiquidGlassPill(
                   label: 'GREEN FACTOR',
-                  color: AppColors.sandGold,
+                  color: AppColors.magentaPrimary,
                   icon: Icons.light_mode,
                 ),
               ),
@@ -2830,28 +3442,28 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: tier == PillarTierLevel.green ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: color.withOpacity(0.6)),
+                  border: Border.all(color: tier == PillarTierLevel.green ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3)),
                 ),
                 child: Text(
                   tier == PillarTierLevel.green ? 'CRITERIA MET' : 'PENDING',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 9.5,
                     fontWeight: FontWeight.bold,
-                    color: color,
+                    color: tier == PillarTierLevel.green ? const Color(0xFF059669) : AppColors.ragRed,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             'How Documents Affect Your Status',
-            style: GoogleFonts.cinzel(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 14.5,
               fontWeight: FontWeight.bold,
-              color: AppColors.sandLight,
+              color: AppColors.textDark,
             ),
           ),
           const SizedBox(height: 4),
@@ -2859,22 +3471,25 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             'Submitting your original documents helps you maintain a Green status ($tierName). Keeping all required documents safely submitted ensures your status stays green.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              color: AppColors.sandPrimary,
+              color: AppColors.textSecondary,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           ElevatedButton.icon(
-            icon: const Icon(Icons.radar_outlined, size: 16, color: AppColors.burgundyBg),
+            icon: const Icon(Icons.radar_outlined, size: 16, color: Colors.white),
             label: Text(
               'Check Your Overall Status',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: AppColors.burgundyBg,
+                color: Colors.white,
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sandGold,
+              backgroundColor: AppColors.magentaPrimary,
+              foregroundColor: Colors.white,
+              elevation: 0,
               minimumSize: const Size.fromHeight(42),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -2918,21 +3533,21 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
-          backgroundColor: AppColors.burgundyCard,
+          backgroundColor: AppColors.pureWhite,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.sandGold, width: 1.2),
+            side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
           ),
           title: Row(
             children: [
-              const Icon(Icons.add_circle, color: AppColors.sandGold, size: 22),
+              const Icon(Icons.add_circle, color: AppColors.magentaPrimary, size: 22),
               const SizedBox(width: 10),
               Text(
                 'Add Original Document',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.sandLight,
+                  color: AppColors.textDark,
                 ),
               ),
             ],
@@ -2944,7 +3559,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               children: [
                 Text(
                   'Deposit original certificate record into company vault:',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 12),
 
@@ -2969,22 +3584,22 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 // Category dropdown
                 Text(
                   'Category',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.burgundySurface,
+                    color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.sandBorder),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       isExpanded: true,
-                      dropdownColor: AppColors.burgundySurface,
+                      dropdownColor: AppColors.pureWhite,
                       value: selectedCategory,
-                      items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, color: AppColors.sandLight)))).toList(),
+                      items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, color: AppColors.textDark)))).toList(),
                       onChanged: (val) {
                         if (val != null) setDlgState(() => selectedCategory = val);
                       },
@@ -3005,7 +3620,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 // Custody Status Selection
                 Text(
                   'Submission Status',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -3034,10 +3649,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 // Mandatory Switch
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  activeColor: AppColors.sandGold,
+                  activeColor: AppColors.magentaPrimary,
                   title: Text(
                     'Mandatory for Company Verification',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandLight),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
                   ),
                   value: isMandatory,
                   onChanged: (v) => setDlgState(() => isMandatory = v),
@@ -3046,7 +3661,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 // Emoji Picker
                 Text(
                   'Icon Emoji',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 6),
                 Wrap(
@@ -3058,9 +3673,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: isPicked ? AppColors.sandGold.withOpacity(0.3) : AppColors.burgundySurface,
+                          color: isPicked ? AppColors.magentaPrimary : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isPicked ? AppColors.sandGold : AppColors.sandBorder),
+                          border: Border.all(color: isPicked ? AppColors.magentaPrimary : const Color(0xFFE2E8F0)),
                         ),
                         child: Text(e, style: const TextStyle(fontSize: 16)),
                       ),
@@ -3073,11 +3688,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted)),
+              child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
+                backgroundColor: AppColors.magentaPrimary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {
@@ -3106,7 +3721,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 'Save to Vault',
                 style: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.burgundyBg,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -3127,26 +3742,26 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600),
+          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 4),
         TextField(
           controller: controller,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandLight),
+          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
           decoration: InputDecoration(
             isDense: true,
             hintText: hint,
             hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-            prefixIcon: Icon(icon, size: 16, color: AppColors.sandGold),
+            prefixIcon: Icon(icon, size: 16, color: AppColors.magentaPrimary),
             filled: true,
-            fillColor: AppColors.burgundySurface,
+            fillColor: const Color(0xFFF8FAFC),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.sandBorder),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.sandBorder),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
           ),
         ),
@@ -3167,16 +3782,16 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.25) : AppColors.burgundySurface,
+          color: selected ? color.withOpacity(0.15) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: selected ? color : AppColors.sandBorder, width: selected ? 1.5 : 1),
+          border: Border.all(color: selected ? color : const Color(0xFFE2E8F0), width: selected ? 1.5 : 1),
         ),
         child: Text(
           label,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 11,
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-            color: selected ? color : AppColors.sandLight,
+            color: selected ? color : AppColors.textDark,
           ),
         ),
       ),
@@ -3187,27 +3802,29 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.burgundyCard,
+        backgroundColor: AppColors.pureWhite,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.sandBorder),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         title: Text(
           'Remove Document Record?',
-          style: GoogleFonts.cinzel(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
         ),
         content: Text(
           'Are you sure you want to remove "${doc.title}" from the custody tracking registry?',
-          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted)),
+            child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () {
@@ -3217,7 +3834,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 const SnackBar(content: Text('Document record removed')),
               );
             },
-            child: const Text('Remove', style: TextStyle(color: Colors.white, fontSize: 12)),
+            child: const Text('Remove', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

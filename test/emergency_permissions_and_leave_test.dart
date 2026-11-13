@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/core/services/push_notification_service.dart';
 import 'package:mn_family_app/core/widgets/emergency_permission_modal.dart';
-import 'package:mn_family_app/core/widgets/emergency_medical_leave_modal.dart';
 import 'package:mn_family_app/core/widgets/prescription_viewer_dialog.dart';
 import 'package:mn_family_app/models/profile_pillar_models.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
@@ -13,6 +12,7 @@ import 'package:mn_family_app/views/pillars/attendance_pillar_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
 
   group('Emergency Permission Flow & 2-Hour Quota Tests', () {
     late EcosystemProvider provider;

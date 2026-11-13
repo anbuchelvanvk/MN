@@ -184,18 +184,107 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.burgundyBg,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+      backgroundColor: const Color(0xFFFAF5F8),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFF1F4), // Radiant soft rose blush
+              Color(0xFFFAF5FF), // Subtle luxury lilac
+              Color(0xFFF8FAFC), // Neutral crisp center
+              Color(0xFFFFF7ED), // Warm champagne gold
+              Color(0xFFFFEEF4), // Rich rose blush
+            ],
+            stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Ambient glowing gradient spheres for executive depth & warmth
+            Positioned(
+              top: -60,
+              left: -60,
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.magentaPrimary.withOpacity(0.18),
+                      AppColors.magentaPrimary.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: -60,
+              child: Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFC026D3).withOpacity(0.14),
+                      const Color(0xFFC026D3).withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -50,
+              left: -40,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFF59E0B).withOpacity(0.15),
+                      const Color(0xFFF59E0B).withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 80,
+              right: -50,
+              child: Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.magentaDark.withOpacity(0.12),
+                      AppColors.magentaDark.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Main content
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                   if (widget.isSwitchAccount) ...[
                     Align(
                       alignment: Alignment.centerLeft,
@@ -223,34 +312,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         Container(
-                          width: 72,
-                          height: 72,
+                          width: 80,
+                          height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.sandGold,
-                              width: 1.5,
+                              color: AppColors.magentaPrimary,
+                              width: 2.2,
                             ),
-                            color: AppColors.burgundySurface,
+                            color: Colors.black,
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.sandPrimary.withOpacity(0.2),
+                                color: AppColors.magentaPrimary.withOpacity(0.25),
                                 blurRadius: 20,
-                                offset: const Offset(0, 4),
+                                offset: const Offset(0, 6),
                               ),
                             ],
                           ),
                           child: ClipOval(
-                            child: Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: Image.asset(
-                                'assets/images/logo.png',
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___) => const Icon(
-                                  Icons.diamond_outlined,
-                                  color: AppColors.sandGold,
-                                  size: 34,
-                                ),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.diamond_outlined,
+                                color: AppColors.magentaPrimary,
+                                size: 38,
                               ),
                             ),
                           ),
@@ -258,7 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'MN JEWEL PARK',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandLight,
@@ -283,16 +369,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Login Form Liquid Glass Card
                   LiquidGlassCard(
-                    padding: const EdgeInsets.all(22),
+                    padding: const EdgeInsets.all(24),
                     borderRadius: 22,
-                    backgroundColor: AppColors.burgundyGlass,
-                    borderColor: AppColors.sandBorder,
+                    backgroundColor: Colors.white,
+                    borderColor: const Color(0xFFFCE7F3),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.isSwitchAccount ? 'Switch Account' : 'Sign In to Enterprise Portal',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandLight,
@@ -539,8 +625,11 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
+    ],
+  ),
+),
+);
+}
 
   void _showForgotPasswordDialog(BuildContext context) {
     showDialog(
@@ -554,7 +643,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(width: 8),
             Text(
               'Password Assistance',
-              style: GoogleFonts.cinzel(color: AppColors.sandLight, fontSize: 15, fontWeight: FontWeight.bold),
+              style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ],
         ),

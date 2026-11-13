@@ -57,20 +57,27 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(92);
+  @override
+  Size get preferredSize => const Size.fromHeight(84);
 
   @override
   Widget build(BuildContext context) {
-    final canPop = Navigator.canPop(context);
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.burgundyBg,
+        color: AppColors.pureWhite,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.sandBorder,
-            width: 1.2,
+            color: Color(0xFFF1F5F9),
+            width: 1.0,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x060F172A),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: SafeArea(
         bottom: false,
@@ -79,8 +86,8 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
           children: [
             // Top Executive Identity & Switch Strip
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              color: AppColors.burgundySurface,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3.5),
+              color: AppColors.pureWhite,
               child: Row(
                 children: [
                   Expanded(
@@ -96,21 +103,21 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       child: Row(
                         children: [
                           Container(
-                            width: 7,
-                            height: 7,
+                            width: 6,
+                            height: 6,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: roleColor,
                             ),
                           ),
-                          const SizedBox(width: 7),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               userName,
                               style: const TextStyle(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.sandLight,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textDark,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -123,23 +130,23 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                   InkWell(
                     onTap: () => _handleSwitchRole(context),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.8),
+                        color: AppColors.magentaSubtle,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.magentaBorder, width: 0.8),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          FaIcon(FontAwesomeIcons.rightLeft, size: 9, color: AppColors.sandPrimary),
+                          FaIcon(FontAwesomeIcons.rightLeft, size: 8.5, color: AppColors.magentaPrimary),
                           SizedBox(width: 4),
                           Text(
                             'Switch Role',
                             style: TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandPrimary,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.magentaPrimary,
                             ),
                           ),
                         ],
@@ -152,50 +159,41 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
 
             // Main Brand and Actions Hub
             Padding(
-              padding: EdgeInsets.only(
-                left: canPop ? 4 : 12,
+              padding: const EdgeInsets.only(
+                left: 12,
                 right: 12,
-                top: 3,
-                bottom: 4,
+                top: 2,
+                bottom: 6,
               ),
               child: Row(
                 children: [
-                  if (canPop) ...[
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: AppColors.sandGold),
-                      onPressed: () => Navigator.pop(context),
-                      tooltip: 'Back',
-                    ),
-                    const SizedBox(width: 2),
-                  ],
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.sandGold.withOpacity(0.6),
-                        width: 1.1,
+                        color: AppColors.magentaPrimary.withOpacity(0.5),
+                        width: 1.2,
                       ),
-                      color: AppColors.burgundySurface,
+                      color: Colors.black,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.sandPrimary.withOpacity(0.2),
-                          blurRadius: 6,
+                          color: AppColors.magentaPrimary.withOpacity(0.18),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: BorderRadius.circular(9),
                       child: Image.asset(
                         'assets/images/logo.png',
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.diamond_outlined,
-                          color: AppColors.sandPrimary,
-                          size: 16,
+                          color: AppColors.magentaPrimary,
+                          size: 18,
                         ),
                       ),
                     ),
@@ -208,10 +206,10 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         Text(
                           'MN JEWEL PARK',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
+                            color: AppColors.textDark,
                             letterSpacing: 0.8,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -221,7 +219,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                           style: TextStyle(
                             fontSize: 8.5,
                             letterSpacing: 1.1,
-                            color: AppColors.sandPrimary,
+                            color: AppColors.magentaPrimary,
                             fontWeight: FontWeight.w700,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -251,18 +249,18 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   width: 34,
                                   height: 34,
                                   decoration: BoxDecoration(
-                                    color: AppColors.burgundySurface,
+                                    color: AppColors.pureWhite,
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
                                       color: unread > 0
-                                          ? const Color(0xFFEF4444).withOpacity(0.7)
-                                          : AppColors.sandGold.withOpacity(0.5),
+                                          ? AppColors.ragRed
+                                          : AppColors.magentaPrimary.withOpacity(0.35),
                                       width: 1.1,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.25),
-                                        blurRadius: 4,
+                                        color: AppColors.magentaPrimary.withOpacity(0.1),
+                                        blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
@@ -271,7 +269,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                     child: Icon(
                                       Icons.menu_rounded,
                                       size: 20,
-                                      color: AppColors.sandGold,
+                                      color: AppColors.magentaPrimary,
                                     ),
                                   ),
                                 ),
@@ -285,9 +283,9 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   width: 8,
                                   height: 8,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEF4444),
+                                    color: AppColors.ragRed,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: AppColors.burgundyBg, width: 1.2),
+                                    border: Border.all(color: AppColors.pureWhite, width: 1.2),
                                   ),
                                 ),
                               ),
@@ -318,12 +316,19 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
       builder: (ctx) {
         final content = Container(
           decoration: BoxDecoration(
-            color: AppColors.burgundySurface,
+            color: AppColors.pureWhite,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             border: Border.all(
-              color: AppColors.sandGold.withOpacity(0.4),
+              color: AppColors.sandBorder,
               width: 1.0,
             ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A991B52),
+                blurRadius: 24,
+                offset: Offset(0, -4),
+              ),
+            ],
           ),
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
           child: SafeArea(
@@ -349,41 +354,57 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 // User Identity Header with Close Button
                 Row(
                   children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: roleColor.withOpacity(0.18),
-                        border: Border.all(color: roleColor.withOpacity(0.5), width: 1),
-                      ),
-                      child: Icon(roleIcon, size: 18, color: roleColor),
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userName,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandLight,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: roleColor.withOpacity(0.18),
+                                border: Border.all(color: roleColor.withOpacity(0.5), width: 1),
+                              ),
+                              child: Icon(roleIcon, size: 18, color: roleColor),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            roleName,
-                            style: GoogleFonts.cinzel(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandGold,
-                              letterSpacing: 0.5,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userName,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.sandLight,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    roleName,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.sandGold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     IconButton(
@@ -561,13 +582,13 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                     decoration: BoxDecoration(
                       color: isDestructive
                           ? const Color(0xFFEF4444).withOpacity(0.12)
-                          : AppColors.burgundyCard,
+                          : AppColors.magentaSubtle,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: isDestructive
                             ? const Color(0xFFEF4444).withOpacity(0.35)
-                            : AppColors.sandBorder.withOpacity(0.6),
-                        width: 0.8,
+                            : AppColors.sandBorder,
+                        width: 1.0,
                       ),
                     ),
                     child: Center(
@@ -590,7 +611,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
-                                color: isDestructive ? const Color(0xFFEF4444) : AppColors.sandLight,
+                                color: isDestructive ? const Color(0xFFEF4444) : AppColors.textDark,
                               ),
                             ),
                             if (badgeText != null) ...[
@@ -618,7 +639,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                           subtitle,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10,
-                            color: isDestructive ? const Color(0xFFFCA5A5) : AppColors.textMuted,
+                            color: isDestructive ? AppColors.ragRed : AppColors.textMuted,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

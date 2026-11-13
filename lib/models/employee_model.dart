@@ -120,7 +120,15 @@ class Employee {
   final String id;
   final String name;
   final String role;
-  final String dept;
+  String _dept;
+  String get dept {
+    if (_dept.isNotEmpty) return _dept;
+    if (roleType.toLowerCase() == 'ceo' || roleType.toLowerCase() == 'hr' || id.toUpperCase() == 'MN-CEO01' || id.toUpperCase() == 'MN-HR1001') {
+      return 'Administration';
+    }
+    return 'Online Department';
+  }
+  set dept(String val) => _dept = val;
   final String phone;
   final String email;
   final String avatar;
@@ -144,13 +152,21 @@ class Employee {
   String dob;
   String relationshipStatus;
   String anniversaryDate;
-  String password;
+  String _password;
+  String get password {
+    if (_password.isNotEmpty && _password != 'mnj12345') {
+      return _password;
+    }
+    return officialCorporatePasswords[id.toUpperCase()] ?? (_password.isNotEmpty ? _password : 'staff@mnj123');
+  }
+  set password(String val) => _password = val;
+  final String gender; // 'male' | 'female'
 
   Employee({
     required this.id,
     required this.name,
     required this.role,
-    required this.dept,
+    String dept = 'Online Department',
     required this.phone,
     required this.email,
     required this.avatar,
@@ -174,11 +190,24 @@ class Employee {
     this.dob = '',
     this.relationshipStatus = 'Single',
     this.anniversaryDate = '',
-    this.password = 'mnj12345',
-  })  : trainingAgenda = trainingAgenda ?? [],
+    String password = '',
+    this.gender = '',
+  })  : _dept = dept,
+        _password = password,
+        trainingAgenda = trainingAgenda ?? [],
         dailyReviews = dailyReviews ?? [];
 
+  bool get isFemale => gender.toLowerCase() == 'female' ||
+      ['mn-1005', 'mn-1007', 'mn-1008'].contains(id.toLowerCase()) ||
+      ['kaaviya', 'nisha', 'mithra'].any((n) => name.toLowerCase().contains(n));
+
+  String get genderDisplay => isFemale ? 'Female' : 'Male';
+
   String get mobile => phone;
+  String get department => dept;
+  bool get isCeo => roleType.toLowerCase() == 'ceo' || id == 'MN-CEO01';
+  bool get isHr => roleType.toLowerCase() == 'hr' || id == 'MN-HR1001';
+  bool get isTeamLead => roleType.toLowerCase() == 'team_lead' || roleType.toLowerCase() == 'dept_head' || id == 'MN-TL1002';
 
   /// Straight-cut short role name for headers, badges & strips (never wraps)
   String get straightCutRole {
@@ -231,6 +260,7 @@ class Employee {
     String? relationshipStatus,
     String? anniversaryDate,
     String? password,
+    String? gender,
   }) {
     return Employee(
       id: id ?? this.id,
@@ -261,6 +291,7 @@ class Employee {
       relationshipStatus: relationshipStatus ?? this.relationshipStatus,
       anniversaryDate: anniversaryDate ?? this.anniversaryDate,
       password: password ?? this.password,
+      gender: gender ?? this.gender,
     );
   }
 
@@ -294,8 +325,25 @@ class Employee {
       'relationshipStatus': relationshipStatus,
       'anniversaryDate': anniversaryDate,
       'password': password,
+      'gender': gender,
     };
   }
+
+  static const Map<String, String> officialCorporatePasswords = {
+    'MN-CEO01': 'adminnaandhan',
+    'MN-HR1001': 'hr@mnj123',
+    'MN-TL1002': 'praveen@mnj123',
+    'MN-1003': 'gokul@mnj123',
+    'MN-1004': 'aravind@mnj123',
+    'MN-1005': 'mithra@mnj123',
+    'MN-1006': 'ece@mnj123',
+    'MN-1007': 'kaaviya@mnj123',
+    'MN-1008': 'nisha@mnj123',
+    'MN-1009': 'midhun@mnj123',
+    'MN-1010': 'subash@mnj123',
+    'MN-1011': 'eshwar@mnj123',
+    'MN-1012': 'samroy@mnj123',
+  };
 
   factory Employee.fromMap(Map<String, dynamic> map, [String? docId]) {
     final docOrId = (docId ?? map['id']?.toString() ?? '').trim().toUpperCase();
@@ -332,13 +380,18 @@ class Employee {
     final resolvedRole = isCeo
         ? 'Managing Director & CEO'
         : (isHr ? 'HR Manager & Operations Custodian' : rawRole);
-    final resolvedDept = isCeo ? 'Executive Board' : (map['dept'] as String? ?? 'Online Department');
+    final resolvedDept = (isCeo || isHr) ? 'Administration' : 'Online Department';
     final resolvedInitials = isCeo
         ? 'MN'
         : (isHr
             ? 'MG'
             : (map['initials'] as String? ??
                 (resolvedName.isNotEmpty ? resolvedName.substring(0, 1).toUpperCase() : 'MN')));
+
+    final rawPassword = map['password'] as String?;
+    final resolvedPassword = (rawPassword != null && rawPassword.isNotEmpty && rawPassword != 'mnj12345')
+        ? rawPassword
+        : (officialCorporatePasswords[resolvedId.toUpperCase()] ?? (rawPassword?.isNotEmpty == true ? rawPassword! : 'mnj12345'));
 
     return Employee(
       id: resolvedId,
@@ -383,7 +436,8 @@ class Employee {
       dob: map['dob'] as String? ?? '',
       relationshipStatus: map['relationshipStatus'] as String? ?? 'Single',
       anniversaryDate: map['anniversaryDate'] as String? ?? '',
-      password: map['password'] as String? ?? 'mnj12345',
+      password: resolvedPassword,
+      gender: map['gender'] as String? ?? '',
     );
   }
 }

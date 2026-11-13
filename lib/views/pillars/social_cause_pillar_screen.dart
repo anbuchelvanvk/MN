@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../models/social_cause_models.dart';
 import '../../services/image_optimization_service.dart';
+import '../../core/widgets/social_cause_detail_dialog.dart';
 
 class SocialCausePillarScreen extends StatefulWidget {
   final bool isStandalone;
@@ -17,6 +18,14 @@ class SocialCausePillarScreen extends StatefulWidget {
 
 class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
   String _filter = 'all'; // 'all', 'mine', 'pending'
+
+  String _formatDateTime(DateTime dt) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final period = dt.hour >= 12 ? 'PM' : 'AM';
+    final hour12 = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+    final minStr = dt.minute.toString().padLeft(2, '0');
+    return '${dt.day} ${months[dt.month - 1]} ${dt.year}, $hour12:$minStr $period';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,15 +111,27 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
         backgroundColor: AppColors.burgundyCard,
         elevation: 0,
         titleSpacing: 0,
-        title: Text(
-          'SOCIAL CAUSE',
-          style: GoogleFonts.cinzel(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Social Cause',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandGold,
+              ),
+            ),
+            const Text(
+              'Pillar 5 • Occasional Cadence',
+              style: TextStyle(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -128,14 +149,14 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
+        color: AppColors.pureWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Color(0x0A0F172A),
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -147,11 +168,11 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.2),
+                  color: const Color(0xFFFFF1F4),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.5)),
+                  border: Border.all(color: const Color(0xFFFECDD3)),
                 ),
-                child: const Icon(Icons.volunteer_activism, color: Color(0xFFEF4444), size: 24),
+                child: const Icon(Icons.volunteer_activism, color: Color(0xFFE11D48), size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -160,16 +181,16 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                   children: [
                     Text(
                       'MN Social Cause Initiative',
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.sandLight,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
                     const SizedBox(height: 2),
                     const Text(
-                      'Kindness, Community Service & Good Deeds',
-                      style: TextStyle(fontSize: 11, color: AppColors.sandGold),
+                      'Kindness, Community Service & Good Deeds • Occasional Cadence',
+                      style: TextStyle(fontSize: 10.5, color: Color(0xFFE11D48), fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -181,7 +202,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
             'Whether providing food for an elderly person, blood donation, eye pledging, or medical help — record your good deeds here. Once verified by HR or CEO, your deed is celebrated across the company!',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              color: AppColors.sandLight.withOpacity(0.9),
+              color: const Color(0xFF475569),
               height: 1.4,
             ),
           ),
@@ -189,17 +210,17 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.burgundySurface,
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.sandBorder),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Row(
               children: [
-                Expanded(child: _metricColumn('Total Value', '₹${totalApprovedSpent.toStringAsFixed(0)}', AppColors.sandGold)),
-                Container(width: 1, height: 26, color: AppColors.sandBorder),
+                Expanded(child: _metricColumn('Total Value', '₹${totalApprovedSpent.toStringAsFixed(0)}', const Color(0xFFE11D48))),
+                Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
                 Expanded(child: _metricColumn('Approved', '$approvedCount', const Color(0xFF10B981))),
-                Container(width: 1, height: 26, color: AppColors.sandBorder),
-                Expanded(child: _metricColumn('Total Posted', '$totalCount', AppColors.sandLight)),
+                Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
+                Expanded(child: _metricColumn('Total Posted', '$totalCount', const Color(0xFF0F172A))),
               ],
             ),
           ),
@@ -213,7 +234,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
       children: [
         Text(
           value,
-          style: GoogleFonts.cinzel(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: color,
@@ -224,7 +245,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+          style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
@@ -243,10 +264,10 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.sandGold : AppColors.burgundyCard,
+            color: isSelected ? const Color(0xFFE11D48) : AppColors.pureWhite,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+              color: isSelected ? const Color(0xFFE11D48) : const Color(0xFFE2E8F0),
             ),
           ),
           child: Padding(
@@ -259,7 +280,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
+                color: isSelected ? Colors.white : const Color(0xFF475569),
               ),
             ),
           ),
@@ -271,205 +292,299 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
   Widget _buildCauseCard(BuildContext context, EcosystemProvider eco, SocialCauseItem cause) {
     final typeColor = SocialCauseType.getColor(cause.causeType);
     final typeIcon = SocialCauseType.getIcon(cause.causeType);
+    final isLiked = cause.isHeartedBy(eco.activeEmpId);
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
+        color: AppColors.pureWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: cause.isApproved ? AppColors.sandBorder : const Color(0xFFF59E0B).withOpacity(0.5),
+          color: cause.isPending ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 8,
+            color: const Color(0xFF0F172A).withOpacity(0.04),
+            blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Employee & Cause Type
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: typeColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: typeColor.withOpacity(0.4)),
-                  ),
-                  child: Icon(typeIcon, color: typeColor, size: 20),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              cause.employeeName,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildStatusBadge(cause),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              cause.employeeRole,
-                              style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(width: 3, height: 3, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.textMuted)),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              cause.causeType,
-                              style: TextStyle(fontSize: 10, color: typeColor, fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Deed Title & Description
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => SocialCauseDetailDialog.show(context, cause: cause),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  cause.title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandLight,
-                  ),
+                // Header: Avatar, Name, Role, Date & Status Badge
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Avatar with category icon
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: typeColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: typeColor.withOpacity(0.25)),
+                      ),
+                      child: Center(
+                        child: Icon(typeIcon, color: typeColor, size: 22),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Contributor Name, Role & Timestamp
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cause.employeeName,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF0F172A),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            cause.employeeRole,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time_rounded, size: 11, color: Color(0xFF94A3B8)),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatDateTime(cause.date),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Status Badge at top-right
+                    _buildStatusBadge(cause),
+                  ],
                 ),
-                if (cause.description.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    cause.description,
-                    style: const TextStyle(fontSize: 11.5, color: AppColors.sandLight, height: 1.35),
-                  ),
-                ],
-              ],
-            ),
-          ),
 
-          // Optional Image attachment
-          if (cause.imageUrl != null && cause.imageUrl!.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  cause.imageUrl!,
-                  height: 140,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 80,
-                    color: AppColors.burgundySurface,
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.image, color: AppColors.textMuted),
-                  ),
-                ),
-              ),
-            ),
-          ],
+                const SizedBox(height: 12),
 
-          const SizedBox(height: 10),
-          const Divider(color: AppColors.sandBorder, height: 1),
-
-          // Footer: Amount Spent, Approval & Heart Reaction
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+                // Deed Content Card Container (Soft slate/grey container)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.sandGold.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFF1F5F9)),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.currency_rupee, size: 12, color: AppColors.sandGold),
-                      Text(
-                        '${cause.amountSpent.toStringAsFixed(0)} Sponsored',
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandGold,
+                      // Cause Category Chip
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: typeColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          cause.causeType,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: typeColor,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      // Deed Title
+                      Text(
+                        cause.title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                      // Deed Description
+                      if (cause.description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          cause.description,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF475569),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (cause.isApproved) ...[
-                        const Icon(Icons.verified, size: 13, color: Color(0xFF10B981)),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'Approved',
-                          style: TextStyle(fontSize: 9.5, color: Color(0xFF10B981), fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      InkWell(
-                      onTap: () => eco.toggleSocialCauseHeart(cause.id),
+
+                // Optional Attached Photo
+                if (cause.imageUrl != null && cause.imageUrl!.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      cause.imageUrl!,
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 80,
+                        color: const Color(0xFFF1F5F9),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image, color: Color(0xFF94A3B8)),
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+                const Divider(color: Color(0xFFF1F5F9), height: 1),
+                const SizedBox(height: 10),
+
+                // Footer Row: Sponsored Amount & CEO Reacted on Left, Heart Reaction on Right
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Left Chips: Sponsored & CEO Reaction (No duplicate "Approved" text!)
+                    Expanded(
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (cause.amountSpent > 0)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF1F4),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFFECDD3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.currency_rupee, size: 12, color: Color(0xFFE11D48)),
+                                  Text(
+                                    '${cause.amountSpent.toStringAsFixed(0)} Sponsored',
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFFE11D48),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFECFDF5),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFA7F3D0)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.volunteer_activism, size: 12, color: Color(0xFF059669)),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Voluntary Service',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF059669),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (cause.isCeoReacted)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFFDE68A)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.star_rounded, size: 13, color: Color(0xFFD97706)),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'CEO Reacted!',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF92400E),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    // Right side: Interactive Like / Heart button
+                    InkWell(
+                      onTap: () => eco.toggleSocialCauseReaction(cause.id, reactingEmpId: eco.activeEmpId),
                       borderRadius: BorderRadius.circular(20),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isLiked ? const Color(0xFFFFF1F2) : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isLiked ? const Color(0xFFFDA4AF) : const Color(0xFFE2E8F0),
+                          ),
+                        ),
                         child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              cause.isHeartedByCurrentUser ? Icons.favorite : Icons.favorite_border,
-                              size: 16,
-                              color: cause.isHeartedByCurrentUser ? const Color(0xFFEF4444) : AppColors.textMuted,
+                              isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                              size: 15,
+                              color: isLiked ? const Color(0xFFE11D48) : const Color(0xFF64748B),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 5),
                             Text(
-                              '${cause.heartsCount}',
+                              '${cause.totalLikesCount}',
                               style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: cause.isHeartedByCurrentUser ? const Color(0xFFEF4444) : AppColors.textMuted,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isLiked ? const Color(0xFFE11D48) : const Color(0xFF64748B),
                               ),
                             ),
                           ],
@@ -478,11 +593,10 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        ],
       ),
     );
   }
@@ -490,41 +604,63 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
   Widget _buildStatusBadge(SocialCauseItem cause) {
     if (cause.isApproved) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
         decoration: BoxDecoration(
-          color: const Color(0xFF10B981).withOpacity(0.2),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFF10B981)),
+          color: const Color(0xFFECFDF5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFA7F3D0)),
         ),
-        child: const Text(
-          'Approved',
-          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF059669)),
+            SizedBox(width: 4),
+            Text(
+              'Approved',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF059669)),
+            ),
+          ],
         ),
       );
     }
     if (cause.isPending) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
         decoration: BoxDecoration(
-          color: const Color(0xFFF59E0B).withOpacity(0.2),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFFF59E0B)),
+          color: const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFFDE68A)),
         ),
-        child: const Text(
-          'Pending HR/CEO Approval',
-          style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFF59E0B)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.schedule_rounded, size: 12, color: Color(0xFFD97706)),
+            SizedBox(width: 4),
+            Text(
+              'Pending Approval',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFD97706)),
+            ),
+          ],
         ),
       );
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444).withOpacity(0.2),
-        borderRadius: BorderRadius.circular(6),
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFFECACA)),
       ),
-      child: const Text(
-        'Rejected',
-        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFEF4444)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.cancel_rounded, size: 12, color: Color(0xFFDC2626)),
+          SizedBox(width: 4),
+          Text(
+            'Rejected',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFDC2626)),
+          ),
+        ],
       ),
     );
   }
@@ -560,6 +696,8 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
     final imageCtrl = TextEditingController();
     String? compressedPhotoDataUrl;
     double? compressedPhotoSizeKb;
+    bool isVolunteering = false;
+    String? inlineErrorMessage;
 
     final currentEmp = eco.employees.firstWhere(
       (e) => e.id == eco.activeEmpId,
@@ -585,7 +723,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               const SizedBox(width: 8),
               Text(
                 'Post a Social Cause',
-                style: GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
               ),
             ],
           ),
@@ -638,6 +776,11 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                 TextField(
                   controller: titleCtrl,
                   style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+                  onChanged: (_) {
+                    if (inlineErrorMessage != null) {
+                      setDialogState(() => inlineErrorMessage = null);
+                    }
+                  },
                   decoration: InputDecoration(
                     hintText: 'e.g. Bought food for elderly person, blood donation...',
                     hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
@@ -648,20 +791,97 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                const Text('Cost / Amount Spent (₹)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                Row(
+                  children: [
+                    const Text('Cost / Amount Spent (₹)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                    const Spacer(),
+                    // Volunteering Toggle Button
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        setDialogState(() {
+                          isVolunteering = !isVolunteering;
+                          inlineErrorMessage = null;
+                          if (isVolunteering) {
+                            amountCtrl.text = '0';
+                          } else {
+                            amountCtrl.clear();
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isVolunteering ? const Color(0xFF10B981) : AppColors.burgundySurface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isVolunteering ? const Color(0xFF10B981) : AppColors.sandGold.withOpacity(0.6),
+                            width: isVolunteering ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isVolunteering ? Icons.check_circle : Icons.volunteer_activism,
+                              size: 13,
+                              color: isVolunteering ? Colors.white : AppColors.sandGold,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isVolunteering ? 'Volunteering (₹0)' : 'Volunteering',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: isVolunteering ? Colors.white : AppColors.sandGold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 6),
                 TextField(
                   controller: amountCtrl,
+                  readOnly: isVolunteering,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isVolunteering ? const Color(0xFF34D399) : AppColors.sandLight,
+                    fontWeight: isVolunteering ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  onChanged: (_) {
+                    if (inlineErrorMessage != null) {
+                      setDialogState(() => inlineErrorMessage = null);
+                    }
+                  },
                   decoration: InputDecoration(
                     prefixText: '₹ ',
-                    prefixStyle: const TextStyle(color: AppColors.sandGold, fontWeight: FontWeight.bold),
-                    hintText: 'e.g. 500, 1500 (enter 0 if voluntary)',
+                    prefixStyle: TextStyle(
+                      color: isVolunteering ? const Color(0xFF34D399) : AppColors.sandGold,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    suffixText: isVolunteering ? 'Voluntary Service' : null,
+                    suffixStyle: const TextStyle(fontSize: 10.5, color: Color(0xFF34D399), fontWeight: FontWeight.bold),
+                    hintText: isVolunteering ? '0 (Voluntary Service)' : 'e.g. 500, 1500 (or tap Volunteering)',
                     hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                     filled: true,
-                    fillColor: AppColors.burgundySurface,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    fillColor: isVolunteering ? const Color(0xFF10B981).withOpacity(0.12) : AppColors.burgundySurface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: isVolunteering ? const Color(0xFF10B981) : AppColors.sandBorder),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: isVolunteering ? const Color(0xFF10B981) : AppColors.sandBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.sandGold, width: 1.2),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -751,7 +971,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                             compressedPhotoDataUrl = null;
                             compressedPhotoSizeKb = null;
                           }),
-                          child: const Icon(Icons.close, size: 14, color: Colors.white70),
+                          child: const Icon(Icons.close, size: 14, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -769,6 +989,35 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                   ),
                 ),
+
+                // Inline Error Display in the dialog
+                if (inlineErrorMessage != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7F1D1D),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFEF4444)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, size: 16, color: Color(0xFFFCA5A5)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            inlineErrorMessage!,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFFFEE2E2),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -785,18 +1034,29 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               onPressed: () {
                 final title = titleCtrl.text.trim();
                 if (title.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter what deed was performed.')),
-                  );
+                  setDialogState(() {
+                    inlineErrorMessage = 'Please enter what deed was performed.';
+                  });
                   return;
                 }
-                final amount = double.tryParse(amountCtrl.text.trim());
-                if (amount == null || amount <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter a valid contribution amount greater than ₹0.')),
-                  );
-                  return;
+
+                double amount = 0.0;
+                if (!isVolunteering) {
+                  final parsed = double.tryParse(amountCtrl.text.trim());
+                  if (parsed == null || parsed <= 0) {
+                    setDialogState(() {
+                      inlineErrorMessage = 'Please enter an amount > ₹0 or tap "Volunteering" for free service.';
+                    });
+                    return;
+                  }
+                  amount = parsed;
+                } else {
+                  amount = 0.0;
                 }
+
+                setDialogState(() {
+                  inlineErrorMessage = null;
+                });
 
                 final finalImage = compressedPhotoDataUrl ?? (imageCtrl.text.trim().isNotEmpty ? imageCtrl.text.trim() : null);
 

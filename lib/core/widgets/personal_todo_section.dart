@@ -74,7 +74,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                             children: [
                               Text(
                                 widget.title,
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
@@ -96,17 +96,24 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                       decoration: BoxDecoration(
-                        color: AppColors.sandGold,
+                        gradient: AppColors.magentaGradient,
                         borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.magentaPrimary.withOpacity(0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          FaIcon(FontAwesomeIcons.plus, size: 11, color: AppColors.burgundyBg),
+                          FaIcon(FontAwesomeIcons.plus, size: 11, color: Colors.white),
                           SizedBox(width: 4),
                           Text(
                             'Add To-Do',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.burgundyBg),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
@@ -153,10 +160,10 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.sandGold.withOpacity(0.2) : Colors.white.withOpacity(0.04),
+                              color: isSelected ? AppColors.magentaSubtle : AppColors.cardSurface,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isSelected ? AppColors.sandGold : Colors.white.withOpacity(0.08),
+                                color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder,
                               ),
                             ),
                             child: Row(
@@ -167,14 +174,14 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                                   style: TextStyle(
                                     fontSize: 10.5,
                                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? AppColors.sandGold : Colors.white70,
+                                    color: isSelected ? AppColors.magentaPrimary : AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(width: 5),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.sandGold : Colors.white12,
+                                    color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder.withOpacity(0.5),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -182,7 +189,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                                     style: TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? AppColors.burgundyBg : Colors.white70,
+                                      color: isSelected ? Colors.white : AppColors.textSecondary,
                                     ),
                                   ),
                                 ),
@@ -216,12 +223,12 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                   const SizedBox(height: 10),
                   Text(
                     _filter == 'completed' ? 'No completed tasks yet.' : 'No pending to-dos on your checklist.',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 4),
                   const Text(
                     'Tap "+ Add To-Do" above to log a personal follow-up or priority.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -240,21 +247,32 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
     return InkWell(
       onTap: () => setState(() => _filter = filterKey),
       borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.5),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.sandGold : Colors.white.withOpacity(0.06),
+          gradient: isSelected ? AppColors.magentaGradient : null,
+          color: isSelected ? null : AppColors.cardSurface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.sandGold : Colors.white.withOpacity(0.12),
+            color: isSelected ? Colors.transparent : AppColors.sandBorder,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.magentaPrimary.withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? AppColors.burgundyBg : const Color(0xFFCBD5E1),
+            color: isSelected ? Colors.white : AppColors.textSecondary,
           ),
         ),
       ),
@@ -319,7 +337,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: isCompleted ? const Color(0xFF64748B) : Colors.white,
+                      color: isCompleted ? const Color(0xFF94A3B8) : AppColors.textDark,
                       decoration: isCompleted ? TextDecoration.lineThrough : null,
                       decorationColor: isCompleted ? AppColors.ragGreen : null,
                       decorationThickness: 2.0,
@@ -388,10 +406,10 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: AppColors.sandGold, width: 1.2),
         ),
-        title: const Text('Delete Personal To-Do?', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text('Delete Personal To-Do?', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark)),
         content: Text(
           'Are you sure you want to remove "${task.title}" from your checklist?',
-          style: const TextStyle(fontSize: 12, color: Color(0xFFCBD5E1), height: 1.3),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
         ),
         actions: [
           TextButton(
@@ -488,14 +506,17 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: categoryCtrl.text == cat ? AppColors.sandGold : Colors.white.withOpacity(0.06),
+                          color: categoryCtrl.text == cat ? AppColors.magentaPrimary : AppColors.cardSurface,
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: categoryCtrl.text == cat ? AppColors.magentaPrimary : AppColors.sandBorder,
+                          ),
                         ),
                         child: Text(
                           cat,
                           style: TextStyle(
                             fontSize: 10,
-                            color: categoryCtrl.text == cat ? AppColors.burgundyBg : AppColors.sandLight,
+                            color: categoryCtrl.text == cat ? Colors.white : AppColors.textDark,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -573,7 +594,8 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
+                backgroundColor: AppColors.magentaPrimary,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {
@@ -599,7 +621,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                   ),
                 );
               },
-              child: const Text('Add To-Do', style: TextStyle(color: AppColors.burgundyBg, fontWeight: FontWeight.bold)),
+              child: const Text('Add To-Do', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),

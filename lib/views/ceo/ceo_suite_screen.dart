@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -13,7 +14,6 @@ import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
 import '../pillars/attendance_pillar_screen.dart';
 import '../hr/hr_management_widgets.dart';
-import '../../core/widgets/personal_todo_section.dart';
 import '../orders/online_orders_handler_screen.dart';
 import '../employee/employee_profile_screen.dart';
 import '../../core/widgets/export_audit_modal.dart';
@@ -23,6 +23,10 @@ import '../../core/widgets/cross_dept_blocker_section.dart';
 import '../../core/widgets/emergency_permission_modal.dart';
 import '../../core/widgets/emergency_medical_leave_modal.dart';
 import '../../core/widgets/prescription_viewer_dialog.dart';
+import '../hr/hr_employee_inspection_screen.dart';
+import '../../core/widgets/quick_pillar_nav_row.dart';
+import 'ceo_subpages.dart';
+import '../notes/personal_notes_screen.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   const CeoSuiteScreen({super.key});
@@ -36,7 +40,8 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   final ScrollController _tabsScrollController = ScrollController();
   final GlobalKey _tabSectionKey = GlobalKey();
 
-  int _activeTab = 0; // 0: Role Allocation, 1: Pipelines & Blockers, 2: Delay Analytics, 3: Incidents
+  // ignore: unused_field
+  final int _activeTab = 0; // 0: Role Allocation, 1: Pipelines & Blockers, 2: Delay Analytics, 3: Incidents
   String? _selectedEmpId;
   String _selectedRole = 'Dept Head';
   String _selectedDept = 'Gold Jewellery';
@@ -49,6 +54,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   bool _isAttendanceExpanded = false;
   String _attendanceFilter = 'all'; // 'all', 'present', 'absent'
   String _attendanceTabFilter = 'all'; // 'all', 'present', 'absent', 'ontime', 'late', 'lunch'
+  final Map<String, bool> _revealedPasswords = {};
 
   @override
   void dispose() {
@@ -110,8 +116,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         password: 'adminnaandhan',
       ),
     );
-    final handovers = eco.handovers;
-    final blockers = eco.blockers;
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
@@ -136,6 +140,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             // CEO Hero Card with Profile Navigation
             InkWell(
               onTap: () {
+                final ecoProvider = context.read<EcosystemProvider>();
+                if (ecoProvider.activeEmpId != ceoEmp.id) {
+                  ecoProvider.setActiveEmpId(ceoEmp.id);
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
@@ -145,133 +153,277 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               child: LiquidGlassCard(
                 borderRadius: 18,
                 padding: const EdgeInsets.all(14),
-                borderColor: AppColors.goldPrimary.withOpacity(0.5),
-                child: Row(
+                borderColor: const Color(0xFFF1F5F9),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: AppColors.goldGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.goldPrimary.withOpacity(0.4),
-                            blurRadius: 14,
+                    Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppColors.magentaGradient,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.magentaPrimary.withOpacity(0.25),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          ceoEmp.initials,
-                          style: const TextStyle(
-                            fontFamily: 'Cinzel',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.black,
+                          child: Center(
+                            child: Text(
+                              ceoEmp.initials,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  'M N Naveenraaj',
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
-                                decoration: BoxDecoration(
-                                  color: AppColors.sandGold.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.sandGold.withOpacity(0.35), width: 0.8),
-                                ),
-                                child: Text(
-                                  'ID: ${ceoEmp.id}',
-                                  style: const TextStyle(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.sandGold,
-                                    letterSpacing: 0.4,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'M N Naveenraaj',
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.magentaSubtle,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.magentaBorder, width: 0.8),
+                                    ),
+                                    child: Text(
+                                      'ID: ${ceoEmp.id}',
+                                      style: const TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.magentaPrimary,
+                                        letterSpacing: 0.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Managing Director & CEO',
+                                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                              ),
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.magentaSubtle,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.sandBorder, width: 0.8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.business_outlined, size: 10, color: AppColors.magentaPrimary),
+                                        const SizedBox(width: 4),
+                                        Text('${eco.employees.length} Corporate Staff', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.ragGreen.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.ragGreen.withOpacity(0.4), width: 0.8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.ragGreen),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${eco.employees.length} Active Staff',
+                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Managing Director & CEO',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                          ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.06),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.business_outlined, size: 10, color: Color(0xFF94A3B8)),
-                                    const SizedBox(width: 4),
-                                    Text('${eco.employees.length} Corporate Staff', style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1))),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.ragGreen.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: AppColors.ragGreen.withOpacity(0.4), width: 0.8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.ragGreen),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${eco.employees.length} Active Staff',
-                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 12),
+                    const QuickPillarNavRow(),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 12),
 
+            // Vertical Segmented Navigation Grid (Direct Access right below CEO profile & 4 pillars)
+            Container(
+              key: _tabSectionKey,
+              decoration: BoxDecoration(
+                color: AppColors.burgundyCard,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x060F172A),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.apps_rounded, size: 16, color: AppColors.sandGold),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'EXECUTIVE COMMAND PORTALS',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandGold,
+                            letterSpacing: 0.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Direct Access',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Column(
+                    children: [
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Roles & Privileges',
+                        icon: Icons.admin_panel_settings_outlined,
+                        badge: '',
+                        destination: const CeoRolesPrivilegesScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Staff Dossiers',
+                        icon: Icons.badge_outlined,
+                        badge: '${eco.employees.length}',
+                        destination: const CeoStaffDossiersScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Leaves & Slips',
+                        icon: Icons.beach_access_outlined,
+                        badge: (eco.pendingCeoPermissions.length + eco.pendingCeoMedicalLeaves.length) > 0 ? '${eco.pendingCeoPermissions.length + eco.pendingCeoMedicalLeaves.length}' : '',
+                        destination: const CeoLeavesSlipsScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Personal To-Dos',
+                        icon: Icons.task_alt_outlined,
+                        badge: '',
+                        destination: const CeoPersonalTodosScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Social Causes',
+                        icon: Icons.volunteer_activism_outlined,
+                        badge: eco.pendingSocialCauses.isNotEmpty ? '${eco.pendingSocialCauses.length}' : '',
+                        destination: const CeoSocialCausesScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Staff Tasks',
+                        icon: Icons.assignment_outlined,
+                        badge: '',
+                        destination: const CeoStaffTasksScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Attendance',
+                        icon: Icons.fingerprint,
+                        badge: '',
+                        destination: const CeoAttendanceScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Pipelines & Blockers',
+                        icon: Icons.hub_outlined,
+                        badge: '',
+                        destination: const CeoPipelinesBlockersScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Personal Notes',
+                        icon: Icons.lock_outline_rounded,
+                        badge: 'Private',
+                        destination: const PersonalNotesScreen(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
             // Online Orders Handler & Executive SLA Command Card (Database Integrated)
             LiquidGlassCard(
               padding: const EdgeInsets.all(14),
               borderRadius: 18,
-              borderColor: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.goldPrimary.withOpacity(0.4),
+              borderColor: const Color(0xFFF1F5F9),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -279,14 +431,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     children: [
                       Icon(
                         Icons.shopping_bag_outlined,
-                        color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.goldBright,
+                        color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.magentaPrimary,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
                           'Online Orders',
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -317,7 +469,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   const SizedBox(height: 6),
                   const Text(
                     'Order Workflow Tracking',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8), height: 1.3),
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
                   ),
                   const SizedBox(height: 12),
 
@@ -328,16 +480,16 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.04),
+                            color: AppColors.magentaSubtle,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white.withOpacity(0.08)),
+                            border: Border.all(color: AppColors.sandBorder),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('MN Jewel Park', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
+                              const Text('MN Jewel Park', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                               const SizedBox(height: 2),
-                              Text('${eco.os1Orders.length} Orders (OS1)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text('${eco.os1Orders.length} Orders (OS1)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                             ],
                           ),
                         ),
@@ -347,16 +499,16 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.04),
+                            color: AppColors.magentaSubtle,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white.withOpacity(0.08)),
+                            border: Border.all(color: AppColors.sandBorder),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Vadivam', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
+                              const Text('Vadivam', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                               const SizedBox(height: 2),
-                              Text('${eco.os2Orders.length} Orders (OS2)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text('${eco.os2Orders.length} Orders (OS2)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                             ],
                           ),
                         ),
@@ -366,14 +518,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed.withOpacity(0.18) : Colors.white.withOpacity(0.04),
+                            color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed.withOpacity(0.18) : AppColors.magentaSubtle,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : Colors.white.withOpacity(0.08)),
+                            border: Border.all(color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.sandBorder),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Overdue SLA', style: TextStyle(fontSize: 10, color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : const Color(0xFF94A3B8))),
+                              Text('Overdue SLA', style: TextStyle(fontSize: 10, color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.textSecondary)),
                               const SizedBox(height: 2),
                               Text('${eco.overdueOnlineOrders.length} Alerts', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.ragGreen)),
                             ],
@@ -391,8 +543,8 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         context,
                         MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
                       ),
-                      icon: const Icon(Icons.assignment_turned_in_outlined, size: 16, color: Colors.black),
-                      label: const Text('Open Online Orders', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+                      icon: const Icon(Icons.assignment_turned_in_outlined, size: 16, color: Colors.white),
+                      label: const Text('Open Online Orders', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.sandGold,
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -413,14 +565,16 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             Row(
               children: [
                 Expanded(
+                  flex: 5,
                   child: LiquidGlassButton(
-                    label: 'Assign Tasks to Others (${eco.absentEmployeeIds.length} Absent)',
+                    label: 'Assign Tasks (${eco.absentEmployeeIds.length} Absent)',
                     icon: Icons.assignment_ind_outlined,
                     onPressed: () => AssignTasksToOthersModal.show(context),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
+                  flex: 4,
                   child: LiquidGlassButton(
                     label: 'Universal Directive',
                     icon: Icons.campaign_outlined,
@@ -439,51 +593,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Segmented Tabs
-            Container(
-              key: _tabSectionKey,
-              child: SingleChildScrollView(
-                controller: _tabsScrollController,
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _tabChip(0, 'Roles & Permissions'),
-                    _tabChip(7, 'Personal To-Dos'),
-                    _tabChip(5, 'Social Causes (${eco.pendingSocialCauses.length})'),
-                    _tabChip(6, 'Staff Tasks'),
-                    _tabChip(4, 'Attendance'),
-                    _tabChip(1, 'Pipelines & Blockers'),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Tab Content
-            if (_activeTab == 0) ...[
-              _buildRoleAllocationTab(context, eco),
-            ] else if (_activeTab == 7) ...[
-              const PersonalTodoSectionWidget(
-                title: 'Personal To-Dos',
-                subtitle: 'Strategic priorities & reviews',
-              ),
-            ] else if (_activeTab == 5) ...[
-              HrSocialCauseApprovalSection(
-                reviewerName: ceoEmp.name,
-                reviewerRole: ceoEmp.role,
-              ),
-            ] else if (_activeTab == 6) ...[
-              HrEmployeeTodoManagementSection(
-                authorizedName: ceoEmp.name,
-                authorizedRole: ceoEmp.role,
-              ),
-            ] else if (_activeTab == 4) ...[
-              _buildBiometricAttendanceTab(context, eco),
-            ] else ...[
-              _buildHandoverAndBlockerTab(context, eco, handovers, blockers),
-            ],
-            const SizedBox(height: 16),
-
             // Logout Button with confirmation
             LogoutConfirmDialog.buildButton(context),
             const SizedBox(height: 24),
@@ -494,27 +603,87 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   );
   }
 
-  Widget _tabChip(int index, String label) {
-    final isSelected = _activeTab == index;
-    return GestureDetector(
-      onTap: () => setState(() => _activeTab = index),
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+  Widget _verticalCeoTabTile({
+    required BuildContext context,
+    required EcosystemProvider eco,
+    required String label,
+    required IconData icon,
+    required String badge,
+    required Widget destination,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+              value: eco,
+              child: destination,
+            ),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.goldPrimary : Colors.white.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.goldPrimary : Colors.white.withOpacity(0.12),
+            color: AppColors.sandBorder,
+            width: 1.0,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.black : const Color(0xFFCBD5E1),
-          ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: AppColors.magentaSubtle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: AppColors.magentaPrimary,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (badge.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: AppColors.magentaSubtle,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.magentaPrimary,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(width: 6),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
+          ],
         ),
       ),
     );
@@ -522,6 +691,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
 
   // --- ROLE ALLOCATION & EXECUTIVE PRIVILEGES TAB ---
 
+  // ignore: unused_element
   Widget _buildRoleAllocationTab(BuildContext context, EcosystemProvider eco) {
     final allEmployees = eco.employees;
     final query = _employeeSearchController.text.toLowerCase().trim();
@@ -559,11 +729,11 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             ),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withOpacity(0.4),
+                color: Color(0x0A0F172A),
                 blurRadius: 16,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
           ),
@@ -578,7 +748,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     BoxShadow(color: AppColors.sandGold.withOpacity(0.4), blurRadius: 10),
                   ],
                 ),
-                child: const Icon(Icons.admin_panel_settings, color: Colors.black, size: 26),
+                child: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 26),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -587,7 +757,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   children: [
                     Text(
                       'ROLE & PRIVILEGE ALLOCATION',
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandLight,
@@ -599,7 +769,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       'Executive authority to reassign departments, grant leadership tiers (Dept Head, HR, Employee, CEO), and designate task assignment perks.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10.5,
-                        color: AppColors.sandPrimary,
+                        color: AppColors.textSecondary,
                         height: 1.35,
                       ),
                     ),
@@ -613,7 +783,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
 
         // Executive Create HR / Staff CTA
         LiquidGlassButton(
-          label: '+ Create & Register HR / Executive Staff',
+          label: 'Create & Register HR / Executive Staff',
           icon: Icons.person_add_alt_1,
           onPressed: () => _openCreateStaffModal(context, eco),
         ),
@@ -622,7 +792,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         // 2. Type and Search Employee Filter
         Text(
           '1. SELECT EMPLOYEE (TYPE & SEARCH)',
-          style: GoogleFonts.cinzel(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 11.5,
             fontWeight: FontWeight.bold,
             color: AppColors.sandGold,
@@ -632,7 +802,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         const SizedBox(height: 6),
         TextField(
           controller: _employeeSearchController,
-          style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13),
+          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 13),
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search, color: AppColors.sandGold, size: 20),
             hintText: 'Type employee name, ID, or role...',
@@ -767,7 +937,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     backgroundColor: AppColors.sandGold.withOpacity(0.25),
                     child: Text(
                       activeEmp.initials,
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -786,7 +956,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 activeEmp.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.cinzel(
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
@@ -813,12 +983,52 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+
+              // View Full Dossier CTA
+              InkWell(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => HrEmployeeInspectionScreen(employee: activeEmp),
+                  ),
+                ),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.sandGold.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.assignment_ind_outlined, size: 15, color: AppColors.sandGold),
+                        const SizedBox(width: 8),
+                        Text(
+                          'View Full Dossier & Reset Password',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.sandGold),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               const Divider(color: AppColors.sandBorder, height: 20),
 
               // 4. Department Dropdown Selector
               Text(
                 'ASSIGN SHOWROOM DEPARTMENT',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 10.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -870,7 +1080,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               // 5. Role Dropdown / Selector
               Text(
                 'ASSIGN LEADERSHIP ROLE TIER',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 10.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -889,14 +1099,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(p?.icon ?? Icons.badge, size: 14, color: isRoleActive ? Colors.black : col),
+                        Icon(p?.icon ?? Icons.badge, size: 14, color: isRoleActive ? Colors.white : col),
                         const SizedBox(width: 6),
                         Text(
                           role,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isRoleActive ? Colors.black : AppColors.sandLight,
+                            color: isRoleActive ? Colors.white : AppColors.sandLight,
                           ),
                         ),
                       ],
@@ -933,24 +1143,38 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: roleConfig.badgeColor.withOpacity(0.4)),
+            border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x060F172A),
+                blurRadius: 10,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(roleConfig.icon, color: roleConfig.badgeColor, size: 18),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF1F4),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(roleConfig.icon, color: AppColors.magentaPrimary, size: 16),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'CORE MANDATES & DUTIES FOR ${_selectedRole.toUpperCase()}',
-                      style: GoogleFonts.cinzel(
-                        fontSize: 11.5,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: roleConfig.badgeColor,
+                        color: const Color(0xFF0F172A),
                         letterSpacing: 0.5,
                       ),
                       maxLines: 1,
@@ -959,22 +1183,22 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               ...roleConfig.responsibilities.map((resp) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.check_circle_outline, size: 14, color: roleConfig.badgeColor),
+                      const Icon(Icons.check_circle_rounded, size: 15, color: AppColors.magentaPrimary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           resp,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppColors.sandLight,
-                            height: 1.35,
+                            fontSize: 11.5,
+                            color: const Color(0xFF334155),
+                            height: 1.4,
                           ),
                         ),
                       ),
@@ -991,24 +1215,34 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+            border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x060F172A),
+                blurRadius: 10,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: const [
-                  Icon(Icons.stars, color: AppColors.sandGold, size: 18),
+                  Icon(Icons.stars_rounded, color: AppColors.magentaPrimary, size: 18),
                   SizedBox(width: 8),
-                  Text(
-                    'OPERATIONAL PERKS & PRIVILEGES',
-                    style: TextStyle(
-                      fontFamily: 'Cinzel',
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandGold,
+                  Expanded(
+                    child: Text(
+                      'OPERATIONAL PERKS & PRIVILEGES',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -1016,7 +1250,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               const SizedBox(height: 4),
               Text(
                 'Toggle clearances granted to ${activeEmp.name}:',
-                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF94A3B8)),
+                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF64748B)),
               ),
               const SizedBox(height: 8),
               ...[
@@ -1031,15 +1265,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                 return CheckboxListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  activeColor: AppColors.sandGold,
-                  checkColor: Colors.black,
+                  activeColor: AppColors.magentaPrimary,
+                  checkColor: Colors.white,
                   value: isGranted,
                   title: Text(
                     perk,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: isGranted ? FontWeight.bold : FontWeight.normal,
-                      color: isGranted ? AppColors.sandLight : const Color(0xFF94A3B8),
+                      fontSize: 11.5,
+                      fontWeight: isGranted ? FontWeight.w600 : FontWeight.normal,
+                      color: isGranted ? const Color(0xFF0F172A) : const Color(0xFF64748B),
                     ),
                   ),
                   onChanged: (val) {
@@ -1060,21 +1294,21 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
 
         // 8. Commit Save Button
         ElevatedButton.icon(
-          icon: const Icon(Icons.verified, size: 18, color: Colors.black),
+          icon: const Icon(Icons.verified_rounded, size: 18, color: Colors.white),
           label: Text(
             'CONFIRM & ALLOCATE ROLE',
-            style: GoogleFonts.cinzel(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.white,
               letterSpacing: 0.6,
             ),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.sandGold,
-            padding: const EdgeInsets.symmetric(vertical: 14),
+            backgroundColor: AppColors.magentaPrimary,
+            padding: const EdgeInsets.symmetric(vertical: 15),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            elevation: 8,
+            elevation: 0,
           ),
           onPressed: () {
             eco.allocateEmployeeRole(
@@ -1100,6 +1334,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildHandoverAndBlockerTab(
     BuildContext context,
     EcosystemProvider eco,
@@ -1111,15 +1346,25 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
       children: [
         // 1. Inter-Department Handover Pipeline
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text(
-              '1. Inter-Department Handover Pipeline',
-              style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Colors.white),
+          children: [
+            const Expanded(
+              child: Text(
+                '1. Inter-Department Handover Pipeline',
+                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+              ),
             ),
-            Text(
-              'Workshop → Assay → Showroom',
-              style: TextStyle(fontSize: 10.5, color: AppColors.goldLight),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.magentaPrimary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.2), width: 0.8),
+              ),
+              child: const Text(
+                'Workshop → Assay',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.magentaPrimary),
+              ),
             ),
           ],
         ),
@@ -1139,18 +1384,18 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     Expanded(
                       child: Text(
                         ho.batch,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     LiquidGlassPill(
                       label: isCompleted ? 'COMPLETED' : 'IN PROGRESS',
-                      color: isCompleted ? AppColors.ragGreen : AppColors.goldPrimary,
+                      color: isCompleted ? AppColors.ragGreen : AppColors.magentaPrimary,
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text('Current Stage: ${ho.stage}', style: const TextStyle(fontSize: 11, color: AppColors.goldBright)),
+                Text('Current Stage: ${ho.stage}', style: const TextStyle(fontSize: 11, color: AppColors.magentaDark, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
 
                 // 3 Steps visual chain
@@ -1166,13 +1411,13 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                         decoration: BoxDecoration(
                           color: isDone
-                              ? AppColors.ragGreen.withOpacity(0.2)
-                              : (isInProg ? AppColors.goldPrimary.withOpacity(0.2) : Colors.white.withOpacity(0.04)),
+                              ? AppColors.ragGreen.withOpacity(0.15)
+                              : (isInProg ? AppColors.magentaPrimary.withOpacity(0.15) : AppColors.magentaSubtle),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: isDone
                                 ? AppColors.ragGreen.withOpacity(0.5)
-                                : (isInProg ? AppColors.goldPrimary.withOpacity(0.5) : Colors.white12),
+                                : (isInProg ? AppColors.magentaPrimary.withOpacity(0.5) : AppColors.sandBorder),
                           ),
                         ),
                         child: Column(
@@ -1271,20 +1516,20 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Assign Task to Staff', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                      const Text('Assign Task to Staff', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                      IconButton(icon: const Icon(Icons.close, color: AppColors.textSecondary), onPressed: () => Navigator.pop(ctx)),
                     ],
                   ),
-                  const Text('Assign a direct task to any employee.', style: TextStyle(fontSize: 11, color: AppColors.goldLight)),
+                  const Text('Assign a direct task to any employee.', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   const SizedBox(height: 12),
 
-                  const Text('Select Employee:', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+                  const Text('Select Employee:', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: staffList.any((e) => e.id == selectedEmp) ? selectedEmp : staffList.first.id,
                     isExpanded: true,
                     dropdownColor: AppColors.burgundySurface,
-                    style: const TextStyle(color: AppColors.sandLight, fontSize: 12),
+                    style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: AppColors.burgundySurface,
@@ -1297,6 +1542,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         value: e.id,
                         child: Text(
                           '${e.name} (${e.dept} • ${e.role})',
+                          style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                         ),
                       );
@@ -1307,17 +1553,19 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  const Text('Task Title:', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+                  const Text('Task Title:', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: titleController,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                     decoration: InputDecoration(
                       hintText: 'Enter task title...',
-                      hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                      hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.06),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      fillColor: AppColors.magentaSubtle,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -1352,145 +1600,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     );
   }
 
-  void _openRaiseBlockerDialog(BuildContext context, EcosystemProvider eco) {
-    String fromDept = 'Showroom Sales';
-    String toDept = 'Workshop Crafting';
-    final issueController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Container(
-              padding: EdgeInsets.only(
-                left: 18,
-                right: 18,
-                top: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-              ),
-              decoration: const BoxDecoration(
-                color: AppColors.burgundyCard,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Raise Blocker', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('From:', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
-                            const SizedBox(height: 4),
-                            DropdownButtonFormField<String>(
-                              value: fromDept,
-                              dropdownColor: AppColors.burgundySurface,
-                              style: const TextStyle(color: Colors.white, fontSize: 11.5),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.06),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                              ),
-                              items: const [
-                                DropdownMenuItem(value: 'Showroom Sales', child: Text('Sales')),
-                                DropdownMenuItem(value: 'Workshop Crafting', child: Text('Workshop')),
-                                DropdownMenuItem(value: 'Quality Assay QA', child: Text('Assay QA')),
-                                DropdownMenuItem(value: 'Vault Security', child: Text('Vault')),
-                              ],
-                              onChanged: (v) {
-                                if (v != null) setModalState(() => fromDept = v);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Against:', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
-                            const SizedBox(height: 4),
-                            DropdownButtonFormField<String>(
-                              value: toDept,
-                              dropdownColor: AppColors.burgundySurface,
-                              style: const TextStyle(color: Colors.white, fontSize: 11.5),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.06),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                              ),
-                              items: const [
-                                DropdownMenuItem(value: 'Workshop Crafting', child: Text('Workshop')),
-                                DropdownMenuItem(value: 'Showroom Sales', child: Text('Sales')),
-                                DropdownMenuItem(value: 'Quality Assay QA', child: Text('Assay QA')),
-                                DropdownMenuItem(value: 'Vault Security', child: Text('Vault')),
-                              ],
-                              onChanged: (v) {
-                                if (v != null) setModalState(() => toDept = v);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  const Text('Problem / Reason:', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
-                  const SizedBox(height: 4),
-                  TextField(
-                    controller: issueController,
-                    maxLines: 2,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.06),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  LiquidGlassButton(
-                    label: 'Report Blocker',
-                    icon: Icons.warning_amber_rounded,
-                    color: AppColors.ragRed,
-                    onPressed: () {
-                      eco.raiseBlocker(
-                        raisedByDept: fromDept,
-                        raisedByName: 'Executive Desk',
-                        blockingDept: toDept,
-                        issue: issueController.text,
-                      );
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Blocker reported successfully!')),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildTodayAttendanceOverview(BuildContext context, EcosystemProvider eco) {
     final now = DateTime.now();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1498,12 +1607,16 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
 
     final allSummaries = eco.allEmployeesTodayAttendance;
     final onDutyEmps = eco.employees.where((e) {
-      final s = allSummaries.firstWhere((x) => x.employeeId == e.id, orElse: () => null as dynamic);
-      return s != null && s.isPresent && s.logoutPunch == null;
+      final matches = allSummaries.where((x) => x.employeeId == e.id);
+      if (matches.isEmpty) return false;
+      final s = matches.first;
+      return s.isPresent && s.logoutPunch == null;
     }).toList();
     final shiftOverEmps = eco.employees.where((e) {
-      final s = allSummaries.firstWhere((x) => x.employeeId == e.id, orElse: () => null as dynamic);
-      return s != null && s.isPresent && s.logoutPunch != null;
+      final matches = allSummaries.where((x) => x.employeeId == e.id);
+      if (matches.isEmpty) return false;
+      final s = matches.first;
+      return s.isPresent && s.logoutPunch != null;
     }).toList();
     final absentEmps = eco.employees.where((e) => eco.isEmployeeAbsent(e.id)).toList();
     final totalStaff = eco.employees.length;
@@ -1527,7 +1640,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     return LiquidGlassCard(
       padding: const EdgeInsets.all(14),
       borderRadius: 18,
-      borderColor: absentEmps.isNotEmpty ? const Color(0xFFEF4444).withOpacity(0.4) : AppColors.goldPrimary.withOpacity(0.4),
+      borderColor: const Color(0xFFF1F5F9),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1557,7 +1670,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           style: TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.textDark,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1566,12 +1679,13 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
+                          color: AppColors.magentaSubtle,
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.sandBorder, width: 0.8),
                         ),
                         child: Text(
                           dateStr,
-                          style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1)),
+                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
@@ -1580,13 +1694,13 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                 const SizedBox(width: 8),
                 Text(
                   _isAttendanceExpanded ? 'Hide' : 'View Staff',
-                  style: const TextStyle(fontSize: 11, color: AppColors.sandGold, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: 11, color: AppColors.magentaPrimary, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 2),
                 Icon(
                   _isAttendanceExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                   size: 18,
-                  color: AppColors.sandGold,
+                  color: AppColors.magentaPrimary,
                 ),
               ],
             ),
@@ -1614,38 +1728,44 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isPresentActive ? const Color(0xFF064E3B).withOpacity(0.7) : const Color(0xFF064E3B).withOpacity(0.3),
+                        color: isPresentActive ? AppColors.ragGreenBg : AppColors.whiteBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isPresentActive ? const Color(0xFF10B981) : const Color(0xFF10B981).withOpacity(0.4),
+                          color: isPresentActive ? const Color(0xFF10B981) : AppColors.sandBorder,
                           width: isPresentActive ? 1.6 : 1.0,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.02),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Color(0xFF10B981),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  const Text(
-                                    'On Duty',
-                                    style: TextStyle(fontSize: 10, color: Color(0xFF6EE7B7), fontWeight: FontWeight.w600),
-                                  ),
-                                ],
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF10B981),
+                                ),
                               ),
+                              const SizedBox(width: 5),
+                              const Expanded(
+                                child: Text(
+                                  'On Duty',
+                                  style: TextStyle(fontSize: 10, color: Color(0xFF047857), fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
                               Icon(
                                 isPresentActive ? Icons.check_circle : Icons.check_circle_outline,
                                 size: 14,
@@ -1659,7 +1779,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textDark,
                               letterSpacing: 0.2,
                             ),
                           ),
@@ -1670,7 +1790,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 : (isPresentActive ? 'Viewing on duty ▼' : 'Tap to view'),
                             style: TextStyle(
                               fontSize: 9.5,
-                              color: isPresentActive ? const Color(0xFF6EE7B7) : const Color(0xFF94A3B8),
+                              color: isPresentActive ? const Color(0xFF047857) : AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -1699,38 +1819,44 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isAbsentActive ? const Color(0xFF450A0A).withOpacity(0.7) : const Color(0xFF450A0A).withOpacity(0.3),
+                        color: isAbsentActive ? AppColors.ragRedBg : AppColors.whiteBg,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isAbsentActive ? const Color(0xFFEF4444) : const Color(0xFFEF4444).withOpacity(0.4),
+                          color: isAbsentActive ? const Color(0xFFEF4444) : AppColors.sandBorder,
                           width: isAbsentActive ? 1.6 : 1.0,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.02),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Color(0xFFEF4444),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  const Text(
-                                    'Off Duty',
-                                    style: TextStyle(fontSize: 10, color: Color(0xFFFCA5A5), fontWeight: FontWeight.w600),
-                                  ),
-                                ],
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFFEF4444),
+                                ),
                               ),
+                              const SizedBox(width: 5),
+                              const Expanded(
+                                child: Text(
+                                  'Off Duty',
+                                  style: TextStyle(fontSize: 10, color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
                               Icon(
                                 isAbsentActive ? Icons.error : Icons.error_outline,
                                 size: 14,
@@ -1744,7 +1870,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.ragRed,
                               letterSpacing: 0.2,
                             ),
                           ),
@@ -1753,7 +1879,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             isAbsentActive ? 'Viewing absent ▼' : 'Tap to view',
                             style: TextStyle(
                               fontSize: 9.5,
-                              color: isAbsentActive ? const Color(0xFFFCA5A5) : const Color(0xFF94A3B8),
+                              color: isAbsentActive ? const Color(0xFFB91C1C) : AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -1771,9 +1897,9 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.25),
+                color: AppColors.whiteBg,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withOpacity(0.08)),
+                border: Border.all(color: AppColors.sandBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1877,7 +2003,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isAbsent ? const Color(0xFFEF4444).withOpacity(0.08) : Colors.white.withOpacity(0.04),
+                            color: isAbsent ? const Color(0xFFFFF1F2) : AppColors.whiteBg,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: badgeColor.withOpacity(0.3),
@@ -1913,7 +2039,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                             style: const TextStyle(
                                               fontSize: 12.5,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.white,
+                                              color: AppColors.textDark,
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -1945,7 +2071,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                     // Row 2: Department and punch timings across the full width
                                     Text(
                                       '${emp.dept}$timeInfo',
-                                      style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                                     ),
                                   ],
                                 ),
@@ -1956,59 +2082,71 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       },
                     ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    alignment: WrapAlignment.end,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 8,
-                    runSpacing: 6,
-                    children: [
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
-                          );
-                        },
-                        icon: const Icon(Icons.fingerprint, size: 12, color: AppColors.sandGold),
-                        label: const Text('Biometric Ledger', style: TextStyle(fontSize: 10.5, color: AppColors.sandGold)),
-                      ),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.sandGold,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                        ),
-                        onPressed: () {
-                          setState(() => _activeTab = 4);
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (_tabSectionKey.currentContext != null) {
-                              Scrollable.ensureVisible(
-                                _tabSectionKey.currentContext!,
-                                duration: const Duration(milliseconds: 500),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                            if (_tabsScrollController.hasClients) {
-                              _tabsScrollController.animateTo(
-                                260.0,
-                                duration: const Duration(milliseconds: 400),
-                                curve: Curves.easeOut,
-                              );
-                            }
-                          });
-                        },
-                        icon: const Icon(Icons.arrow_downward, size: 12, color: Colors.black),
-                        label: const Text('Open Attendance Tab', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black)),
-                      ),
-                    ],
+                  const SizedBox(height: 10),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 320;
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Flexible(
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: AppColors.sandGold.withOpacity(0.6), width: 1.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                backgroundColor: AppColors.sandGold.withOpacity(0.08),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
+                                );
+                              },
+                              icon: const Icon(Icons.fingerprint, size: 13, color: AppColors.sandGold),
+                              label: Text(
+                                isNarrow ? 'Biometric' : 'Biometric Ledger',
+                                style: const TextStyle(fontSize: 11, color: AppColors.sandGold, fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.sandGold,
+                                foregroundColor: AppColors.burgundyCard,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                                      value: eco,
+                                      child: const CeoAttendanceScreen(initialFilter: 'all'),
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.arrow_downward, size: 13, color: AppColors.burgundyCard),
+                              label: Text(
+                                isNarrow ? 'Attendance Tab' : 'Open Attendance Tab',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.burgundyCard),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -2023,29 +2161,440 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     final isSelected = _attendanceFilter == filterKey;
     return InkWell(
       onTap: () => setState(() => _attendanceFilter = filterKey),
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.sandGold : Colors.white.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(6),
+          gradient: isSelected ? AppColors.magentaGradient : null,
+          color: isSelected ? null : AppColors.pureWhite,
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? AppColors.sandGold : Colors.white.withOpacity(0.12),
-            width: 0.8,
+            color: isSelected ? Colors.transparent : AppColors.sandBorder,
+            width: 1.0,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.magentaPrimary.withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 10,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.black : const Color(0xFFCBD5E1),
+            fontSize: 10.5,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
           ),
         ),
       ),
     );
   }
 
+  // ignore: unused_element
+  Widget _buildCeoLeavesAndPermissionsTab(BuildContext context, EcosystemProvider eco) {
+    final pendingPerms = eco.pendingCeoPermissions;
+    final pendingMedLeaves = eco.pendingCeoMedicalLeaves;
+    final totalPending = pendingPerms.length + pendingMedLeaves.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Executive Header Card
+        LiquidGlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: 18,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDF2F8),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFBCFE8)),
+                    ),
+                    child: const Icon(Icons.verified_user_outlined, size: 20, color: AppColors.magentaPrimary),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'CEO APPROVALS & LEAVE DESK',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        Text(
+                          'Direct CEO authority for emergency permissions & medical leaves',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: totalPending > 0 ? const Color(0xFFFEF3C7) : const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: totalPending > 0 ? const Color(0xFFF59E0B) : const Color(0xFFA7F3D0),
+                      ),
+                    ),
+                    child: Text(
+                      totalPending > 0 ? '$totalPending PENDING' : 'ALL APPROVED',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        color: totalPending > 0 ? const Color(0xFFD97706) : const Color(0xFF059669),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // CEO Quick Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.magentaPrimary,
+                        side: const BorderSide(color: AppColors.magentaBorder),
+                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => EmergencyPermissionModal.show(context),
+                      icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: AppColors.magentaPrimary),
+                      label: Text(
+                        'Request Permission',
+                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.magentaPrimary),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.magentaPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => EmergencyMedicalLeaveModal.show(context),
+                      icon: const FaIcon(FontAwesomeIcons.kitMedical, size: 13, color: Colors.white),
+                      label: Text(
+                        'Medical Leave',
+                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Section 1: Pending Permissions Awaiting CEO Action
+        LiquidGlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Pending Permissions (${pendingPerms.length})',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                  ),
+                  if (pendingPerms.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Action Needed',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+                      ),
+                    ),
+                ],
+              ),
+              const Divider(color: Color(0xFFF1F5F9), height: 18),
+              if (pendingPerms.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    'No pending emergency permission requests awaiting CEO review.',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                ...pendingPerms.map((p) {
+                  final isOrange = p.isOrangeFlagged || p.requestedHours > 2.0;
+                  final durText = p.actualHoursUsed < 1.0 ? '${(p.actualHoursUsed * 60).round()}m' : '${p.actualHoursUsed}h';
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isOrange ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isOrange ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+                        width: isOrange ? 1.0 : 0.8,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 14,
+                              backgroundColor: AppColors.magentaSubtle,
+                              child: Text(
+                                (p.employeeName?.substring(0, 1) ?? 'E'),
+                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 10, color: AppColors.magentaPrimary),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '${p.employeeName ?? p.empId} (${p.requesterRole ?? "Staff"})',
+                                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                      ),
+                                      if (isOrange) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFEF3C7),
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(color: const Color(0xFFF59E0B), width: 0.6),
+                                          ),
+                                          child: Text(
+                                            '>2h Orange Mark',
+                                            style: GoogleFonts.plusJakartaSans(fontSize: 8.5, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  Text(
+                                    '${p.department ?? "General"} • Permission: $durText • Reason: "${p.reason}"',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFEF4444)),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () => eco.rejectPermission(p.id, rejectedBy: 'CEO'),
+                              icon: const Icon(Icons.close, size: 12, color: Color(0xFFEF4444)),
+                              label: Text('Reject', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFEF4444))),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF10B981),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () {
+                                eco.ceoApprovePermission(p.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Permission of $durText approved by CEO!')),
+                                );
+                              },
+                              icon: const Icon(Icons.check, size: 12, color: Colors.white),
+                              label: Text('Accept & Approve', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Section 2: Pending Medical Leaves Awaiting CEO Action
+        LiquidGlassCard(
+          padding: const EdgeInsets.all(16),
+          borderRadius: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Pending Medical Leaves (${pendingMedLeaves.length})',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                  ),
+                  if (pendingMedLeaves.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF1F2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Prescription Verification',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFE11D48)),
+                      ),
+                    ),
+                ],
+              ),
+              const Divider(color: Color(0xFFF1F5F9), height: 18),
+              if (pendingMedLeaves.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    'No emergency medical leaves awaiting CEO review.',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                ...pendingMedLeaves.map((m) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 14,
+                              backgroundColor: const Color(0xFFFFF1F2),
+                              child: const Icon(Icons.local_hospital_outlined, size: 14, color: Color(0xFFE11D48)),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${m.empName} • ${m.days} Day(s) Medical Leave',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                  ),
+                                  Text(
+                                    'Reason: "${m.reason}" • Endorsed by HR: ${m.hrEndorsed ? "Yes" : "Pending"}',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton.icon(
+                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                              onPressed: () => PrescriptionViewerDialog.show(context, leave: m),
+                              icon: const Icon(Icons.image, size: 13, color: AppColors.magentaPrimary),
+                              label: Text('Prescription', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.magentaPrimary)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFEF4444)),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () => eco.rejectMedicalLeave(m.id, rejectedBy: 'CEO'),
+                              icon: const Icon(Icons.close, size: 12, color: Color(0xFFEF4444)),
+                              label: Text('Reject', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFEF4444))),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF10B981),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () {
+                                eco.ceoApproveMedicalLeave(m.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Emergency medical leave approved for ${m.empName}!')),
+                                );
+                              },
+                              icon: const Icon(Icons.check, size: 12, color: Colors.white),
+                              label: Text('Accept Medical Leave', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ignore: unused_element
   Widget _buildBiometricAttendanceTab(BuildContext context, EcosystemProvider eco) {
     final summaries = eco.allEmployeesTodayAttendance;
     final total = summaries.length;
@@ -2135,28 +2684,31 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             Expanded(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sandGold,
-                  foregroundColor: Colors.black,
+                  backgroundColor: AppColors.magentaSubtle,
+                  foregroundColor: AppColors.magentaPrimary,
+                  side: const BorderSide(color: AppColors.magentaBorder),
                   padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
                 ),
                 onPressed: () => EmergencyPermissionModal.show(context),
-                icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: Colors.black),
-                label: const Text('Permission', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: AppColors.magentaPrimary),
+                label: const Text('Permission', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.magentaPrimary)),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEF4444),
+                  backgroundColor: AppColors.magentaPrimary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 2,
                 ),
                 onPressed: () => EmergencyMedicalLeaveModal.show(context),
                 icon: const FaIcon(FontAwesomeIcons.kitMedical, size: 13, color: Colors.white),
-                label: const Text('Medical Leave', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                label: const Text('Medical Leave', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white)),
               ),
             ),
           ],
@@ -2181,7 +2733,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     const SizedBox(width: 8),
                     Text(
                       'PENDING CEO ACCEPTANCE (${eco.pendingCeoPermissions.length + eco.pendingCeoMedicalLeaves.length})',
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.ragYellow,
@@ -2200,11 +2752,11 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isOrange ? AppColors.ragYellow.withOpacity(0.12) : Colors.white.withOpacity(0.04),
+                      color: isOrange ? AppColors.ragYellow.withOpacity(0.12) : AppColors.whiteBg,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: isOrange ? AppColors.ragYellow : Colors.white.withOpacity(0.1),
-                        width: isOrange ? 1.0 : 0.6,
+                        color: isOrange ? AppColors.ragYellow : AppColors.sandBorder,
+                        width: isOrange ? 1.0 : 0.8,
                       ),
                     ),
                     child: Column(
@@ -2214,10 +2766,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           children: [
                             CircleAvatar(
                               radius: 13,
-                              backgroundColor: AppColors.sandGold.withOpacity(0.2),
+                              backgroundColor: AppColors.magentaSubtle,
                               child: Text(
                                 (p.employeeName?.substring(0, 1) ?? 'E'),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: AppColors.sandGold),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: AppColors.magentaPrimary),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -2229,7 +2781,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                     children: [
                                       Text(
                                         '${p.employeeName ?? p.empId} (${p.requesterRole ?? "Staff"})',
-                                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                       ),
                                       if (isOrange) ...[
                                         const SizedBox(width: 6),
@@ -2276,7 +2828,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.ragGreen,
-                                foregroundColor: Colors.black,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -2287,8 +2839,8 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                   SnackBar(content: Text('Permission of $durText approved by CEO!')),
                                 );
                               },
-                              icon: const Icon(Icons.check, size: 12, color: Colors.black),
-                              label: const Text('Accept & Approve', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold)),
+                              icon: const Icon(Icons.check, size: 12, color: Colors.white),
+                              label: const Text('Accept & Approve', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
                             ),
                           ],
                         ),
@@ -2303,9 +2855,9 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.04),
+                      color: AppColors.whiteBg,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                      border: Border.all(color: AppColors.sandBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2320,7 +2872,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 children: [
                                   Text(
                                     '${m.empName} (${m.empRole}) • ${m.days} Days Medical Leave',
-                                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                   ),
                                   Text(
                                     'Diagnosis: "${m.reason}" • Prescription Attached',
@@ -2331,14 +2883,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             ),
                             TextButton.icon(
                               style: TextButton.styleFrom(
-                                backgroundColor: AppColors.sandGold.withOpacity(0.15),
+                                backgroundColor: AppColors.magentaSubtle,
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               onPressed: () => PrescriptionViewerDialog.show(context, leave: m, isCeo: true),
-                              icon: const Icon(Icons.image, size: 13, color: AppColors.sandGold),
-                              label: const Text('View Prescription', style: TextStyle(fontSize: 10.5, color: AppColors.sandGold, fontWeight: FontWeight.bold)),
+                              icon: const Icon(Icons.image, size: 13, color: AppColors.magentaPrimary),
+                              label: const Text('View Prescription', style: TextStyle(fontSize: 10.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
@@ -2361,7 +2913,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.ragGreen,
-                                foregroundColor: Colors.black,
+                                foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -2372,8 +2924,8 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                   SnackBar(content: Text('Emergency medical leave approved for ${m.empName}!')),
                                 );
                               },
-                              icon: const Icon(Icons.check, size: 12, color: Colors.black),
-                              label: const Text('Accept Medical Leave', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold)),
+                              icon: const Icon(Icons.check, size: 12, color: Colors.white),
+                              label: const Text('Accept Medical Leave', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
                             ),
                           ],
                         ),
@@ -2466,7 +3018,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         // Section Title
         Text(
           'EXECUTIVE WORKFORCE ATTENDANCE & IN/OUT ROSTER',
-          style: GoogleFonts.cinzel(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 11.5,
             fontWeight: FontWeight.bold,
             color: AppColors.sandGold,
@@ -2537,11 +3089,11 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       color: AppColors.burgundyCard,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: item.statusBadgeColor.withOpacity(0.5), width: 1.1),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Color(0x0A0F172A),
                           blurRadius: 8,
-                          offset: const Offset(0, 3),
+                          offset: Offset(0, 3),
                         ),
                       ],
                     ),
@@ -2551,32 +3103,60 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   // Top Row: Avatar, Name, Dept, Status Badge
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: AppColors.sandGold.withOpacity(0.2),
-                        child: Text(
-                          item.initials,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.sandGold),
+                      InkWell(
+                        onTap: () {
+                          final emp = eco.employees.firstWhere(
+                            (e) => e.id == item.employeeId,
+                            orElse: () => eco.employees.first,
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => HrEmployeeInspectionScreen(employee: emp),
+                            ),
+                          );
+                        },
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppColors.sandGold.withOpacity(0.2),
+                          child: Text(
+                            item.initials,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.sandGold),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.employeeName,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
+                        child: InkWell(
+                          onTap: () {
+                            final emp = eco.employees.firstWhere(
+                              (e) => e.id == item.employeeId,
+                              orElse: () => eco.employees.first,
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => HrEmployeeInspectionScreen(employee: emp),
                               ),
-                            ),
-                            Text(
-                              '${item.employeeId} • ${item.department} (${item.role})',
-                              style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                            ),
-                          ],
+                            );
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.employeeName,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.sandLight,
+                                ),
+                              ),
+                              Text(
+                                '${item.employeeId} • ${item.department} (${item.role})',
+                                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       Container(
@@ -2626,7 +3206,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 item.inTimeString,
-                                style: GoogleFonts.cinzel(
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: item.isPresent ? AppColors.sandLight : AppColors.textMuted,
@@ -2703,7 +3283,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 item.outTimeString,
-                                style: GoogleFonts.cinzel(
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: item.logoutPunch != null ? AppColors.sandLight : (item.isCurrentlyOnDuty ? const Color(0xFFF59E0B) : AppColors.textMuted),
@@ -2721,34 +3301,67 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        item.isLeftEarly
-                            ? 'Net Working: ${item.workHoursFormatted} (Left Early)'
-                            : 'Net Working: ${item.workHoursFormatted}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: item.isLeftEarly ? const Color(0xFFF59E0B) : AppColors.sandGold,
+                      Expanded(
+                        child: Text(
+                          item.isLeftEarly
+                              ? 'Net Working: ${item.workHoursFormatted} (Left Early)'
+                              : 'Net Working: ${item.workHoursFormatted}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: item.isLeftEarly ? const Color(0xFFF59E0B) : AppColors.sandGold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      InkWell(
-                        onTap: () {
-                          eco.setActiveEmployee(item.employeeId);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
-                          );
-                        },
-                        child: Row(
-                          children: const [
-                            Text(
-                              'Open Biometric Ledger',
-                              style: TextStyle(fontSize: 10, color: AppColors.sandLight, fontWeight: FontWeight.bold),
+                      const SizedBox(width: 6),
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              final emp = eco.employees.firstWhere(
+                                (e) => e.id == item.employeeId,
+                                orElse: () => eco.employees.first,
+                              );
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => HrEmployeeInspectionScreen(employee: emp),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: const [
+                                Icon(Icons.assignment_ind_outlined, size: 12, color: AppColors.sandGold),
+                                SizedBox(width: 3),
+                                Text(
+                                  'Dossier',
+                                  style: TextStyle(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.bold),
+                                ),
+                              ],
                             ),
-                            SizedBox(width: 3),
-                            Icon(Icons.arrow_forward_ios, size: 9, color: AppColors.sandLight),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 10),
+                          InkWell(
+                            onTap: () {
+                              eco.setActiveEmployee(item.employeeId);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
+                              );
+                            },
+                            child: Row(
+                              children: const [
+                                Text(
+                                  'Open Biometric Ledger',
+                                  style: TextStyle(fontSize: 10, color: AppColors.sandLight, fontWeight: FontWeight.bold),
+                                ),
+                                SizedBox(width: 3),
+                                Icon(Icons.arrow_forward_ios, size: 9, color: AppColors.sandLight),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -2760,6 +3373,412 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
       },
         ),
       ],
+    );
+  }
+
+  // ignore: unused_element
+  Widget _buildStaffDossiersDirectoryTab(BuildContext context, EcosystemProvider eco) {
+    final allEmployees = eco.employees;
+    final adminEmployees = allEmployees.where((e) =>
+      e.dept.toLowerCase().contains('admin') ||
+      e.roleType.toLowerCase() == 'ceo' ||
+      e.roleType.toLowerCase() == 'hr' ||
+      e.id == 'MN-CEO01' ||
+      e.id == 'MN-HR1001'
+    ).toList();
+    
+    final onlineEmployees = allEmployees.where((e) =>
+      !adminEmployees.any((a) => a.id == e.id)
+    ).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.sandGold.withOpacity(0.15),
+                ),
+                child: const Icon(Icons.badge_outlined, color: AppColors.sandGold, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'COMPANY EMPLOYEE DOSSIERS',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Select any staff profile to view KYC, document custody, attendance records, and reset portal passwords.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        color: AppColors.textSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 1. Administration Section (CEO & HR)
+        if (adminEmployees.isNotEmpty) ...[
+          _ceoDeptHeader(
+            title: 'Administration',
+            icon: Icons.admin_panel_settings_outlined,
+            count: adminEmployees.length,
+            accent: AppColors.sandGold,
+          ),
+          const SizedBox(height: 10),
+          ...adminEmployees.map((emp) => _buildCeoStaffCard(context, eco, emp)),
+          const SizedBox(height: 14),
+        ],
+
+        // 2. Online Department Section (Operations & TL)
+        if (onlineEmployees.isNotEmpty) ...[
+          _ceoDeptHeader(
+            title: 'Online Department',
+            icon: Icons.corporate_fare_rounded,
+            count: onlineEmployees.length,
+            accent: AppColors.sandLight,
+          ),
+          const SizedBox(height: 10),
+          ...onlineEmployees.map((emp) => _buildCeoStaffCard(context, eco, emp)),
+        ],
+      ],
+    );
+  }
+
+  Widget _ceoDeptHeader({
+    required String title,
+    required IconData icon,
+    required int count,
+    required Color accent,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: accent.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                color: accent,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: accent.withOpacity(0.4)),
+            ),
+            child: Text(
+              '$count Staff',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: accent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCeoStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
+    final isAbsent = eco.isEmployeeAbsent(emp.id);
+    final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
+    final empPassword = emp.password.isNotEmpty ? emp.password : 'password123';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isAbsent ? const Color(0xFFFECDD3).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.6),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Tappable Header leading to full Inspection Dossier
+          InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => HrEmployeeInspectionScreen(employee: emp),
+              ),
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: isAbsent ? AppColors.ragRed : AppColors.sandGold.withOpacity(0.2),
+                    child: Text(
+                      emp.initials,
+                      style: TextStyle(
+                        color: isAbsent ? Colors.white : AppColors.sandGold,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          emp.name,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${emp.straightCutDesignation} • ${emp.dept}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF94A3B8)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${emp.phone} • ${emp.email}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  LiquidGlassPill(
+                    label: isAbsent ? 'ABSENT' : 'PRESENT',
+                    color: isAbsent ? AppColors.ragRed : AppColors.ragGreen,
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.sandGold),
+                ],
+              ),
+            ),
+          ),
+
+          // Inline Password & Reset Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFDF2F8),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
+              border: Border(top: BorderSide(color: AppColors.sandBorder)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lock_outline, size: 13, color: AppColors.sandGold),
+                const SizedBox(width: 6),
+                Text(
+                  'Password: ',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandGold,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    isPasswordRevealed ? empPassword : '••••••••',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isPasswordRevealed ? AppColors.sandLight : AppColors.textSecondary,
+                      letterSpacing: isPasswordRevealed ? 0 : 1.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                InkWell(
+                  onTap: () => setState(() => _revealedPasswords[emp.id] = !isPasswordRevealed),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
+                      size: 15,
+                      color: AppColors.sandGold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: empPassword));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Password for ${emp.name} copied to clipboard!'),
+                        backgroundColor: const Color(0xFF10B981),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.copy_rounded, size: 14, color: AppColors.sandLight),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                InkWell(
+                  onTap: () => _openResetPasswordDialog(context, eco, emp),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                    decoration: BoxDecoration(
+                      color: AppColors.sandGold.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.lock_reset, size: 11, color: AppColors.sandGold),
+                        const SizedBox(width: 3),
+                        Text(
+                          'Reset',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandGold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openResetPasswordDialog(BuildContext context, EcosystemProvider eco, Employee emp) {
+    final newPassCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.sandGold.withOpacity(0.4)),
+        ),
+        title: Text(
+          'Reset Password',
+          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Reset portal password for ${emp.name}:',
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: newPassCtrl,
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.sandLight),
+              decoration: InputDecoration(
+                hintText: 'Enter new password (min 6 chars)',
+                hintStyle: TextStyle(color: AppColors.textMuted.withOpacity(0.6)),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.sandBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.sandBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.magentaPrimary),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.sandGold,
+              foregroundColor: AppColors.burgundyCard,
+            ),
+            onPressed: () async {
+              final newPass = newPassCtrl.text.trim();
+              if (newPass.isEmpty) return;
+              final messenger = ScaffoldMessenger.of(context);
+              await eco.adminResetEmployeePassword(empId: emp.id, newPassword: newPass);
+              if (ctx.mounted) Navigator.pop(ctx);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text('Password for ${emp.name} reset to: $newPass'),
+                  backgroundColor: const Color(0xFF10B981),
+                ),
+              );
+            },
+            child: const Text('Save & Reset', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2782,7 +3801,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               const SizedBox(height: 2),
               Text(
                 value,
-                style: GoogleFonts.cinzel(fontSize: 13, fontWeight: FontWeight.bold, color: color),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: color),
               ),
               Text(
                 label,
@@ -2807,6 +3826,9 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     final phoneController = TextEditingController();
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
+    final dobController = TextEditingController();
+    DateTime? selectedDob;
+    String selectedGender = 'Male';
     String roleHierarchy = 'HR Management'; // 'HR Management', 'Team Lead', 'Employee'
 
     showModalBottomSheet(
@@ -2837,7 +3859,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       children: [
                         Text(
                           'CEO: Create & Provision Staff',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandLight,
@@ -2870,24 +3892,24 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: roleHierarchy == 'HR Management' ? AppColors.burgundyPrimary : AppColors.burgundyBg,
+                                color: roleHierarchy == 'HR Management' ? AppColors.magentaPrimary : AppColors.cardSurface,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: roleHierarchy == 'HR Management' ? AppColors.sandGold : AppColors.sandBorder,
+                                  color: roleHierarchy == 'HR Management' ? AppColors.magentaPrimary : AppColors.sandBorder,
                                   width: roleHierarchy == 'HR Management' ? 1.5 : 1,
                                 ),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.badge, size: 16, color: roleHierarchy == 'HR Management' ? AppColors.sandGold : AppColors.textMuted),
+                                  Icon(Icons.badge, size: 16, color: roleHierarchy == 'HR Management' ? Colors.white : AppColors.textMuted),
                                   const SizedBox(width: 4),
                                   Text(
                                     'HR',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: roleHierarchy == 'HR Management' ? AppColors.sandLight : AppColors.textMuted,
+                                      color: roleHierarchy == 'HR Management' ? Colors.white : AppColors.textMuted,
                                     ),
                                   ),
                                 ],
@@ -2907,24 +3929,24 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: roleHierarchy == 'Team Lead' ? AppColors.burgundyPrimary : AppColors.burgundyBg,
+                                color: roleHierarchy == 'Team Lead' ? AppColors.magentaPrimary : AppColors.cardSurface,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: roleHierarchy == 'Team Lead' ? AppColors.sandGold : AppColors.sandBorder,
+                                  color: roleHierarchy == 'Team Lead' ? AppColors.magentaPrimary : AppColors.sandBorder,
                                   width: roleHierarchy == 'Team Lead' ? 1.5 : 1,
                                 ),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.shield_outlined, size: 16, color: roleHierarchy == 'Team Lead' ? AppColors.sandGold : AppColors.textMuted),
+                                  Icon(Icons.shield_outlined, size: 16, color: roleHierarchy == 'Team Lead' ? Colors.white : AppColors.textMuted),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Team Lead',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: roleHierarchy == 'Team Lead' ? AppColors.sandLight : AppColors.textMuted,
+                                      color: roleHierarchy == 'Team Lead' ? Colors.white : AppColors.textMuted,
                                     ),
                                   ),
                                 ],
@@ -2944,24 +3966,130 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: roleHierarchy == 'Employee' ? AppColors.burgundyPrimary : AppColors.burgundyBg,
+                                color: roleHierarchy == 'Employee' ? AppColors.magentaPrimary : AppColors.cardSurface,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: roleHierarchy == 'Employee' ? AppColors.sandGold : AppColors.sandBorder,
+                                  color: roleHierarchy == 'Employee' ? AppColors.magentaPrimary : AppColors.sandBorder,
                                   width: roleHierarchy == 'Employee' ? 1.5 : 1,
                                 ),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.person, size: 16, color: roleHierarchy == 'Employee' ? AppColors.sandGold : AppColors.textMuted),
+                                  Icon(Icons.person, size: 16, color: roleHierarchy == 'Employee' ? Colors.white : AppColors.textMuted),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Employee',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: roleHierarchy == 'Employee' ? AppColors.sandLight : AppColors.textMuted,
+                                      color: roleHierarchy == 'Employee' ? Colors.white : AppColors.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Gender Selection (Attire & Grooming Segregation)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Gender (Attire & Grooming):',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold, fontWeight: FontWeight.bold),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: selectedGender == 'Female' ? const Color(0xFFFDF2F8) : const Color(0xFFF0F9FF),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: selectedGender == 'Female' ? const Color(0xFFFBCFE8) : const Color(0xFFBAE6FD),
+                            ),
+                          ),
+                          child: Text(
+                            selectedGender == 'Female' ? 'Saree Specification' : 'Formal Wear Specification',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: selectedGender == 'Female' ? const Color(0xFFBE185D) : const Color(0xFF0284C7),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                selectedGender = 'Male';
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: selectedGender == 'Male' ? const Color(0xFF0284C7) : AppColors.cardSurface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: selectedGender == 'Male' ? const Color(0xFF0284C7) : AppColors.sandBorder,
+                                  width: selectedGender == 'Male' ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.male, size: 18, color: selectedGender == 'Male' ? Colors.white : AppColors.textMuted),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Male (Formal)',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: selectedGender == 'Male' ? Colors.white : AppColors.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                selectedGender = 'Female';
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: selectedGender == 'Female' ? AppColors.magentaPrimary : AppColors.cardSurface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: selectedGender == 'Female' ? AppColors.magentaPrimary : AppColors.sandBorder,
+                                  width: selectedGender == 'Female' ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.female, size: 18, color: selectedGender == 'Female' ? Colors.white : AppColors.textMuted),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Female (Saree)',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: selectedGender == 'Female' ? Colors.white : AppColors.textMuted,
                                     ),
                                   ),
                                 ],
@@ -2990,6 +4118,69 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Birthday Date (DOB)
+                    Text(
+                      'Birthday Date (DOB):',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDob ?? DateTime(now.year - 22, 1, 1),
+                          firstDate: DateTime(1950),
+                          lastDate: now,
+                          builder: (pickerCtx, child) {
+                            return Theme(
+                              data: ThemeData.light().copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColors.magentaPrimary,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: AppColors.textDark,
+                                ),
+                                dialogBackgroundColor: Colors.white,
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setModalState(() {
+                            selectedDob = picked;
+                            dobController.text =
+                                '${picked.day.toString().padLeft(2, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.year}';
+                          });
+                        }
+                      },
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: dobController,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                          decoration: InputDecoration(
+                            hintText: 'Tap to select Birthday Date (DD-MM-YYYY)',
+                            hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                            filled: true,
+                            fillColor: AppColors.burgundyBg,
+                            prefixIcon: const Icon(Icons.cake_outlined, size: 18, color: AppColors.sandPrimary),
+                            suffixIcon: const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.sandPrimary),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppColors.sandBorder),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: AppColors.sandBorder),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -3131,6 +4322,8 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           password: passwordController.text.trim().isNotEmpty ? passwordController.text.trim() : 'password123',
                           experienceCategory: 'experienced',
                           experienceYears: '3+ yrs in Corporate',
+                          dob: dobController.text.trim().isNotEmpty ? dobController.text.trim() : '01-01-2000',
+                          gender: selectedGender,
                         );
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(

@@ -6,9 +6,67 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 
 /* ==========================================================================
+   THEME 0: SIGNATURE WHITE & LUXURY MAGENTA (Default)
+   ========================================================================== */
+:root, [data-theme="magenta"] {
+  --magenta-primary: #e11d48;
+  --magenta-accent: #c026d3;
+  --magenta-subtle: #fff1f4;
+  --magenta-border: #fce7f3;
+  --magenta-gradient: linear-gradient(135deg, #e11d48 0%, #c026d3 100%);
+  --magenta-glow: 0 4px 16px rgba(225, 29, 72, 0.25);
+
+  --gold-primary: #e11d48;
+  --gold-accent: #c026d3;
+  --gold-light: #fff1f4;
+  --gold-border: #fce7f3;
+  --gold-dark: #9f1239;
+  --gold-gradient: linear-gradient(135deg, #e11d48 0%, #c026d3 100%);
+  --gold-glow: 0 4px 16px rgba(225, 29, 72, 0.2);
+
+  --navy-dark: #0f172a;
+  --navy-card: #ffffff;
+  --navy-surface: #ffffff;
+  --navy-border: #f1e4ed;
+
+  --bg-page: #f9fafc;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #fff1f4;
+  --bg-input: #ffffff;
+  
+  --border-light: #f1e4ed;
+  --border-subtle: #fce7f3;
+  --border-focus: #e11d48;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --text-white: #ffffff;
+  --text-gold: #e11d48;
+
+  --rag-green: #10b981;
+  --rag-green-bg: #ecfdf5;
+  --rag-green-border: #a7f3d0;
+  --rag-green-text: #047857;
+
+  --rag-yellow: #d97706;
+  --rag-yellow-bg: #fffbeb;
+  --rag-yellow-border: #fde68a;
+  --rag-yellow-text: #b45309;
+
+  --rag-red: #ef4444;
+  --rag-red-bg: #fef2f2;
+  --rag-red-border: #fecaca;
+  --rag-red-text: #b91c1c;
+
+  --hero-gradient: linear-gradient(135deg, #e11d48 0%, #c026d3 100%);
+  --brand-badge-bg: #e11d48;
+}
+
+/* ==========================================================================
    THEME 1: SIGNATURE ROYAL NAVY & CLASSIC GOLD (Combo 3)
    ========================================================================== */
-:root, [data-theme="navy"] {
+[data-theme="navy"] {
   --gold-primary: #b8860b;
   --gold-accent: #d4af37;
   --gold-light: #fef9e7;

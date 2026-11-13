@@ -125,8 +125,8 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'FAMILY PILLAR',
-          style: GoogleFonts.cinzel(
+          'FAMILY PILLAR • DAILY',
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.bold,
             color: AppColors.sandLight,
@@ -243,19 +243,19 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               children: [
                 Text(
                   'Family & Friends Time',
-                  style: GoogleFonts.cinzel(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.sandLight,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Dedicated hours for loved ones, family support, and quality life with friends & colleagues.',
+                  'Daily Cadence • Dedicated hours for loved ones, family support, and quality moments recorded with date & time.',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
-                    color: AppColors.sandPrimary,
-                    height: 1.3,
+                    color: Colors.white.withOpacity(0.9),
+                    height: 1.35,
                   ),
                 ),
               ],
@@ -284,7 +284,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
             Expanded(
               child: Text(
                 'PILLAR MODULES',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -418,7 +418,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               children: [
                 Text(
                   metric,
-                  style: GoogleFonts.cinzel(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: isSelected ? AppColors.sandLight : AppColors.sandPrimary,
@@ -489,7 +489,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 children: [
                   Text(
                     '1. FAMILY TIME',
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -539,7 +539,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       children: [
                         Text(
                           'TODAY\'S FAMILY TIME',
-                          style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -548,7 +548,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           children: [
                             Text(
                               familyHours.toStringAsFixed(1),
-                              style: GoogleFonts.cinzel(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 38,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandLight,
@@ -705,7 +705,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
             children: [
               Text(
                 'DAILY FAMILY HABITS & COMMITMENT',
-                style: GoogleFonts.cinzel(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
               ),
               const SizedBox(height: 10),
 
@@ -719,7 +719,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 child: CheckboxListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   activeColor: AppColors.burgundyPrimary,
-                  checkColor: AppColors.sandGold,
+                  checkColor: Colors.white,
                   title: Text(
                     'Evening Dinner Together Today',
                     style: GoogleFonts.plusJakartaSans(
@@ -824,7 +824,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 children: [
                   Text(
                     '2. FRIENDS & PEERS',
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -874,7 +874,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       children: [
                         Text(
                           'TODAY\'S SOCIAL & PEER TIME',
-                          style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                         ),
                         const SizedBox(height: 6),
                         Row(
@@ -883,7 +883,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           children: [
                             Text(
                               friendsHours.toStringAsFixed(1),
-                              style: GoogleFonts.cinzel(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 38,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandLight,
@@ -1040,7 +1040,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
             children: [
               Text(
                 'WHY WORKPLACE & PEER BONDS MATTER',
-                style: GoogleFonts.cinzel(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -1094,7 +1094,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
           children: [
             Text(
               '3. LOG ACTIVITY',
-              style: GoogleFonts.cinzel(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 13.5,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandLight,
@@ -1128,7 +1128,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               // Step 1: Who was this with? (Segmented Choice)
               Text(
                 'STEP 1: COMPANION',
-                style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
               ),
               const SizedBox(height: 8),
               Row(
@@ -1157,7 +1157,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               // Step 2: Choose Preset Template or Custom Name
               Text(
                 'STEP 2: ACTIVITY',
-                style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
               ),
               const SizedBox(height: 8),
 
@@ -1173,15 +1173,15 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       child: ActionChip(
                         avatar: Text(p.iconEmoji, style: const TextStyle(fontSize: 15)),
                         label: Text(p.name),
-                        backgroundColor: isChosen ? AppColors.burgundyPrimary : AppColors.burgundySurface,
+                        backgroundColor: isChosen ? AppColors.magentaPrimary : AppColors.burgundySurface,
                         side: BorderSide(
-                          color: isChosen ? AppColors.sandGold : AppColors.sandBorder,
+                          color: isChosen ? AppColors.magentaPrimary : AppColors.sandBorder,
                           width: isChosen ? 1.4 : 0.8,
                         ),
                         labelStyle: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: isChosen ? FontWeight.bold : FontWeight.normal,
-                          color: isChosen ? AppColors.sandGold : AppColors.sandPrimary,
+                          color: isChosen ? Colors.white : AppColors.textDark,
                         ),
                         onPressed: () => _selectPreset(p),
                       ),
@@ -1221,7 +1221,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   Expanded(
                     child: Text(
                       'STEP 3: DURATION',
-                      style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1236,7 +1236,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     ),
                     child: Text(
                       '${_loggedHours.toStringAsFixed(1)}h (${(_loggedHours * 60).toInt()}m)',
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -1262,16 +1262,16 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.sandGold : AppColors.burgundySurface,
+                            color: isSelected ? AppColors.magentaPrimary : AppColors.burgundySurface,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: isSelected ? AppColors.sandGold : AppColors.sandBorder),
+                            border: Border.all(color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder),
                           ),
                           child: Text(
                             h == 0.5 ? '30m' : (h % 1 == 0 ? '${h.toInt()}h' : '${h}h'),
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? AppColors.burgundyBg : AppColors.sandPrimary,
+                              color: isSelected ? Colors.white : AppColors.textDark,
                             ),
                           ),
                         ),
@@ -1327,7 +1327,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               // Step 4: Notes (Optional)
               Text(
                 'STEP 4: NOTES',
-                style: GoogleFonts.cinzel(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
               ),
               const SizedBox(height: 8),
               TextField(
@@ -1381,12 +1381,21 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.burgundyPrimary : AppColors.burgundySurface,
+          color: isSelected ? AppColors.magentaPrimary : AppColors.pureWhite,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+            color: isSelected ? AppColors.magentaPrimary : const Color(0xFFE2E8F0),
             width: isSelected ? 1.6 : 1.0,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.magentaPrimary.withOpacity(0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1401,7 +1410,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? AppColors.sandGold : AppColors.sandLight,
+                  color: isSelected ? Colors.white : AppColors.textDark,
                 ),
               ),
             ),
@@ -1438,7 +1447,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 children: [
                   Text(
                     '4. ACTIVITY DIARY',
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -1483,7 +1492,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   children: [
                     Text(
                       'DAILY TIME RATIO',
-                      style: GoogleFonts.cinzel(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                     ),
                     Text(
                       'Total: ${totalHours.toStringAsFixed(1)} hrs',
@@ -1556,13 +1565,13 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 child: ChoiceChip(
                   label: Text(cat),
                   selected: isSelected,
-                  selectedColor: AppColors.burgundyPrimary,
+                  selectedColor: AppColors.magentaPrimary,
                   backgroundColor: AppColors.burgundySurface,
-                  side: BorderSide(color: isSelected ? AppColors.sandGold : AppColors.sandBorder),
+                  side: BorderSide(color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder),
                   labelStyle: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? AppColors.sandGold : AppColors.sandPrimary,
+                    color: isSelected ? Colors.white : AppColors.textDark,
                   ),
                   onSelected: (val) {
                     if (val) setState(() => _diaryFilter = cat);
@@ -1713,7 +1722,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           ),
                           child: Text(
                             '+${log.hoursSpent.toStringAsFixed(1)} hrs',
-                            style: GoogleFonts.cinzel(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandGold,
@@ -1767,7 +1776,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               children: [
                 Text(
                   'Family Welfare Settings',
-                  style: GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                 ),
                 const SizedBox(height: 14),
                 TextField(
@@ -1805,8 +1814,8 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     const SizedBox(width: 8),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.sandGold,
-                        foregroundColor: AppColors.burgundyBg,
+                        backgroundColor: AppColors.magentaPrimary,
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: () {
                         setState(() {});

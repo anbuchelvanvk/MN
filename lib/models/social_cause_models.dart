@@ -88,6 +88,7 @@ class SocialCauseItem {
   final DateTime? approvedAt;
   final int heartsCount;
   final bool isHeartedByCurrentUser;
+  final List<String> likedEmpIds;
 
   SocialCauseItem({
     required this.id,
@@ -105,11 +106,15 @@ class SocialCauseItem {
     this.approvedAt,
     this.heartsCount = 0,
     this.isHeartedByCurrentUser = false,
+    this.likedEmpIds = const [],
   });
 
   bool get isApproved => status == 'approved';
   bool get isPending => status == 'pending';
   bool get isRejected => status == 'rejected';
+  bool get isCeoReacted => likedEmpIds.any((id) => id == 'MN-CEO01' || id.toLowerCase().contains('ceo'));
+  bool isHeartedBy(String currentEmpId) => likedEmpIds.contains(currentEmpId) || (isHeartedByCurrentUser && currentEmpId.isNotEmpty);
+  int get totalLikesCount => likedEmpIds.isNotEmpty ? likedEmpIds.length : heartsCount;
 
   SocialCauseItem copyWith({
     String? id,
@@ -127,6 +132,7 @@ class SocialCauseItem {
     DateTime? approvedAt,
     int? heartsCount,
     bool? isHeartedByCurrentUser,
+    List<String>? likedEmpIds,
   }) {
     return SocialCauseItem(
       id: id ?? this.id,
@@ -144,6 +150,7 @@ class SocialCauseItem {
       approvedAt: approvedAt ?? this.approvedAt,
       heartsCount: heartsCount ?? this.heartsCount,
       isHeartedByCurrentUser: isHeartedByCurrentUser ?? this.isHeartedByCurrentUser,
+      likedEmpIds: likedEmpIds ?? this.likedEmpIds,
     );
   }
 
@@ -162,6 +169,7 @@ class SocialCauseItem {
     'approvedByName': approvedByName,
     'approvedAt': approvedAt?.toIso8601String(),
     'heartsCount': heartsCount,
+    'likedEmpIds': likedEmpIds,
   };
 
   factory SocialCauseItem.fromJson(Map<String, dynamic> json) => SocialCauseItem(
@@ -179,6 +187,7 @@ class SocialCauseItem {
     approvedByName: json['approvedByName']?.toString(),
     approvedAt: json['approvedAt'] != null ? DateTime.tryParse(json['approvedAt'].toString()) : null,
     heartsCount: (json['heartsCount'] as int?) ?? 0,
+    likedEmpIds: (json['likedEmpIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
   );
 }
 

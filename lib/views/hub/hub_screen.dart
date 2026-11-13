@@ -39,7 +39,7 @@ class HubScreen extends StatelessWidget {
                           color: AppColors.sandPrimary,
                           width: 1.5,
                         ),
-                        color: AppColors.sandLight,
+                        color: Colors.black,
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.burgundyPrimary.withOpacity(0.12),
@@ -64,10 +64,9 @@ class HubScreen extends StatelessWidget {
                     const Text(
                       'MN JEWEL PARK',
                       style: TextStyle(
-                        fontFamily: 'Cinzel',
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.sandLight,
+                        color: Colors.black,
                         letterSpacing: 1.2,
                       ),
                     ),

@@ -5,8 +5,11 @@ class GroomingAuditItem {
   final String id;
   final String empId;
   final DateTime date;
-  final String category; // 'Haircut & Shave', 'Uniform & Ironing', 'ID Badge & Lapel', 'Footwear', 'Hygiene & Fragrance'
-  final int pointsChange; // Positive (reward) or Negative (penalty), e.g. +10, -15
+  final String category; // 'Daily Attire & Grooming Audit'
+  final int pointsChange; // Retained for compatibility
+  final int pointsEarned; // Points earned out of 50 max (e.g. 40, 50)
+  final int maxPoints; // Max daily points (default 50)
+  final List<String> followedItems; // List of criteria items followed
   final String reason;
   final String auditedBy;
   final bool isApproved;
@@ -17,10 +20,16 @@ class GroomingAuditItem {
     required this.date,
     required this.category,
     required this.pointsChange,
+    int? pointsEarned,
+    this.maxPoints = 50,
+    this.followedItems = const [],
     required this.reason,
     this.auditedBy = 'HR Department',
     this.isApproved = true,
-  });
+  }) : pointsEarned = pointsEarned ?? pointsChange.clamp(0, maxPoints);
+
+  double get percentage =>
+      maxPoints > 0 ? ((pointsEarned / maxPoints) * 100.0).clamp(0.0, 100.0) : 0.0;
 
   String get dateFormatted {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -42,6 +51,8 @@ class PermissionRecord {
   final bool isSalaryDeducted; // True if exceeding 1 CL
   final String grantedBy; // 'HR Direct Grant' or 'Employee Request'
   final bool isEmergency;
+
+  bool get hrEndorsed => hrApprovedBy != null && hrApprovedBy!.isNotEmpty;
   final String? employeeName;
   final String? department;
   final String? requesterRole; // 'Employee', 'Team Lead', 'HR', 'CEO'
@@ -106,6 +117,8 @@ class MedicalLeaveRecord {
   final String? ceoApprovedBy;
   final DateTime? reviewedAt;
   final bool isEmergency;
+
+  bool get hrEndorsed => hrApprovedBy != null && hrApprovedBy!.isNotEmpty;
 
   MedicalLeaveRecord({
     required this.id,

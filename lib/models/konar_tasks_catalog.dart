@@ -683,6 +683,98 @@ class KonarTaskCatalog {
           ),
         ];
 
+      case 'HR':
+        return [
+          TaskItem(
+            id: 'KONAR-HR-01',
+            empId: empId,
+            title: 'Audit Daily Staff Attendance, Punch Logs & Absence Tracker',
+            category: 'HR Compliance',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'HR SOP',
+            due: '10:30 AM',
+            priority: 'Critical SLA',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-HR-02',
+            empId: empId,
+            title: 'Verify Frontline & Operations Staff Attire & Grooming Compliance',
+            category: 'Grooming Audit',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'HR SOP',
+            due: '11:30 AM',
+            priority: 'High',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-HR-03',
+            empId: empId,
+            title: 'Process Pending Leave, Medical Leave & Emergency Permission Submissions',
+            category: 'Staff Approvals',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'HR SOP',
+            due: '01:00 PM',
+            priority: 'High',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-HR-04',
+            empId: empId,
+            title: 'Review Staff Social Cause & Good Deed Submissions for Approval',
+            category: 'Social Cause Review',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'HR SOP',
+            due: '03:30 PM',
+            priority: 'Medium',
+            status: 'pending',
+          ),
+        ];
+
+      case 'CEO':
+        return [
+          TaskItem(
+            id: 'KONAR-CEO-01',
+            empId: empId,
+            title: 'Executive Board Review: Daily Revenue, Orders & Operational SLAs',
+            category: 'Executive Review',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Board SOP',
+            due: '11:00 AM',
+            priority: 'Critical SLA',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-CEO-02',
+            empId: empId,
+            title: 'Approve Escalated Emergency Leave & Strategic Department Blockers',
+            category: 'Executive Approvals',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Board SOP',
+            due: '02:00 PM',
+            priority: 'Critical SLA',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-CEO-03',
+            empId: empId,
+            title: 'Audit Floor Attendance, Mandates & Operational Privilege Allocations',
+            category: 'Governance',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Board SOP',
+            due: '05:00 PM',
+            priority: 'High',
+            status: 'pending',
+          ),
+        ];
+
       default:
         return [
           TaskItem(
@@ -708,7 +800,20 @@ class KonarTaskCatalog {
     final e = email.toLowerCase();
     final i = id.toUpperCase();
 
-    if (e.contains('praveen') || e.contains('otm') || r.contains('otm') || r.contains('manager') || i.contains('TL1002')) {
+    // Check CEO and HR first so they never get mistakenly assigned department roles!
+    if (e.contains('ceoofmn') || e.contains('ceo') || r.contains('ceo') || i.contains('CEO')) {
+      return 'CEO';
+    }
+    if (e.contains('mohankumar') || e.contains('hr') || r.contains('hr') || i.contains('HR')) {
+      return 'HR';
+    }
+
+    // OTM is strictly for Praveen Kumar (praveenkumarotm@mnj.com / MN-TL1002)
+    if (e == 'praveenkumarotm@mnj.com' ||
+        e.contains('praveen') ||
+        i == 'MN-TL1002' ||
+        r.contains('online team manager') ||
+        (r.contains('otm') && !r.contains('photographer'))) {
       return 'OTM';
     }
     if (e.contains('gokul') || e.contains('osh') || r.contains('osh') || r.contains('sale head')) {

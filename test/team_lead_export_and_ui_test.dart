@@ -79,7 +79,7 @@ void main() {
       expect(csv, isNot(contains('ceoofmn@mnjpark.com')));
     });
 
-    testWidgets('AttendancePillarScreen has PUNCH AUDIT without TRAIL and high-contrast gateway card', (tester) async {
+    testWidgets('AttendancePillarScreen has removed punch logs area for all users and displays high-contrast gateway card', (tester) async {
       final eco = EcosystemProvider();
 
       await tester.pumpWidget(
@@ -92,8 +92,8 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Verify 'PUNCH AUDIT' is present (even if offstage in scroll view) and 'BIOMETRIC PUNCH AUDIT TRAIL' is removed
-      expect(find.text('PUNCH AUDIT', skipOffstage: false), findsOneWidget);
+      // Verify Punch audit logs area is removed for all users
+      expect(find.text('PUNCH AUDIT', skipOffstage: false), findsNothing);
       expect(find.text('BIOMETRIC PUNCH AUDIT TRAIL', skipOffstage: false), findsNothing);
 
       // Verify Gateway card has high-contrast 'Green Factor' and 'Attendance Pending'

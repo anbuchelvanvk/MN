@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:mn_family_app/core/widgets/assign_tasks_to_others_modal.dart';
 import 'package:mn_family_app/core/widgets/role_app_bar.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
-import 'package:mn_family_app/views/auth/login_screen.dart';
 import 'package:mn_family_app/core/theme/app_colors.dart';
 
 void main() {
@@ -49,7 +48,7 @@ void main() {
       expect(find.text('Switch Account'), findsWidgets);
       expect(find.text('Back to Current Account'), findsOneWidget);
       expect(find.textContaining('ACTIVE ACCOUNT'), findsOneWidget);
-      expect(find.textContaining('Praveenkumaar M'), findsWidgets);
+      expect(find.textContaining('Praveenkumar M'), findsWidgets);
 
       // Tap Back to Current Account
       await tester.tap(find.text('Back to Current Account'));

@@ -20,6 +20,8 @@ class CompanyNotification {
   final bool isRead;
   final List<String> readByStaffIds;
   final String? actionTag;
+  final List<String> likedStaffIds;
+  final List<String> dismissedByStaffIds;
 
   CompanyNotification({
     required this.id,
@@ -32,11 +34,21 @@ class CompanyNotification {
     this.isRead = false,
     this.readByStaffIds = const [],
     this.actionTag,
+    this.likedStaffIds = const [],
+    this.dismissedByStaffIds = const [],
   });
 
   bool isReadBy(String empId) {
     return isRead || readByStaffIds.contains(empId);
   }
+
+  bool isDismissedBy(String empId) {
+    return dismissedByStaffIds.contains(empId);
+  }
+
+  bool isLikedBy(String empId) => likedStaffIds.contains(empId);
+  int get likesCount => likedStaffIds.length;
+  bool get isCeoReacted => likedStaffIds.any((id) => id == 'MN-CEO01' || id.toLowerCase().contains('ceo'));
 
   CompanyNotification copyWith({
     String? id,
@@ -49,6 +61,8 @@ class CompanyNotification {
     bool? isRead,
     List<String>? readByStaffIds,
     String? actionTag,
+    List<String>? likedStaffIds,
+    List<String>? dismissedByStaffIds,
   }) {
     return CompanyNotification(
       id: id ?? this.id,
@@ -61,6 +75,8 @@ class CompanyNotification {
       isRead: isRead ?? this.isRead,
       readByStaffIds: readByStaffIds ?? this.readByStaffIds,
       actionTag: actionTag ?? this.actionTag,
+      likedStaffIds: likedStaffIds ?? this.likedStaffIds,
+      dismissedByStaffIds: dismissedByStaffIds ?? this.dismissedByStaffIds,
     );
   }
 
@@ -120,6 +136,8 @@ class CompanyNotification {
     'isRead': isRead,
     'readByStaffIds': readByStaffIds,
     'actionTag': actionTag,
+    'likedStaffIds': likedStaffIds,
+    'dismissedByStaffIds': dismissedByStaffIds,
   };
 
   factory CompanyNotification.fromJson(Map<String, dynamic> json) {
@@ -173,6 +191,8 @@ class CompanyNotification {
       isRead: json['isRead'] == true,
       readByStaffIds: (json['readByStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       actionTag: json['actionTag']?.toString(),
+      likedStaffIds: (json['likedStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      dismissedByStaffIds: (json['dismissedByStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 }

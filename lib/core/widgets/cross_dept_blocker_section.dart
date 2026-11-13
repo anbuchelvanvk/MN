@@ -28,8 +28,22 @@ class CrossDeptBlockerSection extends StatefulWidget {
   static void showRaiseBlockerDialog(BuildContext context, {required String defaultFromDept}) {
     final eco = Provider.of<EcosystemProvider>(context, listen: false);
     final activeEmp = eco.currentEmployee;
-    String fromDept = standardDepts.contains(defaultFromDept) ? defaultFromDept : standardDepts.first;
-    String toDept = standardDepts.firstWhere((d) => d != fromDept, orElse: () => standardDepts[1]);
+
+    // Fixed / locked From address based strictly on the current logged-in role
+    final String fromDept;
+    if (activeEmp.isCeo || defaultFromDept.toLowerCase().contains('ceo') || defaultFromDept.toLowerCase().contains('executive')) {
+      fromDept = 'CEO (Executive Board)';
+    } else if (activeEmp.isHr || defaultFromDept.toLowerCase().contains('hr') || defaultFromDept.toLowerCase().contains('human resources')) {
+      fromDept = 'Human Resources (HR)';
+    } else if (activeEmp.isTeamLead) {
+      final deptName = activeEmp.department.isNotEmpty ? activeEmp.department : defaultFromDept;
+      fromDept = '$deptName (Team Lead)';
+    } else {
+      fromDept = activeEmp.department.isNotEmpty ? activeEmp.department : (defaultFromDept.isNotEmpty ? defaultFromDept : 'Online Department');
+    }
+
+    final availableTargetDepts = standardDepts.where((d) => !fromDept.toLowerCase().contains(d.toLowerCase())).toList();
+    String toDept = availableTargetDepts.isNotEmpty ? availableTargetDepts.first : standardDepts.first;
     final issueController = TextEditingController();
     String slaDue = '04:00 PM';
 
@@ -61,9 +75,9 @@ class CrossDeptBlockerSection extends StatefulWidget {
                     children: [
                       Text(
                         'Raise Blocker',
-                        style: GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       ),
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                      IconButton(icon: const Icon(Icons.close, color: AppColors.textMuted), onPressed: () => Navigator.pop(ctx)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -73,21 +87,43 @@ class CrossDeptBlockerSection extends StatefulWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('From:', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
+                            const Row(
+                              children: [
+                                Text('From:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight)),
+                                SizedBox(width: 4),
+                                Icon(Icons.lock_outline, size: 10, color: AppColors.textMuted),
+                              ],
+                            ),
                             const SizedBox(height: 4),
-                            DropdownButtonFormField<String>(
-                              value: fromDept,
-                              dropdownColor: AppColors.burgundySurface,
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white.withOpacity(0.06),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.sandBorder),
                               ),
-                              items: standardDepts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
-                              onChanged: (v) {
-                                if (v != null) setModalState(() => fromDept = v);
-                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    activeEmp.isCeo ? Icons.workspace_premium : (activeEmp.isHr ? Icons.groups : Icons.shield_outlined),
+                                    size: 15,
+                                    color: AppColors.magentaPrimary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      fromDept,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textDark,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -97,18 +133,19 @@ class CrossDeptBlockerSection extends StatefulWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Against:', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
+                            const Text('Against:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight)),
                             const SizedBox(height: 4),
                             DropdownButtonFormField<String>(
                               value: toDept,
                               dropdownColor: AppColors.burgundySurface,
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                              style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                               decoration: InputDecoration(
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.06),
+                                fillColor: AppColors.cardSurface,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                               ),
-                              items: standardDepts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                              items: availableTargetDepts.map((d) => DropdownMenuItem(value: d, child: Text(d, style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark)))).toList(),
                               onChanged: (v) {
                                 if (v != null) setModalState(() => toDept = v);
                               },
@@ -124,12 +161,12 @@ class CrossDeptBlockerSection extends StatefulWidget {
                   TextField(
                     controller: issueController,
                     maxLines: 3,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                     decoration: InputDecoration(
                       hintText: 'e.g. Awaiting customer ring size confirmation for custom order #ORD-901...',
                       hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.06),
+                      fillColor: AppColors.cardSurface,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                     ),
                   ),
@@ -221,9 +258,9 @@ class CrossDeptBlockerSection extends StatefulWidget {
                     children: [
                       Text(
                         'Respond to Blocker Ticket',
-                        style: GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       ),
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                      IconButton(icon: const Icon(Icons.close, color: AppColors.textMuted), onPressed: () => Navigator.pop(ctx)),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -239,12 +276,12 @@ class CrossDeptBlockerSection extends StatefulWidget {
                       children: [
                         Text(
                           'Raised by ${blocker.raisedByDept} (${blocker.raisedByName}):',
-                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFFFCA5A5)),
+                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFFEF4444)),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           blocker.issue,
-                          style: const TextStyle(fontSize: 11.5, color: Colors.white),
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.textDark),
                         ),
                       ],
                     ),
@@ -258,12 +295,12 @@ class CrossDeptBlockerSection extends StatefulWidget {
                   TextField(
                     controller: answerController,
                     maxLines: 3,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                     decoration: InputDecoration(
                       hintText: 'Explain why and when it will be done.',
                       hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 11.5),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.06),
+                      fillColor: AppColors.cardSurface,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                     ),
                   ),
@@ -280,7 +317,7 @@ class CrossDeptBlockerSection extends StatefulWidget {
                       const Expanded(
                         child: Text(
                           'Mark blocker as fully resolved right now',
-                          style: TextStyle(fontSize: 11.5, color: Colors.white),
+                          style: TextStyle(fontSize: 11.5, color: AppColors.textDark),
                         ),
                       ),
                     ],
@@ -366,7 +403,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                 children: [
                   Text(
                     'Blocker Tickets',
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandGold,
@@ -386,7 +423,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
             ),
             const SizedBox(width: 8),
             LiquidGlassButton(
-              label: '+ Raise Blocker',
+              label: 'Raise Blocker',
               color: AppColors.ragRed,
               height: 30,
               onPressed: () => CrossDeptBlockerSection.showRaiseBlockerDialog(context, defaultFromDept: widget.department),
@@ -431,10 +468,10 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                     _activeFilter == 'late'
                         ? 'No Late Blockers'
                         : (_activeFilter == 'all' ? 'Zero Active Blockers' : 'No Tickets in Filter'),
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -480,7 +517,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                       Expanded(
                         child: Text(
                           '${blk.raisedByDept}  ➔  ${blk.blockingDept}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
                       ),
                       Container(
@@ -509,10 +546,10 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                             fontSize: 8.5,
                             fontWeight: FontWeight.bold,
                             color: blk.isLate
-                                ? const Color(0xFFFCA5A5)
+                                ? AppColors.ragRed
                                 : (isResolved
                                     ? AppColors.ragGreen
-                                    : (hasResponse ? Colors.cyanAccent : AppColors.goldBright)),
+                                    : (hasResponse ? AppColors.statusBlue : AppColors.goldBright)),
                           ),
                         ),
                       ),
@@ -523,7 +560,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                   // Deliverable Impact / Issue
                   Text(
                     blk.issue,
-                    style: const TextStyle(fontSize: 11.5, color: Color(0xFFE2E8F0), height: 1.3),
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.textDark, height: 1.3),
                   ),
                   const SizedBox(height: 6),
 
@@ -544,9 +581,9 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                     Container(
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.04),
+                        color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white12),
+                        border: Border.all(color: AppColors.sandBorder),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,7 +608,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                           const SizedBox(height: 3),
                           Text(
                             blk.responseText!,
-                            style: const TextStyle(fontSize: 11, color: Color(0xFFCBD5E1), height: 1.3),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textPrimary, height: 1.3),
                           ),
                         ],
                       ),
@@ -590,7 +627,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.goldPrimary,
-                            foregroundColor: Colors.black,
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
@@ -661,13 +698,13 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
             fontSize: 10,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             color: isSelected
-                ? (isAlert ? Colors.white : AppColors.burgundyBg)
-                : (isAlert ? const Color(0xFFFCA5A5) : AppColors.sandLight),
+                ? Colors.white
+                : (isAlert ? AppColors.ragRed : AppColors.textDark),
           ),
         ),
         selected: isSelected,
         selectedColor: isAlert ? const Color(0xFFEF4444) : AppColors.sandGold,
-        backgroundColor: Colors.white.withOpacity(0.06),
+        backgroundColor: isAlert ? const Color(0xFFFFF1F2) : const Color(0xFFF8FAFC),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),

@@ -1,4 +1,3 @@
-import '../../core/widgets/task_action_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,14 +31,14 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-        boxShadow: [
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Color(0x060F172A),
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -50,13 +49,9 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF3B1015), Color(0xFF20090C)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.6)),
+              color: const Color(0xFFFFF1F4),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFECDD3), width: 1.2),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,11 +60,11 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444).withOpacity(0.2),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.notification_important, color: Color(0xFFEF4444), size: 18),
+                      child: const Icon(Icons.notification_important_rounded, color: AppColors.magentaPrimary, size: 18),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -81,13 +76,13 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
                             style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFFECACA),
+                              color: Color(0xFF0F172A),
                             ),
                           ),
                           SizedBox(height: 1),
                           Text(
                             'Pushes an instant alert to every employee account & mobile notification bar',
-                            style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                            style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
                           ),
                         ],
                       ),
@@ -97,17 +92,12 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.send_time_extension, size: 16, color: Colors.white),
-                    label: const Text(
-                      "Notify All to Complete Today's To-Do Lists Pending Works",
-                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
+                  child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFDC2626),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                      backgroundColor: AppColors.magentaPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 3,
+                      elevation: 0,
                     ),
                     onPressed: () {
                       final eco = context.read<EcosystemProvider>();
@@ -130,6 +120,20 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
                         ),
                       );
                     },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.send_time_extension, size: 16, color: Colors.white),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            "Notify All to Complete Today's To-Do Lists Pending Works",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -140,7 +144,7 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
           // 2. Custom Management Broadcast Form
           Row(
             children: const [
-              Icon(Icons.campaign, color: AppColors.sandGold, size: 18),
+              Icon(Icons.campaign_rounded, color: AppColors.magentaPrimary, size: 18),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -148,7 +152,7 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.sandLight,
+                    color: Color(0xFF0F172A),
                   ),
                 ),
               ),
@@ -158,17 +162,25 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
 
           TextField(
             controller: _titleCtrl,
-            style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A)),
             decoration: InputDecoration(
               labelText: 'Broadcast Title (Required)',
-              labelStyle: const TextStyle(fontSize: 11, color: AppColors.sandGold),
+              labelStyle: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
               hintText: 'e.g. Townhall Announcement, Counter Meeting, Purity Audit...',
-              hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              hintStyle: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
               filled: true,
-              fillColor: AppColors.burgundySurface,
+              fillColor: const Color(0xFFF8FAFC),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.sandBorder),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppColors.magentaPrimary, width: 1.5),
               ),
             ),
           ),
@@ -177,17 +189,25 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
           TextField(
             controller: _contentCtrl,
             maxLines: 2,
-            style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A)),
             decoration: InputDecoration(
               labelText: 'Message Content (Optional)',
-              labelStyle: const TextStyle(fontSize: 11, color: AppColors.sandGold),
+              labelStyle: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
               hintText: 'Enter details to display in notification...',
-              hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              hintStyle: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
               filled: true,
-              fillColor: AppColors.burgundySurface,
+              fillColor: const Color(0xFFF8FAFC),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.sandBorder),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppColors.magentaPrimary, width: 1.5),
               ),
             ),
           ),
@@ -196,13 +216,13 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
           Align(
             alignment: Alignment.centerRight,
             child: ElevatedButton.icon(
-              icon: const Icon(Icons.send, size: 15, color: AppColors.burgundyBg),
+              icon: const Icon(Icons.send, size: 15, color: Colors.white),
               label: const Text(
                 'Send Notification to All Mobiles',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.burgundyBg),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
+                backgroundColor: AppColors.magentaPrimary,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
@@ -283,7 +303,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                   children: [
                     Text(
                       'Social Cause Approval & Broadcast Hub',
-                      style: GoogleFonts.cinzel(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                     ),
                     const SizedBox(height: 2),
                     const Text(
@@ -307,14 +327,15 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFFF59E0B),
+                color: const Color(0xFFFEF3C7),
                 borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFDE68A)),
               ),
               child: Text(
                 '${pendingCauses.length}',
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black),
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
               ),
             ),
           ],
@@ -348,7 +369,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
         // Approved Submissions History
         Text(
           'Recently Approved Good Deeds (${approvedCauses.length})',
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
         ),
         const SizedBox(height: 8),
         ListView.separated(
@@ -361,38 +382,68 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.burgundyCard,
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.sandBorder),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.15),
+                    margin: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFECFDF5),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check, color: Color(0xFF10B981), size: 16),
+                    child: const Icon(Icons.check, color: Color(0xFF059669), size: 14),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '${c.employeeName} (${c.employeeRole}) • ${c.causeType}',
-                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${c.employeeName} (${c.employeeRole})',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFECFDF5),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFFA7F3D0)),
+                              ),
+                              child: Text(
+                                '₹${c.amountSpent.toStringAsFixed(0)}',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
-                          c.title,
-                          style: const TextStyle(fontSize: 11, color: AppColors.sandLight),
+                          '${c.causeType}: ${c.title}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '₹${c.amountSpent.toStringAsFixed(0)} sponsored • Approved by ${c.approvedByName ?? "Management"}',
-                          style: const TextStyle(fontSize: 10, color: Color(0xFF10B981)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.verified_outlined, size: 12, color: Color(0xFF059669)),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'Approved & broadcasted by ${c.approvedByName ?? "Management"}',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF059669), fontWeight: FontWeight.w500),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -418,45 +469,77 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${cause.employeeName} • ${cause.employeeRole}',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      cause.employeeName,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      cause.employeeRole,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.sandGold.withOpacity(0.15),
+                  color: const Color(0xFFFDF2F8),
                   borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFFBCFE8)),
                 ),
                 child: Text(
                   '₹${cause.amountSpent.toStringAsFixed(0)} Spent',
-                  style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFFFDE68A)),
+            ),
+            child: Text(
+              cause.causeType,
+              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
-            '${cause.causeType}: ${cause.title}',
-            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+            cause.title,
+            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark),
           ),
           if (cause.description.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
               cause.description,
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFFEF4444)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
@@ -467,15 +550,15 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                 },
                 child: const Text('Reject', style: TextStyle(fontSize: 11, color: Color(0xFFEF4444))),
               ),
-              const SizedBox(width: 8),
               ElevatedButton.icon(
-                icon: const Icon(Icons.check_circle_outline, size: 14, color: AppColors.burgundyBg),
+                icon: const Icon(Icons.check_circle_outline, size: 14, color: Colors.white),
                 label: const Text(
                   'Approve & Broadcast to All',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.burgundyBg),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
@@ -570,7 +653,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                   children: [
                     Text(
                       'Employee To-Do Oversight & Task Deletion',
-                      style: GoogleFonts.cinzel(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                     ),
                     const SizedBox(height: 2),
                     const Text(
@@ -673,7 +756,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
 
   Widget _buildManageTaskCard(BuildContext context, EcosystemProvider eco, TaskItem task, Employee emp) {
     return InkWell(
-      onTap: () => TaskActionDialogs.handleTaskTap(context, eco, task),
+      onTap: () => _showTaskInspectionModal(context, eco, task, emp),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -750,13 +833,441 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
   );
   }
 
+  void _showTaskInspectionModal(BuildContext context, EcosystemProvider eco, TaskItem task, Employee emp) {
+    final isAbsent = eco.isEmployeeAbsent(emp.id);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.magentaSubtle,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.assignment_outlined, color: AppColors.magentaPrimary, size: 20),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Task Details & Oversight',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: AppColors.textMuted),
+                          onPressed: () => Navigator.pop(bottomSheetCtx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Task Title & Category Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.magentaSubtle,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  task.category,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.magentaPrimary,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  task.priority,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF2563EB),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            task.title,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Status and Update Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: task.isCompleted
+                            ? const Color(0xFFECFDF5)
+                            : (task.isPostponed ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB)),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: task.isCompleted
+                              ? const Color(0xFFA7F3D0)
+                              : (task.isPostponed ? const Color(0xFFFECACA) : const Color(0xFFFDE68A)),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                task.isCompleted
+                                    ? Icons.check_circle_rounded
+                                    : (task.isPostponed ? Icons.schedule_rounded : Icons.pending_rounded),
+                                size: 18,
+                                color: task.isCompleted
+                                    ? const Color(0xFF059669)
+                                    : (task.isPostponed ? const Color(0xFFDC2626) : const Color(0xFFD97706)),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                task.isCompleted
+                                    ? 'STATUS: COMPLETED'
+                                    : (task.isPostponed ? 'STATUS: POSTPONED' : 'STATUS: PENDING'),
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: task.isCompleted
+                                      ? const Color(0xFF059669)
+                                      : (task.isPostponed ? const Color(0xFFDC2626) : const Color(0xFFD97706)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (task.proof?.content != null && task.proof!.content.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              'Remarks: ${task.proof!.content}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Due Date & Time Details
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Due Time & SLA:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                const SizedBox(height: 2),
+                                Text(task.due, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Assigned By:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                const SizedBox(height: 2),
+                                Text(task.assignedByName, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Assigned Staff & Absent Warning Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isAbsent ? const Color(0xFFFEF2F2) : const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isAbsent ? const Color(0xFFFCA5A5) : const Color(0xFFBBF7D0),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: isAbsent ? const Color(0xFFEF4444) : AppColors.magentaPrimary,
+                                child: Text(emp.initials, style: const TextStyle(fontSize: 10.5, color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(emp.name, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: isAbsent ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  isAbsent ? 'ABSENT TODAY' : 'PRESENT',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (isAbsent) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFFFECACA)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFEF4444)),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      '${emp.name} is Absent Today. Reassign this task immediately to maintain daily operations.',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Action Buttons: Reassign & Delete
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.magentaPrimary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                            label: Text(
+                              'Reassign Task',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(bottomSheetCtx);
+                              _openReassignTaskDialog(context, eco, task, emp);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 1,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFEF4444),
+                              side: const BorderSide(color: Color(0xFFFCA5A5)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: const Icon(Icons.delete_outline, size: 18),
+                            onPressed: () {
+                              Navigator.pop(bottomSheetCtx);
+                              _confirmDeleteTask(context, eco, task, emp);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openReassignTaskDialog(BuildContext context, EcosystemProvider eco, TaskItem task, Employee currentEmp) {
+    final availableEmployees = eco.employees.where((e) => e.id != currentEmp.id).toList();
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.swap_horiz_rounded, color: AppColors.magentaPrimary, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Reassign Task',
+              style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select team member to take over "${task.title}":',
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 10),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: availableEmployees.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  itemBuilder: (ctx, i) {
+                    final target = availableEmployees[i];
+                    final isTargetAbsent = eco.isEmployeeAbsent(target.id);
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      leading: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: isTargetAbsent ? const Color(0xFFEF4444) : AppColors.magentaSubtle,
+                        child: Text(
+                          target.initials,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isTargetAbsent ? Colors.white : AppColors.magentaPrimary,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        target.name,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      ),
+                      subtitle: Text(
+                        '${target.role} • ${target.dept}',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                      ),
+                      trailing: isTargetAbsent
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(4)),
+                              child: Text('Absent', style: GoogleFonts.plusJakartaSans(fontSize: 9, color: const Color(0xFFEF4444), fontWeight: FontWeight.bold)),
+                            )
+                          : const Icon(Icons.chevron_right, size: 16, color: AppColors.textMuted),
+                      onTap: () {
+                        eco.reassignTask(
+                          taskId: task.id,
+                          newEmpId: target.id,
+                          assignedByName: widget.authorizedName,
+                        );
+                        Navigator.pop(dialogCtx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: const Color(0xFF10B981),
+                            content: Text('Task "${task.title}" reassigned to ${target.name} successfully!'),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _confirmDeleteTask(BuildContext context, EcosystemProvider eco, TaskItem task, Employee emp) {
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.burgundyCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFEF4444))),
-        title: const Text('Delete Employee Task?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text('Delete Employee Task?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark)),
         content: Text(
           'Are you sure you want to delete the task:\n"${task.title}"\nassigned to ${emp.name}?',
           style: const TextStyle(fontSize: 12, color: AppColors.sandLight),

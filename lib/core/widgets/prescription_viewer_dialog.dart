@@ -78,7 +78,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
                     children: [
                       Text(
                         'Doctor Prescription Review',
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           color: AppColors.sandGold,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -99,15 +99,15 @@ class PrescriptionViewerDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const Divider(color: Colors.white12, height: 20),
+            const Divider(color: AppColors.sandBorder, height: 20),
 
             // Leave Reason details
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.04),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white.withOpacity(0.08)),
+                border: Border.all(color: AppColors.sandBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +140,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     leave.reason,
-                    style: const TextStyle(fontSize: 11.5, color: Colors.white),
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.textDark),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -240,7 +240,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isCeo ? AppColors.ragGreen : AppColors.sandGold,
-                        foregroundColor: Colors.black,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),

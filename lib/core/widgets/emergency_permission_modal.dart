@@ -66,8 +66,8 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final activeEmp = eco.currentEmployee;
-    final empId = widget.empId ?? activeEmp?.id ?? 'EMP-01';
-    final role = widget.empRole ?? activeEmp?.role ?? 'Employee';
+    final empId = widget.empId ?? activeEmp.id;
+    final role = widget.empRole ?? activeEmp.role;
 
     final effectiveHours = _isCustomDuration
         ? (double.tryParse(_customHoursController.text.trim()) ?? 2.5)
@@ -107,7 +107,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: const Color(0xFFCBD5E1),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -120,10 +120,10 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: AppColors.ragYellow.withOpacity(0.18),
+                      color: const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const FaIcon(FontAwesomeIcons.clock, color: AppColors.ragYellow, size: 16),
+                    child: const FaIcon(FontAwesomeIcons.clock, color: Color(0xFFD97706), size: 16),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -132,16 +132,16 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                       children: [
                         Text(
                           'EMERGENCY PERMISSION',
-                          style: GoogleFonts.cinzel(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        Text(
+                        const Text(
                           'Immediate step-out request • Approvals flow: TL/Staff → HR & CEO',
-                          style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                          style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -154,15 +154,15 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                   ),
                 ],
               ),
-              const Divider(color: Colors.white12, height: 20),
+              const Divider(color: Color(0xFFE2E8F0), height: 20),
 
               // Monthly Quota Tally (2.0 hrs standard)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.04),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Row(
                   children: [
@@ -238,10 +238,10 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                         _isCustomDuration = true;
                       });
                     },
-                    selectedColor: AppColors.sandGold,
-                    backgroundColor: Colors.white.withOpacity(0.06),
+                    selectedColor: AppColors.magentaPrimary,
+                    backgroundColor: AppColors.cardSurface,
                     labelStyle: TextStyle(
-                      color: _isCustomDuration ? Colors.black : Colors.white,
+                      color: _isCustomDuration ? Colors.white : AppColors.textDark,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -254,19 +254,19 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                 TextField(
                   controller: _customHoursController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: const TextStyle(color: AppColors.textDark, fontSize: 13),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     labelText: 'Enter Custom Duration in Hours (e.g. 2.5, 3.0)',
-                    labelStyle: const TextStyle(color: AppColors.sandGold, fontSize: 11),
+                    labelStyle: const TextStyle(color: AppColors.magentaPrimary, fontSize: 11),
                     suffixText: 'Hours',
                     suffixStyle: const TextStyle(color: AppColors.textMuted),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.05),
+                    fillColor: AppColors.cardSurface,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: AppColors.sandGold),
+                      borderSide: const BorderSide(color: AppColors.magentaPrimary),
                     ),
                   ),
                 ),
@@ -278,16 +278,16 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.ragYellow.withOpacity(0.15),
+                    color: const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.ragYellow, width: 1.2),
+                    border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(top: 2),
-                        child: FaIcon(FontAwesomeIcons.triangleExclamation, color: AppColors.ragYellow, size: 16),
+                        child: FaIcon(FontAwesomeIcons.triangleExclamation, color: Color(0xFFD97706), size: 16),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -295,7 +295,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                           'The time you gave [$timeGiven] exceeds your quota of 2hr window, by [$timeDifference]. Do you still want to proceed?',
                           style: const TextStyle(
                             fontSize: 11.5,
-                            color: AppColors.ragYellow,
+                            color: Color(0xFFB45309),
                             fontWeight: FontWeight.w600,
                             height: 1.35,
                           ),
@@ -313,23 +313,23 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.sandGold,
+                  color: AppColors.magentaPrimary,
                 ),
               ),
               const SizedBox(height: 6),
               TextField(
                 controller: _reasonController,
                 maxLines: 2,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                 decoration: InputDecoration(
                   hintText: 'e.g. Urgent banking errand, family emergency, doctor consultation...',
-                  hintStyle: const TextStyle(color: Colors.white30, fontSize: 11),
+                  hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.05),
+                  fillColor: AppColors.cardSurface,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.sandGold),
+                    borderSide: const BorderSide(color: AppColors.magentaPrimary),
                   ),
                 ),
               ),
@@ -340,8 +340,8 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: willExceedQuota ? AppColors.ragYellow : AppColors.sandGold,
-                    foregroundColor: Colors.black,
+                    backgroundColor: willExceedQuota ? const Color(0xFFD97706) : AppColors.magentaPrimary,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -366,7 +366,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                       ),
                     );
                   },
-                  icon: const FaIcon(FontAwesomeIcons.paperPlane, size: 14, color: Colors.black),
+                  icon: const FaIcon(FontAwesomeIcons.paperPlane, size: 14, color: Colors.white),
                   label: Text(
                     willExceedQuota
                         ? 'Yes, Proceed & Request ($timeGiven)'
@@ -387,10 +387,10 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
       label: Text(label, style: const TextStyle(fontSize: 11)),
       selected: isSelected,
       onSelected: (_) => _onPresetSelected(hours),
-      selectedColor: AppColors.sandGold,
-      backgroundColor: Colors.white.withOpacity(0.06),
+      selectedColor: AppColors.magentaPrimary,
+      backgroundColor: AppColors.cardSurface,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.black : Colors.white,
+        color: isSelected ? Colors.white : AppColors.textDark,
         fontWeight: FontWeight.bold,
       ),
     );

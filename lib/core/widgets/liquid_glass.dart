@@ -32,17 +32,22 @@ class LiquidGlassCard extends StatelessWidget {
     Widget content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.burgundyCard,
+        color: backgroundColor ?? AppColors.pureWhite,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
           color: borderColor ?? AppColors.sandBorder,
           width: 1.2,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Color(0x060F172A), // subtle neutral ambient shadow
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Color(0x030F172A),
+            blurRadius: 4,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -59,8 +64,8 @@ class LiquidGlassCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(borderRadius),
           onTap: onTap,
-          splashColor: AppColors.sandPrimary.withOpacity(0.2),
-          highlightColor: Colors.white.withOpacity(0.05),
+          splashColor: AppColors.magentaPrimary.withOpacity(0.12),
+          highlightColor: AppColors.magentaSubtle.withOpacity(0.5),
           child: content,
         ),
       );
@@ -80,7 +85,7 @@ class LiquidGlassPill extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
-    this.color = AppColors.sandPrimary,
+    this.color = AppColors.magentaPrimary,
     this.onTap,
   });
 
@@ -91,15 +96,15 @@ class LiquidGlassPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.16),
+          color: color.withOpacity(0.12),
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: color.withOpacity(0.45),
+            color: color.withOpacity(0.35),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.12),
+              color: color.withOpacity(0.08),
               blurRadius: 6,
               offset: const Offset(0, 1),
             ),
@@ -120,7 +125,7 @@ class LiquidGlassPill extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.8),
+                      color: color.withOpacity(0.6),
                       blurRadius: 4,
                       spreadRadius: 1,
                     ),
@@ -171,30 +176,26 @@ class LiquidGlassButton extends StatelessWidget {
     final bgGradient = isPrimary
         ? (color != null
             ? LinearGradient(colors: [color!, color!.withOpacity(0.85)])
-            : const LinearGradient(
-                colors: [Color(0xFF7A1326), Color(0xFF4A0713)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ))
+            : AppColors.magentaGradient)
         : null;
 
-    final textColor = isPrimary ? AppColors.sandLight : AppColors.sandPrimary;
+    final textColor = isPrimary ? Colors.white : AppColors.magentaPrimary;
 
     return Container(
       height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         gradient: bgGradient,
-        color: isPrimary ? null : AppColors.burgundyCard,
+        color: isPrimary ? null : AppColors.pureWhite,
         border: Border.all(
-          color: isPrimary ? AppColors.sandPrimary.withOpacity(0.6) : AppColors.sandBorder,
+          color: isPrimary ? Colors.transparent : AppColors.magentaPrimary.withOpacity(0.35),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
             color: isPrimary
-                ? const Color(0xFF4A0713).withOpacity(0.4)
-                : Colors.black.withOpacity(0.2),
+                ? AppColors.magentaPrimary.withOpacity(0.28)
+                : Colors.black.withOpacity(0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -206,7 +207,7 @@ class LiquidGlassButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: onPressed,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -217,16 +218,17 @@ class LiquidGlassButton extends StatelessWidget {
                     size: 15,
                     color: textColor,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                 ],
                 Flexible(
                   child: Text(
                     label,
+                    maxLines: 1,
                     style: TextStyle(
                       color: textColor,
                       fontWeight: FontWeight.w700,
-                      fontSize: 12.5,
-                      letterSpacing: 0.3,
+                      fontSize: 11.5,
+                      letterSpacing: 0.1,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -254,7 +256,7 @@ class LiquidMetricCard extends StatelessWidget {
     required this.value,
     required this.icon,
     this.subtitle,
-    this.color = AppColors.sandPrimary,
+    this.color = AppColors.magentaPrimary,
     this.onTap,
   });
 
@@ -294,7 +296,6 @@ class LiquidMetricCard extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: color,
-                fontFamily: 'Cinzel',
               ),
               overflow: TextOverflow.ellipsis,
             ),

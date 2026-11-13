@@ -40,22 +40,22 @@ class PillarsPopupDialog extends StatelessWidget {
           child: Container(
             constraints: const BoxConstraints(maxWidth: 420),
             decoration: BoxDecoration(
-              color: AppColors.burgundySurface.withOpacity(0.95),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppColors.sandGold.withOpacity(0.5),
-                width: 1.5,
+                color: const Color(0xFFE2E8F0),
+                width: 1,
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: AppColors.burgundyPrimary.withOpacity(0.35),
-                  blurRadius: 32,
-                  offset: const Offset(0, 10),
+                  color: Color(0x180F172A),
+                  blurRadius: 30,
+                  offset: Offset(0, 12),
                 ),
                 BoxShadow(
-                  color: AppColors.sandGold.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 2),
+                  color: Color(0x0A0F172A),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -75,21 +75,18 @@ class PillarsPopupDialog extends StatelessWidget {
                         height: 44,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.sandGold, width: 1.2),
-                          color: AppColors.burgundyPrimary.withOpacity(0.4),
+                          border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.4), width: 1.2),
+                          color: Colors.black,
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(11),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.diamond_outlined,
-                                color: AppColors.sandGold,
-                                size: 24,
-                              ),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.diamond_outlined,
+                              color: AppColors.magentaPrimary,
+                              size: 24,
                             ),
                           ),
                         ),
@@ -101,10 +98,10 @@ class PillarsPopupDialog extends StatelessWidget {
                           children: [
                             Text(
                               'MN FAMILY PILLARS',
-                              style: GoogleFonts.cinzel(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
+                                color: const Color(0xFF0F172A),
                                 letterSpacing: 0.8,
                               ),
                               maxLines: 1,
@@ -115,7 +112,8 @@ class PillarsPopupDialog extends StatelessWidget {
                               'Vital Inputs & Operations',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
-                                color: AppColors.sandPrimary,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.magentaPrimary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -129,25 +127,25 @@ class PillarsPopupDialog extends StatelessWidget {
                         icon: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: AppColors.burgundyPrimary.withOpacity(0.4),
+                            color: const Color(0xFFFFF1F4),
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.sandBorder),
+                            border: Border.all(color: const Color(0xFFFECDD3)),
                           ),
-                          child: const Icon(Icons.close, size: 16, color: AppColors.sandLight),
+                          child: const Icon(Icons.close, size: 16, color: Color(0xFFE11D48)),
                         ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const Divider(color: AppColors.sandBorder, height: 1),
+                  const Divider(color: Color(0xFFF1F5F9), height: 1),
                   const SizedBox(height: 14),
 
                   Text(
                     'Select Pillar:',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: AppColors.sandLight,
+                      color: const Color(0xFF64748B),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -157,9 +155,8 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Health',
-                    subtitle: 'Health & Workout',
-                    badgeText: 'Pillar 1',
-                    badgeColor: AppColors.ragGreen,
+                    pillarBadge: 'Pillar 1',
+                    cadence: 'Daily',
                     icon: Icons.health_and_safety_outlined,
                     onTap: () {
                       Navigator.pop(context);
@@ -171,9 +168,8 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Family',
-                    subtitle: 'Family & Friends',
-                    badgeText: 'Pillar 2',
-                    badgeColor: const Color(0xFFA855F7),
+                    pillarBadge: 'Pillar 2',
+                    cadence: 'Daily',
                     icon: Icons.family_restroom,
                     onTap: () {
                       Navigator.pop(context);
@@ -185,9 +181,8 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Profile',
-                    subtitle: 'KYC & Vault',
-                    badgeText: 'Pillar 3',
-                    badgeColor: AppColors.sandGold,
+                    pillarBadge: 'Pillar 3',
+                    cadence: 'Occasional',
                     icon: Icons.badge_outlined,
                     onTap: () {
                       Navigator.pop(context);
@@ -199,9 +194,8 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Attendance',
-                    subtitle: 'Punch & Hours',
-                    badgeText: 'Pillar 4',
-                    badgeColor: const Color(0xFF10B981),
+                    pillarBadge: 'Pillar 4',
+                    cadence: 'Daily',
                     icon: Icons.fingerprint,
                     onTap: () {
                       Navigator.pop(context);
@@ -213,9 +207,8 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Social Cause',
-                    subtitle: 'Community & Deeds',
-                    badgeText: 'Pillar 5',
-                    badgeColor: const Color(0xFFEF4444),
+                    pillarBadge: 'Pillar 5',
+                    cadence: 'Occasional',
                     icon: Icons.volunteer_activism,
                     onTap: () {
                       Navigator.pop(context);
@@ -227,25 +220,22 @@ class PillarsPopupDialog extends StatelessWidget {
                   // SOVEREIGN GREEN LIGHT TIER RATING BANNER
                   Consumer<EcosystemProvider>(
                     builder: (ctx, eco, _) {
-                      final tierColor = eco.holisticTierColor;
                       final tierName = eco.holisticTierName;
                       final isRed = eco.holisticTierLevel == PillarTierLevel.red;
-                      final activeColor = isRed ? const Color(0xFFFF4D4D) : tierColor;
-                      final textColor = isRed ? const Color(0xFFFFD2D2) : tierColor;
 
                       return Container(
                         decoration: BoxDecoration(
-                          color: isRed ? const Color(0xFF1F080E) : AppColors.burgundyCard,
+                          color: isRed ? const Color(0xFFFFF1F2) : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isRed ? const Color(0xFFFF4D4D) : activeColor.withOpacity(0.6),
-                            width: 1.6,
+                            color: isRed ? const Color(0xFFFECDD3) : const Color(0xFFE2E8F0),
+                            width: 1.2,
                           ),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
-                              color: isRed ? const Color(0xFFFF4D4D).withOpacity(0.35) : activeColor.withOpacity(0.2),
-                              blurRadius: 14,
-                              offset: const Offset(0, 3),
+                              color: Color(0x080F172A),
+                              blurRadius: 10,
+                              offset: Offset(0, 2),
                             ),
                           ],
                         ),
@@ -262,23 +252,23 @@ class PillarsPopupDialog extends StatelessWidget {
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 40,
-                                    height: 40,
+                                    width: 38,
+                                    height: 38,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: isRed ? const Color(0xFFDC2626) : activeColor.withOpacity(0.22),
-                                      border: Border.all(color: isRed ? Colors.white : activeColor, width: 2),
+                                      color: isRed ? const Color(0xFFE11D48) : const Color(0xFF10B981),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: isRed ? const Color(0xFFFF4D4D).withOpacity(0.5) : activeColor.withOpacity(0.4),
-                                          blurRadius: 10,
+                                          color: (isRed ? const Color(0xFFE11D48) : const Color(0xFF10B981)).withOpacity(0.3),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
                                         ),
                                       ],
                                     ),
                                     child: Center(
                                       child: Icon(
-                                        isRed ? Icons.priority_high : Icons.light_mode,
-                                        color: isRed ? Colors.white : activeColor,
+                                        isRed ? Icons.priority_high_rounded : Icons.verified_rounded,
+                                        color: Colors.white,
                                         size: 20,
                                       ),
                                     ),
@@ -293,10 +283,10 @@ class PillarsPopupDialog extends StatelessWidget {
                                             Flexible(
                                               child: Text(
                                                 'YOUR STATUS',
-                                                style: GoogleFonts.cinzel(
+                                                style: GoogleFonts.plusJakartaSans(
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.bold,
-                                                  color: AppColors.sandLight,
+                                                  color: const Color(0xFF0F172A),
                                                   letterSpacing: 0.5,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
@@ -306,15 +296,11 @@ class PillarsPopupDialog extends StatelessWidget {
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                               decoration: BoxDecoration(
-                                                color: isRed ? const Color(0xFFDC2626) : activeColor.withOpacity(0.25),
-                                                borderRadius: BorderRadius.circular(5),
-                                                border: Border.all(
-                                                  color: isRed ? const Color(0xFFFF8585) : activeColor.withOpacity(0.7),
-                                                  width: 1,
-                                                ),
+                                                color: isRed ? const Color(0xFFE11D48) : const Color(0xFF10B981),
+                                                borderRadius: BorderRadius.circular(6),
                                               ),
                                               child: Text(
-                                                isRed ? 'ACTION NEEDED' : 'STATUS',
+                                                isRed ? 'ACTION NEEDED' : 'OPTIMAL',
                                                 style: const TextStyle(
                                                   fontSize: 8.5,
                                                   fontWeight: FontWeight.w800,
@@ -331,7 +317,7 @@ class PillarsPopupDialog extends StatelessWidget {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11.5,
                                             fontWeight: FontWeight.bold,
-                                            color: textColor,
+                                            color: isRed ? const Color(0xFFBE123C) : const Color(0xFF047857),
                                             letterSpacing: 0.2,
                                           ),
                                           maxLines: 1,
@@ -341,7 +327,7 @@ class PillarsPopupDialog extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Icon(Icons.arrow_forward_ios, size: 13, color: AppColors.sandGold),
+                                  const Icon(Icons.arrow_forward_ios, size: 12, color: Color(0xFF94A3B8)),
                                 ],
                               ),
                             ),
@@ -353,15 +339,30 @@ class PillarsPopupDialog extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Dismiss & Continue into Portal
-                  Center(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Continue to Enterprise Portal',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandGold,
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      color: const Color(0xFFF8FAFC),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => Navigator.pop(context),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          child: Center(
+                            child: Text(
+                              'Continue to Enterprise Portal',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.magentaPrimary,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -378,22 +379,22 @@ class PillarsPopupDialog extends StatelessWidget {
   Widget _pillarButton({
     required BuildContext context,
     required String title,
-    required String subtitle,
-    required String badgeText,
-    required Color badgeColor,
+    required String pillarBadge,
+    required String cadence,
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final isDaily = cadence.toLowerCase().contains('daily');
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.sandBorder, width: 1.2),
-        boxShadow: [
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
+            color: Color(0x060F172A),
             blurRadius: 10,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -402,7 +403,7 @@ class PillarsPopupDialog extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
-          splashColor: AppColors.sandGold.withOpacity(0.2),
+          splashColor: const Color(0xFFFFF1F4),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
@@ -410,11 +411,10 @@ class PillarsPopupDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.burgundyPrimary,
+                    color: const Color(0xFFFFF1F4),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
                   ),
-                  child: Icon(icon, color: AppColors.sandGold, size: 22),
+                  child: Icon(icon, color: AppColors.magentaPrimary, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -430,7 +430,7 @@ class PillarsPopupDialog extends StatelessWidget {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
+                                color: const Color(0xFF0F172A),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -438,32 +438,57 @@ class PillarsPopupDialog extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: badgeColor.withOpacity(0.18),
+                              color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: badgeColor.withOpacity(0.4)),
                             ),
                             child: Text(
-                              badgeText,
-                              style: TextStyle(
+                              pillarBadge,
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
-                                color: badgeColor,
+                                color: const Color(0xFF64748B),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          color: AppColors.textMuted,
+                      const SizedBox(height: 5),
+                      // Highlighted Cadence Badge (Daily / Occasional)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: isDaily ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isDaily ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A),
+                            width: 0.8,
+                          ),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDaily ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              isDaily ? 'Daily' : 'Occasional',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDaily ? const Color(0xFF047857) : const Color(0xFFB45309),
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -471,8 +496,8 @@ class PillarsPopupDialog extends StatelessWidget {
                 const SizedBox(width: 6),
                 const Icon(
                   Icons.arrow_forward_ios,
-                  size: 13,
-                  color: AppColors.sandGold,
+                  size: 12,
+                  color: Color(0xFF94A3B8),
                 ),
               ],
             ),

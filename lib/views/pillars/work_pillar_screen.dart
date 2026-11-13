@@ -42,7 +42,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
         ),
         title: Text(
           'WORK PILLAR',
-          style: GoogleFonts.cinzel(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.sandLight,
@@ -74,14 +74,14 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.burgundyPrimary,
+                color: AppColors.pureWhite,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.sandBorder),
-                boxShadow: [
+                border: Border.all(color: AppColors.magentaBorder, width: 1.2),
+                boxShadow: const [
                   BoxShadow(
-                    color: AppColors.burgundyPrimary.withOpacity(0.35),
+                    color: Color(0x0A0F172A),
                     blurRadius: 16,
-                    offset: const Offset(0, 4),
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
@@ -90,11 +90,11 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.burgundySurface,
+                      color: const Color(0xFFFFF1F4),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                      border: Border.all(color: const Color(0xFFFECDD3)),
                     ),
-                    child: const Icon(Icons.precision_manufacturing_outlined, color: AppColors.sandGold, size: 28),
+                    child: const Icon(Icons.precision_manufacturing_outlined, color: AppColors.magentaPrimary, size: 28),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -106,7 +106,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
+                            color: AppColors.textDark,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -114,7 +114,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                           'SOP discipline, hallmarking precision, and master craftsmanship records.',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            color: AppColors.sandPrimary,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -135,7 +135,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                 children: [
                   Text(
                     'Daily Operational Inputs',
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -224,14 +224,14 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                     ),
                     child: CheckboxListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                      activeColor: AppColors.burgundyPrimary,
-                      checkColor: AppColors.sandGold,
+                      activeColor: AppColors.magentaPrimary,
+                      checkColor: Colors.white,
                       title: Text(
                         '0.001g Bullion Balance Calibrated',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.sandLight,
+                          color: AppColors.textDark,
                         ),
                       ),
                       subtitle: Text(
@@ -252,14 +252,14 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                     ),
                     child: CheckboxListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                      activeColor: AppColors.burgundyPrimary,
-                      checkColor: AppColors.sandGold,
+                      activeColor: AppColors.magentaPrimary,
+                      checkColor: Colors.white,
                       title: Text(
                         'Daily Shift SOP Checklist Signed',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.sandLight,
+                          color: AppColors.textDark,
                         ),
                       ),
                       subtitle: Text(

@@ -1,16 +1,15 @@
 import '../../core/widgets/task_action_dialogs.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/cross_dept_blocker_section.dart';
+import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/role_app_bar.dart';
 import '../../models/task_model.dart';
 import '../../providers/ecosystem_provider.dart';
-import '../../services/image_optimization_service.dart';
 import '../auth/pillars_popup_dialog.dart';
 import '../pillars/social_cause_pillar_screen.dart';
 import '../../core/widgets/company_notification_sheet.dart';
@@ -18,7 +17,9 @@ import '../pillars/attendance_pillar_screen.dart';
 import '../../core/widgets/emergency_permission_modal.dart';
 import '../../core/widgets/emergency_medical_leave_modal.dart';
 import 'employee_profile_screen.dart';
+import 'employee_subpages.dart';
 import '../orders/online_orders_handler_screen.dart';
+import '../notes/personal_notes_screen.dart';
 
 class EmployeePortalScreen extends StatefulWidget {
   const EmployeePortalScreen({super.key});
@@ -117,16 +118,21 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     final isSelected = _activeBottomNav == index;
     return InkWell(
       onTap: () => setState(() => _activeBottomNav = index),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.magentaSubtle : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               size: 20,
-              color: isSelected ? AppColors.sandGold : AppColors.textMuted,
+              color: isSelected ? AppColors.magentaPrimary : AppColors.textMuted,
             ),
             const SizedBox(height: 3),
             Text(
@@ -134,7 +140,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.sandGold : AppColors.textMuted,
+                color: isSelected ? AppColors.magentaPrimary : AppColors.textMuted,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -162,143 +168,248 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Hero Profile Card
-          LiquidGlassCard(
-            padding: const EdgeInsets.all(14),
-            borderRadius: 18,
-            child: Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: AppColors.goldGradient,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.goldPrimary.withOpacity(0.3),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      emp.initials,
-                      style: const TextStyle(
-                        fontFamily: 'Cinzel',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          // Hero Profile Card with Profile Navigation
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+              );
+            },
+            borderRadius: BorderRadius.circular(18),
+            child: LiquidGlassCard(
+              padding: const EdgeInsets.all(14),
+              borderRadius: 18,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              emp.name,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: AppColors.goldGradient,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.goldPrimary.withOpacity(0.3),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            emp.initials,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.white,
                             ),
                           ),
-                          LiquidGlassPill(
-                            label: 'On Track',
-                            color: AppColors.ragGreen,
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        emp.role,
-                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          _smallTag(Icons.diamond_outlined, emp.dept),
-                          _smallTag(Icons.badge_outlined, 'ID: ${emp.id}'),
-                        ],
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    emp.name,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textDark,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                LiquidGlassPill(
+                                  label: 'On Track',
+                                  color: AppColors.ragGreen,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              emp.role,
+                              style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              children: [
+                                _smallTag(Icons.diamond_outlined, emp.dept),
+                                _smallTag(Icons.badge_outlined, 'ID: ${emp.id}'),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  const QuickPillarNavRow(),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 12),
 
-          // 4 Action Tiles Grid
-          Row(
-            children: [
-              _actionTile(
-                icon: Icons.checklist,
-                title: 'Things To Do',
-                badgeText: '$pendingCount Pending',
-                badgeColor: AppColors.ragYellow,
-                onTap: () => setState(() => _activeBottomNav = 1),
-              ),
-              const SizedBox(width: 8),
-              _actionTile(
-                icon: Icons.volunteer_activism_outlined,
-                title: 'Social Cause',
-                badgeText: 'Pillar 5',
-                badgeColor: const Color(0xFFEF4444),
-                onTap: () => setState(() => _activeBottomNav = 2),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _actionTile(
-                icon: Icons.timer_outlined,
-                title: 'Ask Permission',
-                badgeText: '${eco.permissionHoursRemaining.toStringAsFixed(1)}h Left',
-                badgeColor: const Color(0xFFF59E0B),
-                onTap: () => EmergencyPermissionModal.show(context),
-              ),
-              const SizedBox(width: 8),
-              _actionTile(
-                icon: Icons.local_hospital_outlined,
-                title: 'Medical Leave',
-                badgeText: 'Prescription Req.',
-                badgeColor: const Color(0xFFEF4444),
-                onTap: () => EmergencyMedicalLeaveModal.show(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          LiquidGlassButton(
-            label: 'Open Attendance Ledger & Scanner',
-            icon: Icons.fingerprint,
-            isPrimary: false,
-            height: 36,
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
+          // Vertical Segmented Navigation Grid (Aesthetic 2-column view - no horizontal sliding required)
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x060F172A),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.apps_rounded, size: 15, color: AppColors.magentaPrimary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'WORKSPACE PORTALS',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                          letterSpacing: 0.4,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Direct Access',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Column(
+                  children: [
+                    _verticalActionTile(
+                      'Things To Do',
+                      Icons.checklist,
+                      pendingCount > 0 ? '$pendingCount' : '',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                            value: eco,
+                            child: const EmployeeThingsToDoScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _verticalActionTile(
+                      'Social Cause',
+                      Icons.volunteer_activism_outlined,
+                      'Pillar 5',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                            value: eco,
+                            child: const EmployeeSocialCauseScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _verticalActionTile(
+                      'Ask Permission',
+                      Icons.timer_outlined,
+                      '${eco.permissionHoursRemaining.toStringAsFixed(1)}h',
+                      () => EmergencyPermissionModal.show(context),
+                    ),
+                    const SizedBox(height: 8),
+                    _verticalActionTile(
+                      'Medical Leave',
+                      Icons.local_hospital_outlined,
+                      '',
+                      () => EmergencyMedicalLeaveModal.show(context),
+                    ),
+                    const SizedBox(height: 8),
+                    _verticalActionTile(
+                      'Attendance Ledger',
+                      Icons.fingerprint,
+                      '',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                            value: eco,
+                            child: const AttendancePillarScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _verticalActionTile(
+                      'Digital ID Vault',
+                      Icons.badge_outlined,
+                      '',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                            value: eco,
+                            child: const EmployeeDigitalIdScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _verticalActionTile(
+                      'Personal Notes',
+                      Icons.lock_outline_rounded,
+                      'Private',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                            value: eco,
+                            child: const PersonalNotesScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Online Orders Handler (Dedicated Quick Access for OS1, OS2 & Sales Team)
           if (emp.id == 'MN-1007' || emp.id == 'MN-1008' || emp.role.toLowerCase().contains('sales') || emp.role.toLowerCase().contains('online')) ...[
             LiquidGlassCard(
               padding: const EdgeInsets.all(14),
               borderRadius: 16,
-              borderColor: const Color(0xFFF59E0B).withOpacity(0.4),
+              borderColor: const Color(0xFFF1F5F9),
               child: Row(
                 children: [
                   Container(
@@ -316,18 +427,18 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                       children: [
                         const Text(
                           'Online Orders',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
                         const SizedBox(height: 2),
                         const Text(
                           'Track & manage customer orders',
-                          style: TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
+                          style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.sandGold),
+                    icon: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.magentaPrimary),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -357,7 +468,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.textDark,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -365,14 +476,14 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                         const SizedBox(width: 6),
                         Text(
                           '(${filteredTasks.length})',
-                          style: const TextStyle(fontSize: 12, color: AppColors.goldPrimary, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 12, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     const SizedBox(height: 2),
                     const Text(
                       'Daily SOP Routines',
-                      style: TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
+                      style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -381,7 +492,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
               const SizedBox(width: 8),
               TextButton(
                 onPressed: () => setState(() => _activeBottomNav = 1),
-                child: const Text('View All', style: TextStyle(fontSize: 12, color: AppColors.goldPrimary)),
+                child: const Text('View All', style: TextStyle(fontSize: 12, color: AppColors.magentaPrimary)),
               ),
             ],
           ),
@@ -410,6 +521,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     dynamic emp,
     List<TaskItem> filteredTasks,
   ) {
+    final allTasks = eco.currentEmployeeTasks;
     return RefreshIndicator(
       color: AppColors.sandGold,
       backgroundColor: AppColors.burgundyCard,
@@ -430,24 +542,25 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   children: [
                     Text(
                       'Daily SOP Tasks',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
                     ),
                     SizedBox(height: 2),
                     Text(
                       'Operational Deliverables',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
               ),
               ElevatedButton.icon(
-                icon: const Icon(Icons.add, size: 14, color: AppColors.burgundyBg),
+                icon: const Icon(Icons.add, size: 14, color: Colors.white),
                 label: const Text(
-                  '+ Add To-Do',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.burgundyBg),
+                  'Add To-Do',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sandGold,
+                  backgroundColor: AppColors.magentaPrimary,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   elevation: 2,
@@ -458,15 +571,71 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Filter Segmented Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+          // Filter Segmented 2-Column Grid (No horizontal sliding required)
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x060F172A),
+                  blurRadius: 10,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _filterChip('all', 'All Tasks'),
-                _filterChip('pending', 'Pending'),
-                _filterChip('postponed', 'Postponed'),
-                _filterChip('completed', 'Completed'),
+                Row(
+                  children: [
+                    const Icon(Icons.filter_list_rounded, size: 16, color: AppColors.magentaPrimary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'TASK STATUS FILTERS',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Direct Access',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Builder(
+                  builder: (context) {
+                    final pendingCount = allTasks.where((t) => t.isPending).length;
+                    final completedCount = allTasks.where((t) => t.isCompleted).length;
+                    final postponedCount = allTasks.where((t) => t.status == 'postponed').length;
+
+                    return Column(
+                      children: [
+                        _verticalFilterTile('all', 'All Tasks', Icons.checklist_outlined, '${allTasks.length}'),
+                        const SizedBox(height: 8),
+                        _verticalFilterTile('pending', 'Pending Tasks', Icons.pending_actions_outlined, pendingCount > 0 ? '$pendingCount' : ''),
+                        const SizedBox(height: 8),
+                        _verticalFilterTile('postponed', 'Postponed', Icons.update_outlined, postponedCount > 0 ? '$postponedCount' : ''),
+                        const SizedBox(height: 8),
+                        _verticalFilterTile('completed', 'Completed', Icons.check_circle_outline, completedCount > 0 ? '$completedCount' : ''),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -698,7 +867,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
+                backgroundColor: AppColors.magentaPrimary,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {
@@ -724,7 +894,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   ),
                 );
               },
-              child: const Text('Add To-Do', style: TextStyle(color: AppColors.burgundyBg, fontWeight: FontWeight.bold)),
+              child: const Text('Add To-Do', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -747,22 +917,18 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Digital Gold ID Card
+          // Digital Smart ID Card
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
+              color: AppColors.pureWhite,
               borderRadius: BorderRadius.circular(22),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2C2411), Color(0xFF141208)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              border: Border.all(color: AppColors.goldPrimary, width: 1.5),
-              boxShadow: [
+              border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.35), width: 1.5),
+              boxShadow: const [
                 BoxShadow(
-                  color: AppColors.goldPrimary.withOpacity(0.2),
+                  color: Color(0x0A0F172A),
                   blurRadius: 18,
-                  offset: const Offset(0, 8),
+                  offset: Offset(0, 8),
                 ),
               ],
             ),
@@ -779,7 +945,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                           height: 32,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.goldPrimary),
+                            border: Border.all(color: AppColors.magentaPrimary),
+                            color: Colors.black,
                           ),
                           child: ClipOval(
                             child: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
@@ -788,13 +955,13 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                         const SizedBox(width: 8),
                         const Text(
                           'MN JEWEL PARK',
-                          style: TextStyle(fontFamily: 'Cinzel', fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.goldLight),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
                       ],
                     ),
                     const Text(
                       'STAFF SMART ID',
-                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.goldPrimary, letterSpacing: 1),
+                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary, letterSpacing: 1),
                     ),
                   ],
                 ),
@@ -803,31 +970,31 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   children: [
                     CircleAvatar(
                       radius: 26,
-                      backgroundColor: AppColors.goldPrimary,
-                      child: Text(emp.initials, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                      backgroundColor: AppColors.magentaPrimary,
+                      child: Text(emp.initials, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(emp.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text(emp.role, style: const TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
+                          Text(emp.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                          Text(emp.role, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           const SizedBox(height: 4),
-                          Text('EMP ID: ${emp.id}', style: const TextStyle(fontSize: 11, color: AppColors.goldLight, fontWeight: FontWeight.w700)),
+                          Text('EMP ID: ${emp.id}', style: const TextStyle(fontSize: 11, color: AppColors.magentaPrimary, fontWeight: FontWeight.w700)),
                         ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Divider(color: Colors.white12, height: 1),
+                const Divider(color: AppColors.sandBorder, height: 1),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Dept: ${emp.dept}', style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1))),
-                    Text('DOJ: ${emp.doj}', style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1))),
+                    Text('Dept: ${emp.dept}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
+                    Text('DOJ: ${emp.doj}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
                     const Text('Status: VERIFIED', style: TextStyle(fontSize: 10.5, color: AppColors.ragGreen, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -848,15 +1015,15 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.manage_accounts_outlined, color: AppColors.sandGold, size: 20),
+                        Icon(Icons.manage_accounts_outlined, color: AppColors.magentaPrimary, size: 20),
                         SizedBox(width: 8),
                         Text(
                           'Personal Details & Security',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
                       ],
                     ),
-                    LiquidGlassPill(label: 'CONFIDENTIAL', color: AppColors.sandGold),
+                    LiquidGlassPill(label: 'CONFIDENTIAL', color: AppColors.magentaPrimary),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -889,7 +1056,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
               children: [
                 const Text(
                   'Enterprise Compliance & KYC Checklist',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
                 ),
                 const SizedBox(height: 12),
                 _clearanceRow('1. Biometric Photo Identity', emp.profileCompletion.photoVerified),
@@ -922,8 +1089,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8))),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+          Text(label, style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark)),
         ],
       ),
     );
@@ -935,7 +1102,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: Color(0xFFCBD5E1))),
+          Text(title, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)),
           Icon(
             verified ? Icons.check_circle : Icons.cancel_outlined,
             size: 16,
@@ -946,82 +1113,145 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     );
   }
 
-  Widget _filterChip(String filter, String label) {
-    final isSelected = _taskFilter == filter;
-    return GestureDetector(
-      onTap: () => setState(() => _taskFilter = filter),
+  Widget _verticalActionTile(String label, IconData icon, String badge, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.goldPrimary : Colors.white.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.goldPrimary : Colors.white.withOpacity(0.12),
-          ),
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.black : const Color(0xFFCBD5E1),
-          ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: AppColors.magentaSubtle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 16, color: AppColors.magentaPrimary),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (badge.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: AppColors.magentaSubtle,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.magentaPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+            const SizedBox(width: 6),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _actionTile({
-    required IconData icon,
-    required String title,
-    required String badgeText,
-    required Color badgeColor,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: LiquidGlassCard(
-        onTap: onTap,
-        padding: const EdgeInsets.all(12),
-        margin: EdgeInsets.zero,
-        borderRadius: 16,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _verticalFilterTile(String filter, String label, IconData icon, String badge) {
+    final isSelected = _taskFilter == filter;
+    return InkWell(
+      onTap: () => setState(() => _taskFilter = filter),
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: isSelected ? AppColors.magentaGradient : null,
+          color: isSelected ? null : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
+            width: 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.magentaPrimary.withOpacity(0.22),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, size: 16, color: AppColors.goldBright),
-                ),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: badgeColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      badgeText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: badgeColor),
-                    ),
-                  ),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.white.withOpacity(0.2) : AppColors.magentaSubtle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: isSelected ? Colors.white : AppColors.magentaPrimary,
+              ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.textDark,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            if (badge.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.white.withOpacity(0.25) : AppColors.magentaSubtle,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : AppColors.magentaPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+            const SizedBox(width: 6),
+            Icon(Icons.arrow_forward_ios_rounded, size: 12, color: isSelected ? Colors.white.withOpacity(0.8) : const Color(0xFF94A3B8)),
           ],
         ),
       ),
@@ -1032,15 +1262,16 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: AppColors.magentaSubtle,
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.sandBorder, width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: const Color(0xFF94A3B8)),
+          Icon(icon, size: 10, color: AppColors.magentaPrimary),
           const SizedBox(width: 4),
-          Text(text, style: const TextStyle(fontSize: 9.5, color: Color(0xFFCBD5E1))),
+          Text(text, style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -1072,8 +1303,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
         padding: const EdgeInsets.all(13),
         borderRadius: 16,
         borderColor: task.isPending
-            ? AppColors.goldPrimary.withOpacity(0.25)
-            : (task.isCompleted ? AppColors.ragGreen.withOpacity(0.3) : Colors.white.withOpacity(0.08)),
+            ? AppColors.magentaPrimary.withOpacity(0.25)
+            : (task.isCompleted ? AppColors.ragGreen.withOpacity(0.3) : AppColors.sandBorder),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1087,11 +1318,11 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.access_time, size: 12, color: Color(0xFF94A3B8)),
+                    const Icon(Icons.access_time, size: 12, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       'Due: ${task.due}',
-                      style: const TextStyle(fontSize: 10.5, color: Color(0xFFCBD5E1), fontWeight: FontWeight.w600),
+                      style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(width: 8),
                     InkWell(
@@ -1127,7 +1358,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
             style: TextStyle(
               fontSize: 13.5,
               fontWeight: FontWeight.bold,
-              color: task.isCompleted ? const Color(0xFF64748B) : Colors.white,
+              color: task.isCompleted ? const Color(0xFF94A3B8) : AppColors.textDark,
               decoration: task.isCompleted ? TextDecoration.lineThrough : null,
               decorationColor: task.isCompleted ? AppColors.ragGreen : null,
               decorationThickness: 2.0,
@@ -1165,9 +1396,9 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.2),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.ragGreen.withOpacity(0.3)),
+                border: Border.all(color: AppColors.ragGreen.withOpacity(0.35)),
               ),
               child: Row(
                 children: [
@@ -1181,8 +1412,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                       errorBuilder: (_, __, ___) => Container(
                         width: 42,
                         height: 42,
-                        color: Colors.black38,
-                        child: const Icon(Icons.image, size: 18, color: Colors.white38),
+                        color: const Color(0xFFF1F5F9),
+                        child: const Icon(Icons.image, size: 18, color: AppColors.textMuted),
                       ),
                     ),
                   ),
@@ -1204,7 +1435,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                         const SizedBox(height: 2),
                         Text(
                           task.proof!.content,
-                          style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1)),
+                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1240,7 +1471,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                         ),
                         Text(
                           'Reason: ${task.postponeInfo!.reason}',
-                          style: const TextStyle(fontSize: 10, color: Color(0xFFCBD5E1)),
+                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1359,10 +1590,10 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                     children: [
                       const Text(
                         'Postpone Operational Task',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white70),
+                        icon: const Icon(Icons.close, color: AppColors.textSecondary),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -1373,17 +1604,18 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  const Text('Select Reason:', style: TextStyle(fontSize: 11.5, color: Color(0xFFCBD5E1))),
+                  const Text('Select Reason:', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: selectedReason,
                     dropdownColor: AppColors.burgundySurface,
-                    style: const TextStyle(fontSize: 11.5, color: Colors.white),
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.textDark),
                     isExpanded: true,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.06),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      fillColor: AppColors.magentaSubtle,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                     ),
                     items: const [
                       DropdownMenuItem(
@@ -1409,15 +1641,17 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  const Text('New Time:', style: TextStyle(fontSize: 11.5, color: Color(0xFFCBD5E1))),
+                  const Text('New Time:', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   TextFormField(
                     initialValue: rescheduleTime,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.06),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      fillColor: AppColors.magentaSubtle,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
                     ),
                     onChanged: (v) => rescheduleTime = v,
                   ),
@@ -1466,47 +1700,47 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Profile Verification Wizard', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
+                      const Text('Profile Verification Wizard', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                      IconButton(icon: const Icon(Icons.close, color: AppColors.textSecondary), onPressed: () => Navigator.pop(ctx)),
                     ],
                   ),
-                  Text('Progress: ${pc.percentage}% • ${pc.isAuthorized ? "VERIFIED" : "ACTION REQUIRED"}', style: const TextStyle(fontSize: 11.5, color: AppColors.goldBright)),
+                  Text('Progress: ${pc.percentage}% • ${pc.isAuthorized ? "VERIFIED" : "ACTION REQUIRED"}', style: const TextStyle(fontSize: 11.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   CheckboxListTile(
-                    title: const Text('1. Photo Identity Verified', style: TextStyle(color: Colors.white, fontSize: 12.5)),
-                    subtitle: const Text('Biometric pass verified', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    title: const Text('1. Photo Identity Verified', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
+                    subtitle: const Text('Biometric pass verified', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.photoVerified,
-                    activeColor: AppColors.goldPrimary,
+                    activeColor: AppColors.magentaPrimary,
                     onChanged: (v) {
                       eco.verifyProfileStep(emp.id, photo: v);
                       setModalState(() {});
                     },
                   ),
                   CheckboxListTile(
-                    title: const Text('2. Residential Address Proof', style: TextStyle(color: Colors.white, fontSize: 12.5)),
-                    subtitle: const Text('Utility bill & Aadhaar copy verified', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    title: const Text('2. Residential Address Proof', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
+                    subtitle: const Text('Utility bill & Aadhaar copy verified', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.addressVerified,
-                    activeColor: AppColors.goldPrimary,
+                    activeColor: AppColors.magentaPrimary,
                     onChanged: (v) {
                       eco.verifyProfileStep(emp.id, address: v);
                       setModalState(() {});
                     },
                   ),
                   CheckboxListTile(
-                    title: const Text('3. Government Tax KYC & PAN Card', style: TextStyle(color: Colors.white, fontSize: 12.5)),
-                    subtitle: const Text('PAN linked to payroll portal', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    title: const Text('3. Government Tax KYC & PAN Card', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
+                    subtitle: const Text('PAN linked to payroll portal', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.kycVerified,
-                    activeColor: AppColors.goldPrimary,
+                    activeColor: AppColors.magentaPrimary,
                     onChanged: (v) {
                       eco.verifyProfileStep(emp.id, kyc: v);
                       setModalState(() {});
                     },
                   ),
                   CheckboxListTile(
-                    title: const Text('4. Predefined Daily SOP Responsibilities', style: TextStyle(color: Colors.white, fontSize: 12.5)),
-                    subtitle: const Text('Digitally signed and acknowledged', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5)),
+                    title: const Text('4. Predefined Daily SOP Responsibilities', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
+                    subtitle: const Text('Digitally signed and acknowledged', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.sopRolesAcknowledged,
-                    activeColor: AppColors.goldPrimary,
+                    activeColor: AppColors.magentaPrimary,
                     onChanged: (v) {
                       eco.verifyProfileStep(emp.id, sop: v);
                       setModalState(() {});
@@ -1526,224 +1760,4 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     );
   }
 
-  void _openRequestPermissionDialog(BuildContext context, EcosystemProvider eco) {
-    double selectedHours = 1.0;
-    final reasonController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final willExceed = (eco.totalPermissionHoursUsed + selectedHours) > eco.monthlyPermissionHoursLimit;
-            return Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.timer_outlined, color: AppColors.sandGold, size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Ask Permission',
-                                style: GoogleFonts.cinzel(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
-                              ),
-                            ],
-                          ),
-                          IconButton(icon: const Icon(Icons.close, color: AppColors.sandPrimary), onPressed: () => Navigator.pop(ctx)),
-                        ],
-                      ),
-                      Text(
-                        'Monthly Quota: ${eco.permissionHoursRemaining.toStringAsFixed(1)}h remaining of ${eco.monthlyPermissionHoursLimit.toStringAsFixed(1)}h',
-                        style: const TextStyle(fontSize: 11, color: AppColors.sandGold),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Hours Duration Selector
-                      Text('Requested Duration:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
-                      const SizedBox(height: 6),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [0.5, 1.0, 1.5, 2.0].map((h) {
-                            final isSel = selectedHours == h;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text('${h}h ${h == 0.5 ? "(30 min)" : ""}'),
-                                selected: isSel,
-                                selectedColor: AppColors.sandGold,
-                                backgroundColor: AppColors.burgundyCard,
-                                labelStyle: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSel ? AppColors.burgundyBg : AppColors.sandLight,
-                                ),
-                                onSelected: (_) => setModalState(() => selectedHours = h),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Reason Field
-                      Text('Reason for Permission:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: reasonController,
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
-                        decoration: InputDecoration(
-                          hintText: 'e.g. Bank token appointment, doctor visit, urgent home work',
-                          hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
-                          filled: true,
-                          fillColor: AppColors.burgundyCard,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandGold)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        ),
-                      ),
-                      if (willExceed) ...[
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.4)),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.warning_amber, size: 14, color: Color(0xFFEF4444)),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Note: This request exceeds your monthly 2.0h quota and will trigger a half-day deduction upon approval.',
-                                  style: TextStyle(fontSize: 10, color: Color(0xFFFCA5A5)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 18),
-
-                      // Submit Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 44,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.send_outlined, size: 16),
-                          label: Text(
-                            'Submit Request to HR (${selectedHours}h)',
-                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12.5),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          onPressed: () {
-                            final reason = reasonController.text.trim().isEmpty ? 'Personal Permission' : reasonController.text.trim();
-                            eco.requestEmployeePermission(
-                              empId: eco.currentEmployee.id,
-                              requestedHours: selectedHours,
-                              reason: reason,
-                            );
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: const Color(0xFF10B981),
-                                content: Text('Permission request for ${selectedHours}h sent to HR for approval.'),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _openLeaveModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(18),
-          decoration: const BoxDecoration(
-            color: Color(0xFF13151F),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Leave Request Submission', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                  IconButton(icon: const Icon(Icons.close, color: Colors.white70), onPressed: () => Navigator.pop(ctx)),
-                ],
-              ),
-              const Text('Available Balance: 14 Days • Annual Paid Leave', style: TextStyle(fontSize: 11.5, color: AppColors.goldLight)),
-              const SizedBox(height: 12),
-              const Text('Leave Category:', style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1))),
-              const SizedBox(height: 4),
-              DropdownButtonFormField<String>(
-                value: 'Casual Leave (1 Day)',
-                dropdownColor: AppColors.burgundySurface,
-                style: const TextStyle(fontSize: 12, color: Colors.white),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.06),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'Casual Leave (1 Day)', child: Text('Casual Leave (1 Day)')),
-                  DropdownMenuItem(value: 'Medical / Emergency Leave (2 Days)', child: Text('Medical / Emergency Leave (2 Days)')),
-                  DropdownMenuItem(value: 'Family Function (3 Days)', child: Text('Family Function (3 Days)')),
-                ],
-                onChanged: (_) {},
-              ),
-              const SizedBox(height: 16),
-              LiquidGlassButton(
-                label: 'Submit for HR Approval',
-                icon: Icons.send,
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Leave application submitted for HR review.')),
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }

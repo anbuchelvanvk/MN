@@ -61,8 +61,8 @@ class FirebaseEmployeeService {
   /// Initialize and seed corporate accounts if Firestore is completely empty
   Future<void> seedCorporateAccountsIfEmpty() async {
     try {
+      if (!isFirebaseAvailable) return;
       final col = _employeeCollection;
-      if (col == null) return;
       // Always ensure official CEO & HR leadership identity is updated in Cloud Firestore
       await syncCorporateLeadershipNames();
 
@@ -133,7 +133,7 @@ class FirebaseEmployeeService {
         },
         {
           'id': 'MN-TL1002',
-          'name': 'Praveenkumaar M',
+          'name': 'Praveenkumar M',
           'email': 'praveenkumarotm@mnj.com',
           'role': 'Online Team Manager (Editor)',
           'roleType': 'team_lead',
@@ -491,20 +491,140 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Ensure corporate leadership names (CEO M N Naveenraaj & HR Mohankumar G) are always accurate
+  /// Ensure corporate leadership names, authentic passwords, and Online Department scope are always accurate
   Future<void> syncCorporateLeadershipNames() async {
     try {
-      await _employeeCollection.doc('MN-CEO01').set({
-        'name': 'M N Naveenraaj',
-        'initials': 'MN',
-        'role': 'Managing Director & CEO',
-      }, SetOptions(merge: true));
+      final officialAccounts = {
+        'MN-CEO01': {'email': 'ceoofmn@mnjpark.com', 'password': 'adminnaandhan', 'name': 'M N Naveenraaj', 'role': 'Managing Director & CEO', 'roleType': 'ceo'},
+        'MN-HR1001': {'email': 'hr@mnj.com', 'password': 'hr@mnj123', 'name': 'Mohankumar G', 'role': 'HR Manager & Operations Custodian', 'roleType': 'hr'},
+        'MN-TL1002': {'email': 'praveenkumarotm@mnj.com', 'password': 'praveen@mnj123', 'name': 'Praveenkumar M', 'role': 'Online Team Manager (Editor)', 'roleType': 'team_lead'},
+        'MN-1003': {'email': 'gokulakrishnanosh@mnj.com', 'password': 'gokul@mnj123', 'name': 'Gokulakrishnan K', 'role': 'Online Sale Head (OSH)', 'roleType': 'employee'},
+        'MN-1004': {'email': 'aravindasamyvpe@mnj.com', 'password': 'aravind@mnj123', 'name': 'Aravinda Samy Y', 'role': 'Chief Photographer & Videographer (VPE)', 'roleType': 'employee'},
+        'MN-1005': {'email': 'mithraassvpe@mnj.com', 'password': 'mithra@mnj123', 'name': 'Mithra M', 'role': 'Assistant Photographer & Videographer (Ass.VPE)', 'roleType': 'employee'},
+        'MN-1006': {'email': 'ece@mnj.com', 'password': 'ece@mnj123', 'name': 'E-Commerce Executive', 'role': 'E-Commerce Executive (ECE)', 'roleType': 'employee'},
+        'MN-1007': {'email': 'kaaviyaos1@mnj.com', 'password': 'kaaviya@mnj123', 'name': 'Kaaviya', 'role': 'Online Sale Person 1 (OS1)', 'roleType': 'employee'},
+        'MN-1008': {'email': 'nishaos2@mnj.com', 'password': 'nisha@mnj123', 'name': 'Nisha', 'role': 'Online Sale Person 2 (OS2)', 'roleType': 'employee'},
+        'MN-1009': {'email': 'midhunkumarac@mnj.com', 'password': 'midhun@mnj123', 'name': 'Midhun Kumar J', 'role': 'Online Analytical Consultant (AC)', 'roleType': 'employee'},
+        'MN-1010': {'email': 'subashoss@mnj.com', 'password': 'subash@mnj123', 'name': 'Subash', 'role': 'Online Support & Strategist (OSS)', 'roleType': 'employee'},
+        'MN-1011': {'email': 'eshwardvp@mnj.com', 'password': 'eshwar@mnj123', 'name': 'Eshwar K B', 'role': 'Platform Developer (DVP)', 'roleType': 'employee'},
+        'MN-1012': {'email': 'samroycc@mnj.com', 'password': 'samroy@mnj123', 'name': 'Sam Roy', 'role': 'Content Creator & Scriptwriter (CC)', 'roleType': 'employee'},
+      };
 
-      await _employeeCollection.doc('MN-HR1001').set({
-        'name': 'Mohankumar G',
-        'initials': 'MG',
-        'role': 'HR Manager & Operations Custodian',
-      }, SetOptions(merge: true));
+      for (final entry in officialAccounts.entries) {
+        final id = entry.key;
+        final info = entry.value;
+        final email = info['email']!;
+        final pass = info['password']!;
+
+        final isLeadership = (info['roleType'] == 'ceo' || info['roleType'] == 'hr');
+        final deptAssignment = isLeadership ? 'Administration' : 'Online Department';
+
+        try {
+          final empDoc = await _employeeCollection.doc(id).get();
+          if (!empDoc.exists) {
+            // New doc: Seed default values
+            await _employeeCollection.doc(id).set({
+              'id': id,
+              'name': info['name'],
+              'email': email,
+              'role': info['role'],
+              'roleType': info['roleType'],
+              'dept': deptAssignment,
+              'password': pass,
+            }, SetOptions(merge: true));
+          } else {
+            // Existing doc: NEVER overwrite user-edited name, password, phone, dob, or gender!
+            final data = empDoc.data() ?? {};
+            final Map<String, dynamic> patches = {};
+            if (data['dept'] != deptAssignment) {
+              patches['dept'] = deptAssignment;
+            }
+            if (data['name'] == 'Praveenkumaar M') {
+              patches['name'] = 'Praveenkumar M';
+            }
+            if (patches.isNotEmpty) {
+              await _employeeCollection.doc(id).update(patches);
+            }
+          }
+        } catch (_) {}
+
+        try {
+          final userDoc = await _usersCollection.doc(email).get();
+          if (!userDoc.exists) {
+            await _usersCollection.doc(email).set({
+              'empId': id,
+              'name': info['name'],
+              'email': email,
+              'role': info['roleType'],
+              'roleType': info['roleType'],
+              'dept': deptAssignment,
+              'password': pass,
+            }, SetOptions(merge: true));
+          } else {
+            final data = userDoc.data() ?? {};
+            final Map<String, dynamic> patches = {};
+            if (data['dept'] != deptAssignment) {
+              patches['dept'] = deptAssignment;
+            }
+            if (data['name'] == 'Praveenkumaar M') {
+              patches['name'] = 'Praveenkumar M';
+            }
+            if (patches.isNotEmpty) {
+              await _usersCollection.doc(email).update(patches);
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Ensure CEO document has official identity
+      try {
+        final ceoDoc = await _employeeCollection.doc('MN-CEO01').get();
+        if (!ceoDoc.exists) {
+          await _employeeCollection.doc('MN-CEO01').set({
+            'name': 'M N Naveenraaj',
+            'initials': 'MN',
+            'role': 'Managing Director & CEO',
+            'dept': 'Administration',
+            'password': 'adminnaandhan',
+          }, SetOptions(merge: true));
+        } else {
+          final d = ceoDoc.data() ?? {};
+          final name = d['name']?.toString() ?? '';
+          if (name.contains('Senthil') || name.isEmpty) {
+            await _employeeCollection.doc('MN-CEO01').update({
+              'name': 'M N Naveenraaj',
+              'initials': 'MN',
+              'role': 'Managing Director & CEO',
+              'dept': 'Administration',
+            });
+          }
+        }
+      } catch (_) {}
+
+      // Ensure HR document has official identity
+      try {
+        final hrDoc = await _employeeCollection.doc('MN-HR1001').get();
+        if (!hrDoc.exists) {
+          await _employeeCollection.doc('MN-HR1001').set({
+            'name': 'Mohankumar G',
+            'initials': 'MG',
+            'role': 'HR Manager & Operations Custodian',
+            'dept': 'Administration',
+            'password': 'hr@mnj123',
+          }, SetOptions(merge: true));
+        } else {
+          final d = hrDoc.data() ?? {};
+          final name = d['name']?.toString() ?? '';
+          if (name.contains('Priyanka') || name.isEmpty) {
+            await _employeeCollection.doc('MN-HR1001').update({
+              'name': 'Mohankumar G',
+              'initials': 'MG',
+              'role': 'HR Manager & Operations Custodian',
+              'dept': 'Administration',
+            });
+          }
+        }
+      } catch (_) {}
 
       // Sanitize legacy notifications in Cloud Firestore
       final notifSnap = await _notificationsCollection.get();
@@ -789,13 +909,18 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Update specific profile fields (name, phone, dob, relationshipStatus, anniversaryDate)
+  /// Update specific profile fields (name, phone, dob, relationshipStatus, anniversaryDate, gender, initials)
   Future<void> updateEmployeeProfileFields({
     required String empId,
     required Map<String, dynamic> fields,
+    String? email,
   }) async {
     try {
       await _employeeCollection.doc(empId).set(fields, SetOptions(merge: true));
+      final cleanEmail = email?.toLowerCase().trim();
+      if (cleanEmail != null && cleanEmail.isNotEmpty) {
+        await _usersCollection.doc(cleanEmail).set(fields, SetOptions(merge: true));
+      }
     } catch (e) {
       debugPrint('Firestore updateEmployeeProfileFields error: $e');
     }
@@ -836,9 +961,8 @@ class FirebaseEmployeeService {
 
   /// Stream real-time social causes (Pillar 5)
   Stream<List<SocialCauseItem>> streamSocialCauses() {
-    final col = _socialCausesCollection;
-    if (col == null) return const Stream.empty();
-    return col.snapshots().map((snapshot) {
+    if (!isFirebaseAvailable) return const Stream.empty();
+    return _socialCausesCollection.snapshots().map((snapshot) {
       final list = snapshot.docs.map((doc) {
         final data = Map<String, dynamic>.from(doc.data());
         data['id'] = doc.id;
@@ -851,8 +975,9 @@ class FirebaseEmployeeService {
 
   /// Save or post a new social cause to Cloud Firestore
   Future<void> saveSocialCause(SocialCauseItem cause) async {
+    if (!isFirebaseAvailable) return;
     try {
-      await _socialCausesCollection?.doc(cause.id).set(cause.toJson(), SetOptions(merge: true));
+      await _socialCausesCollection.doc(cause.id).set(cause.toJson(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore saveSocialCause error: $e');
     }
@@ -865,8 +990,9 @@ class FirebaseEmployeeService {
     required String approvedByName,
     required DateTime approvedAt,
   }) async {
+    if (!isFirebaseAvailable) return;
     try {
-      await _socialCausesCollection?.doc(causeId).set({
+      await _socialCausesCollection.doc(causeId).set({
         'status': status,
         'approvedByName': approvedByName,
         'approvedAt': approvedAt.toIso8601String(),
@@ -878,8 +1004,9 @@ class FirebaseEmployeeService {
 
   /// Update hearts count of a social cause in Cloud Firestore
   Future<void> updateSocialCauseHearts(String causeId, int heartsCount) async {
+    if (!isFirebaseAvailable) return;
     try {
-      await _socialCausesCollection?.doc(causeId).set({
+      await _socialCausesCollection.doc(causeId).set({
         'heartsCount': heartsCount,
       }, SetOptions(merge: true));
     } catch (e) {
@@ -887,11 +1014,35 @@ class FirebaseEmployeeService {
     }
   }
 
+  /// Update likedEmpIds of a social cause in Cloud Firestore
+  Future<void> updateSocialCauseLikes(String causeId, List<String> likedEmpIds) async {
+    if (!isFirebaseAvailable) return;
+    try {
+      await _socialCausesCollection.doc(causeId).set({
+        'likedEmpIds': likedEmpIds,
+        'heartsCount': likedEmpIds.length,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore updateSocialCauseLikes error: $e');
+    }
+  }
+
+  /// Update likedStaffIds of a company notification in Cloud Firestore
+  Future<void> updateCompanyNotificationLikes(String notifId, List<String> likedStaffIds) async {
+    if (!isFirebaseAvailable) return;
+    try {
+      await _notificationsCollection.doc(notifId).set({
+        'likedStaffIds': likedStaffIds,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore updateCompanyNotificationLikes error: $e');
+    }
+  }
+
   /// Stream real-time company universal notifications
   Stream<List<CompanyNotification>> streamCompanyNotifications() {
-    final col = _notificationsCollection;
-    if (col == null) return const Stream.empty();
-    return col.snapshots().map((snapshot) {
+    if (!isFirebaseAvailable) return const Stream.empty();
+    return _notificationsCollection.snapshots().map((snapshot) {
       final list = snapshot.docs.map((doc) {
         final data = Map<String, dynamic>.from(doc.data());
         data['id'] = doc.id;
@@ -904,8 +1055,9 @@ class FirebaseEmployeeService {
 
   /// Save a new notification to Cloud Firestore
   Future<void> saveCompanyNotification(CompanyNotification notif) async {
+    if (!isFirebaseAvailable) return;
     try {
-      await _notificationsCollection?.doc(notif.id).set(notif.toJson(), SetOptions(merge: true));
+      await _notificationsCollection.doc(notif.id).set(notif.toJson(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore saveCompanyNotification error: $e');
     }
@@ -913,13 +1065,14 @@ class FirebaseEmployeeService {
 
   /// Mark notification as read in Cloud Firestore (Per-user tracking when empId provided)
   Future<void> markNotificationRead(String notifId, [String? empId]) async {
+    if (!isFirebaseAvailable) return;
     try {
       if (empId != null && empId.isNotEmpty) {
-        await _notificationsCollection?.doc(notifId).set({
+        await _notificationsCollection.doc(notifId).set({
           'readByStaffIds': FieldValue.arrayUnion([empId]),
         }, SetOptions(merge: true));
       } else {
-        await _notificationsCollection?.doc(notifId).set({
+        await _notificationsCollection.doc(notifId).set({
           'isRead': true,
         }, SetOptions(merge: true));
       }
@@ -928,11 +1081,22 @@ class FirebaseEmployeeService {
     }
   }
 
+  /// Mark notification as dismissed for a particular user in Cloud Firestore
+  Future<void> markNotificationDismissed(String notifId, String empId) async {
+    if (!isFirebaseAvailable || empId.isEmpty) return;
+    try {
+      await _notificationsCollection.doc(notifId).set({
+        'dismissedByStaffIds': FieldValue.arrayUnion([empId]),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore markNotificationDismissed error: $e');
+    }
+  }
+
   /// Stream personal To-Dos across all devices for real-time staff & management sync
   Stream<List<TaskItem>> streamPersonalTodos() {
-    final col = _todosCollection;
-    if (col == null) return const Stream.empty();
-    return col.snapshots().map((snapshot) {
+    if (!isFirebaseAvailable) return const Stream.empty();
+    return _todosCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = Map<String, dynamic>.from(doc.data());
         data['id'] = doc.id;
@@ -943,8 +1107,9 @@ class FirebaseEmployeeService {
 
   /// Save or update a personal To-Do in Cloud Firestore
   Future<void> savePersonalTodo(TaskItem task) async {
+    if (!isFirebaseAvailable) return;
     try {
-      await _todosCollection?.doc(task.id).set(task.toMap(), SetOptions(merge: true));
+      await _todosCollection.doc(task.id).set(task.toMap(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore savePersonalTodo error: $e');
     }
@@ -952,8 +1117,9 @@ class FirebaseEmployeeService {
 
   /// Delete a personal To-Do from Cloud Firestore
   Future<void> deletePersonalTodo(String taskId) async {
+    if (!isFirebaseAvailable) return;
     try {
-      await _todosCollection?.doc(taskId).delete();
+      await _todosCollection.doc(taskId).delete();
     } catch (e) {
       debugPrint('Firestore deletePersonalTodo error: $e');
     }
@@ -961,9 +1127,8 @@ class FirebaseEmployeeService {
 
   /// Stream real-time online orders
   Stream<List<OnlineOrderModel>> streamOnlineOrders() {
-    final col = _ordersCollection;
-    if (col == null) return const Stream.empty();
-    return col.snapshots().map((snapshot) {
+    if (!isFirebaseAvailable) return const Stream.empty();
+    return _ordersCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = Map<String, dynamic>.from(doc.data());
         data['orderId'] = doc.id;
@@ -974,8 +1139,9 @@ class FirebaseEmployeeService {
 
   /// Save or update an online order in Cloud Firestore
   Future<void> saveOnlineOrder(OnlineOrderModel order) async {
+    if (!isFirebaseAvailable) return;
     try {
-      await _ordersCollection?.doc(order.orderId).set(order.toMap(), SetOptions(merge: true));
+      await _ordersCollection.doc(order.orderId).set(order.toMap(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore saveOnlineOrder error: $e');
     }
@@ -983,6 +1149,7 @@ class FirebaseEmployeeService {
 
   /// Delete an online order from Cloud Firestore
   Future<void> deleteOnlineOrder(String orderId) async {
+    if (!isFirebaseAvailable) return;
     try {
       await _ordersCollection.doc(orderId).delete();
     } catch (e) {

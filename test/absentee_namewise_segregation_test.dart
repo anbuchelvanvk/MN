@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:mn_family_app/models/employee_model.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 import 'package:mn_family_app/views/dept_head/dept_head_portal_screen.dart';
 import 'package:mn_family_app/core/widgets/assign_tasks_to_others_modal.dart';
@@ -38,6 +37,10 @@ void main() {
         navigator.pop();
         await tester.pumpAndSettle();
       }
+
+      // Open Team Tasks subpage
+      await tester.tap(find.text('Team Tasks'));
+      await tester.pumpAndSettle();
 
       // Check the subheader for Name-wise arrangement
       expect(find.text('Name-wise alphabetical arrangement (A to Z)'), findsOneWidget);

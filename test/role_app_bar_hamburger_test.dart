@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:mn_family_app/core/widgets/role_app_bar.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';

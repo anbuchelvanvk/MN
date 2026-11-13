@@ -307,6 +307,8 @@ class EmployeeActivityDayRecord {
   final String netHours;
   final String status;
   final Color statusColor;
+  final bool isOvertime;
+  final bool isWeekoff;
 
   EmployeeActivityDayRecord({
     required this.date,
@@ -318,6 +320,8 @@ class EmployeeActivityDayRecord {
     required this.netHours,
     required this.status,
     required this.statusColor,
+    this.isOvertime = false,
+    this.isWeekoff = false,
   });
 }
 

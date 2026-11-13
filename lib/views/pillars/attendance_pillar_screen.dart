@@ -8,7 +8,6 @@ import '../../core/widgets/emergency_permission_modal.dart';
 import '../../core/widgets/emergency_medical_leave_modal.dart';
 import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../../models/attendance_models.dart';
-import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import 'tier_pillar_screen.dart';
 
@@ -23,7 +22,6 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
   late AnimationController _scannerPulseController;
   late Animation<double> _scannerPulseAnimation;
   bool _isScanning = false;
-  String _activeTab = 'Today'; // 'Today' or 'All Logs'
 
   @override
   void initState() {
@@ -53,9 +51,6 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
     final statusLabel = provider.attendanceStatusLabel;
     final statusColor = provider.attendanceStatusColor;
 
-    final todayPunches = provider.currentEmployeeTodayPunches;
-    final allPunches = provider.attendancePunches;
-    final displayedPunches = _activeTab == 'Today' ? todayPunches : allPunches;
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
@@ -69,7 +64,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
         ),
         title: Text(
           'ATTENDANCE',
-          style: GoogleFonts.cinzel(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.bold,
             color: AppColors.sandLight,
@@ -83,7 +78,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
             padding: const EdgeInsets.only(right: 14),
             child: Center(
               child: LiquidGlassPill(
-                label: 'PILLAR 4',
+                label: 'PILLAR 4 • DAILY',
                 color: statusColor,
                 icon: Icons.fingerprint,
               ),
@@ -113,24 +108,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
             _buildPast7DaysActivityTable(context, provider),
             const SizedBox(height: 16),
 
-            // 4. Punch Log Ledger Header & Filter
-            _buildPunchLedgerHeader(todayPunches.length, allPunches.length),
-            const SizedBox(height: 10),
-
-            // 6. Punch History List
-            if (displayedPunches.isEmpty)
-              _buildEmptyPunchesState()
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: displayedPunches.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (ctx, idx) => _buildPunchItemCard(displayedPunches[idx]),
-              ),
-            const SizedBox(height: 20),
-
-            // 7. Sovereign Green Light Impact Gateway
+            // 4. Sovereign Green Light Impact Gateway
             _buildGreenLightGateway(context, provider),
             const SizedBox(height: 24),
           ],
@@ -172,16 +150,31 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  'TODAY\'S ATTENDANCE STATUS',
-                  style: GoogleFonts.cinzel(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandGold,
-                    letterSpacing: 0.6,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TODAY\'S ATTENDANCE STATUS',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                        letterSpacing: 0.6,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Daily Cadence • Punch In, Breaks & Punch Out Recorded with Date & Time',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        color: AppColors.textMuted,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
@@ -244,7 +237,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                       const SizedBox(height: 4),
                       Text(
                         login != null ? login.timeString : '--:-- --',
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: login != null ? AppColors.sandLight : AppColors.textMuted,
@@ -293,7 +286,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                       const SizedBox(height: 4),
                       Text(
                         logout != null ? logout.timeString : (isOnDuty ? 'On Duty' : '--:-- --'),
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: isOnDuty ? const Color(0xFFF59E0B) : (logout != null ? AppColors.sandLight : AppColors.textMuted),
@@ -448,11 +441,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
         color: AppColors.burgundyCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
+            color: Color(0x0A0F172A),
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -513,29 +506,37 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
-                    colors: [
-                      _isScanning
-                          ? const Color(0xFF10B981).withOpacity(0.4)
-                          : AppColors.sandGold.withOpacity(0.35),
-                      AppColors.burgundyPrimary,
-                      AppColors.burgundyBg,
-                    ],
+                    colors: _isScanning
+                        ? [
+                            const Color(0xFF34D399),
+                            const Color(0xFF10B981),
+                            const Color(0xFF059669),
+                          ]
+                        : (isOnDuty
+                            ? [
+                                const Color(0xFF34D399),
+                                const Color(0xFF10B981),
+                                const Color(0xFF047857),
+                              ]
+                            : [
+                                const Color(0xFFFB7185),
+                                AppColors.sandGold,
+                                const Color(0xFF9D174D),
+                              ]),
                   ),
                   border: Border.all(
                     color: _isScanning
-                        ? const Color(0xFF10B981)
-                        : (isOnDuty ? const Color(0xFF10B981) : AppColors.sandGold),
-                    width: 3.0,
+                        ? const Color(0xFFA7F3D0)
+                        : (isOnDuty ? const Color(0xFF6EE7B7) : const Color(0xFFFECDD3)),
+                    width: 3.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: _isScanning
-                          ? const Color(0xFF10B981).withOpacity(0.6)
-                          : (isOnDuty
-                              ? const Color(0xFF10B981).withOpacity(0.3)
-                              : AppColors.sandGold.withOpacity(0.3)),
-                      blurRadius: 22,
-                      spreadRadius: 3,
+                      color: (_isScanning || isOnDuty)
+                          ? const Color(0xFF10B981).withOpacity(0.4)
+                          : AppColors.sandGold.withOpacity(0.35),
+                      blurRadius: 20,
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
@@ -547,17 +548,15 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                           ? FontAwesomeIcons.arrowsRotate
                           : FontAwesomeIcons.handPointer,
                       size: 32,
-                      color: _isScanning
-                          ? const Color(0xFF10B981)
-                          : (isOnDuty ? const Color(0xFF10B981) : AppColors.sandGold),
+                      color: Colors.white,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       _isScanning ? 'RECORDING...' : 'PUSH TO LOG',
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 9.5,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.sandLight,
+                        color: Colors.white,
                         letterSpacing: 0.6,
                       ),
                     ),
@@ -612,13 +611,13 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                   const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.restaurant_outlined, size: 14, color: Colors.black),
+                      icon: const Icon(Icons.restaurant_outlined, size: 14, color: Colors.white),
                       label: Text(
                         '2. Lunch Out',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -741,11 +740,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
         color: AppColors.burgundyCard,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Color(0x0A0F172A),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -773,7 +772,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                     children: [
                       Text(
                         'Your Recent Activities (Past 7 Days)',
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -921,179 +920,35 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
     );
   }
 
-  Widget _buildPunchLedgerHeader(int todayCount, int allCount) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            'PUNCH AUDIT',
-            style: GoogleFonts.cinzel(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.sandGold,
-              letterSpacing: 0.6,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _filterTab('Today', todayCount),
-            const SizedBox(width: 6),
-            _filterTab('All Logs', allCount),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _filterTab(String label, int count) {
-    final isSelected = _activeTab == label;
-
-    return InkWell(
-      onTap: () => setState(() => _activeTab = label),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.sandGold.withOpacity(0.2) : AppColors.burgundySurface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
-          ),
-        ),
-        child: Text(
-          '$label ($count)',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? AppColors.sandGold : AppColors.textMuted,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPunchItemCard(AttendancePunchRecord punch) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: punch.punchColor.withOpacity(0.4)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: punch.punchColor.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(punch.verifyMethodIcon, style: const TextStyle(fontSize: 16)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        punch.punchTypeLabel,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandLight,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      punch.timeString,
-                      style: GoogleFonts.cinzel(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: punch.punchColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${punch.verifyMethodLabel} • ${punch.terminalName}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      punch.dateString,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyPunchesState() {
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.sandBorder),
-      ),
-      child: Center(
-        child: Column(
-          children: [
-            const Icon(Icons.fingerprint, color: AppColors.sandGold, size: 36),
-            const SizedBox(height: 8),
-            Text(
-              'No punch records found for this view',
-              style: GoogleFonts.cinzel(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Tap the Scan Thumb button above to record a punch.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildGreenLightGateway(BuildContext context, EcosystemProvider provider) {
     final color = provider.holisticTierColor;
+    final isRed = color == AppColors.ragRed;
+    final isGreen = color == AppColors.ragGreen;
+    final pillBg = isRed
+        ? const Color(0xFFFFF1F2)
+        : (isGreen ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB));
+    final pillBorder = isRed
+        ? const Color(0xFFFECDD3)
+        : (isGreen ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A));
+    final pillTextColor = isRed
+        ? const Color(0xFFE11D48)
+        : (isGreen ? const Color(0xFF059669) : const Color(0xFFD97706));
+
+    final isAttendanceOnTime = provider.hasLoggedAttendanceToday && provider.isAttendanceOnTime;
+    final statusPillBg = isAttendanceOnTime ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2);
+    final statusPillBorder = isAttendanceOnTime ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3);
+    final statusPillTextColor = isAttendanceOnTime ? const Color(0xFF059669) : const Color(0xFFE11D48);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.burgundyCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.55), width: 1.2),
+        border: Border.all(color: color.withOpacity(0.25), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.15),
+            color: color.withOpacity(0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1109,22 +964,22 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.18),
+                    color: pillBg,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: color.withOpacity(0.55), width: 1),
+                    border: Border.all(color: pillBorder, width: 1),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.light_mode, size: 12, color: color == AppColors.ragRed ? const Color(0xFFFCA5A5) : color),
+                      Icon(Icons.light_mode, size: 12, color: pillTextColor),
                       const SizedBox(width: 5),
-                      const Flexible(
+                      Flexible(
                         child: Text(
                           'Green Factor',
                           style: TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: pillTextColor,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1138,18 +993,18 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.22),
+                    color: statusPillBg,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: color.withOpacity(0.6), width: 1),
+                    border: Border.all(color: statusPillBorder, width: 1),
                   ),
                   child: Text(
-                    provider.hasLoggedAttendanceToday && provider.isAttendanceOnTime ? 'On-Time Verified' : 'Attendance Pending',
+                    isAttendanceOnTime ? 'On-Time Verified' : 'Attendance Pending',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: statusPillTextColor,
                     ),
                   ),
                 ),
@@ -1159,7 +1014,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
           const SizedBox(height: 12),
           Text(
             'Attendance Impact',
-            style: GoogleFonts.cinzel(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 14.5,
               fontWeight: FontWeight.bold,
               color: AppColors.sandLight,
@@ -1168,17 +1023,17 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
           const SizedBox(height: 4),
           const Text(
             'Punching in on time with your thumb on the biometric machine keeps your status Green.',
-            style: TextStyle(fontSize: 11, color: Color(0xFFCBD5E1), height: 1.35),
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.35),
           ),
           const SizedBox(height: 14),
           ElevatedButton.icon(
-            icon: const Icon(Icons.radar_outlined, size: 16, color: AppColors.burgundyBg),
+            icon: const Icon(Icons.radar_outlined, size: 16, color: Colors.white),
             label: Text(
               'Check Overall Status',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: AppColors.burgundyBg,
+                color: Colors.white,
               ),
             ),
             style: ElevatedButton.styleFrom(
@@ -1388,7 +1243,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                   children: [
                     Text(
                       'EMERGENCY PASS & MEDICAL LEAVE',
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -1413,15 +1268,15 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.sandGold,
-                    foregroundColor: Colors.black,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                   ),
                   onPressed: () => EmergencyPermissionModal.show(context),
-                  icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: Colors.black),
+                  icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: Colors.white),
                   label: const Text(
                     'Permission',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
                   ),
                 ),
               ),
@@ -1438,7 +1293,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                   icon: const FaIcon(FontAwesomeIcons.kitMedical, size: 13, color: Colors.white),
                   label: const Text(
                     'Medical Leave',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
                   ),
                 ),
               ),
@@ -1450,11 +1305,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
+              color: isOverQuota ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isOverQuota ? AppColors.ragYellow : Colors.white.withOpacity(0.08),
-                width: isOverQuota ? 1.2 : 0.8,
+                color: isOverQuota ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+                width: 1.0,
               ),
             ),
             child: Row(
@@ -1468,7 +1323,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                       const SizedBox(height: 2),
                       Text(
                         '${usedHours.toStringAsFixed(1)}h Used • ${remainingHours.toStringAsFixed(1)}h Remaining',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -1479,11 +1334,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: isOverQuota
-                        ? AppColors.ragYellow.withOpacity(0.2)
-                        : AppColors.ragGreen.withOpacity(0.15),
+                        ? const Color(0xFFFEF3C7)
+                        : const Color(0xFFECFDF5),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isOverQuota ? AppColors.ragYellow : AppColors.ragGreen,
+                      color: isOverQuota ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
                       width: 0.8,
                     ),
                   ),
@@ -1492,7 +1347,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                     style: TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold,
-                      color: isOverQuota ? AppColors.ragYellow : AppColors.ragGreen,
+                      color: isOverQuota ? const Color(0xFFD97706) : const Color(0xFF059669),
                     ),
                   ),
                 ),
@@ -1515,11 +1370,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                 margin: const EdgeInsets.only(bottom: 6),
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: isOrange ? AppColors.ragYellow.withOpacity(0.12) : Colors.white.withOpacity(0.03),
+                  color: isOrange ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isOrange ? AppColors.ragYellow : Colors.white.withOpacity(0.08),
-                    width: isOrange ? 1.0 : 0.6,
+                    color: isOrange ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+                    width: 1.0,
                   ),
                 ),
                 child: Row(
@@ -1527,7 +1382,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                     Icon(
                       isOrange ? Icons.warning_amber_rounded : Icons.timer_outlined,
                       size: 15,
-                      color: isOrange ? AppColors.ragYellow : AppColors.sandGold,
+                      color: isOrange ? const Color(0xFFD97706) : AppColors.sandGold,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -1541,7 +1396,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: isOrange ? AppColors.ragYellow : Colors.white,
+                                  color: isOrange ? const Color(0xFFD97706) : AppColors.textDark,
                                 ),
                               ),
                               if (isOrange) ...[
@@ -1549,13 +1404,13 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                   decoration: BoxDecoration(
-                                    color: AppColors.ragYellow.withOpacity(0.25),
+                                    color: const Color(0xFFFEF3C7),
                                     borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: AppColors.ragYellow, width: 0.6),
+                                    border: Border.all(color: const Color(0xFFF59E0B), width: 0.6),
                                   ),
                                   child: const Text(
                                     '>2h Orange Mark',
-                                    style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: AppColors.ragYellow),
+                                    style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
                                   ),
                                 ),
                               ],
@@ -1574,11 +1429,19 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: p.status == 'Approved'
-                            ? AppColors.ragGreen.withOpacity(0.2)
+                            ? const Color(0xFFECFDF5)
                             : p.status == 'Rejected'
-                                ? AppColors.ragRed.withOpacity(0.2)
-                                : AppColors.sandGold.withOpacity(0.18),
+                                ? const Color(0xFFFFF1F2)
+                                : const Color(0xFFFDF2F8),
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: p.status == 'Approved'
+                              ? const Color(0xFFA7F3D0)
+                              : p.status == 'Rejected'
+                                  ? const Color(0xFFFECDD3)
+                                  : const Color(0xFFFBCFE8),
+                          width: 0.8,
+                        ),
                       ),
                       child: Text(
                         p.status,
@@ -1586,9 +1449,9 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: p.status == 'Approved'
-                              ? AppColors.ragGreen
+                              ? const Color(0xFF059669)
                               : p.status == 'Rejected'
-                                  ? AppColors.ragRed
+                                  ? const Color(0xFFE11D48)
                                   : AppColors.sandGold,
                         ),
                       ),
@@ -1602,9 +1465,9 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                 margin: const EdgeInsets.only(bottom: 6),
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.03),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Row(
                   children: [
@@ -1616,7 +1479,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                         children: [
                           Text(
                             'Medical Leave (${m.days} Days)',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
                           ),
                           Text(
                             m.reason,

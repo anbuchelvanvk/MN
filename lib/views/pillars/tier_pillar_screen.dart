@@ -67,7 +67,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
         ),
         title: Text(
           'YOUR STATUS',
-          style: GoogleFonts.cinzel(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.bold,
             color: AppColors.sandLight,
@@ -190,7 +190,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                       spreadRadius: 6,
                     ),
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: const Color(0x0A0F172A),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -238,7 +238,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                           const SizedBox(height: 6),
                           Text(
                             tierTitle,
-                            style: GoogleFonts.cinzel(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: tierColor,
@@ -312,11 +312,11 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.burgundyPrimary,
+              color: const Color(0xFFFFF1F4),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+              border: Border.all(color: const Color(0xFFFECDD3)),
             ),
-            child: const Icon(Icons.balance, color: AppColors.sandGold, size: 22),
+            child: const Icon(Icons.balance, color: AppColors.magentaPrimary, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -325,10 +325,10 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
               children: [
                 Text(
                   'Your 4 Pillars Status',
-                  style: GoogleFonts.cinzel(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.sandLight,
+                    color: AppColors.textDark,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -336,7 +336,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                   'Combines Pillar 1 (Health), Pillar 2 (Family), Pillar 3 (Profile), and Pillar 4 (Attendance) to show your current status.',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
-                    color: AppColors.sandPrimary,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -361,7 +361,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
             Expanded(
               child: Text(
                 'YOUR 4 PILLARS TODAY',
-                style: GoogleFonts.cinzel(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -516,7 +516,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
             border: Border.all(color: AppColors.sandGold, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.7),
+                color: const Color(0x140F172A),
                 blurRadius: 30,
                 offset: const Offset(0, -6),
               ),
@@ -560,7 +560,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                         children: [
                           Text(
                             'YOUR STATUS DETAILS',
-                            style: GoogleFonts.cinzel(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -628,7 +628,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                                 const SizedBox(width: 6),
                                 Text(
                                   'How to Get Green Status',
-                                  style: GoogleFonts.cinzel(
+                                  style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandGold,

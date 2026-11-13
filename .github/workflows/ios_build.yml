@@ -1,0 +1,95 @@
+name: Build iOS IPA & TestFlight
+
+on:
+  push:
+    branches: [ main, master, v2-ui-redesign ]
+  pull_request:
+    branches: [ main, master, v2-ui-redesign ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - profile
+          - debug
+      deploy_testflight:
+        description: 'Deploy to TestFlight (Requires App Store Connect Secrets)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+
+      - name: Verify Flutter Environment
+        run: flutter doctor -v
+
+      - name: Install Project Dependencies
+        run: flutter pub get
+
+      - name: Run Test Suite
+        run: flutter test
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install || pod install --repo-update
+          cd ..
+
+      - name: Build iOS Application (Release)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package .IPA Binary
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r -9 MNFamilyApp-release.ipa Payload
+          ls -lh MNFamilyApp-release.ipa
+
+      - name: Upload iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MNFamilyApp-iOS-IPA
+          path: MNFamilyApp-release.ipa
+          retention-days: 30
+
+      # Optional TestFlight Deployment (Activated when secrets are provided)
+      - name: Deploy to TestFlight
+        if: ${{ inputs.deploy_testflight == true && env.HAVE_API_KEY == 'true' }}
+        env:
+          HAVE_API_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY != '' }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          echo "App Store Connect credentials detected. Uploading to TestFlight..."
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_CONNECT_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8
+          xcrun altool --upload-app -f MNFamilyApp-release.ipa -t ios \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+

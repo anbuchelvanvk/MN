@@ -2,10 +2,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_colors.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../models/company_notification_models.dart';
 import '../../views/orders/online_orders_handler_screen.dart';
+import 'social_cause_detail_dialog.dart';
 
 class CompanyNotificationSheet extends StatefulWidget {
   const CompanyNotificationSheet({super.key});
@@ -29,7 +31,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final notifications = eco.companyNotifications;
+    final notifications = eco.activeCompanyNotifications;
     final unreadCount = eco.unreadNotificationCount;
 
     final filtered = notifications.where((n) {
@@ -65,15 +67,11 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(
-          color: AppColors.sandGold.withOpacity(0.4),
-          width: 1.2,
-        ),
+      decoration: const BoxDecoration(
+        color: AppColors.pureWhite,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -85,7 +83,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.sandBorder,
+                color: const Color(0xFFCBD5E1),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -93,95 +91,142 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
 
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.sandGold.withOpacity(0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.sandGold.withOpacity(0.3), width: 1),
-                  ),
-                  child: const Icon(Icons.notifications_active, color: AppColors.sandGold, size: 20),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF1F4),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFFECDD3)),
+                      ),
+                      child: const Icon(Icons.notifications_active, color: AppColors.magentaPrimary, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Flexible(
-                            child: Text(
-                              'Notifications & Nudges',
-                              style: GoogleFonts.cinzel(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (unreadCount > 0) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '$unreadCount New',
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Notifications & Nudges',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textDark,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ),
-                          ],
+                              if (unreadCount > 0) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '$unreadCount New',
+                                    style: const TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Birthdays, Special Days & Management Notices',
+                            style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Birthdays, Special Days & Management Notices',
-                        style: TextStyle(fontSize: 10, color: AppColors.textMuted),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 22, color: Color(0xFF64748B)),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-                if (unreadCount > 0) ...[
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () => eco.markAllNotificationsAsRead(),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.sandGold.withOpacity(0.14),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.sandGold.withOpacity(0.4), width: 0.8),
-                      ),
-                      child: const Text(
-                        'Mark All Read',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          color: AppColors.sandGold,
-                          fontWeight: FontWeight.bold,
+                const SizedBox(height: 12),
+
+                // Action Buttons Row: "Mark as Read" & "Clear all read alerts"
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          eco.markAllNotificationsAsRead();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('All notifications marked as read'),
+                              duration: Duration(seconds: 1),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.done_all_rounded, size: 15, color: AppColors.magentaPrimary),
+                        label: const Text(
+                          'Mark as Read',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                          side: BorderSide(color: AppColors.magentaPrimary.withOpacity(0.4)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          backgroundColor: const Color(0xFFFFF1F4),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          eco.clearAllReadNotifications();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('All read alerts cleared for your account'),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.delete_sweep_outlined, size: 16, color: Color(0xFF64748B)),
+                        label: const Text(
+                          'Clear all read alerts',
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          backgroundColor: const Color(0xFFF8FAFC),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          const Divider(color: AppColors.sandBorder, height: 1),
+          const Divider(color: Color(0xFFF1F5F9), height: 1),
 
           // Filter chips
           SingleChildScrollView(
@@ -232,10 +277,10 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                       Expanded(
                         child: Text(
                           '${eco.overdueOnlineOrders.length} Online Order(s) overdue SLA. Tap to resolve.',
-                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.white70),
+                      const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textSecondary),
                     ],
                   ),
                 ),
@@ -289,10 +334,10 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.sandGold : AppColors.burgundyCard,
+          color: isSelected ? AppColors.magentaPrimary : AppColors.pureWhite,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+            color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder,
           ),
         ),
         child: Row(
@@ -301,7 +346,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
             Icon(
               icon,
               size: 13,
-              color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
+              color: isSelected ? Colors.white : AppColors.sandLight,
             ),
             const SizedBox(width: 5),
             Text(
@@ -309,7 +354,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
+                color: isSelected ? Colors.white : AppColors.sandLight,
               ),
             ),
           ],
@@ -320,32 +365,45 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
 
   Widget _buildNotificationCard(BuildContext context, EcosystemProvider eco, CompanyNotification notif) {
     final timeStr = _formatTimeAgo(notif.timestamp);
+    final isRead = notif.isReadBy(eco.activeEmpId);
 
     return InkWell(
       onTap: () {
-        if (!notif.isRead) eco.markNotificationAsRead(notif.id);
+        if (!isRead) eco.markNotificationAsRead(notif.id);
         final title = notif.title.toLowerCase();
         final content = notif.content.toLowerCase();
-        if (title.contains('order') || content.contains('order') || title.contains('reassign') || content.contains('reassign')) {
-          Navigator.pop(context);
-          Navigator.push(
+        if (notif.type == CompanyNotificationType.socialCause ||
+            notif.actionTag?.startsWith('CAUSE-') == true ||
+            notif.id.contains('SC-') ||
+            title.contains('social') ||
+            content.contains('social')) {
+          SocialCauseDetailDialog.show(
             context,
-            MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
+            notification: notif,
+            causeId: notif.actionTag,
           );
+          return;
         }
+        _showNotificationDetailDialog(context, eco, notif);
       },
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: notif.isRead ? AppColors.burgundyCard : AppColors.burgundyCard.withOpacity(0.95),
+          color: AppColors.pureWhite,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: notif.isRead ? AppColors.sandBorder : notif.color.withOpacity(0.6),
-            width: notif.isRead ? 1.0 : 1.4,
+            color: isRead ? const Color(0xFFE2E8F0) : notif.color.withOpacity(0.55),
+            width: isRead ? 1.0 : 1.3,
           ),
-          boxShadow: notif.isRead
-              ? null
+          boxShadow: isRead
+              ? [
+                  const BoxShadow(
+                    color: Color(0x060F172A),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ]
               : [
                   BoxShadow(
                     color: notif.color.withOpacity(0.12),
@@ -361,9 +419,9 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
             Container(
               padding: const EdgeInsets.all(9),
               decoration: BoxDecoration(
-                color: notif.color.withOpacity(0.18),
+                color: notif.color.withOpacity(0.14),
                 shape: BoxShape.circle,
-                border: Border.all(color: notif.color.withOpacity(0.5)),
+                border: Border.all(color: notif.color.withOpacity(0.4)),
               ),
               child: Icon(notif.icon, color: notif.color, size: 20),
             ),
@@ -380,7 +438,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: notif.color.withOpacity(0.15),
+                          color: notif.color.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -393,13 +451,14 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         ),
                       ),
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             timeStr,
-                            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                            style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
                           ),
-                          if (!notif.isRead) ...[
-                            const SizedBox(width: 6),
+                          const SizedBox(width: 8),
+                          if (!isRead)
                             Container(
                               width: 8,
                               height: 8,
@@ -407,8 +466,34 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                 shape: BoxShape.circle,
                                 color: notif.color,
                               ),
+                            )
+                          else
+                            InkWell(
+                              onTap: () {
+                                eco.dismissNotification(notif.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Notification removed for your account'),
+                                    duration: Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.all(3.5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 13,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
                             ),
-                          ],
                         ],
                       ),
                     ],
@@ -421,8 +506,8 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         .replaceAll('Senthil', 'M N Naveenraaj'),
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: notif.isRead ? FontWeight.w600 : FontWeight.bold,
-                      color: AppColors.sandLight,
+                      fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
+                      color: AppColors.textDark,
                     ),
                   ),
                   if (notif.content.isNotEmpty) ...[
@@ -433,20 +518,104 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           .replaceAll('Senthil Nathan', 'M N Naveenraaj')
                           .replaceAll('Senthil', 'M N Naveenraaj')
                           .replaceAll('CEO & Founder', 'Managing Director & CEO'),
-                      style: const TextStyle(fontSize: 11, color: AppColors.sandLight, height: 1.3),
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF475569), height: 1.35),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.person_pin, size: 12, color: AppColors.textMuted),
+                      const Icon(Icons.person_pin, size: 12, color: Color(0xFF94A3B8)),
                       const SizedBox(width: 4),
-                      Text(
-                        'From: ${notif.senderName.toLowerCase().contains("senthil") || notif.senderName.toLowerCase().contains("executive ceo") ? "M N Naveenraaj" : notif.senderName} (${notif.senderRole.toLowerCase().contains("founder") || notif.senderName.toLowerCase().contains("senthil") ? "Managing Director & CEO" : notif.senderRole})',
-                        style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted),
+                      Expanded(
+                        child: Text(
+                          'From: ${notif.senderName.toLowerCase().contains("senthil") || notif.senderName.toLowerCase().contains("executive ceo") ? "M N Naveenraaj" : notif.senderName} (${notif.senderRole.toLowerCase().contains("founder") || notif.senderName.toLowerCase().contains("senthil") ? "Managing Director & CEO" : notif.senderRole})',
+                          style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
+                  if (notif.type == CompanyNotificationType.socialCause || notif.actionTag?.startsWith('CAUSE-') == true) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            final targetId = notif.actionTag ?? notif.id;
+                            eco.toggleSocialCauseReaction(targetId, reactingEmpId: eco.activeEmpId);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: notif.isLikedBy(eco.activeEmpId)
+                                  ? const Color(0xFFEF4444).withOpacity(0.18)
+                                  : AppColors.sandGold.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: notif.isLikedBy(eco.activeEmpId)
+                                    ? const Color(0xFFEF4444)
+                                    : AppColors.sandGold.withOpacity(0.4),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  notif.isLikedBy(eco.activeEmpId) ? Icons.favorite : Icons.favorite_border,
+                                  size: 13,
+                                  color: notif.isLikedBy(eco.activeEmpId) ? const Color(0xFFEF4444) : AppColors.sandGold,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${notif.likesCount}',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: notif.isLikedBy(eco.activeEmpId) ? const Color(0xFFEF4444) : AppColors.sandGold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (notif.isCeoReacted) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFF59E0B), width: 1),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.stars_rounded, size: 12, color: Color(0xFFD97706)),
+                                SizedBox(width: 3),
+                                Text(
+                                  'CEO Reacted!',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF92400E),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const Spacer(),
+                        const Text(
+                          'Tap to view deed',
+                          style: TextStyle(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -456,6 +625,194 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
     );
   }
 
+  void _showNotificationDetailDialog(BuildContext context, EcosystemProvider eco, CompanyNotification notif) {
+    final title = notif.title
+        .replaceAll('Dr. K. Senthil Nathan', 'M N Naveenraaj')
+        .replaceAll('Senthil Nathan', 'M N Naveenraaj')
+        .replaceAll('Senthil', 'M N Naveenraaj');
+    final content = notif.content
+        .replaceAll('Dr. K. Senthil Nathan', 'M N Naveenraaj')
+        .replaceAll('Senthil Nathan', 'M N Naveenraaj')
+        .replaceAll('Senthil', 'M N Naveenraaj')
+        .replaceAll('CEO & Founder', 'Managing Director & CEO');
+    final formattedDate = DateFormat('dd MMMM yyyy, hh:mm a').format(notif.timestamp);
+
+    final isOrderRelated = title.toLowerCase().contains('order') || content.toLowerCase().contains('order');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 460),
+          decoration: BoxDecoration(
+            color: AppColors.pureWhite,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1F000000),
+                blurRadius: 20,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Category & Close
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: notif.color.withOpacity(0.14),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: notif.color.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(notif.icon, size: 13, color: notif.color),
+                          const SizedBox(width: 5),
+                          Text(
+                            notif.categoryLabel,
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: notif.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF64748B)),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Title
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 6),
+
+                // Timestamp
+                Row(
+                  children: [
+                    const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF94A3B8)),
+                    const SizedBox(width: 4),
+                    Text(
+                      formattedDate,
+                      style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(color: Color(0xFFF1F5F9), height: 1),
+                const SizedBox(height: 12),
+
+                // Content body
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                      ),
+                      child: Text(
+                        content.isNotEmpty ? content : 'No additional details provided.',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: Color(0xFF334155),
+                          height: 1.45,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Sender attribution
+                Row(
+                  children: [
+                    const Icon(Icons.person_pin, size: 13, color: Color(0xFF64748B)),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        'From: ${notif.senderName.toLowerCase().contains("senthil") || notif.senderName.toLowerCase().contains("executive ceo") ? "M N Naveenraaj" : notif.senderName} (${notif.senderRole.toLowerCase().contains("founder") || notif.senderName.toLowerCase().contains("senthil") ? "Managing Director & CEO" : notif.senderRole})',
+                        style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                const Divider(color: Color(0xFFF1F5F9), height: 1),
+                const SizedBox(height: 12),
+
+                // Dialog Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (isOrderRelated) ...[
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.pop(context); // close sheet
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.shopping_bag_outlined, size: 14, color: Colors.white),
+                        label: const Text('View Orders', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE11D48),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      child: const Text('Close', style: TextStyle(color: Color(0xFF475569), fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
   String _formatTimeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 1) return 'Just now';

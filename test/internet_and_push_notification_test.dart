@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:mn_family_app/core/services/network_connectivity_service.dart';
 import 'package:mn_family_app/core/services/push_notification_service.dart';
 import 'package:mn_family_app/core/widgets/internet_connection_banner.dart';
@@ -95,7 +94,7 @@ void main() {
         priority: 'Critical SLA',
         due: '05:00 PM',
         assignedByRole: 'Online Team Manager',
-        assignedByName: 'Praveenkumaar M',
+        assignedByName: 'Praveenkumar M',
       );
 
       final taskPush = PushNotificationService.testNotificationLog.firstWhere(

@@ -3,57 +3,57 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppThemes {
-  static ThemeData get burgundySandTheme {
+  static ThemeData get whiteMagentaTheme {
     final textTheme = GoogleFonts.plusJakartaSansTextTheme(
-      ThemeData.dark().textTheme,
+      ThemeData.light().textTheme,
     ).copyWith(
-      displayLarge: GoogleFonts.cinzel(
-        color: AppColors.sandLight,
+      displayLarge: GoogleFonts.plusJakartaSans(
+        color: AppColors.textDark,
         fontSize: 26,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.2,
       ),
-      displayMedium: GoogleFonts.cinzel(
-        color: AppColors.sandPrimary,
+      displayMedium: GoogleFonts.plusJakartaSans(
+        color: AppColors.magentaPrimary,
         fontSize: 20,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.8,
       ),
       titleLarge: GoogleFonts.plusJakartaSans(
-        color: AppColors.textLight,
+        color: AppColors.textDark,
         fontSize: 18,
         fontWeight: FontWeight.w700,
       ),
       titleMedium: GoogleFonts.plusJakartaSans(
-        color: AppColors.sandPrimary,
+        color: AppColors.magentaPrimary,
         fontSize: 15,
         fontWeight: FontWeight.w600,
       ),
       bodyLarge: GoogleFonts.plusJakartaSans(
-        color: AppColors.textLight,
+        color: AppColors.textPrimary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
       bodyMedium: GoogleFonts.plusJakartaSans(
-        color: AppColors.textMuted,
+        color: AppColors.textSecondary,
         fontSize: 12.5,
         fontWeight: FontWeight.w400,
       ),
     );
 
     return ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.burgundyBg,
-      primaryColor: AppColors.burgundyPrimary,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.sandPrimary,
-        secondary: AppColors.burgundyPrimary,
-        surface: AppColors.burgundySurface,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppColors.whiteBg,
+      primaryColor: AppColors.magentaPrimary,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.magentaPrimary,
+        secondary: AppColors.magentaAccent,
+        surface: AppColors.pureWhite,
         error: AppColors.ragRed,
       ),
       textTheme: textTheme,
       cardTheme: CardThemeData(
-        color: AppColors.burgundyGlass,
+        color: AppColors.pureWhite,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -61,17 +61,20 @@ class AppThemes {
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.pureWhite,
         elevation: 0,
         centerTitle: false,
-        iconTheme: const IconThemeData(color: AppColors.sandPrimary),
-        titleTextStyle: GoogleFonts.cinzel(
+        iconTheme: const IconThemeData(color: AppColors.magentaPrimary),
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: AppColors.sandLight,
+          color: AppColors.textDark,
           letterSpacing: 0.8,
         ),
       ),
     );
   }
+
+  // Alias for backward compatibility
+  static ThemeData get burgundySandTheme => whiteMagentaTheme;
 }
