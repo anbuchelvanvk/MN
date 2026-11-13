@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // --- Signature Luxury Imperial Burgundy & Champagne Sandel Canvas ---
-  static const Color whiteBg = Color(0xFFFAF5F0);          // Warm Champagne Sandel canvas
+  // --- Signature Luxury Imperial Burgundy Canvas & Surfaces ---
+  static const Color burgundyBg = Color(0xFF580816);       // Deep Velvet Imperial Burgundy (#580816)
+  static const Color whiteBg = Color(0xFF580816);          // Main Burgundy canvas
+  static const Color backgroundWhite = Color(0xFF580816);  // Main Burgundy canvas
   static const Color pureWhite = Color(0xFFFFFFFF);        // Crisp pure white card surface
   static const Color cardWhite = Color(0xFFFFFFFF);        // Pure white card
-  static const Color backgroundWhite = Color(0xFFFAF5F0);  // Sandel background canvas
   static const Color surfaceWhite = Color(0xFFFFFFFF);     // Card surface
   static const Color glassWhite = Color(0xF8FFFFFF);       // Translucent frosted glass
   static const Color glassCard = Color(0xF2FFFFFF);        // Translucent card glass
@@ -30,7 +31,6 @@ class AppColors {
   static const Color magentaBorder = burgundyBorder;
   static const Color magentaHighlight = burgundyHighlight;
 
-  static const Color burgundyBg = Color(0xFFFAF5F0);       // Warm Champagne Sandel canvas
   static const Color burgundySurface = Color(0xFFFFFFFF);  // Pure white surface
   static const Color cardSurface = Color(0xFFFFFFFF);
   static const Color burgundyGlass = Color(0xF8FFFFFF);
