@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -457,7 +456,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
               Expanded(
                 child: Row(
                   children: const [
-                    FaIcon(FontAwesomeIcons.bolt, size: 16, color: AppColors.sandGold),
+                    Icon(Icons.bolt_rounded, size: 16, color: AppColors.sandGold),
                     SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -543,10 +542,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    FaIcon(
+                    Icon(
                       _isScanning
-                          ? FontAwesomeIcons.arrowsRotate
-                          : FontAwesomeIcons.handPointer,
+                          ? Icons.sync_rounded
+                          : Icons.touch_app_rounded,
                       size: 32,
                       color: Colors.white,
                     ),
@@ -1079,7 +1078,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
             children: [
               Row(
                 children: const [
-                  FaIcon(FontAwesomeIcons.clipboardCheck, size: 20, color: AppColors.ragGreen),
+                  Icon(Icons.assignment_turned_in_outlined, size: 20, color: AppColors.ragGreen),
                   SizedBox(width: 10),
                   Text(
                     'Attendance Punch Log Verified',
@@ -1273,7 +1272,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                   ),
                   onPressed: () => EmergencyPermissionModal.show(context),
-                  icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: Colors.white),
+                  icon: const Icon(Icons.access_time_rounded, size: 13, color: Colors.white),
                   label: const Text(
                     'Permission',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
@@ -1290,7 +1289,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                   ),
                   onPressed: () => EmergencyMedicalLeaveModal.show(context),
-                  icon: const FaIcon(FontAwesomeIcons.kitMedical, size: 13, color: Colors.white),
+                  icon: const Icon(Icons.medical_services_outlined, size: 13, color: Colors.white),
                   label: const Text(
                     'Medical Leave',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),

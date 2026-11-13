@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -586,8 +585,8 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          FaIcon(
-                            familyHours > 0 ? FontAwesomeIcons.solidHeart : FontAwesomeIcons.peopleRoof,
+                          Icon(
+                            familyHours > 0 ? Icons.favorite_rounded : Icons.family_restroom_rounded,
                             size: 18,
                             color: familyHours > 0 ? const Color(0xFFEC4899) : AppColors.sandGold,
                           ),
@@ -921,8 +920,8 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          FaIcon(
-                            friendsHours > 0 ? FontAwesomeIcons.handshake : FontAwesomeIcons.mugSaucer,
+                          Icon(
+                            friendsHours > 0 ? Icons.handshake_outlined : Icons.coffee_rounded,
                             size: 18,
                             color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
                           ),

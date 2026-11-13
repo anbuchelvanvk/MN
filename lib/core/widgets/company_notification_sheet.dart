@@ -1,4 +1,3 @@
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -234,17 +233,17 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
-                _filterChip('all', 'All (${notifications.length})', FontAwesomeIcons.layerGroup),
+                _filterChip('all', 'All (${notifications.length})', Icons.layers_outlined),
                 const SizedBox(width: 6),
-                _filterChip('teamAlerts', 'Team & Orders', FontAwesomeIcons.bell),
+                _filterChip('teamAlerts', 'Team & Orders', Icons.notifications_none_rounded),
                 const SizedBox(width: 6),
-                _filterChip('broadcastNotice', 'Notices', FontAwesomeIcons.bullhorn),
+                _filterChip('broadcastNotice', 'Notices', Icons.campaign_outlined),
                 const SizedBox(width: 6),
-                _filterChip('todoReminder', 'To-Do Reminders', FontAwesomeIcons.clockRotateLeft),
+                _filterChip('todoReminder', 'To-Do Reminders', Icons.history_rounded),
                 const SizedBox(width: 6),
-                _filterChip('birthday', 'Celebrations', FontAwesomeIcons.cakeCandles),
+                _filterChip('birthday', 'Celebrations', Icons.cake_outlined),
                 const SizedBox(width: 6),
-                _filterChip('socialCause', 'Social Causes', FontAwesomeIcons.handHoldingHeart),
+                _filterChip('socialCause', 'Social Causes', Icons.volunteer_activism_outlined),
               ],
             ),
           ),

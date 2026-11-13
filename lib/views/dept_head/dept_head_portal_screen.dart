@@ -2,7 +2,6 @@ import '../../core/widgets/export_audit_modal.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -409,7 +408,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                         color: AppColors.magentaSubtle,
                         shape: BoxShape.circle,
                       ),
-                      child: const FaIcon(FontAwesomeIcons.bagShopping, color: AppColors.magentaPrimary, size: 14),
+                      child: const Icon(Icons.shopping_bag_outlined, color: AppColors.magentaPrimary, size: 16),
                     ),
                     const SizedBox(width: 10),
                     const Expanded(

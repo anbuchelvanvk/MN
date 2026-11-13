@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_colors.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../services/export_audit_service.dart';
@@ -173,7 +172,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const FaIcon(FontAwesomeIcons.fileCode, size: 16, color: AppColors.magentaPrimary),
+            const Icon(Icons.code_rounded, size: 16, color: AppColors.magentaPrimary),
             const SizedBox(width: 8),
             Text(
               'Audit Preview (${lines.length} Lines)',
@@ -270,7 +269,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
                   ),
-                  child: const FaIcon(FontAwesomeIcons.fileArrowDown, size: 16, color: AppColors.sandGold),
+                  child: const Icon(Icons.download_rounded, size: 16, color: AppColors.sandGold),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -314,14 +313,14 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                       type: ExportDatasetType.masterLedger,
                       title: 'Master Ledger',
                       subtitle: 'All Enterprise Data',
-                      icon: FontAwesomeIcons.chartPie,
+                      icon: Icons.pie_chart_outline_rounded,
                       color: AppColors.goldBright,
                     ),
                     _buildDatasetOption(
                       type: ExportDatasetType.fivePillars,
                       title: '5 Family Pillars',
                       subtitle: 'Holistic Staff Compliance',
-                      icon: FontAwesomeIcons.cubesStacked,
+                      icon: Icons.inventory_2_outlined,
                       color: const Color(0xFF10B981),
                     ),
                   ],
@@ -329,28 +328,28 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                     type: ExportDatasetType.tasks,
                     title: widget.isTeamLead ? 'Team Tasks' : 'Daily SOPs',
                     subtitle: widget.isTeamLead ? 'Assigned SOP Deliverables' : 'Tasks & Deliverables',
-                    icon: FontAwesomeIcons.listCheck,
+                    icon: Icons.checklist_rounded,
                     color: AppColors.statusBlue,
                   ),
                   _buildDatasetOption(
                     type: ExportDatasetType.attendance,
                     title: widget.isTeamLead ? 'Team Attendance' : 'Biometric Attendance',
                     subtitle: widget.isTeamLead ? 'Member Punch Records' : 'Daily Punch Records',
-                    icon: FontAwesomeIcons.fingerprint,
+                    icon: Icons.fingerprint_rounded,
                     color: AppColors.ragGreen,
                   ),
                   _buildDatasetOption(
                     type: ExportDatasetType.orders,
                     title: 'Online Orders',
                     subtitle: 'Order Workflow Status',
-                    icon: FontAwesomeIcons.bagShopping,
+                    icon: Icons.shopping_bag_outlined,
                     color: const Color(0xFFF59E0B),
                   ),
                   _buildDatasetOption(
                     type: ExportDatasetType.directory,
                     title: widget.isTeamLead ? 'Team Directory' : 'Staff Directory',
                     subtitle: widget.isTeamLead ? 'Team Staff List' : 'Workforce Credentials',
-                    icon: FontAwesomeIcons.users,
+                    icon: Icons.people_outline_rounded,
                     color: AppColors.sandGold,
                   ),
 
@@ -387,7 +386,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const FaIcon(FontAwesomeIcons.calendarDay, size: 12, color: AppColors.sandGold),
+                            const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.sandGold),
                             const SizedBox(width: 8),
                             Text(
                               'Selected: ${df.format(_customRange!.start)} - ${df.format(_customRange!.end)}',
@@ -497,7 +496,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          icon: const FaIcon(FontAwesomeIcons.eye, size: 13, color: AppColors.sandGold),
+                          icon: const Icon(Icons.visibility_outlined, size: 14, color: AppColors.sandGold),
                           label: const Text('Preview CSV', style: TextStyle(color: AppColors.sandGold, fontSize: 11.5)),
                           onPressed: () => _showPreviewDialog(context, eco),
                         ),
@@ -510,7 +509,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          icon: const FaIcon(FontAwesomeIcons.copy, size: 13, color: AppColors.sandPrimary),
+                          icon: const Icon(Icons.content_copy_rounded, size: 14, color: AppColors.sandPrimary),
                           label: const Text('Copy CSV', style: TextStyle(color: AppColors.sandPrimary, fontSize: 11.5)),
                           onPressed: () => _handleExport(eco, copyOnly: true),
                         ),
@@ -536,7 +535,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                               height: 18,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const FaIcon(FontAwesomeIcons.fileArrowDown, size: 15, color: Colors.white),
+                          : const Icon(Icons.download_rounded, size: 16, color: Colors.white),
                       label: Text(
                         _isExporting ? 'Generating CSV...' : 'Export & Share',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
@@ -592,7 +591,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
         ),
         child: Row(
           children: [
-            FaIcon(icon, size: 14, color: color),
+            Icon(icon, size: 16, color: color),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

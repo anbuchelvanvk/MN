@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/role_app_bar.dart';
@@ -2276,7 +2275,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () => EmergencyPermissionModal.show(context),
-                      icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: AppColors.magentaPrimary),
+                      icon: const Icon(Icons.access_time_rounded, size: 14, color: AppColors.magentaPrimary),
                       label: Text(
                         'Request Permission',
                         style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.magentaPrimary),
@@ -2293,7 +2292,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () => EmergencyMedicalLeaveModal.show(context),
-                      icon: const FaIcon(FontAwesomeIcons.kitMedical, size: 13, color: Colors.white),
+                      icon: const Icon(Icons.medical_services_outlined, size: 14, color: Colors.white),
                       label: Text(
                         'Medical Leave',
                         style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
@@ -2692,7 +2691,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   elevation: 0,
                 ),
                 onPressed: () => EmergencyPermissionModal.show(context),
-                icon: const FaIcon(FontAwesomeIcons.clock, size: 13, color: AppColors.magentaPrimary),
+                icon: const Icon(Icons.access_time_rounded, size: 14, color: AppColors.magentaPrimary),
                 label: const Text('Permission', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.magentaPrimary)),
               ),
             ),
@@ -2707,7 +2706,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   elevation: 2,
                 ),
                 onPressed: () => EmergencyMedicalLeaveModal.show(context),
-                icon: const FaIcon(FontAwesomeIcons.kitMedical, size: 13, color: Colors.white),
+                icon: const Icon(Icons.medical_services_outlined, size: 14, color: Colors.white),
                 label: const Text('Medical Leave', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white)),
               ),
             ),

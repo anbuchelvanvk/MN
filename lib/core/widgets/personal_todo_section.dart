@@ -1,5 +1,4 @@
 import 'task_action_dialogs.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
@@ -65,7 +64,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                             color: AppColors.sandGold.withOpacity(0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const FaIcon(FontAwesomeIcons.listCheck, color: AppColors.sandGold, size: 16),
+                          child: const Icon(Icons.checklist_rounded, color: AppColors.sandGold, size: 16),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -109,7 +108,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          FaIcon(FontAwesomeIcons.plus, size: 11, color: Colors.white),
+                          Icon(Icons.add_rounded, size: 14, color: Colors.white),
                           SizedBox(width: 4),
                           Text(
                             'Add To-Do',
@@ -387,7 +386,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
 
             // Delete Action
             IconButton(
-              icon: const FaIcon(FontAwesomeIcons.trashCan, size: 14, color: Color(0xFF94A3B8)),
+              icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Color(0xFF94A3B8)),
               tooltip: 'Delete To-Do',
               onPressed: () => _confirmDeleteDialog(context, eco, task),
             ),

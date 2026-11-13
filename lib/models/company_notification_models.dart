@@ -1,4 +1,3 @@
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 
 enum CompanyNotificationType {
@@ -83,15 +82,15 @@ class CompanyNotification {
   IconData get icon {
     switch (type) {
       case CompanyNotificationType.birthday:
-        return FontAwesomeIcons.cakeCandles;
+        return Icons.cake_outlined;
       case CompanyNotificationType.anniversary:
-        return FontAwesomeIcons.champagneGlasses;
+        return Icons.celebration_outlined;
       case CompanyNotificationType.socialCause:
-        return FontAwesomeIcons.handHoldingHeart;
+        return Icons.volunteer_activism_outlined;
       case CompanyNotificationType.broadcastNotice:
-        return FontAwesomeIcons.bullhorn;
+        return Icons.campaign_outlined;
       case CompanyNotificationType.todoReminder:
-        return FontAwesomeIcons.clockRotateLeft;
+        return Icons.history_rounded;
     }
   }
 

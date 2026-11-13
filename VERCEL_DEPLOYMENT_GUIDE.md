@@ -76,3 +76,4 @@ Flutter Web uses client-side routing. We have created a [`vercel.json`](file:///
 2. Enter your custom domain (e.g. `family.mnjewelpark.com`).
 3. Add the suggested CNAME or A record in your DNS provider (GoDaddy, Cloudflare, etc.).
 4. Vercel automatically provisions and renews SSL certificates for free.
+

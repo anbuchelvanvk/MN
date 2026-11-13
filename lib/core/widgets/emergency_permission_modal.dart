@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -123,7 +122,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                       color: const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const FaIcon(FontAwesomeIcons.clock, color: Color(0xFFD97706), size: 16),
+                    child: const Icon(Icons.access_time_rounded, color: Color(0xFFD97706), size: 16),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -287,7 +286,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(top: 2),
-                        child: FaIcon(FontAwesomeIcons.triangleExclamation, color: Color(0xFFD97706), size: 16),
+                        child: Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 16),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -366,7 +365,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                       ),
                     );
                   },
-                  icon: const FaIcon(FontAwesomeIcons.paperPlane, size: 14, color: Colors.white),
+                  icon: const Icon(Icons.send_rounded, size: 14, color: Colors.white),
                   label: Text(
                     willExceedQuota
                         ? 'Yes, Proceed & Request ($timeGiven)'

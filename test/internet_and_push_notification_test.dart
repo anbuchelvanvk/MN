@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mn_family_app/core/services/network_connectivity_service.dart';
 import 'package:mn_family_app/core/services/push_notification_service.dart';
 import 'package:mn_family_app/core/widgets/internet_connection_banner.dart';
@@ -33,7 +32,7 @@ void main() {
 
       // Verify the warning text and FontAwesome X symbol appear at the top
       expect(find.text('Check your Internet Connection'), findsOneWidget);
-      expect(find.byWidgetPredicate((w) => w is FaIcon && w.icon == FontAwesomeIcons.circleXmark), findsOneWidget);
+      expect(find.byIcon(Icons.cancel_outlined), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
 
       // Verify tapping Retry triggers check

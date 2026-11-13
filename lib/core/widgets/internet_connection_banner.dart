@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/network_connectivity_service.dart';
 
@@ -57,8 +56,8 @@ class InternetConnectionBanner extends StatelessWidget {
                         child: Row(
                           children: [
                             // X fa fa symbol
-                            const FaIcon(
-                              FontAwesomeIcons.circleXmark,
+                            const Icon(
+                              Icons.cancel_outlined,
                               color: Colors.white,
                               size: 16,
                             ),

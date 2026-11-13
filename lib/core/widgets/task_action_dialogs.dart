@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_colors.dart';
 import '../../models/employee_model.dart';
 import '../../models/task_model.dart';
@@ -590,10 +589,10 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                         color: AppColors.sandGold.withOpacity(0.18),
                         shape: BoxShape.circle,
                       ),
-                      child: const FaIcon(
-                        FontAwesomeIcons.check,
+                      child: const Icon(
+                        Icons.check_rounded,
                         color: AppColors.sandGold,
-                        size: 13,
+                        size: 14,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -690,9 +689,9 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                 children: [
                   Row(
                     children: [
-                      const FaIcon(
-                        FontAwesomeIcons.commentDots,
-                        size: 13,
+                      const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 14,
                         color: AppColors.sandGold,
                       ),
                       const SizedBox(width: 8),
@@ -792,9 +791,9 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                 children: [
                   Row(
                     children: const [
-                      FaIcon(
-                        FontAwesomeIcons.camera,
-                        size: 13,
+                      Icon(
+                        Icons.camera_alt_outlined,
+                        size: 14,
                         color: AppColors.sandGold,
                       ),
                       SizedBox(width: 8),

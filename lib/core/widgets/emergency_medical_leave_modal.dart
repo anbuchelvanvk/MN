@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -131,7 +130,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                       color: const Color(0xFFFFF1F2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const FaIcon(FontAwesomeIcons.kitMedical, color: Color(0xFFE11D48), size: 16),
+                    child: const Icon(Icons.medical_services_outlined, color: Color(0xFFE11D48), size: 16),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -383,7 +382,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                               onPressed: () => _pickPrescription(ImageSource.camera),
-                              icon: const FaIcon(FontAwesomeIcons.camera, size: 13, color: AppColors.sandGold),
+                              icon: const Icon(Icons.camera_alt_outlined, size: 14, color: AppColors.sandGold),
                               label: const Text('Camera', style: TextStyle(fontSize: 11)),
                             ),
                           ),
@@ -397,7 +396,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                               onPressed: () => _pickPrescription(ImageSource.gallery),
-                              icon: const FaIcon(FontAwesomeIcons.images, size: 13, color: AppColors.sandGold),
+                              icon: const Icon(Icons.photo_library_outlined, size: 14, color: AppColors.sandGold),
                               label: const Text('Gallery', style: TextStyle(fontSize: 11)),
                             ),
                           ),
@@ -458,7 +457,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                       }
                     }
                   },
-                  icon: const FaIcon(FontAwesomeIcons.paperPlane, size: 14),
+                  icon: const Icon(Icons.send_rounded, size: 14),
                   label: Text(
                     _prescriptionBase64 != null
                         ? 'Submit Medical Leave ($effectiveDays Days)'

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_colors.dart';
 import 'company_notification_sheet.dart';
 import 'logout_confirm_dialog.dart';
@@ -139,7 +138,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          FaIcon(FontAwesomeIcons.rightLeft, size: 8.5, color: AppColors.magentaPrimary),
+                          Icon(Icons.swap_horiz_rounded, size: 10, color: AppColors.magentaPrimary),
                           SizedBox(width: 4),
                           Text(
                             'Switch Role',
@@ -424,7 +423,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                   builder: (context, eco, _) {
                     final unread = eco.unreadNotificationCount;
                     return _menuItemTile(
-                      icon: FontAwesomeIcons.bell,
+                      icon: Icons.notifications_none_rounded,
                       iconColor: AppColors.sandGold,
                       title: 'Notifications',
                       subtitle: unread > 0 ? '$unread unread alerts' : 'Company announcements & directives',
@@ -444,7 +443,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
 
                 // 2. Refresh App
                 _menuItemTile(
-                  icon: FontAwesomeIcons.arrowsRotate,
+                  icon: Icons.sync_rounded,
                   iconColor: const Color(0xFF38BDF8),
                   title: 'Refresh App',
                   subtitle: 'Sync live punches, orders & data',
@@ -479,7 +478,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
 
                 // 3. MN Family Pillars
                 _menuItemTile(
-                  icon: FontAwesomeIcons.cubesStacked,
+                  icon: Icons.inventory_2_outlined,
                   iconColor: const Color(0xFFA78BFA),
                   title: 'MN Family Pillars',
                   subtitle: 'Health, Family, Profile, Attendance & Social',
@@ -496,7 +495,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 // 4. Export Audit Report (if available for role)
                 if (onExportPressed != null)
                   _menuItemTile(
-                    icon: FontAwesomeIcons.fileArrowDown,
+                    icon: Icons.download_rounded,
                     iconColor: const Color(0xFF10B981),
                     title: 'Export Audit Report',
                     subtitle: 'Download complete CSV ledger',
@@ -509,7 +508,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
 
                 // 5. Switch Role
                 _menuItemTile(
-                  icon: FontAwesomeIcons.rightLeft,
+                  icon: Icons.swap_horiz_rounded,
                   iconColor: AppColors.sandPrimary,
                   title: 'Switch Role',
                   subtitle: 'Change to another executive or staff profile',
@@ -592,9 +591,9 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     ),
                     child: Center(
-                      child: FaIcon(
+                      child: Icon(
                         icon,
-                        size: 15,
+                        size: 16,
                         color: isDestructive ? const Color(0xFFEF4444) : iconColor,
                       ),
                     ),
