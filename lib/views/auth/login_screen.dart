@@ -184,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.burgundyBg,
+      backgroundColor: const Color(0xFFFAF5F8),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -193,11 +193,11 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF620013), // Royal Burgundy
-              Color(0xFF580816), // Imperial Velvet Burgundy
-              Color(0xFF450510), // Dark Rich Burgundy
-              Color(0xFF580816),
-              Color(0xFF620013),
+              Color(0xFFFFF1F4), // Radiant soft rose blush
+              Color(0xFFFAF5FF), // Subtle luxury lilac
+              Color(0xFFF8FAFC), // Neutral crisp center
+              Color(0xFFFFF7ED), // Warm champagne gold
+              Color(0xFFFFEEF4), // Rich rose blush
             ],
             stops: [0.0, 0.25, 0.5, 0.75, 1.0],
           ),
@@ -215,8 +215,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.sandGold.withOpacity(0.20),
-                      AppColors.sandGold.withOpacity(0.0),
+                      AppColors.magentaPrimary.withOpacity(0.18),
+                      AppColors.magentaPrimary.withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -232,8 +232,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFF871429).withOpacity(0.25),
-                      const Color(0xFF871429).withOpacity(0.0),
+                      const Color(0xFFC026D3).withOpacity(0.14),
+                      const Color(0xFFC026D3).withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -249,8 +249,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.sandGold.withOpacity(0.16),
-                      AppColors.sandGold.withOpacity(0.0),
+                      const Color(0xFFF59E0B).withOpacity(0.15),
+                      const Color(0xFFF59E0B).withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -347,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.sandLight,
                             letterSpacing: 1.8,
                           ),
                         ),
@@ -357,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: AppColors.sandGold,
+                            color: AppColors.sandPrimary,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.3,
                           ),
@@ -372,7 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(24),
                     borderRadius: 22,
                     backgroundColor: Colors.white,
-                    borderColor: AppColors.sandBorder,
+                    borderColor: const Color(0xFFFCE7F3),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

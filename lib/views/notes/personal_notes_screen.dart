@@ -435,52 +435,87 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                 const Divider(color: Color(0xFFE2E8F0), height: 1),
                 const SizedBox(height: 12),
 
-                // Actions: Delete, Share, Edit
+                // Actions: Delete, Share, Edit (Reworked cohesive button bar)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _confirmDeleteNote(context, eco, note);
-                      },
-                      icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFEF4444)),
-                      label: const Text('Delete', style: TextStyle(color: Color(0xFFEF4444), fontSize: 12)),
+                    // Delete Button
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _confirmDeleteNote(context, eco, note);
+                        },
+                        icon: const Icon(Icons.delete_outline_rounded, size: 15, color: Color(0xFFDC2626)),
+                        label: const Text(
+                          'Delete',
+                          style: TextStyle(
+                            color: Color(0xFFDC2626),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
+                          backgroundColor: const Color(0xFFFFF1F2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          elevation: 0,
+                        ),
+                      ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _showShareNotePreviewDialog(context, eco, note);
-                          },
-                          icon: const Icon(Icons.share_rounded, size: 14, color: AppColors.magentaPrimary),
-                          label: const Text(
-                            'Share Image',
-                            style: TextStyle(color: AppColors.magentaPrimary, fontSize: 11.5, fontWeight: FontWeight.bold),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.magentaPrimary),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _showAddOrEditNoteDialog(context, eco, existing: note);
-                          },
-                          icon: const Icon(Icons.edit, size: 14, color: Colors.white),
-                          label: const Text('Edit Note', style: TextStyle(color: Colors.white, fontSize: 11.5)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.magentaPrimary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    const SizedBox(width: 8),
+
+                    // Share Button
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showShareNotePreviewDialog(context, eco, note);
+                        },
+                        icon: const Icon(Icons.share_rounded, size: 15, color: Color(0xFF9D174D)),
+                        label: const Text(
+                          'Share',
+                          style: TextStyle(
+                            color: Color(0xFF9D174D),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ],
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
+                          backgroundColor: const Color(0xFFFDF2F8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Edit Button
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showAddOrEditNoteDialog(context, eco, existing: note);
+                        },
+                        icon: const Icon(Icons.edit_rounded, size: 15, color: Colors.white),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.magentaPrimary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -596,23 +631,6 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                     ),
                   ),
                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
-
-                  // Description
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.auto_awesome, size: 13, color: Color(0xFFD97706)),
-                        SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'Branded with MN Jewel Park logo, your name & role for sharing to WhatsApp, Instagram & Apps.',
-                            style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
 
                   // Scrollable Card Preview
                   Flexible(
@@ -782,56 +800,62 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
 
           // Author Details Ribbon
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: const Color(0xFFF8FAFC),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  radius: 16,
+                  radius: 18,
                   backgroundColor: AppColors.magentaPrimary.withOpacity(0.15),
                   child: Text(
                     initial,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Full Author Name without truncation
                       Text(
                         author.name,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
                           color: const Color(0xFF0F172A),
+                          height: 1.25,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 2),
+                      // Role & ID
                       Text(
                         '${author.role} • ${author.id}',
                         style: const TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF64748B),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      // Date placed below the name & role area
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today_rounded, size: 11, color: Color(0xFF94A3B8)),
+                          const SizedBox(width: 5),
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Icon(Icons.calendar_today_rounded, size: 10, color: Color(0xFF94A3B8)),
-                    const SizedBox(height: 2),
-                    Text(
-                      formattedDate,
-                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w500, color: Color(0xFF94A3B8)),
-                    ),
-                  ],
                 ),
               ],
             ),
