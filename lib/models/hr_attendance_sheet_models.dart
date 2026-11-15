@@ -311,6 +311,19 @@ class HrAttendanceDayRecord {
   }
 }
 
+/// Unassigned or assigned employee entry parsed directly from Google Sheets
+class GoogleSheetEmployeeEntry {
+  final int sNo;
+  final String empNo;
+  final String name;
+
+  const GoogleSheetEmployeeEntry({
+    required this.sNo,
+    required this.empNo,
+    required this.name,
+  });
+}
+
 /// Represents one employee row in the HR Attendance Sheet
 class HrEmployeeAttendanceRow {
   final int sNo;
@@ -457,6 +470,27 @@ class HrMonthlyAttendanceSheet {
   List<HrEmployeeAttendanceRow> get employees =>
       rows.where((r) => activeEmpNos.contains(r.empNo.trim())).toList();
   List<HrEmployeeAttendanceRow> get allSheetRows => rows;
+
+  /// All non-empty employee entries present in the Google Sheet
+  List<GoogleSheetEmployeeEntry> get allSheetStaff => rows
+      .where((r) => r.empNo.trim().isNotEmpty && r.name.trim().isNotEmpty)
+      .map((r) => GoogleSheetEmployeeEntry(
+            sNo: r.sNo,
+            empNo: r.empNo.trim(),
+            name: r.name.trim(),
+          ))
+      .toList();
+
+  /// Filters sheet rows for the active registered employees
+  List<HrEmployeeAttendanceRow> getActiveRowsFor(Iterable<String> activeNos, Iterable<String> activeNames) {
+    final cleanNos = activeNos.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet();
+    final cleanNames = activeNames.map((n) => n.trim().toLowerCase()).where((n) => n.isNotEmpty).toSet();
+    return rows.where((r) {
+      if (cleanNos.contains(r.empNo.trim())) return true;
+      final rName = r.name.trim().toLowerCase();
+      return cleanNames.any((cn) => cn == rName || cn.contains(rName) || rName.contains(cn));
+    }).toList();
+  }
 
   /// The highest day number with actual attendance records uploaded by HR
   int get latestRecordedDay {

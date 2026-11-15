@@ -9,6 +9,7 @@ import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../../core/widgets/cross_dept_blocker_section.dart';
 import '../../models/attendance_models.dart';
 import '../../models/employee_model.dart';
+import '../../models/hr_attendance_sheet_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import 'hr_biometric_punch_audit_screen.dart';
 import 'hr_employee_inspection_screen.dart';
@@ -454,98 +455,192 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFFCE7F3)),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  const Icon(Icons.lock_outline, size: 13, color: AppColors.magentaPrimary),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Password: ',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.magentaPrimary,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      isPasswordRevealed ? empPassword : '••••••••',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark,
-                        letterSpacing: isPasswordRevealed ? 0 : 1.5,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _revealedPasswords[emp.id] = !isPasswordRevealed;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(4),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: Icon(
-                        isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
-                        size: 15,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: empPassword));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: const Color(0xFF10B981),
-                          content: Text('Password for ${emp.name} copied to clipboard!'),
-                          duration: const Duration(seconds: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.lock_outline, size: 13, color: AppColors.magentaPrimary),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Password: ',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.magentaPrimary,
                         ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(4),
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: Icon(Icons.copy_rounded, size: 14, color: AppColors.textSecondary),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  InkWell(
-                    onTap: () => _openResetPasswordDialog(context, eco, emp),
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppColors.magentaBorder),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.lock_reset, size: 11, color: AppColors.magentaPrimary),
-                          const SizedBox(width: 2),
-                          Text(
-                            'Reset',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.magentaPrimary,
+                      Expanded(
+                        child: Text(
+                          isPasswordRevealed ? empPassword : '••••••••',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                            letterSpacing: isPasswordRevealed ? 0 : 1.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _revealedPasswords[emp.id] = !isPasswordRevealed;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
+                            size: 15,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      InkWell(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: empPassword));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: const Color(0xFF10B981),
+                              content: Text('Password for ${emp.name} copied to clipboard!'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(4),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(Icons.copy_rounded, size: 14, color: AppColors.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    alignment: WrapAlignment.end,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      InkWell(
+                        onTap: () => _openResetPasswordDialog(context, eco, emp),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.magentaBorder),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.lock_reset, size: 11, color: AppColors.magentaPrimary),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Reset',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.magentaPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (emp.id != 'MN-CEO01' && emp.id != '7' && emp.roleType != 'ceo') ...[
+                        InkWell(
+                          onTap: () => _confirmRelieveEmployee(context, eco, emp),
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF2F2),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFFECACA)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.person_remove_outlined, size: 11, color: Color(0xFFDC2626)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'Relieve Staff',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFFDC2626),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmRelieveEmployee(BuildContext context, EcosystemProvider eco, Employee emp) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 22),
+            const SizedBox(width: 8),
+            Text(
+              'Relieve Staff Member',
+              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to officially relieve ${emp.name} (EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id}) from MN Jewel Park?\n\n'
+          'This will revoke app login credentials, relieve them from duties, and remove them from active workforce rosters.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textDark),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              final name = emp.name;
+              final idStr = emp.empNo.isNotEmpty ? 'EMP #${emp.empNo}' : emp.id;
+              final success = eco.relieveEmployee(emp.id);
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFFDC2626),
+                    content: Text('$name ($idStr) has been officially relieved from the company.'),
+                  ),
+                );
+              }
+            },
+            child: const Text('Relieve from Company'),
+          ),
+        ],
       ),
     );
   }
@@ -605,6 +700,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
   }
 
   static void openAddHireDialog(BuildContext context, EcosystemProvider eco) {
+    final empIdController = TextEditingController();
     final nameController = TextEditingController();
     final roleController = TextEditingController();
     final phoneController = TextEditingController();
@@ -615,6 +711,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
     String selectedGender = 'Male';
     String roleHierarchy = 'Employee';
     String selectedDept = 'Online Department';
+    String? selectedUnassignedEmpNo;
 
     final deptOptions = ['Online Department', 'Administration', 'Operations', 'Sales', 'Technology', 'Media', 'Accounts', 'HR'];
 
@@ -700,6 +797,106 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Employee ID Section (Dynamic Unassigned from Google Sheets)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.badge_outlined, size: 16, color: AppColors.magentaPrimary),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Employee ID (from Google Sheets):',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Select an unassigned employee from Google Sheets to auto-fill details, or enter a custom ID.',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                          ),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            value: selectedUnassignedEmpNo,
+                            isExpanded: true,
+                            decoration: InputDecoration(
+                              hintText: 'Select unassigned Employee ID from Sheets...',
+                              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              fillColor: Colors.white,
+                              filled: true,
+                            ),
+                            items: [
+                              const DropdownMenuItem<String>(
+                                value: '',
+                                child: Text('-- Select Unassigned Sheet Staff --', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                              ),
+                              ...eco.unassignedGoogleSheetEmployees.map((entry) {
+                                return DropdownMenuItem<String>(
+                                  value: entry.empNo,
+                                  child: Text(
+                                    'EMP #${entry.empNo} — ${entry.name} (Unassigned)',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  ),
+                                );
+                              }),
+                              const DropdownMenuItem<String>(
+                                value: 'MANUAL',
+                                child: Text('Custom / Manual Employee ID', style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              setModalState(() {
+                                selectedUnassignedEmpNo = val;
+                                if (val != null && val.isNotEmpty && val != 'MANUAL') {
+                                  final match = eco.unassignedGoogleSheetEmployees.firstWhere(
+                                    (e) => e.empNo == val,
+                                    orElse: () => GoogleSheetEmployeeEntry(sNo: 0, empNo: val, name: ''),
+                                  );
+                                  empIdController.text = match.empNo;
+                                  if (match.name.isNotEmpty) {
+                                    nameController.text = match.name;
+                                    final cleanName = match.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+                                    emailController.text = '$cleanName@mnjewelpark.com';
+                                    passwordController.text = '$cleanName@mnj123';
+                                  }
+                                } else if (val == 'MANUAL') {
+                                  empIdController.clear();
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: empIdController,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                            decoration: InputDecoration(
+                              labelText: 'Employee ID / Number',
+                              hintText: 'e.g. 10 or MN-1008',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              fillColor: Colors.white,
+                              filled: true,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -914,6 +1111,8 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             password: cleanPass,
                             dob: dobController.text.trim().isNotEmpty ? dobController.text.trim() : '01-01-2000',
                             gender: selectedGender,
+                            customEmpId: empIdController.text.trim(),
+                            empNo: empIdController.text.trim(),
                           );
 
                           Navigator.pop(ctx);
@@ -1125,8 +1324,8 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
     final lateCount = allSummaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
     final activeDutyCount = allSummaries.where((s) => s.isCurrentlyOnDuty).length;
 
-    // Filter Google Sheet rows
-    final allSheetRows = hrSheet?.employees ?? [];
+    // Filter Google Sheet rows (matching active workforce)
+    final allSheetRows = eco.activeAttendanceSheetRows;
     final filteredSheetRows = allSheetRows.where((r) {
       if (_selectedEmpFilter != 'all' && r.empNo.trim() != _selectedEmpFilter) {
         return false;
@@ -1895,13 +2094,10 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
   }
 
   Widget _buildEmployeeSelector(BuildContext context, EcosystemProvider eco) {
+    final allRows = eco.activeAttendanceSheetRows;
     final staffOptions = [
-      ('all', 'All Active Staff (5)'),
-      ('7', 'Mohankumar G (#7 - HR)'),
-      ('6', 'Gokulakrishnan K (#6)'),
-      ('33', 'Mithra M (#33)'),
-      ('65', 'Kaaviya (#65)'),
-      ('67', 'Nisha (#67)'),
+      ('all', 'All Active Staff (${allRows.length})'),
+      ...allRows.map((r) => (r.empNo.trim(), '${r.name} (#${r.empNo})')),
     ];
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 import 'package:mn_family_app/views/dept_head/dept_head_portal_screen.dart';
 import 'package:mn_family_app/core/widgets/assign_tasks_to_others_modal.dart';
-import 'package:mn_family_app/views/ceo/ceo_suite_screen.dart';
 import 'package:mn_family_app/views/ceo/ceo_subpages.dart';
 
 void main() {

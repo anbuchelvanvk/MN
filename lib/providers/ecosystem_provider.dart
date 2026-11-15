@@ -487,6 +487,40 @@ class EcosystemProvider extends ChangeNotifier {
     );
   }
 
+  /// List of unassigned employee entries present in Google Sheets but not yet registered in the active workforce
+  List<GoogleSheetEmployeeEntry> get unassignedGoogleSheetEmployees {
+    final sheet = hrAttendanceSheet;
+    if (sheet == null) return [];
+
+    final activeEmpNos = _employees
+        .map((e) => (e.empNo.trim().isNotEmpty ? e.empNo.trim() : e.id.trim()).toLowerCase())
+        .toSet();
+    final activeNames = _employees
+        .map((e) => e.name.trim().toLowerCase())
+        .toSet();
+
+    return sheet.allSheetStaff.where((entry) {
+      final empNoClean = entry.empNo.trim().toLowerCase();
+      final nameClean = entry.name.trim().toLowerCase();
+      if (empNoClean.isEmpty) return false;
+      if (activeEmpNos.contains(empNoClean)) return false;
+      if (activeNames.any((n) => n == nameClean || n.contains(nameClean) || nameClean.contains(n))) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  /// Active attendance rows matching registered employees in the workforce
+  List<HrEmployeeAttendanceRow> get activeAttendanceSheetRows {
+    final sheet = hrAttendanceSheet;
+    if (sheet == null) return [];
+    final activeStaff = _employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
+    final activeNos = activeStaff.map((e) => e.empNo.trim().isNotEmpty ? e.empNo.trim() : e.id.trim()).toSet();
+    final activeNames = activeStaff.map((e) => e.name.trim().toLowerCase()).toSet();
+    return sheet.getActiveRowsFor(activeNos, activeNames);
+  }
+
   /// Switch the active attendance review month (1..12) and load its sheet from Google Sheets if needed
   Future<void> selectAttendanceMonth(int month) async {
     _selectedAttendanceMonth = month;
@@ -529,6 +563,37 @@ class EcosystemProvider extends ChangeNotifier {
       _monthlyAttendanceSheets[11] = res.sheet;
       _attendanceSheetLastSynced = DateTime.now();
 
+      // If an employee with an assigned empNo was removed from the Google Sheet, relieve them from the active company workforce
+      if (res.sheet.allSheetStaff.isNotEmpty) {
+        final sheetEmpNos = res.sheet.allSheetStaff.map((s) => s.empNo.trim().toLowerCase()).toSet();
+        final sheetNames = res.sheet.allSheetStaff.map((s) => s.name.trim().toLowerCase()).toSet();
+
+        // Core protected leadership: CEO and Praveenkumar M (who are exempt from sheets)
+        final relievedFromSheet = _employees.where((e) {
+          if (e.id == 'MN-CEO01' || e.roleType == 'ceo' || e.isOtm || e.id == 'MN-TL1002') return false;
+          if (e.empNo.isEmpty) return false;
+          final empNoMatch = sheetEmpNos.contains(e.empNo.trim().toLowerCase());
+          final nameMatch = sheetNames.any((sn) => sn == e.name.trim().toLowerCase() || sn.contains(e.name.trim().toLowerCase()));
+          return !empNoMatch && !nameMatch;
+        }).toList();
+
+        for (final emp in relievedFromSheet) {
+          _employees.removeWhere((e) => e.id == emp.id);
+          _tasks.removeWhere((t) => t.empId == emp.id);
+          _firebaseEmployeeService.removeEmployee(
+            employeeId: emp.id,
+            requesterRole: 'hr',
+          ).catchError((err) {
+            debugPrint('Firestore remote delete on sheet removal note: $err');
+          });
+          broadcastUniversalAnnouncement(
+            title: 'Workforce Notice: Staff Relieved',
+            message: '${emp.name} (EMP #${emp.empNo}) was removed from the HR Attendance Master Sheet and officially relieved from the company.',
+            category: 'hr',
+          );
+        }
+      }
+
       if (notifyIfUpdated && res.updatedDays.isNotEmpty) {
         final daysStr = res.updatedDays.map((d) => '$d ${_hrAttendanceSheet?.monthTitle ?? 'Nov'}').join(', ');
         broadcastAttendanceUpdateNotification(daysStr);
@@ -565,6 +630,33 @@ class EcosystemProvider extends ChangeNotifier {
         timestamp: DateTime.now(),
         senderName: 'HR Department (Mohankumar G)',
         senderRole: 'HR Manager',
+      ),
+    );
+    notifyListeners();
+  }
+
+  /// Broadcast high-priority workforce notice across app and local push notifications
+  void broadcastUniversalAnnouncement({
+    required String title,
+    required String message,
+    String category = 'hr',
+  }) {
+    PushNotificationService().showNotification(
+      id: 'NOTIF-NOTICE-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      body: message,
+      payload: 'workforce_notice',
+    );
+    _companyNotifications.insert(
+      0,
+      CompanyNotification(
+        id: 'NOTIF-NOTICE-${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        content: message,
+        type: CompanyNotificationType.broadcastNotice,
+        timestamp: DateTime.now(),
+        senderName: category == 'ceo' ? 'Executive CEO' : 'HR Department (Mohankumar G)',
+        senderRole: category == 'ceo' ? 'CEO' : 'HR Manager',
       ),
     );
     notifyListeners();
@@ -4246,20 +4338,37 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   bool removeEmployee(String empId) {
+    return relieveEmployee(empId);
+  }
+
+  /// Officially relieve an employee from the company, revoking credentials and removing from rosters
+  bool relieveEmployee(String empId) {
     if (!canManageEmployees()) {
-      _notificationMessage = 'Access Denied: Only HR and CEO have authorization to remove employees.';
+      _notificationMessage = 'Access Denied: Only HR and CEO have authorization to relieve staff.';
       notifyListeners();
       return false;
     }
     if (empId == 'MN-CEO01' || _employees.any((e) => e.id == empId && e.roleType.toLowerCase() == 'ceo')) {
-      _notificationMessage = 'Action Denied: Executive CEO account cannot be removed.';
+      _notificationMessage = 'Action Denied: Executive CEO account cannot be relieved.';
       notifyListeners();
       return false;
     }
     final index = _employees.indexWhere((e) => e.id == empId);
     if (index != -1) {
       final removed = _employees.removeAt(index);
-      _notificationMessage = 'User ${removed.name} (${removed.id}) removed.';
+      final staffIdentifier = removed.empNo.isNotEmpty ? 'EMP #${removed.empNo}' : removed.id;
+      _notificationMessage = 'Staff ${removed.name} ($staffIdentifier) officially relieved from MN Jewel Park.';
+
+      // Clean up assigned tasks
+      _tasks.removeWhere((t) => t.empId == empId);
+
+      // Broadcast company-wide notice
+      broadcastUniversalAnnouncement(
+        title: 'Workforce Notice: Staff Relieved',
+        message: '${removed.name} ($staffIdentifier - ${removed.role}) has been officially relieved from MN Jewel Park.',
+        category: 'hr',
+      );
+
       notifyListeners();
 
       // Background Firestore sync
@@ -4287,6 +4396,8 @@ class EcosystemProvider extends ChangeNotifier {
     String password = 'password123',
     String dob = '',
     String gender = 'Male',
+    String? customEmpId,
+    String? empNo,
   }) {
     if (!canManageEmployees()) {
       _notificationMessage = 'Access Denied: Only HR and CEO have authorization to add users.';
@@ -4296,10 +4407,17 @@ class EcosystemProvider extends ChangeNotifier {
     final initials = name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase();
 
     final prefix = roleType == 'hr' ? 'MN-HR' : (roleType == 'team_lead' ? 'MN-TL' : 'MN-');
-    final generatedId = '$prefix${1000 + _employees.length}';
+    final defaultId = '$prefix${1000 + _employees.length}';
+    final idToUse = (customEmpId != null && customEmpId.trim().isNotEmpty)
+        ? customEmpId.trim()
+        : ((empNo != null && empNo.trim().isNotEmpty) ? empNo.trim() : defaultId);
+    final empNoToUse = (empNo != null && empNo.trim().isNotEmpty)
+        ? empNo.trim()
+        : ((customEmpId != null && customEmpId.trim().isNotEmpty) ? customEmpId.trim() : '');
 
     final newEmp = Employee(
-      id: generatedId,
+      id: idToUse,
+      empNo: empNoToUse,
       name: name,
       role: role,
       roleType: roleType,

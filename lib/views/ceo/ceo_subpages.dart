@@ -1446,9 +1446,8 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
     final onTimeCount = summaries.where((s) => s.status == DailyAttendanceStatus.presentOnTime).length;
     final lateCount = summaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
 
-    final hrSheet = eco.hrAttendanceSheet;
     final isSyncing = eco.isLoadingAttendanceSheet;
-    final allSheetRows = hrSheet?.employees ?? [];
+    final allSheetRows = eco.activeAttendanceSheetRows;
     final filteredSheetRows = allSheetRows.where((r) {
       if (_selectedEmpFilter != 'all' && r.empNo.trim() != _selectedEmpFilter) {
         return false;
@@ -2102,13 +2101,10 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
   }
 
   Widget _buildCeoEmployeeSelector(BuildContext context, EcosystemProvider eco) {
+    final allRows = eco.activeAttendanceSheetRows;
     final staffOptions = [
-      ('all', 'All Active Staff (5)'),
-      ('7', 'Mohankumar G (#7 - HR)'),
-      ('6', 'Gokulakrishnan K (#6)'),
-      ('33', 'Mithra M (#33)'),
-      ('65', 'Kaaviya (#65)'),
-      ('67', 'Nisha (#67)'),
+      ('all', 'All Active Staff (${allRows.length})'),
+      ...allRows.map((r) => (r.empNo.trim(), '${r.name} (#${r.empNo})')),
     ];
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

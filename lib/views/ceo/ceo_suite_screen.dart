@@ -8,6 +8,7 @@ import '../../core/widgets/role_app_bar.dart';
 import '../../models/attendance_models.dart';
 import '../../models/ecosystem_models.dart';
 import '../../models/employee_model.dart';
+import '../../models/hr_attendance_sheet_models.dart';
 import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
@@ -3820,6 +3821,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   }
 
   void _openCreateStaffModal(BuildContext context, EcosystemProvider eco) {
+    final empIdController = TextEditingController();
     final nameController = TextEditingController();
     final roleController = TextEditingController();
     final phoneController = TextEditingController();
@@ -3829,6 +3831,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     DateTime? selectedDob;
     String selectedGender = 'Male';
     String roleHierarchy = 'HR Management'; // 'HR Management', 'Team Lead', 'Employee'
+    String? selectedUnassignedEmpNo;
 
     showModalBottomSheet(
       context: context,
@@ -4100,6 +4103,105 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     ),
                     const SizedBox(height: 12),
 
+                    // Employee ID Section (Dynamic Unassigned from Google Sheets)
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.sandBorder),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.badge_outlined, size: 15, color: AppColors.sandGold),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Employee ID (from Google Sheets):',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.sandGold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          DropdownButtonFormField<String>(
+                            value: selectedUnassignedEmpNo,
+                            isExpanded: true,
+                            dropdownColor: AppColors.burgundySurface,
+                            decoration: InputDecoration(
+                              hintText: 'Select unassigned Employee ID from Sheets...',
+                              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              fillColor: AppColors.burgundyBg,
+                              filled: true,
+                            ),
+                            items: [
+                              const DropdownMenuItem<String>(
+                                value: '',
+                                child: Text('-- Select Unassigned Sheet Staff --', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                              ),
+                              ...eco.unassignedGoogleSheetEmployees.map((entry) {
+                                return DropdownMenuItem<String>(
+                                  value: entry.empNo,
+                                  child: Text(
+                                    'EMP #${entry.empNo} — ${entry.name} (Unassigned)',
+                                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                                  ),
+                                );
+                              }),
+                              const DropdownMenuItem<String>(
+                                value: 'MANUAL',
+                                child: Text('Custom / Manual Employee ID', style: TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic, color: AppColors.sandPrimary)),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              setModalState(() {
+                                selectedUnassignedEmpNo = val;
+                                if (val != null && val.isNotEmpty && val != 'MANUAL') {
+                                  final match = eco.unassignedGoogleSheetEmployees.firstWhere(
+                                    (e) => e.empNo == val,
+                                    orElse: () => GoogleSheetEmployeeEntry(sNo: 0, empNo: val, name: ''),
+                                  );
+                                  empIdController.text = match.empNo;
+                                  if (match.name.isNotEmpty) {
+                                    nameController.text = match.name;
+                                    final cleanName = match.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+                                    emailController.text = '$cleanName@mnjewelpark.com';
+                                    passwordController.text = '$cleanName@mnj123';
+                                  }
+                                } else if (val == 'MANUAL') {
+                                  empIdController.clear();
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: empIdController,
+                            style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                            decoration: InputDecoration(
+                              labelText: 'Employee ID / Number',
+                              labelStyle: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 11),
+                              hintText: 'e.g. 10 or MN-1008',
+                              hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
+                              filled: true,
+                              fillColor: AppColors.burgundyBg,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
                     // Full Name
                     Text(
                       'Candidate Full Name:',
@@ -4323,6 +4425,8 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           experienceYears: '3+ yrs in Corporate',
                           dob: dobController.text.trim().isNotEmpty ? dobController.text.trim() : '01-01-2000',
                           gender: selectedGender,
+                          customEmpId: empIdController.text.trim(),
+                          empNo: empIdController.text.trim(),
                         );
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(

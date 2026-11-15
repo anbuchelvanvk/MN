@@ -241,6 +241,8 @@ void main() {
 
     testWidgets('AttendancePillarScreen renders HR notice, calendar, and 4-Hour quota tally', (tester) async {
       final provider = EcosystemProvider();
+      provider.setActiveRole('employee');
+      provider.setActiveEmployee('6');
 
       await tester.pumpWidget(
         MaterialApp(
