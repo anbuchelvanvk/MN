@@ -35,6 +35,38 @@ class GroomingAuditItem {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'empId': empId,
+      'date': date.toIso8601String(),
+      'category': category,
+      'pointsChange': pointsChange,
+      'pointsEarned': pointsEarned,
+      'maxPoints': maxPoints,
+      'followedItems': followedItems,
+      'reason': reason,
+      'auditedBy': auditedBy,
+      'isApproved': isApproved,
+    };
+  }
+
+  factory GroomingAuditItem.fromMap(Map<String, dynamic> map) {
+    return GroomingAuditItem(
+      id: map['id']?.toString() ?? '',
+      empId: map['empId']?.toString() ?? '',
+      date: map['date'] != null ? DateTime.tryParse(map['date'].toString()) ?? DateTime.now() : DateTime.now(),
+      category: map['category']?.toString() ?? 'Daily Attire & Grooming Audit',
+      pointsChange: (map['pointsChange'] as num?)?.toInt() ?? 50,
+      pointsEarned: (map['pointsEarned'] as num?)?.toInt() ?? 50,
+      maxPoints: (map['maxPoints'] as num?)?.toInt() ?? 50,
+      followedItems: map['followedItems'] is List ? List<String>.from((map['followedItems'] as List).map((e) => e.toString())) : const [],
+      reason: map['reason']?.toString() ?? 'Standard Grooming Compliance',
+      auditedBy: map['auditedBy']?.toString() ?? 'HR Department',
+      isApproved: map['isApproved'] as bool? ?? true,
+    );
+  }
 }
 
 /// Ring 5: Permission & Late Arrival request with auto 4-hr balance & 1 CL rule
@@ -101,6 +133,52 @@ class PermissionRecord {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'empId': empId,
+      'date': date.toIso8601String(),
+      'requestedHours': requestedHours,
+      'actualHoursUsed': actualHoursUsed,
+      'reason': reason,
+      'status': status,
+      'isHalfDayTriggered': isHalfDayTriggered,
+      'isCasualLeave': isCasualLeave,
+      'isSalaryDeducted': isSalaryDeducted,
+      'grantedBy': grantedBy,
+      'isEmergency': isEmergency,
+      'employeeName': employeeName,
+      'department': department,
+      'requesterRole': requesterRole,
+      'isOver4Hours': isOver4Hours,
+      'hrApprovedBy': hrApprovedBy,
+      'ceoApprovedBy': ceoApprovedBy,
+    };
+  }
+
+  factory PermissionRecord.fromMap(Map<String, dynamic> map) {
+    return PermissionRecord(
+      id: map['id']?.toString() ?? '',
+      empId: map['empId']?.toString() ?? '',
+      date: map['date'] != null ? DateTime.tryParse(map['date'].toString()) ?? DateTime.now() : DateTime.now(),
+      requestedHours: (map['requestedHours'] as num?)?.toDouble() ?? 1.0,
+      actualHoursUsed: (map['actualHoursUsed'] as num?)?.toDouble() ?? 1.0,
+      reason: map['reason']?.toString() ?? '',
+      status: map['status']?.toString() ?? 'Approved',
+      isHalfDayTriggered: map['isHalfDayTriggered'] as bool? ?? false,
+      isCasualLeave: map['isCasualLeave'] as bool? ?? false,
+      isSalaryDeducted: map['isSalaryDeducted'] as bool? ?? false,
+      grantedBy: map['grantedBy']?.toString() ?? 'HR Direct Grant',
+      isEmergency: map['isEmergency'] as bool? ?? false,
+      employeeName: map['employeeName']?.toString(),
+      department: map['department']?.toString(),
+      requesterRole: map['requesterRole']?.toString(),
+      isOver4Hours: map['isOver4Hours'] as bool? ?? false,
+      hrApprovedBy: map['hrApprovedBy']?.toString(),
+      ceoApprovedBy: map['ceoApprovedBy']?.toString(),
+    );
+  }
 }
 
 /// Emergency Medical Leave Record with Mandatory Doctor Prescription (Compressed <= 150 KB)
@@ -151,6 +229,44 @@ class MedicalLeaveRecord {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'empId': empId,
+      'empName': empName,
+      'empRole': empRole,
+      'department': department,
+      'date': date.toIso8601String(),
+      'days': days,
+      'reason': reason,
+      'prescriptionBase64': prescriptionBase64,
+      'status': status,
+      'hrApprovedBy': hrApprovedBy,
+      'ceoApprovedBy': ceoApprovedBy,
+      'reviewedAt': reviewedAt?.toIso8601String(),
+      'isEmergency': isEmergency,
+    };
+  }
+
+  factory MedicalLeaveRecord.fromMap(Map<String, dynamic> map) {
+    return MedicalLeaveRecord(
+      id: map['id']?.toString() ?? '',
+      empId: map['empId']?.toString() ?? '',
+      empName: map['empName']?.toString() ?? '',
+      empRole: map['empRole']?.toString() ?? '',
+      department: map['department']?.toString() ?? '',
+      date: map['date'] != null ? DateTime.tryParse(map['date'].toString()) ?? DateTime.now() : DateTime.now(),
+      days: (map['days'] as num?)?.toInt() ?? 1,
+      reason: map['reason']?.toString() ?? '',
+      prescriptionBase64: map['prescriptionBase64']?.toString() ?? '',
+      status: map['status']?.toString() ?? 'Pending HR & CEO',
+      hrApprovedBy: map['hrApprovedBy']?.toString(),
+      ceoApprovedBy: map['ceoApprovedBy']?.toString(),
+      reviewedAt: map['reviewedAt'] != null ? DateTime.tryParse(map['reviewedAt'].toString()) : null,
+      isEmergency: map['isEmergency'] as bool? ?? true,
+    );
+  }
 }
 
 /// Ring 4: Individual Sales Log for Jewellery Consultants
@@ -185,6 +301,32 @@ class SalesRecord {
   String get dateFormatted {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${date.day} ${months[date.month - 1]}';
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'empId': empId,
+      'billNumber': billNumber,
+      'date': date.toIso8601String(),
+      'itemCategory': itemCategory,
+      'amountInInr': amountInInr,
+      'weightGrams': weightGrams,
+      'customerName': customerName,
+    };
+  }
+
+  factory SalesRecord.fromMap(Map<String, dynamic> map) {
+    return SalesRecord(
+      id: map['id']?.toString() ?? '',
+      empId: map['empId']?.toString() ?? '',
+      billNumber: map['billNumber']?.toString() ?? '',
+      date: map['date'] != null ? DateTime.tryParse(map['date'].toString()) ?? DateTime.now() : DateTime.now(),
+      itemCategory: map['itemCategory']?.toString() ?? '22K Gold Jewellery',
+      amountInInr: (map['amountInInr'] as num?)?.toDouble() ?? 0.0,
+      weightGrams: (map['weightGrams'] as num?)?.toDouble() ?? 0.0,
+      customerName: map['customerName']?.toString() ?? '',
+    );
   }
 }
 

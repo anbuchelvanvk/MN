@@ -47,13 +47,8 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
     final tierName = provider.holisticTierName;
     final tierColor = provider.holisticTierColor;
 
-    // Calculate score percentage
-    int equilibriumScore = 100;
-    if (tier == PillarTierLevel.yellow) {
-      equilibriumScore = 72;
-    } else if (tier == PillarTierLevel.red) {
-      equilibriumScore = 38;
-    }
+    // Calculate real dynamic holistic equilibrium score
+    final int equilibriumScore = provider.holisticEquilibriumScore;
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
@@ -97,6 +92,10 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
           children: [
             // Top Philosophy Monogram
             _buildPhilosophyCard(),
+            const SizedBox(height: 16),
+
+            // 4-Pillars Equilibrium Scorecard Breakdown
+            _buildFourPillarsScorecard(context, provider),
             const SizedBox(height: 18),
 
             // HERO GLOWING CIRCLE GAUGE (Tap to open audit)
@@ -137,11 +136,148 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
             ),
             const SizedBox(height: 22),
 
-            // 3 Pillar Diagnostics Cards
+            // 4 Pillar Diagnostics Cards
             _buildDiagnosticsSection(context, provider),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  // --- 4-PILLAR EQUILIBRIUM SCORECARD BREAKDOWN ---
+
+  Widget _buildFourPillarsScorecard(BuildContext context, EcosystemProvider provider) {
+    final s1 = provider.pillar1HealthScore;
+    final s2 = provider.pillar2FamilyScore;
+    final s3 = provider.pillar3ProfileScore;
+    final s4 = provider.pillar4AttendanceScore;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.sandBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.hub_rounded, size: 16, color: AppColors.sandGold),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '4-PILLAR EQUILIBRIUM SCORES',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.sandGold,
+                    letterSpacing: 0.6,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: provider.holisticTierColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${provider.holisticEquilibriumScore}% OVERALL',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: provider.holisticTierColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildMiniScorePill('P1: Health', s1, Icons.health_and_safety_rounded)),
+              const SizedBox(width: 8),
+              Expanded(child: _buildMiniScorePill('P2: Family', s2, Icons.family_restroom_rounded)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(child: _buildMiniScorePill('P3: Profile', s3, Icons.badge_rounded)),
+              const SizedBox(width: 8),
+              Expanded(child: _buildMiniScorePill('P4: Attendance', s4, Icons.assignment_turned_in_rounded)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniScorePill(String title, int score, IconData icon) {
+    final color = score >= 80
+        ? const Color(0xFF10B981)
+        : (score >= 60 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: (score / 100.0).clamp(0.0, 1.0),
+                    minHeight: 3.5,
+                    backgroundColor: Colors.black.withOpacity(0.06),
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$score%',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -641,7 +777,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                               '1. Health: Stay active and keep your BMI healthy.\n'
                               '2. Family: Spend quality time with family and friends.\n'
                               '3. Profile: Submit all required original documents to HR.\n'
-                              '4. Attendance: Punch in on time using the biometric thumb scanner.',
+                              '4. Attendance: Maintain clean attendance recorded and audited by HR in the Master Ledger.',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 height: 1.45,
