@@ -768,6 +768,34 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           ),
           const SizedBox(height: 14),
 
+          // Notice for Unmapped / Executive Profiles
+          if (row == null) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.sandGold),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Executive View: You are not assigned to the showroom shift roster. View full workforce sheet in HR Portal.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           // 31-Day Grid
           GridView.builder(
             shrinkWrap: true,
@@ -781,15 +809,22 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             ),
             itemBuilder: (ctx, index) {
               final day = index + 1;
-              final latestDay = sheet?.latestRecordedDay ?? 14;
+              final isSunday = (day == 3 || day == 10 || day == 17 || day == 24);
               final record =
                   row?.days[day] ??
-                  HrAttendanceDayRecord(
-                    day: day,
-                    rawValue: '',
-                    type: day <= latestDay ? HrAttendanceDayType.present : HrAttendanceDayType.pendingUpdate,
-                    displayLabel: day <= latestDay ? 'Present' : 'Pending HR Update',
-                  );
+                  (isSunday
+                      ? HrAttendanceDayRecord(
+                          day: day,
+                          rawValue: 'H',
+                          type: HrAttendanceDayType.holiday,
+                          displayLabel: 'Holiday (Sunday)',
+                        )
+                      : HrAttendanceDayRecord(
+                          day: day,
+                          rawValue: '',
+                          type: HrAttendanceDayType.pendingUpdate,
+                          displayLabel: 'Not in Showroom Roster',
+                        ));
 
               final isSelected = _selectedDay == day;
 

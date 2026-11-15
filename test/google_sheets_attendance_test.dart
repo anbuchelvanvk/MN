@@ -115,6 +115,94 @@ void main() {
       final h = HrAttendanceDayRecord.parse(11, 'H');
       expect(h.type, equals(HrAttendanceDayType.holiday));
       expect(h.backgroundColor.value, equals(0xFFF1F5F9));
+
+      // 8. Edge Cases: Composite permission formats & alternate phrases
+      final comp1 = HrAttendanceDayRecord.parse(12, '1h 30m');
+      expect(comp1.type, equals(HrAttendanceDayType.permission));
+      expect(comp1.permissionMinutes, equals(90.0));
+
+      final comp2 = HrAttendanceDayRecord.parse(13, '2 hrs 15 mins');
+      expect(comp2.type, equals(HrAttendanceDayType.permission));
+      expect(comp2.permissionMinutes, equals(135.0));
+
+      final clPhrase = HrAttendanceDayRecord.parse(14, 'Casual Leave');
+      expect(clPhrase.type, equals(HrAttendanceDayType.leaveCl));
+
+      final lopPhrase = HrAttendanceDayRecord.parse(15, 'Loss Of Pay');
+      expect(lopPhrase.type, equals(HrAttendanceDayType.leaveLop));
+
+      final halfPhrase = HrAttendanceDayRecord.parse(16, 'Half-Day');
+      expect(halfPhrase.type, equals(HrAttendanceDayType.leaveHalfDay));
+
+      final onDuty = HrAttendanceDayRecord.parse(17, 'On Duty');
+      expect(onDuty.type, equals(HrAttendanceDayType.mnw));
+
+      // 9. Additional Edge Cases: Spaced late entries, permission prefixes, decimals, non-holiday single letters
+      final lateSpaced = HrAttendanceDayRecord.parse(18, 'l 1');
+      expect(lateSpaced.type, equals(HrAttendanceDayType.late));
+      expect(lateSpaced.displayLabel, equals('L-1'));
+
+      final lateDashSpaced = HrAttendanceDayRecord.parse(19, 'L - 2');
+      expect(lateDashSpaced.type, equals(HrAttendanceDayType.late));
+      expect(lateDashSpaced.displayLabel, equals('L-2'));
+
+      final permPrefixed = HrAttendanceDayRecord.parse(20, 'perm 2h');
+      expect(permPrefixed.type, equals(HrAttendanceDayType.permission));
+      expect(permPrefixed.permissionMinutes, equals(120.0));
+
+      final permDashPrefixed = HrAttendanceDayRecord.parse(21, 'p - 45m');
+      expect(permDashPrefixed.type, equals(HrAttendanceDayType.permission));
+      expect(permDashPrefixed.permissionMinutes, equals(45.0));
+
+      final permDecimal = HrAttendanceDayRecord.parse(22, '0.5h');
+      expect(permDecimal.type, equals(HrAttendanceDayType.permission));
+      expect(permDecimal.permissionMinutes, equals(30.0));
+
+      // On a non-holiday column (isColumnHoliday: false), 'A' is Absent (LOP), not holiday!
+      final absent = HrAttendanceDayRecord.parse(23, 'A', isColumnHoliday: false);
+      expect(absent.type, equals(HrAttendanceDayType.leaveLop));
+      expect(absent.displayLabel, equals('Absent (LOP)'));
+
+      // On a holiday column (isColumnHoliday: true), 'A' is a holiday vertical letter!
+      final holidayLetter = HrAttendanceDayRecord.parse(24, 'A', isColumnHoliday: true);
+      expect(holidayLetter.type, equals(HrAttendanceDayType.holiday));
+
+      // WFH
+      final wfh = HrAttendanceDayRecord.parse(25, 'wfh');
+      expect(wfh.type, equals(HrAttendanceDayType.present));
+    });
+
+    test('Leave pooling and chronological CL vs LOP calculations work accurately', () {
+      final daysMap = <int, HrAttendanceDayRecord>{
+        1: HrAttendanceDayRecord.parse(1, 'nil'),
+        2: HrAttendanceDayRecord.parse(2, '1/2 d'), // 0.5 CL
+        3: HrAttendanceDayRecord.parse(3, 'H', isColumnHoliday: true),
+        4: HrAttendanceDayRecord.parse(4, '1/2 d'), // 0.5 CL (CL full: 1.0)
+        5: HrAttendanceDayRecord.parse(5, '1/2 d'), // 0.5 LOP (excess beyond 1 CL)
+        6: HrAttendanceDayRecord.parse(6, 'lop'),   // 1.0 LOP
+      };
+
+      final empRow = HrEmployeeAttendanceRow(
+        sNo: 1,
+        empNo: '99',
+        name: 'Test Staff',
+        days: daysMap,
+      );
+
+      expect(empRow.clDaysUsed, equals(1.0));
+      expect(empRow.lopDaysUsed, equals(1.5)); // 0.5 from 3rd half day + 1.0 explicit LOP
+    });
+
+    test('Employee matching with leading zeros and non-digit prefix', () {
+      final sheet = GoogleSheetsAttendanceService.parseCsvToAttendanceSheet(GoogleSheetsAttendanceService.embeddedNovemberSeedCsv);
+      // Sheet has '6' for Gokulakrishnan; profile may search with '06' or 'EMP-06'
+      final match1 = sheet.findForEmployee(name: 'Gokulakrishnan K', empNo: '06');
+      expect(match1, isNotNull);
+      expect(match1!.name, equals('Gokulakrishnan'));
+
+      final match2 = sheet.findForEmployee(name: 'Mohankumar G', empNo: 'EMP-07');
+      expect(match2, isNotNull);
+      expect(match2!.name, equals('Mohankumar'));
     });
 
     test('OTM Praveenkumar is exempt and has no employee number or attendance/grooming requirement', () {

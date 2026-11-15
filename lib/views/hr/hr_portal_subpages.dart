@@ -1029,7 +1029,8 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
   int _activeViewTab = 0; // 0 = Google Sheets Master, 1 = Daily Shift Punches
 
   void _showBroadcastUpdateDialog(BuildContext context, EcosystemProvider eco) {
-    final defaultDate = '${DateTime.now().day} Nov';
+    final recordedDay = eco.hrAttendanceSheet?.latestRecordedDay ?? DateTime.now().day;
+    final defaultDate = '$recordedDay Nov';
     final controller = TextEditingController(text: defaultDate);
 
     showDialog(

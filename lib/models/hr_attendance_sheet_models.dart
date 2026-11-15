@@ -132,7 +132,7 @@ class HrAttendanceDayRecord {
     }
 
     // Explicit NIL / nil -> Employee was present on duty (no remarks)
-    if (lower == 'nil') {
+    if (lower == 'nil' || lower == 'p' || lower == 'present') {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
@@ -150,8 +150,14 @@ class HrAttendanceDayRecord {
       );
     }
 
-    // Holiday letters (H, O, L, I, D, A, Y)
-    if (RegExp(r'^[holiday]$', caseSensitive: false).hasMatch(clean)) {
+    // Holiday check: column holiday, explicit holiday text, or holiday vertical letters
+    if (lower == 'holiday' ||
+        lower == 'sunday' ||
+        lower == 'sun' ||
+        lower == 'weekly off' ||
+        lower == 'off' ||
+        lower == 'h' ||
+        (isColumnHoliday && RegExp(r'^[holiday]$', caseSensitive: false).hasMatch(clean))) {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
@@ -160,8 +166,10 @@ class HrAttendanceDayRecord {
       );
     }
 
-    // Late & Half Day combined (Orange)
-    if (lower.contains('1/2') && (lower.contains('l-') || lower.contains('late'))) {
+    // Late & Half Day combined (Orange) - e.g. "l- & 1/2d", "l-1 1/2d", "late + half day"
+    final isHalfDayText = lower.contains('1/2') || lower.contains('half') || lower.contains('0.5');
+    final isLateText = lower.contains('l-') || lower.contains('late') || RegExp(r'\bl\s*[-:]?\s*\d+\b').hasMatch(lower);
+    if (isHalfDayText && isLateText) {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
@@ -170,18 +178,21 @@ class HrAttendanceDayRecord {
       );
     }
 
-    // Late coming (Yellow: l-1, l-2, l-3...)
-    if (RegExp(r'^l-\d+$').hasMatch(lower) || lower == 'late') {
+    // Late coming (Yellow: l-1, l-2, l 1, l - 1, late-1...)
+    final lateMatch = RegExp(r'^(?:l|late)\s*[-:]?\s*(\d+)$').firstMatch(lower);
+    if (lateMatch != null || lower == 'late') {
+      final lateNum = lateMatch?.group(1);
+      final label = lateNum != null ? 'L-$lateNum' : clean.toUpperCase();
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
         type: HrAttendanceDayType.late,
-        displayLabel: clean.toUpperCase(),
+        displayLabel: label,
       );
     }
 
     // Leaves (Red)
-    if (lower == 'cl') {
+    if (lower == 'cl' || lower == 'c.l.' || lower == 'c/l' || lower == 'casual leave' || lower == 'l' || lower == 'leave') {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
@@ -189,15 +200,24 @@ class HrAttendanceDayRecord {
         displayLabel: 'CL (Casual Leave)',
       );
     }
-    if (lower == 'lop') {
+    if (lower == 'lop' || lower == 'l.o.p.' || lower == 'loss of pay' || lower == 'a' || lower == 'absent') {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
         type: HrAttendanceDayType.leaveLop,
-        displayLabel: 'LOP (Loss of Pay)',
+        displayLabel: lower == 'a' || lower == 'absent' ? 'Absent (LOP)' : 'LOP (Loss of Pay)',
       );
     }
-    if (lower == '1/2 d' || lower == '1/2d' || lower == 'half day') {
+    if (lower == '1/2 d' ||
+        lower == '1/2d' ||
+        lower == '1/2' ||
+        lower == '1/2 day' ||
+        lower == 'half day' ||
+        lower == 'half-day' ||
+        lower == 'halfday' ||
+        lower == '0.5d' ||
+        lower == '0.5' ||
+        lower == '0.5 day') {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
@@ -207,12 +227,29 @@ class HrAttendanceDayRecord {
     }
 
     // MNW (Dark Blue)
-    if (lower == 'mnw') {
+    if (lower == 'mnw' ||
+        lower == 'm.n.w' ||
+        lower == 'mn work' ||
+        lower == 'on duty' ||
+        lower == 'od' ||
+        lower == 'tour' ||
+        lower == 'expo' ||
+        lower == 'camp') {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
         type: HrAttendanceDayType.mnw,
         displayLabel: 'MNW (Official Duty)',
+      );
+    }
+
+    // Work From Home (WFH)
+    if (lower == 'wfh' || lower == 'work from home') {
+      return HrAttendanceDayRecord(
+        day: day,
+        rawValue: raw,
+        type: HrAttendanceDayType.present,
+        displayLabel: 'WFH (Present)',
       );
     }
 
@@ -237,22 +274,36 @@ class HrAttendanceDayRecord {
     );
   }
 
-  static double _parsePermissionMinutes(String text) {
-    // e.g. "1:58 m" or "1:58"
-    final timeMatch = RegExp(r'^(\d+):(\d+)\s*(?:m|min)?$').firstMatch(text);
+  static double _parsePermissionMinutes(String rawText) {
+    var text = rawText.replaceAll(RegExp(r'[()[\]]'), '').trim();
+    text = text.replaceFirst(RegExp(r'^(?:perm(?:ission)?|p)\s*[-:]?\s*'), '').trim();
+    if (text.isEmpty) return 0.0;
+
+    // 1. Composite: e.g. "1h 30m", "1 hr 30 mins", "2h 15m"
+    final compositeMatch = RegExp(r'^(\d+)\s*h(?:our|ours|r|rs)?\s*(\d+)\s*m(?:in|ins|inute|inutes)?$').firstMatch(text);
+    if (compositeMatch != null) {
+      final h = int.tryParse(compositeMatch.group(1)!) ?? 0;
+      final m = int.tryParse(compositeMatch.group(2)!) ?? 0;
+      return (h * 60 + m).toDouble();
+    }
+
+    // 2. Colon formatted: e.g. "1:58 m" or "1:58"
+    final timeMatch = RegExp(r'^(\d+):(\d+)\s*(?:m|min|mins)?$').firstMatch(text);
     if (timeMatch != null) {
       final h = int.tryParse(timeMatch.group(1)!) ?? 0;
       final m = int.tryParse(timeMatch.group(2)!) ?? 0;
       return (h * 60 + m).toDouble();
     }
-    // e.g. "2 h", "4 h"
-    final hourMatch = RegExp(r'^(\d+(?:\.\d+)?)\s*h(?:our|ours)?$').firstMatch(text);
+
+    // 3. Hours: e.g. "2 h", "4 h", "1.5 hrs"
+    final hourMatch = RegExp(r'^((?:\d*\.)?\d+)\s*h(?:our|ours|r|rs)?$').firstMatch(text);
     if (hourMatch != null) {
       final h = double.tryParse(hourMatch.group(1)!) ?? 0.0;
       return h * 60.0;
     }
-    // e.g. "38 m", "47 m"
-    final minMatch = RegExp(r'^(\d+)\s*m(?:in|ins)?$').firstMatch(text);
+
+    // 4. Minutes: e.g. "38 m", "47 m", "45 mins"
+    final minMatch = RegExp(r'^(\d+)\s*m(?:in|ins|inute|inutes)?$').firstMatch(text);
     if (minMatch != null) {
       return (double.tryParse(minMatch.group(1)!) ?? 0.0);
     }
@@ -288,7 +339,9 @@ class HrEmployeeAttendanceRow {
   /// Casual Leaves used (max 1/month)
   double get clDaysUsed {
     double count = 0;
-    for (final d in days.values) {
+    final sortedDays = days.keys.toList()..sort();
+    for (final day in sortedDays) {
+      final d = days[day]!;
       if (d.type == HrAttendanceDayType.leaveCl) {
         count += 1.0;
       } else if (d.type == HrAttendanceDayType.leaveHalfDay || d.type == HrAttendanceDayType.lateAndHalfDay) {
@@ -304,7 +357,9 @@ class HrEmployeeAttendanceRow {
   double get lopDaysUsed {
     double lops = 0;
     double clPool = 0;
-    for (final d in days.values) {
+    final sortedDays = days.keys.toList()..sort();
+    for (final day in sortedDays) {
+      final d = days[day]!;
       if (d.type == HrAttendanceDayType.leaveLop) {
         lops += 1.0;
       } else if (d.type == HrAttendanceDayType.leaveCl) {
@@ -417,22 +472,33 @@ class HrMonthlyAttendanceSheet {
   }
 
   HrEmployeeAttendanceRow? findForEmployee({required String name, String? empNo}) {
-    final cleanName = name.trim().toLowerCase();
+    final cleanName = name.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase();
     final cleanNo = empNo?.trim().toLowerCase();
 
-    // 1. Try matching by EMP.NO
+    // 1. Try matching by EMP.NO (exact or normalized numeric digits)
     if (cleanNo != null && cleanNo.isNotEmpty) {
-      final matchNo = rows.where((r) => r.empNo.trim().toLowerCase() == cleanNo).toList();
+      final matchNo = rows.where((r) {
+        final rNo = r.empNo.trim().toLowerCase();
+        if (rNo == cleanNo) return true;
+        final rDigits = rNo.replaceAll(RegExp(r'[^0-9]'), '');
+        final cleanDigits = cleanNo.replaceAll(RegExp(r'[^0-9]'), '');
+        if (rDigits.isNotEmpty && cleanDigits.isNotEmpty) {
+          final intR = int.tryParse(rDigits);
+          final intClean = int.tryParse(cleanDigits);
+          if (intR != null && intClean != null && intR == intClean) return true;
+        }
+        return false;
+      }).toList();
       if (matchNo.isNotEmpty) return matchNo.first;
     }
 
-    // 2. Try exact name match
-    final exact = rows.where((r) => r.name.trim().toLowerCase() == cleanName).toList();
+    // 2. Try exact name match (normalized spacing)
+    final exact = rows.where((r) => r.name.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase() == cleanName).toList();
     if (exact.isNotEmpty) return exact.first;
 
     // 3. Try partial name match (e.g. "Gokulakrishnan K" vs "Gokulakrishnan")
     final partial = rows.where((r) {
-      final rn = r.name.trim().toLowerCase();
+      final rn = r.name.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase();
       return cleanName.contains(rn) || rn.contains(cleanName);
     }).toList();
     if (partial.isNotEmpty) return partial.first;

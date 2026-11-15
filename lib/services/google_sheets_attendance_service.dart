@@ -40,7 +40,12 @@ class GoogleSheetsAttendanceService {
     String? newCsv;
     try {
       final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 12));
-      if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
+      final body = response.body.trim();
+      // Ensure we received valid CSV and not an HTML captive portal / error page
+      if (response.statusCode == 200 &&
+          body.isNotEmpty &&
+          !body.toLowerCase().startsWith('<!doctype') &&
+          !body.toLowerCase().startsWith('<html')) {
         newCsv = response.body;
       }
     } catch (e) {
@@ -111,14 +116,20 @@ class GoogleSheetsAttendanceService {
 
     // Pre-detect Sunday & Company Holiday columns (e.g. days 3, 10, 17, 24 in November)
     final Set<int> holidayDays = {3, 10, 17, 24};
+    final Map<int, int> holidayLetterCounts = {};
     for (final line in lines) {
       final cells = _parseCsvRow(line);
       for (int day = 1; day <= 31; day++) {
         final cellIdx = day + 2;
         if (cellIdx < cells.length) {
           final val = cells[cellIdx].trim().toUpperCase();
-          if (val == 'H' || val == 'O' || val == 'L' || val == 'I' || val == 'D' || val == 'A' || val == 'Y' || val == 'HOLIDAY') {
+          if (val == 'HOLIDAY') {
             holidayDays.add(day);
+          } else if (val.length == 1 && 'HOLIDAY'.contains(val)) {
+            holidayLetterCounts[day] = (holidayLetterCounts[day] ?? 0) + 1;
+            if (holidayLetterCounts[day]! >= 2) {
+              holidayDays.add(day);
+            }
           }
         }
       }
