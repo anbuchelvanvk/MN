@@ -62,7 +62,7 @@ class AcceptancePopupNotification {
 
     // Check specific leadership IDs
     if (empId == 'MN-CEO01' && targetRoles.contains('ceo')) return true;
-    if (empId == 'MN-HR1001' && targetRoles.contains('hr')) return true;
+    if ((empId == '7' || empId == 'MN-HR1001') && targetRoles.contains('hr')) return true;
     if (empId == 'MN-TL1002' && targetRoles.contains('team_lead')) return true;
 
     // Check if it's the employee whose request was accepted

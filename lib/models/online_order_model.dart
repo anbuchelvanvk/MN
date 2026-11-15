@@ -109,7 +109,7 @@ class OnlineOrderModel {
 
   /// Check if Vadivam (OS2 Nisha) or MN Jewel Park (OS1 Kaaviya) is responsible
   String get primaryResponsibleRole => brand == 'Vadivam' ? 'OS2 (Nisha)' : 'OS1 (Kaaviya)';
-  String get primaryResponsibleEmpId => brand == 'Vadivam' ? 'MN-1008' : 'MN-1007';
+  String get primaryResponsibleEmpId => brand == 'Vadivam' ? '67' : '65';
 
   int get completedCount => checklist.where((c) => c.isCompleted).length;
   int get totalCount => checklist.length; // 38 total items

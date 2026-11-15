@@ -1416,7 +1416,8 @@ class CeoStaffTasksScreen extends StatelessWidget {
 // 7. BIOMETRIC ATTENDANCE SUBPAGE
 class CeoAttendanceScreen extends StatefulWidget {
   final String initialFilter;
-  const CeoAttendanceScreen({super.key, this.initialFilter = 'all'});
+  final int initialTab;
+  const CeoAttendanceScreen({super.key, this.initialFilter = 'all', this.initialTab = 0});
 
   @override
   State<CeoAttendanceScreen> createState() => _CeoAttendanceScreenState();
@@ -1424,11 +1425,15 @@ class CeoAttendanceScreen extends StatefulWidget {
 
 class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
   late String _filter;
+  late int _activeViewTab;
+  String _selectedEmpFilter = 'all'; // 'all', '6', '7', '33', '65', '67'
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _filter = widget.initialFilter;
+    _activeViewTab = widget.initialFilter != 'all' ? 1 : widget.initialTab;
   }
 
   @override
@@ -1440,6 +1445,18 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
     final absentCount = summaries.where((s) => eco.isEmployeeAbsent(s.employeeId)).length;
     final onTimeCount = summaries.where((s) => s.status == DailyAttendanceStatus.presentOnTime).length;
     final lateCount = summaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
+
+    final hrSheet = eco.hrAttendanceSheet;
+    final isSyncing = eco.isLoadingAttendanceSheet;
+    final allSheetRows = hrSheet?.employees ?? [];
+    final filteredSheetRows = allSheetRows.where((r) {
+      if (_selectedEmpFilter != 'all' && r.empNo.trim() != _selectedEmpFilter) {
+        return false;
+      }
+      if (_searchQuery.isEmpty) return true;
+      final q = _searchQuery.toLowerCase();
+      return r.name.toLowerCase().contains(q) || r.empNo.toLowerCase().contains(q);
+    }).toList();
 
     List<EmployeeDailyAttendanceSummary> filtered = summaries;
     if (_filter == 'present') {
@@ -1454,11 +1471,267 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
     }
 
     return CeoSubpageScaffold(
-      title: 'Biometric Attendance',
-      subtitle: 'Live Workforce Attendance & Device Sync',
+      title: 'Workforce Attendance',
+      subtitle: _activeViewTab == 0 ? 'HR Google Sheets Master Ledger' : 'Live Biometrics & Shift Punches',
+      actions: [
+        IconButton(
+          icon: isSyncing
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.sandGold),
+                )
+              : const Icon(Icons.sync_rounded, color: AppColors.sandGold),
+          tooltip: 'Sync Google Sheets Attendance',
+          onPressed: () async {
+            await eco.syncGoogleSheetsAttendance(notifyIfUpdated: true);
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: Color(0xFF10B981),
+                content: Text('Attendance synchronized with Google Sheets!'),
+              ),
+            );
+          },
+        ),
+      ],
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // View Switcher Tabs: Google Sheets Master vs Today's Shifts
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.sandBorder),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _activeViewTab = 0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _activeViewTab == 0 ? AppColors.sandGold : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.table_chart_rounded,
+                            size: 14,
+                            color: _activeViewTab == 0 ? AppColors.burgundyBg : AppColors.sandPrimary,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              'Master Sheet',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _activeViewTab == 0 ? AppColors.burgundyBg : AppColors.sandLight,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _activeViewTab = 1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _activeViewTab == 1 ? AppColors.sandGold : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.fingerprint_rounded,
+                            size: 14,
+                            color: _activeViewTab == 1 ? AppColors.burgundyBg : AppColors.sandPrimary,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              'Today\'s Shifts',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _activeViewTab == 1 ? AppColors.burgundyBg : AppColors.sandLight,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          if (_activeViewTab == 0) ...[
+            // Month Selector
+            _buildCeoMonthSelector(context, eco),
+
+            // Employee Selector
+            _buildCeoEmployeeSelector(context, eco),
+
+            // Search Box
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.burgundyCard,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.sandBorder),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, size: 18, color: AppColors.sandGold),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
+                      decoration: InputDecoration(
+                        hintText: 'Search staff by name or EMP NO...',
+                        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                        border: InputBorder.none,
+                      ),
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            if (filteredSheetRows.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundyCard,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                alignment: Alignment.center,
+                child: Text('No employee records found in this month sheet.', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted)),
+              )
+            else
+              ...filteredSheetRows.map((r) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundyCard,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.sandBorder),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                if (r.empNo.isNotEmpty) ...[
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.sandGold.withOpacity(0.18),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                                    ),
+                                    child: Text(
+                                      'EMP #${r.empNo}',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    r.name,
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            'S.No ${r.sNo}',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Metrics Pills Row
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          _ceoMetricChip('Late', '${r.lateCount}/3', const Color(0xFFFEF9C3), const Color(0xFF854D0E)),
+                          _ceoMetricChip('CL', '${r.clDaysUsed}', const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
+                          _ceoMetricChip('LOP', '${r.lopDaysUsed}', const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
+                          _ceoMetricChip('Perm', r.formattedPermissionUsed, const Color(0xFFDCFCE7), const Color(0xFF166534)),
+                          _ceoMetricChip('MNW', '${r.mnwDaysCount}d', const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Horizontal 31-day visual strip
+                      SizedBox(
+                        height: 28,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: List.generate(31, (idx) {
+                              final day = idx + 1;
+                              final rec = r.days[day];
+                              final bg = rec?.backgroundColor ?? const Color(0xFFF8FAFC);
+                              final tc = rec?.textColor ?? const Color(0xFF94A3B8);
+                              final bc = rec?.borderColor ?? const Color(0xFFE2E8F0);
+
+                              return Container(
+                                width: 26,
+                                margin: const EdgeInsets.only(right: 3),
+                                decoration: BoxDecoration(
+                                  color: bg,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: bc, width: 0.8),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '$day',
+                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: tc),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+          ] else ...[
           // Device sync banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1695,6 +1968,210 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
               );
             }),
           const SizedBox(height: 24),
+        ],
+      ],
+    ),
+  );
+}
+
+  Widget _ceoMetricChip(String label, String value, Color bg, Color text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: text.withOpacity(0.3), width: 0.8),
+      ),
+      child: Text(
+        '$label: $value',
+        style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: text),
+      ),
+    );
+  }
+
+  Widget _buildCeoMonthSelector(BuildContext context, EcosystemProvider eco) {
+    final currentMonth = eco.selectedAttendanceMonth;
+    final months = [
+      (1, '1. Jan'),
+      (2, '2. Feb'),
+      (3, '3. Mar'),
+      (4, '4. Apr'),
+      (5, '5. May'),
+      (6, '6. Jun'),
+      (7, '7. Jul'),
+      (8, '8. Aug'),
+      (9, '9. Sep'),
+      (10, '10. Oct'),
+      (11, '11. Nov'),
+      (12, '12. Dec'),
+    ];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_month_rounded, size: 16, color: AppColors.sandGold),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'SELECT ATTENDANCE MONTH',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.sandGold,
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.sandGold.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                ),
+                child: Text(
+                  eco.hrAttendanceSheet?.monthTitle ?? 'November 2026',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandGold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: months.map((m) {
+                final isSel = currentMonth == m.$1;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Text(
+                      m.$2,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.w600,
+                        color: isSel ? AppColors.burgundyBg : AppColors.sandLight,
+                      ),
+                    ),
+                    selected: isSel,
+                    selectedColor: AppColors.sandGold,
+                    backgroundColor: AppColors.burgundySurface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: isSel ? AppColors.sandGold : AppColors.sandBorder,
+                      ),
+                    ),
+                    onSelected: (val) async {
+                      if (val) {
+                        await eco.selectAttendanceMonth(m.$1);
+                      }
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCeoEmployeeSelector(BuildContext context, EcosystemProvider eco) {
+    final staffOptions = [
+      ('all', 'All Active Staff (5)'),
+      ('7', 'Mohankumar G (#7 - HR)'),
+      ('6', 'Gokulakrishnan K (#6)'),
+      ('33', 'Mithra M (#33)'),
+      ('65', 'Kaaviya (#65)'),
+      ('67', 'Nisha (#67)'),
+    ];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.person_search_rounded, size: 16, color: AppColors.sandGold),
+              const SizedBox(width: 6),
+              Text(
+                'FILTER BY EMPLOYEE',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.sandGold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: staffOptions.map((opt) {
+                final isSel = _selectedEmpFilter == opt.$1;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: FilterChip(
+                    label: Text(
+                      opt.$2,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.w600,
+                        color: isSel ? AppColors.burgundyBg : AppColors.sandLight,
+                      ),
+                    ),
+                    selected: isSel,
+                    selectedColor: AppColors.sandGold,
+                    backgroundColor: AppColors.burgundySurface,
+                    checkmarkColor: AppColors.burgundyBg,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: isSel ? AppColors.sandGold : AppColors.sandBorder,
+                      ),
+                    ),
+                    onSelected: (val) {
+                      setState(() => _selectedEmpFilter = opt.$1);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );

@@ -211,33 +211,31 @@ void main() {
       expect(otm.isOtm, isTrue);
       expect(otm.hasAttendanceAndGrooming, isFalse);
       expect(otm.empNo, isEmpty);
-      expect(otm.displayEmpId, equals('OTM'));
+      expect(otm.displayEmpId, equals('MN-TL1002'));
 
       // Check regular staff employee numbers
       final mohan = eco.employees.firstWhere((e) => e.name == 'Mohankumar G');
       expect(mohan.empNo, equals('7'));
-      expect(mohan.displayEmpId, equals('EMP #7'));
+      expect(mohan.displayEmpId, equals('7'));
 
       final gokul = eco.employees.firstWhere((e) => e.name == 'Gokulakrishnan K');
       expect(gokul.empNo, equals('6'));
-      expect(gokul.displayEmpId, equals('EMP #6'));
+      expect(gokul.displayEmpId, equals('6'));
 
       final mithra = eco.employees.firstWhere((e) => e.name == 'Mithra M');
       expect(mithra.empNo, equals('33'));
-      expect(mithra.displayEmpId, equals('EMP #33'));
+      expect(mithra.displayEmpId, equals('33'));
 
       final kaaviya = eco.employees.firstWhere((e) => e.name == 'Kaaviya');
       expect(kaaviya.empNo, equals('65'));
-      expect(kaaviya.displayEmpId, equals('EMP #65'));
+      expect(kaaviya.displayEmpId, equals('65'));
 
       final nisha = eco.employees.firstWhere((e) => e.name == 'Nisha');
       expect(nisha.empNo, equals('67'));
-      expect(nisha.displayEmpId, equals('EMP #67'));
+      expect(nisha.displayEmpId, equals('67'));
 
-      // Non-listed employees have empty empNo
-      final aravind = eco.employees.firstWhere((e) => e.name.contains('Aravinda'));
-      expect(aravind.empNo, isEmpty);
-      expect(aravind.displayEmpId, isEmpty);
+      // Active employees count is strictly 7 (Naveenraaj, Mohankumar, Praveenkumar, Gokulakrishnan, Mithra, Kaaviya, Nisha)
+      expect(eco.employees.length, equals(7));
     });
 
     test('Total permission quota is 4.0 Hours in EcosystemProvider', () {

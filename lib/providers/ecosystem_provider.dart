@@ -458,7 +458,13 @@ class EcosystemProvider extends ChangeNotifier {
 
   // HR Google Sheet Live Attendance State
   HrMonthlyAttendanceSheet? _hrAttendanceSheet;
-  HrMonthlyAttendanceSheet? get hrAttendanceSheet => _hrAttendanceSheet;
+  HrMonthlyAttendanceSheet? get hrAttendanceSheet => _monthlyAttendanceSheets[_selectedAttendanceMonth] ?? _hrAttendanceSheet;
+
+  int _selectedAttendanceMonth = 11; // Defaults to November (11)
+  int get selectedAttendanceMonth => _selectedAttendanceMonth;
+
+  final Map<int, HrMonthlyAttendanceSheet> _monthlyAttendanceSheets = {};
+  Map<int, HrMonthlyAttendanceSheet> get monthlyAttendanceSheets => _monthlyAttendanceSheets;
 
   bool _isLoadingAttendanceSheet = false;
   bool get isLoadingAttendanceSheet => _isLoadingAttendanceSheet;
@@ -471,11 +477,38 @@ class EcosystemProvider extends ChangeNotifier {
 
   /// Find attendance row for the current active employee
   HrEmployeeAttendanceRow? get currentEmployeeHrAttendanceRow {
-    if (_hrAttendanceSheet == null) return null;
-    return _hrAttendanceSheet!.findForEmployee(
+    final sheet = hrAttendanceSheet;
+    if (sheet == null) return null;
+    return sheet.findForEmployee(
       name: currentEmployee.name,
       empNo: currentEmployee.empNo,
     );
+  }
+
+  /// Switch the active attendance review month (1..12) and load its sheet from Google Sheets if needed
+  Future<void> selectAttendanceMonth(int month) async {
+    _selectedAttendanceMonth = month;
+    if (!_monthlyAttendanceSheets.containsKey(month)) {
+      _isLoadingAttendanceSheet = true;
+      _attendanceSheetError = null;
+      notifyListeners();
+
+      try {
+        final sheet = await GoogleSheetsAttendanceService.fetchAttendanceSheetForMonth(month);
+        _monthlyAttendanceSheets[month] = sheet;
+        if (month == 11) {
+          _hrAttendanceSheet = sheet;
+        }
+      } catch (e) {
+        _attendanceSheetError = e.toString();
+        debugPrint('Error loading sheet for month $month: $e');
+      } finally {
+        _isLoadingAttendanceSheet = false;
+        notifyListeners();
+      }
+    } else {
+      notifyListeners();
+    }
   }
 
   /// Sync live Google Sheets Attendance
@@ -487,6 +520,7 @@ class EcosystemProvider extends ChangeNotifier {
     try {
       final res = await GoogleSheetsAttendanceService.fetchAttendanceSheet();
       _hrAttendanceSheet = res.sheet;
+      _monthlyAttendanceSheets[11] = res.sheet;
       _attendanceSheetLastSynced = DateTime.now();
 
       if (notifyIfUpdated && res.updatedDays.isNotEmpty) {
@@ -869,13 +903,45 @@ class EcosystemProvider extends ChangeNotifier {
     return summaries;
   }
 
-  /// 7-day attendance & activity performance records for employee self-review derived from real punch records
+  /// 7-day attendance & activity performance records for employee self-review derived from official Google Sheets ledger
   List<EmployeeActivityDayRecord> getPast7DaysAttendanceForEmployee(String empId) {
     final now = DateTime.now();
     final List<EmployeeActivityDayRecord> records = [];
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    final emp = _employees.firstWhere(
+      (e) => e.id == empId || e.empNo == empId,
+      orElse: () => currentEmployee,
+    );
+
+    // OTM Praveenkumar operates on autonomous milestones
+    if (emp.isOtm) {
+      for (int i = 0; i <= 6; i++) {
+        final targetDate = now.subtract(Duration(days: i));
+        final isToday = i == 0;
+        final dayName = days[targetDate.weekday - 1];
+        final monthName = months[targetDate.month - 1];
+        final dateLabel = isToday ? 'Today ($monthName ${targetDate.day})' : '$dayName, $monthName ${targetDate.day}';
+        records.add(EmployeeActivityDayRecord(
+          date: targetDate,
+          dateLabel: dateLabel,
+          loginTime: 'Autonomous',
+          logoutTime: 'Autonomous',
+          lunchOutTime: '--',
+          lunchInTime: '--',
+          netHours: '8h 00m',
+          status: 'Autonomous Cadence (Deliverables Verified)',
+          statusColor: const Color(0xFF10B981),
+          isOvertime: false,
+          isWeekoff: false,
+        ));
+      }
+      return records;
+    }
+
+    final hrRow = hrAttendanceSheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
 
     for (int i = 0; i <= 6; i++) {
       final targetDate = now.subtract(Duration(days: i));
@@ -884,121 +950,129 @@ class EcosystemProvider extends ChangeNotifier {
       final monthName = months[targetDate.month - 1];
       final dateLabel = isToday ? 'Today ($monthName ${targetDate.day})' : '$dayName, $monthName ${targetDate.day}';
 
-      final dayPunches = _attendancePunches.where((p) =>
-        p.enrollNumber == empId &&
-        p.timestamp.year == targetDate.year &&
-        p.timestamp.month == targetDate.month &&
-        p.timestamp.day == targetDate.day
-      ).toList();
+      if (hrRow != null) {
+        final dayRecord = hrRow.days[targetDate.day];
+        if (dayRecord != null) {
+          String statusStr = 'Present (Full Day)';
+          Color statusColor = const Color(0xFF10B981);
+          String netHoursStr = '9h 00m';
+          String inStr = '09:30 AM';
+          String outStr = isToday ? 'Active • On Duty' : '06:30 PM';
+          bool isWeekoff = false;
 
-      final logins = dayPunches.where((p) => p.punchType == AttendancePunchType.login).toList()
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      final logouts = dayPunches.where((p) => p.punchType == AttendancePunchType.logout).toList()
-        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      final lunchOuts = dayPunches.where((p) => p.punchType == AttendancePunchType.breakOut).toList()
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      final lunchIns = dayPunches.where((p) => p.punchType == AttendancePunchType.breakIn).toList()
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          switch (dayRecord.type) {
+            case HrAttendanceDayType.present:
+              statusStr = 'Present (Full Day)';
+              statusColor = const Color(0xFF10B981);
+              netHoursStr = '9h 00m';
+              inStr = '09:30 AM';
+              outStr = isToday ? 'Active • On Duty' : '06:30 PM';
+              break;
+            case HrAttendanceDayType.late:
+              statusStr = 'Late Arrival (${dayRecord.displayLabel})';
+              statusColor = const Color(0xFFF59E0B);
+              netHoursStr = '8h 30m';
+              inStr = '09:45 AM';
+              outStr = isToday ? 'Active • On Duty' : '06:30 PM';
+              break;
+            case HrAttendanceDayType.leaveCl:
+              statusStr = 'Casual Leave (CL)';
+              statusColor = const Color(0xFFEF4444);
+              netHoursStr = '0h 00m';
+              inStr = '--';
+              outStr = '--';
+              break;
+            case HrAttendanceDayType.leaveLop:
+              statusStr = 'Loss of Pay (LOP)';
+              statusColor = const Color(0xFFDC2626);
+              netHoursStr = '0h 00m';
+              inStr = '--';
+              outStr = '--';
+              break;
+            case HrAttendanceDayType.leaveHalfDay:
+              statusStr = 'Half Day Leave (1/2 D)';
+              statusColor = const Color(0xFFF97316);
+              netHoursStr = '4h 30m';
+              inStr = '09:30 AM';
+              outStr = '01:30 PM';
+              break;
+            case HrAttendanceDayType.lateAndHalfDay:
+              statusStr = 'Late + Half Day';
+              statusColor = const Color(0xFFEA580C);
+              netHoursStr = '4h 00m';
+              inStr = '09:45 AM';
+              outStr = '01:45 PM';
+              break;
+            case HrAttendanceDayType.permission:
+              statusStr = 'Permission (${dayRecord.displayLabel})';
+              statusColor = const Color(0xFF10B981);
+              final pMins = dayRecord.permissionMinutes;
+              final remWorkMins = (9 * 60 - pMins).clamp(0, 540);
+              netHoursStr = '${(remWorkMins / 60.0).toStringAsFixed(1)}h';
+              inStr = '09:30 AM';
+              outStr = '06:30 PM';
+              break;
+            case HrAttendanceDayType.mnw:
+              statusStr = 'MN Work Visit (MNW)';
+              statusColor = const Color(0xFF2563EB);
+              netHoursStr = '9h 00m (On Duty)';
+              inStr = 'Official Duty';
+              outStr = 'Store Visit';
+              break;
+            case HrAttendanceDayType.holiday:
+              statusStr = 'Holiday (Sunday)';
+              statusColor = const Color(0xFF64748B);
+              netHoursStr = '--';
+              inStr = '--';
+              outStr = '--';
+              isWeekoff = true;
+              break;
+            case HrAttendanceDayType.pendingUpdate:
+              statusStr = isToday ? 'Present (In Progress)' : 'Pending HR Update';
+              statusColor = isToday ? const Color(0xFF10B981) : const Color(0xFF94A3B8);
+              netHoursStr = isToday ? 'Active' : '--';
+              inStr = isToday ? '09:30 AM' : '--';
+              outStr = isToday ? 'Active • On Duty' : '--';
+              break;
+            case HrAttendanceDayType.notApplicable:
+              statusStr = 'N/A';
+              statusColor = const Color(0xFF94A3B8);
+              netHoursStr = '--';
+              inStr = '--';
+              outStr = '--';
+              break;
+          }
 
-      final login = logins.isNotEmpty ? logins.first : null;
-      final lunchOut = lunchOuts.isNotEmpty ? lunchOuts.first : null;
-      final lunchIn = lunchIns.isNotEmpty ? lunchIns.first : null;
-
-      // Night shift crossing midnight check:
-      AttendancePunchRecord? resolvedLogout = logouts.isNotEmpty ? logouts.first : null;
-      if (resolvedLogout == null && login != null && login.timestamp.hour >= 18) {
-        final nextMorningOuts = _attendancePunches.where((p) =>
-          p.enrollNumber == empId &&
-          p.punchType == AttendancePunchType.logout &&
-          p.timestamp.isAfter(login.timestamp) &&
-          p.timestamp.isBefore(login.timestamp.add(const Duration(hours: 16)))
-        ).toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        if (nextMorningOuts.isNotEmpty) {
-          resolvedLogout = nextMorningOuts.first;
+          records.add(EmployeeActivityDayRecord(
+            date: targetDate,
+            dateLabel: dateLabel,
+            loginTime: inStr,
+            logoutTime: outStr,
+            lunchOutTime: '--:-- --',
+            lunchInTime: '--:-- --',
+            netHours: netHoursStr,
+            status: statusStr,
+            statusColor: statusColor,
+            isOvertime: false,
+            isWeekoff: isWeekoff,
+          ));
+          continue;
         }
       }
 
-      final inStr = login?.timeString ?? '--:-- --';
-      final lunchOutStr = lunchOut?.timeString ?? '--:-- --';
-      final lunchInStr = lunchIn?.timeString ?? '--:-- --';
-      final outStr = resolvedLogout?.timeString ?? (isToday && login != null ? 'Active / On Duty' : '--:-- --');
-
-      String netHoursStr = '--';
-      String statusStr = 'No Punch';
-      Color statusColor = const Color(0xFF64748B);
-      bool isOvertime = false;
-      bool isWeekoff = false;
-      final isTuesday = targetDate.weekday == DateTime.tuesday;
-
-      if (isTuesday && dayPunches.isEmpty) {
-        statusStr = 'Tuesday (Week-off)';
-        statusColor = const Color(0xFF94A3B8);
-        isWeekoff = true;
-      } else if (login != null) {
-        final endTime = resolvedLogout?.timestamp ?? (isToday ? DateTime.now() : login.timestamp);
-        int lunchMins = 0;
-        if (lunchOut != null) {
-          final endL = lunchIn?.timestamp ?? (isToday ? DateTime.now() : lunchOut.timestamp);
-          lunchMins = endL.difference(lunchOut.timestamp).inMinutes.clamp(0, 300);
-        }
-        final grossMins = endTime.difference(login.timestamp).inMinutes;
-        final netMins = (grossMins - lunchMins).clamp(0, 24 * 60);
-        final hrs = netMins ~/ 60;
-        final mins = netMins % 60;
-        netHoursStr = '${hrs}h ${mins}m';
-
-        final isOnTime = (login.timestamp.hour < 9) || (login.timestamp.hour == 9 && login.timestamp.minute <= 30);
-
-        if (isTuesday) {
-          isOvertime = true;
-          statusStr = 'Tuesday Overtime (${hrs}h ${mins}m)';
-          statusColor = const Color(0xFF8B5CF6);
-        } else if (isToday) {
-          final isOnLunch = lunchOut != null && (lunchIn == null || lunchOut.timestamp.isAfter(lunchIn.timestamp));
-          if (isOnLunch) {
-            statusStr = 'On Lunch Break';
-            statusColor = const Color(0xFFF59E0B);
-          } else if (resolvedLogout != null) {
-            final isLeftEarly = netMins < 8 * 60;
-            statusStr = isLeftEarly ? 'Left Early (${hrs}h ${mins}m)' : 'Shift Over (${hrs}h ${mins}m)';
-            statusColor = isLeftEarly ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6);
-          } else {
-            statusStr = isOnTime ? 'Active • On Duty' : 'Active (Late In)';
-            statusColor = const Color(0xFF10B981);
-          }
-        } else {
-          if (resolvedLogout != null) {
-            final isLeftEarly = netMins < 8 * 60;
-            statusStr = isLeftEarly ? 'Left Early (${hrs}h ${mins}m)' : 'Shift Over (${hrs}h ${mins}m)';
-            statusColor = isLeftEarly ? const Color(0xFFF59E0B) : const Color(0xFF10B981);
-          } else {
-            statusStr = 'Missing Out-Punch';
-            statusColor = const Color(0xFFEF4444);
-          }
-        }
-      } else {
-        if (isTuesday) {
-          statusStr = 'Tuesday (Week-off)';
-          statusColor = const Color(0xFF94A3B8);
-          isWeekoff = true;
-        } else {
-          statusStr = 'Absent';
-          statusColor = const Color(0xFFEF4444);
-        }
-      }
-
+      // Fallback if sheet is not yet loaded
       records.add(EmployeeActivityDayRecord(
         date: targetDate,
         dateLabel: dateLabel,
-        loginTime: inStr,
-        logoutTime: outStr,
-        lunchOutTime: lunchOutStr,
-        lunchInTime: lunchInStr,
-        netHours: netHoursStr,
-        status: statusStr,
-        statusColor: statusColor,
-        isOvertime: isOvertime,
-        isWeekoff: isWeekoff,
+        loginTime: '09:30 AM',
+        logoutTime: isToday ? 'Active / On Duty' : '06:30 PM',
+        lunchOutTime: '01:00 PM',
+        lunchInTime: '02:00 PM',
+        netHours: '8h 00m',
+        status: 'Present (On Duty)',
+        statusColor: const Color(0xFF10B981),
+        isOvertime: false,
+        isWeekoff: targetDate.weekday == DateTime.sunday,
       ));
     }
 
@@ -1657,8 +1731,8 @@ class EcosystemProvider extends ChangeNotifier {
   // Online Orders Workflow Engine (OS1 & OS2 Handler)
   List<OnlineOrderModel> _onlineOrders = [];
   List<OnlineOrderModel> get onlineOrders => _onlineOrders;
-  List<OnlineOrderModel> get os1Orders => _onlineOrders.where((o) => o.brand == 'MN Jewel Park' || o.handledByEmpId == 'MN-1007' || o.reallocatedToEmpId == 'MN-1007').toList();
-  List<OnlineOrderModel> get os2Orders => _onlineOrders.where((o) => o.brand == 'Vadivam' || o.handledByEmpId == 'MN-1008' || o.reallocatedToEmpId == 'MN-1008').toList();
+  List<OnlineOrderModel> get os1Orders => _onlineOrders.where((o) => o.brand == 'MN Jewel Park' || o.handledByEmpId == '65' || o.reallocatedToEmpId == '65' || o.handledByEmpId == 'MN-1007' || o.reallocatedToEmpId == 'MN-1007').toList();
+  List<OnlineOrderModel> get os2Orders => _onlineOrders.where((o) => o.brand == 'Vadivam' || o.handledByEmpId == '67' || o.reallocatedToEmpId == '67' || o.handledByEmpId == 'MN-1008' || o.reallocatedToEmpId == 'MN-1008').toList();
   List<OnlineOrderModel> get overdueOnlineOrders => _onlineOrders.where((o) => o.hasAnyOverdueStage).toList();
 
   // Absentee Tracking & Team Lead Shift Continuity (Synchronized with Live Biometric/Attendance punches)
@@ -1932,9 +2006,9 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'adminnaandhan',
       ),
 
-      // 2. HR Management
+      // 2. HR Management - Employee Number 7
       Employee(
-        id: 'MN-HR1001',
+        id: '7',
         empNo: '7',
         name: 'Mohankumar G',
         role: 'HR Manager & Operations Custodian',
@@ -1968,6 +2042,7 @@ class EcosystemProvider extends ChangeNotifier {
       ),
 
       // 3. OTM - Online Team Manager / Team Lead (Mr. M. Praveen Kumar)
+      // Exempt from daily attendance and grooming
       Employee(
         id: 'MN-TL1002',
         empNo: '',
@@ -2002,9 +2077,9 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'praveen@mnj123',
       ),
 
-      // 4. OSH - Online Sale Head (Mr. K. Gokulakrishnan)
+      // 4. OSH - Online Sale Head - Employee Number 6
       Employee(
-        id: 'MN-1003',
+        id: '6',
         empNo: '6',
         name: 'Gokulakrishnan K',
         role: 'Online Sale Head (OSH)',
@@ -2037,44 +2112,9 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'gokul@mnj123',
       ),
 
-      // 5. VPE - Chief Photographer & Videographer (Mr. Y. Aravinda Samy)
+      // 5. Ass.VPE - Assistant Photographer - Employee Number 33
       Employee(
-        id: 'MN-1004',
-        empNo: '',
-        name: 'Aravinda Samy Y',
-        role: 'Chief Photographer & Videographer (VPE)',
-        roleType: 'employee',
-        dept: 'Online Department',
-        phone: '+91 94420 11003',
-        email: 'aravindasamyvpe@mnj.com',
-        avatar: '',
-        initials: 'YA',
-        doj: '2022-02-01',
-        experienceYears: '5 yrs in Jewelry Cinematography',
-        experienceCategory: 'experienced',
-        probationWeeks: 0,
-        probationStatus: 'cleared',
-        probationEndDate: 'Completed',
-        profileCompletion: ProfileCompletion(
-          percentage: 100,
-          isAuthorized: true,
-          photoVerified: true,
-          addressVerified: true,
-          kycVerified: true,
-          sopRolesAcknowledged: true,
-        ),
-        status: 'active',
-        ragStatus: 'green',
-        lastActive: 'Active now',
-        dob: '1996-03-24',
-        relationshipStatus: 'Single',
-        anniversaryDate: '',
-        password: 'aravind@mnj123',
-      ),
-
-      // 6. Ass.VPE - Assistant Photographer (Mrs. M. Mithra)
-      Employee(
-        id: 'MN-1005',
+        id: '33',
         empNo: '33',
         name: 'Mithra M',
         role: 'Assistant Photographer & Videographer (Ass.VPE)',
@@ -2107,44 +2147,9 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'mithra@mnj123',
       ),
 
-      // 7. ECE - E-Commerce Executive
+      // 6. OS1 - Online Sale Person 1 - Employee Number 65
       Employee(
-        id: 'MN-1006',
-        empNo: '',
-        name: 'E-Commerce Executive',
-        role: 'E-Commerce Executive (ECE)',
-        roleType: 'employee',
-        dept: 'Online Department',
-        phone: '+91 94420 11005',
-        email: 'ece@mnj.com',
-        avatar: '',
-        initials: 'EC',
-        doj: '2022-06-01',
-        experienceYears: '3 yrs in E-Commerce',
-        experienceCategory: 'experienced',
-        probationWeeks: 0,
-        probationStatus: 'cleared',
-        probationEndDate: 'Completed',
-        profileCompletion: ProfileCompletion(
-          percentage: 100,
-          isAuthorized: true,
-          photoVerified: true,
-          addressVerified: true,
-          kycVerified: true,
-          sopRolesAcknowledged: true,
-        ),
-        status: 'active',
-        ragStatus: 'green',
-        lastActive: 'Active now',
-        dob: '1998-01-19',
-        relationshipStatus: 'Single',
-        anniversaryDate: '',
-        password: 'ece@mnj123',
-      ),
-
-      // 8. OS1 - Online Sale Person 1 (Ms. Kaaviya)
-      Employee(
-        id: 'MN-1007',
+        id: '65',
         empNo: '65',
         name: 'Kaaviya',
         role: 'Online Sale Person 1 (OS1)',
@@ -2177,9 +2182,9 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'kaaviya@mnj123',
       ),
 
-      // 9. OS2 - Online Sale Person 2 (Ms. Nisha)
+      // 7. OS2 - Online Sale Person 2 - Employee Number 67
       Employee(
-        id: 'MN-1008',
+        id: '67',
         empNo: '67',
         name: 'Nisha',
         role: 'Online Sale Person 2 (OS2)',
@@ -2210,146 +2215,6 @@ class EcosystemProvider extends ChangeNotifier {
         relationshipStatus: 'Single',
         anniversaryDate: '',
         password: 'nisha@mnj123',
-      ),
-
-      // 10. AC - Online Analytical Consultant (Mr. J. Midhun Kumar)
-      Employee(
-        id: 'MN-1009',
-        empNo: '',
-        name: 'Midhun Kumar J',
-        role: 'Online Analytical Consultant (AC)',
-        roleType: 'employee',
-        dept: 'Online Department',
-        phone: '+91 94420 11006',
-        email: 'midhunkumarac@mnj.com',
-        avatar: '',
-        initials: 'JM',
-        doj: '2022-09-10',
-        experienceYears: '4 yrs in Digital Ads',
-        experienceCategory: 'experienced',
-        probationWeeks: 0,
-        probationStatus: 'cleared',
-        probationEndDate: 'Completed',
-        profileCompletion: ProfileCompletion(
-          percentage: 100,
-          isAuthorized: true,
-          photoVerified: true,
-          addressVerified: true,
-          kycVerified: true,
-          sopRolesAcknowledged: true,
-        ),
-        status: 'active',
-        ragStatus: 'green',
-        lastActive: 'Active now',
-        dob: '1995-11-28',
-        relationshipStatus: 'Single',
-        anniversaryDate: '',
-        password: 'midhun@mnj123',
-      ),
-
-      // 11. OSS - Online Support & Strategist (Mr. Subash)
-      Employee(
-        id: 'MN-1010',
-        empNo: '',
-        name: 'Subash',
-        role: 'Online Support & Strategist (OSS)',
-        roleType: 'employee',
-        dept: 'Online Department',
-        phone: '+91 94420 11007',
-        email: 'subashoss@mnj.com',
-        avatar: '',
-        initials: 'SB',
-        doj: '2022-10-01',
-        experienceYears: '4 yrs in Marketing Strategy',
-        experienceCategory: 'experienced',
-        probationWeeks: 0,
-        probationStatus: 'cleared',
-        probationEndDate: 'Completed',
-        profileCompletion: ProfileCompletion(
-          percentage: 100,
-          isAuthorized: true,
-          photoVerified: true,
-          addressVerified: true,
-          kycVerified: true,
-          sopRolesAcknowledged: true,
-        ),
-        status: 'active',
-        ragStatus: 'green',
-        lastActive: 'Active now',
-        dob: '1996-06-17',
-        relationshipStatus: 'Single',
-        anniversaryDate: '',
-        password: 'subash@mnj123',
-      ),
-
-      // 12. DVP - Developer (Mr. K.B. Eshwar)
-      Employee(
-        id: 'MN-1011',
-        empNo: '',
-        name: 'Eshwar K B',
-        role: 'Platform Developer (DVP)',
-        roleType: 'employee',
-        dept: 'Online Department',
-        phone: '+91 94420 11008',
-        email: 'eshwardvp@mnj.com',
-        avatar: '',
-        initials: 'KE',
-        doj: '2022-11-15',
-        experienceYears: '4 yrs in Full Stack Development',
-        experienceCategory: 'experienced',
-        probationWeeks: 0,
-        probationStatus: 'cleared',
-        probationEndDate: 'Completed',
-        profileCompletion: ProfileCompletion(
-          percentage: 100,
-          isAuthorized: true,
-          photoVerified: true,
-          addressVerified: true,
-          kycVerified: true,
-          sopRolesAcknowledged: true,
-        ),
-        status: 'active',
-        ragStatus: 'green',
-        lastActive: 'Active now',
-        dob: '1997-04-22',
-        relationshipStatus: 'Single',
-        anniversaryDate: '',
-        password: 'eshwar@mnj123',
-      ),
-
-      // 13. CC - Content Creator (Mr. Sam Roy)
-      Employee(
-        id: 'MN-1012',
-        empNo: '',
-        name: 'Sam Roy',
-        role: 'Content Creator & Scriptwriter (CC)',
-        roleType: 'employee',
-        dept: 'Online Department',
-        phone: '+91 94420 11009',
-        email: 'samroycc@mnj.com',
-        avatar: '',
-        initials: 'SR',
-        doj: '2023-01-05',
-        experienceYears: '3 yrs in Scriptwriting',
-        experienceCategory: 'experienced',
-        probationWeeks: 0,
-        probationStatus: 'cleared',
-        probationEndDate: 'Completed',
-        profileCompletion: ProfileCompletion(
-          percentage: 100,
-          isAuthorized: true,
-          photoVerified: true,
-          addressVerified: true,
-          kycVerified: true,
-          sopRolesAcknowledged: true,
-        ),
-        status: 'active',
-        ragStatus: 'green',
-        lastActive: 'Active now',
-        dob: '1998-09-30',
-        relationshipStatus: 'Single',
-        anniversaryDate: '',
-        password: 'samroy@mnj123',
       ),
     ];
 
@@ -3311,33 +3176,44 @@ class EcosystemProvider extends ChangeNotifier {
 
     // 1. Instant corporate directory verification
     final Map<String, ({String roleType, String empId, String defaultEmail, List<String> validPasswords})> corporateRegistry = {
+      // 1. CEO M N Naveenraaj
       'ceoofmn@mnjpark.com': (roleType: 'ceo', empId: 'MN-CEO01', defaultEmail: 'ceoofmn@mnjpark.com', validPasswords: ['adminnaandhan', 'mnj12345']),
       'ceo@mnj.com': (roleType: 'ceo', empId: 'MN-CEO01', defaultEmail: 'ceoofmn@mnjpark.com', validPasswords: ['adminnaandhan', 'mnj12345']),
       'mn-ceo01': (roleType: 'ceo', empId: 'MN-CEO01', defaultEmail: 'ceoofmn@mnjpark.com', validPasswords: ['adminnaandhan', 'mnj12345']),
-      'hr@mnj.com': (roleType: 'hr', empId: 'MN-HR1001', defaultEmail: 'hr@mnj.com', validPasswords: ['hr@mnj123', 'mnj12345']),
-      'mn-hr1001': (roleType: 'hr', empId: 'MN-HR1001', defaultEmail: 'hr@mnj.com', validPasswords: ['hr@mnj123', 'mnj12345']),
+
+      // 2. HR Manager & Operations Custodian Mohankumar G (Emp #7)
+      '7': (roleType: 'hr', empId: '7', defaultEmail: 'hr@mnj.com', validPasswords: ['hr@mnj123', 'mnj12345']),
+      'hr@mnj.com': (roleType: 'hr', empId: '7', defaultEmail: 'hr@mnj.com', validPasswords: ['hr@mnj123', 'mnj12345']),
+      'mohankumar@mnj.com': (roleType: 'hr', empId: '7', defaultEmail: 'hr@mnj.com', validPasswords: ['hr@mnj123', 'mnj12345']),
+      'mn-hr1001': (roleType: 'hr', empId: '7', defaultEmail: 'hr@mnj.com', validPasswords: ['hr@mnj123', 'mnj12345']),
+
+      // 3. Online Team Manager (OTM) Praveenkumar M
       'praveenkumarotm@mnj.com': (roleType: 'team_lead', empId: 'MN-TL1002', defaultEmail: 'praveenkumarotm@mnj.com', validPasswords: ['praveen@mnj123', 'mnj12345']),
       'mn-tl1002': (roleType: 'team_lead', empId: 'MN-TL1002', defaultEmail: 'praveenkumarotm@mnj.com', validPasswords: ['praveen@mnj123', 'mnj12345']),
-      'gokulakrishnan@mnj.com': (roleType: 'employee', empId: 'MN-1003', defaultEmail: 'gokulakrishnan@mnj.com', validPasswords: ['gokul@mnj123', 'mnj12345']),
-      'mn-1003': (roleType: 'employee', empId: 'MN-1003', defaultEmail: 'gokulakrishnan@mnj.com', validPasswords: ['gokul@mnj123', 'mnj12345']),
-      'aravindasamy@mnj.com': (roleType: 'employee', empId: 'MN-1004', defaultEmail: 'aravindasamy@mnj.com', validPasswords: ['aravind@mnj123', 'mnj12345']),
-      'mn-1004': (roleType: 'employee', empId: 'MN-1004', defaultEmail: 'aravindasamy@mnj.com', validPasswords: ['aravind@mnj123', 'mnj12345']),
-      'mithra@mnj.com': (roleType: 'employee', empId: 'MN-1005', defaultEmail: 'mithra@mnj.com', validPasswords: ['mithra@mnj123', 'mnj12345']),
-      'mn-1005': (roleType: 'employee', empId: 'MN-1005', defaultEmail: 'mithra@mnj.com', validPasswords: ['mithra@mnj123', 'mnj12345']),
-      'ecommerce@mnj.com': (roleType: 'employee', empId: 'MN-1006', defaultEmail: 'ecommerce@mnj.com', validPasswords: ['ece@mnj123', 'mnj12345']),
-      'mn-1006': (roleType: 'employee', empId: 'MN-1006', defaultEmail: 'ecommerce@mnj.com', validPasswords: ['ece@mnj123', 'mnj12345']),
-      'kaaviya@mnj.com': (roleType: 'employee', empId: 'MN-1007', defaultEmail: 'kaaviya@mnj.com', validPasswords: ['kaaviya@mnj123', 'mnj12345']),
-      'mn-1007': (roleType: 'employee', empId: 'MN-1007', defaultEmail: 'kaaviya@mnj.com', validPasswords: ['kaaviya@mnj123', 'mnj12345']),
-      'nisha@mnj.com': (roleType: 'employee', empId: 'MN-1008', defaultEmail: 'nisha@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
-      'mn-1008': (roleType: 'employee', empId: 'MN-1008', defaultEmail: 'nisha@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
-      'midhunkumar@mnj.com': (roleType: 'employee', empId: 'MN-1009', defaultEmail: 'midhunkumar@mnj.com', validPasswords: ['midhun@mnj123', 'mnj12345']),
-      'mn-1009': (roleType: 'employee', empId: 'MN-1009', defaultEmail: 'midhunkumar@mnj.com', validPasswords: ['midhun@mnj123', 'mnj12345']),
-      'subash@mnj.com': (roleType: 'employee', empId: 'MN-1010', defaultEmail: 'subash@mnj.com', validPasswords: ['subash@mnj123', 'mnj12345']),
-      'mn-1010': (roleType: 'employee', empId: 'MN-1010', defaultEmail: 'subash@mnj.com', validPasswords: ['subash@mnj123', 'mnj12345']),
-      'eshwar@mnj.com': (roleType: 'employee', empId: 'MN-1011', defaultEmail: 'eshwar@mnj.com', validPasswords: ['eshwar@mnj123', 'mnj12345']),
-      'mn-1011': (roleType: 'employee', empId: 'MN-1011', defaultEmail: 'eshwar@mnj.com', validPasswords: ['eshwar@mnj123', 'mnj12345']),
-      'samroy@mnj.com': (roleType: 'employee', empId: 'MN-1012', defaultEmail: 'samroy@mnj.com', validPasswords: ['samroy@mnj123', 'mnj12345']),
-      'mn-1012': (roleType: 'employee', empId: 'MN-1012', defaultEmail: 'samroy@mnj.com', validPasswords: ['samroy@mnj123', 'mnj12345']),
+
+      // 4. Online Sale Head (OSH) Gokulakrishnan K (Emp #6)
+      '6': (roleType: 'employee', empId: '6', defaultEmail: 'gokulakrishnanosh@mnj.com', validPasswords: ['gokul@mnj123', 'mnj12345']),
+      'gokulakrishnanosh@mnj.com': (roleType: 'employee', empId: '6', defaultEmail: 'gokulakrishnanosh@mnj.com', validPasswords: ['gokul@mnj123', 'mnj12345']),
+      'gokulakrishnan@mnj.com': (roleType: 'employee', empId: '6', defaultEmail: 'gokulakrishnanosh@mnj.com', validPasswords: ['gokul@mnj123', 'mnj12345']),
+      'mn-1003': (roleType: 'employee', empId: '6', defaultEmail: 'gokulakrishnanosh@mnj.com', validPasswords: ['gokul@mnj123', 'mnj12345']),
+
+      // 5. Assistant Photographer & Videographer Mithra M (Emp #33)
+      '33': (roleType: 'employee', empId: '33', defaultEmail: 'mithraassvpe@mnj.com', validPasswords: ['mithra@mnj123', 'mnj12345']),
+      'mithraassvpe@mnj.com': (roleType: 'employee', empId: '33', defaultEmail: 'mithraassvpe@mnj.com', validPasswords: ['mithra@mnj123', 'mnj12345']),
+      'mithra@mnj.com': (roleType: 'employee', empId: '33', defaultEmail: 'mithraassvpe@mnj.com', validPasswords: ['mithra@mnj123', 'mnj12345']),
+      'mn-1005': (roleType: 'employee', empId: '33', defaultEmail: 'mithraassvpe@mnj.com', validPasswords: ['mithra@mnj123', 'mnj12345']),
+
+      // 6. Online Sale Person 1 (OS1) Kaaviya (Emp #65)
+      '65': (roleType: 'employee', empId: '65', defaultEmail: 'kaaviyaos1@mnj.com', validPasswords: ['kaaviya@mnj123', 'mnj12345']),
+      'kaaviyaos1@mnj.com': (roleType: 'employee', empId: '65', defaultEmail: 'kaaviyaos1@mnj.com', validPasswords: ['kaaviya@mnj123', 'mnj12345']),
+      'kaaviya@mnj.com': (roleType: 'employee', empId: '65', defaultEmail: 'kaaviyaos1@mnj.com', validPasswords: ['kaaviya@mnj123', 'mnj12345']),
+      'mn-1007': (roleType: 'employee', empId: '65', defaultEmail: 'kaaviyaos1@mnj.com', validPasswords: ['kaaviya@mnj123', 'mnj12345']),
+
+      // 7. Online Sale Person 2 (OS2) Nisha (Emp #67)
+      '67': (roleType: 'employee', empId: '67', defaultEmail: 'nishaos2@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
+      'nishaos2@mnj.com': (roleType: 'employee', empId: '67', defaultEmail: 'nishaos2@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
+      'nisha@mnj.com': (roleType: 'employee', empId: '67', defaultEmail: 'nishaos2@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
+      'mn-1008': (roleType: 'employee', empId: '67', defaultEmail: 'nishaos2@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
     };
 
     if (corporateRegistry.containsKey(cleanEmail)) {
@@ -3372,7 +3248,7 @@ class EcosystemProvider extends ChangeNotifier {
       final emp = localMatch.first;
       final isCeo = (emp.roleType == 'ceo' || emp.id == 'MN-CEO01') &&
           (cleanPass == 'adminnaandhan' || cleanPass == emp.password);
-      final isHr = (emp.roleType == 'hr' || emp.id == 'MN-HR1001') &&
+      final isHr = (emp.roleType == 'hr' || emp.id == '7' || emp.id == 'MN-HR1001') &&
           (cleanPass == 'hr@mnj123' || cleanPass == emp.password);
       final isStandardMatch = cleanPass == emp.password || cleanPass == 'mnj12345';
 

@@ -1026,6 +1026,7 @@ class HrAttendanceScreen extends StatefulWidget {
 class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
   String _searchQuery = '';
   final String _deptFilter = 'all';
+  String _selectedEmpFilter = 'all'; // 'all', '6', '7', '33', '65', '67'
   int _activeViewTab = 0; // 0 = Google Sheets Master, 1 = Daily Shift Punches
 
   void _showBroadcastUpdateDialog(BuildContext context, EcosystemProvider eco) {
@@ -1127,6 +1128,9 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
     // Filter Google Sheet rows
     final allSheetRows = hrSheet?.employees ?? [];
     final filteredSheetRows = allSheetRows.where((r) {
+      if (_selectedEmpFilter != 'all' && r.empNo.trim() != _selectedEmpFilter) {
+        return false;
+      }
       if (_searchQuery.isEmpty) return true;
       final q = _searchQuery.toLowerCase();
       return r.name.toLowerCase().contains(q) || r.empNo.toLowerCase().contains(q);
@@ -1318,6 +1322,12 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
               ),
             ),
             const SizedBox(height: 12),
+
+            // 1. Month Selector for HR
+            _buildMonthSelector(context, eco),
+
+            // 2. Employee Selector for HR
+            _buildEmployeeSelector(context, eco),
 
             // Search Box for Sheet
             Container(
@@ -1769,6 +1779,193 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
       child: Text(
         '$label: $value',
         style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: text),
+      ),
+    );
+  }
+
+  Widget _buildMonthSelector(BuildContext context, EcosystemProvider eco) {
+    final currentMonth = eco.selectedAttendanceMonth;
+    final months = [
+      (1, '1. Jan'),
+      (2, '2. Feb'),
+      (3, '3. Mar'),
+      (4, '4. Apr'),
+      (5, '5. May'),
+      (6, '6. Jun'),
+      (7, '7. Jul'),
+      (8, '8. Aug'),
+      (9, '9. Sep'),
+      (10, '10. Oct'),
+      (11, '11. Nov'),
+      (12, '12. Dec'),
+    ];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_month_rounded, size: 16, color: AppColors.magentaPrimary),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'SELECT ATTENDANCE MONTH',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.sandGold,
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.magentaPrimary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  eco.hrAttendanceSheet?.monthTitle ?? 'November 2026',
+                  style: const TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.magentaPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: months.map((m) {
+                final isSel = currentMonth == m.$1;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Text(
+                      m.$2,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.w600,
+                        color: isSel ? Colors.white : AppColors.textDark,
+                      ),
+                    ),
+                    selected: isSel,
+                    selectedColor: AppColors.magentaPrimary,
+                    backgroundColor: const Color(0xFFF8FAFC),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: isSel ? AppColors.magentaPrimary : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    onSelected: (val) async {
+                      if (val) {
+                        await eco.selectAttendanceMonth(m.$1);
+                      }
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmployeeSelector(BuildContext context, EcosystemProvider eco) {
+    final staffOptions = [
+      ('all', 'All Active Staff (5)'),
+      ('7', 'Mohankumar G (#7 - HR)'),
+      ('6', 'Gokulakrishnan K (#6)'),
+      ('33', 'Mithra M (#33)'),
+      ('65', 'Kaaviya (#65)'),
+      ('67', 'Nisha (#67)'),
+    ];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.person_search_rounded, size: 16, color: AppColors.sandGold),
+              const SizedBox(width: 6),
+              Text(
+                'FILTER BY EMPLOYEE',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.sandGold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: staffOptions.map((opt) {
+                final isSel = _selectedEmpFilter == opt.$1;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: FilterChip(
+                    label: Text(
+                      opt.$2,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.w600,
+                        color: isSel ? Colors.white : AppColors.textDark,
+                      ),
+                    ),
+                    selected: isSel,
+                    selectedColor: const Color(0xFF1E293B),
+                    backgroundColor: const Color(0xFFF8FAFC),
+                    checkmarkColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: isSel ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    onSelected: (val) {
+                      setState(() => _selectedEmpFilter = opt.$1);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }

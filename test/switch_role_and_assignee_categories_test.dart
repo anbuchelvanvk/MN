@@ -118,7 +118,7 @@ void main() {
       eco.setActiveEmpId('MN-TL1002'); // Team Lead Praveenkumaar
 
       // Mark Gokulakrishnan absent (has tasks to reassign)
-      eco.toggleEmployeeAbsentStatus('MN-1003', isAbsent: true);
+      eco.toggleEmployeeAbsentStatus('6', isAbsent: true);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -127,7 +127,7 @@ void main() {
               value: eco,
               child: Builder(
                 builder: (ctx) => ElevatedButton(
-                  onPressed: () => AssignTasksToOthersModal.show(ctx, defaultAbsentEmpId: 'MN-1003'),
+                  onPressed: () => AssignTasksToOthersModal.show(ctx, defaultAbsentEmpId: '6'),
                   child: const Text('Open Modal'),
                 ),
               ),
@@ -168,10 +168,10 @@ void main() {
       final eco = EcosystemProvider();
       eco.setActiveEmpId('MN-TL1002'); // Team Lead Praveenkumaar
 
-      // Mark Kaaviya (MN-1007) manually present
-      eco.toggleEmployeeAbsentStatus('MN-1007', isAbsent: false);
+      // Mark Kaaviya (65) manually present
+      eco.toggleEmployeeAbsentStatus('65', isAbsent: false);
       // Mark Gokulakrishnan absent
-      eco.toggleEmployeeAbsentStatus('MN-1003', isAbsent: true);
+      eco.toggleEmployeeAbsentStatus('6', isAbsent: true);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -180,7 +180,7 @@ void main() {
               value: eco,
               child: Builder(
                 builder: (ctx) => ElevatedButton(
-                  onPressed: () => AssignTasksToOthersModal.show(ctx, defaultAbsentEmpId: 'MN-1003'),
+                  onPressed: () => AssignTasksToOthersModal.show(ctx, defaultAbsentEmpId: '6'),
                   child: const Text('Open Modal With Active Staff'),
                 ),
               ),

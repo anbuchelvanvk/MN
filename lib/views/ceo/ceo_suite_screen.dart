@@ -2130,7 +2130,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                   MaterialPageRoute(
                                     builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
                                       value: eco,
-                                      child: const CeoAttendanceScreen(initialFilter: 'all'),
+                                      child: const CeoAttendanceScreen(initialFilter: 'all', initialTab: 1),
                                     ),
                                   ),
                                 );

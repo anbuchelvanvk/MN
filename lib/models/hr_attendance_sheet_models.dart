@@ -452,7 +452,11 @@ class HrMonthlyAttendanceSheet {
   });
 
   int get daysInMonth => 31;
-  List<HrEmployeeAttendanceRow> get employees => rows;
+  /// Only active registered employees are exposed in app views (excluding unassigned roster entries)
+  static const Set<String> activeEmpNos = {'6', '7', '33', '65', '67'};
+  List<HrEmployeeAttendanceRow> get employees =>
+      rows.where((r) => activeEmpNos.contains(r.empNo.trim())).toList();
+  List<HrEmployeeAttendanceRow> get allSheetRows => rows;
 
   /// The highest day number with actual attendance records uploaded by HR
   int get latestRecordedDay {

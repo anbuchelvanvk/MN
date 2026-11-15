@@ -50,8 +50,8 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
           )
         : null;
 
-    final isOS1Absent = eco.isEmployeeAbsent('MN-1007');
-    final isOS2Absent = eco.isEmployeeAbsent('MN-1008');
+    final isOS1Absent = eco.isEmployeeAbsent('65') || eco.isEmployeeAbsent('MN-1007');
+    final isOS2Absent = eco.isEmployeeAbsent('67') || eco.isEmployeeAbsent('MN-1008');
     final isTLOrCeo = eco.activeEmpId == 'MN-TL1002' ||
         eco.activeEmpId == 'MN-CEO01' ||
         eco.activeRole == 'dept_head' ||
@@ -1082,7 +1082,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
             final isVadivam = brand == 'Vadivam';
-            final autoHandlerId = isVadivam ? 'MN-1008' : 'MN-1007';
+            final autoHandlerId = isVadivam ? '67' : '65';
             final autoHandlerName = isVadivam ? 'Nisha (OS2)' : 'Kaaviya (OS1)';
 
             Map<String, dynamic> buildCurrentCategoryData() {
@@ -1888,7 +1888,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
 
   void _openReassignDialog(BuildContext context, EcosystemProvider eco, OnlineOrderModel order) {
     final staffList = eco.employees.where((e) => e.roleType == 'employee' || e.roleType == 'team_lead').toList();
-    String selectedEmp = staffList.isNotEmpty ? staffList.first.id : 'MN-1008';
+    String selectedEmp = staffList.isNotEmpty ? staffList.first.id : '67';
 
     showDialog(
       context: context,

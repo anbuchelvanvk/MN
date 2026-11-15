@@ -123,7 +123,7 @@ class Employee {
   String _dept;
   String get dept {
     if (_dept.isNotEmpty) return _dept;
-    if (roleType.toLowerCase() == 'ceo' || roleType.toLowerCase() == 'hr' || id.toUpperCase() == 'MN-CEO01' || id.toUpperCase() == 'MN-HR1001') {
+    if (roleType.toLowerCase() == 'ceo' || roleType.toLowerCase() == 'hr' || id.toUpperCase() == 'MN-CEO01' || id == '7' || id.toUpperCase() == 'MN-HR1001') {
       return 'Administration';
     }
     return 'Online Department';
@@ -210,24 +210,27 @@ class Employee {
   /// Regular staff require attendance and grooming; OTM is exempt.
   bool get hasAttendanceAndGrooming => !isOtm;
 
-  /// Clean display ID: Shows EMP #No for roster staff, MN-CEO01 for CEO, OTM for TL, or empty
+  /// Clean display ID: Shows employee number for roster staff, MN-CEO01 for CEO, MN-TL1002 for OTM
   String get displayEmpId {
-    if (empNo.isNotEmpty) return 'EMP #$empNo';
+    if (empNo.isNotEmpty) return empNo;
     if (roleType.toLowerCase() == 'ceo' || id.toUpperCase() == 'MN-CEO01') return 'MN-CEO01';
-    if (isOtm) return 'OTM';
-    return '';
+    if (isOtm) return 'MN-TL1002';
+    return id;
   }
 
-  bool get isFemale => gender.toLowerCase() == 'female' ||
-      ['mn-1005', 'mn-1007', 'mn-1008'].contains(id.toLowerCase()) ||
-      ['kaaviya', 'nisha', 'mithra'].any((n) => name.toLowerCase().contains(n));
+  bool get isFemale {
+    if (gender.toLowerCase() == 'female') return true;
+    if (gender.toLowerCase() == 'male') return false;
+    return ['33', '65', '67'].contains(id.toLowerCase()) ||
+        ['kaaviya', 'nisha', 'mithra'].any((n) => name.toLowerCase().contains(n));
+  }
 
   String get genderDisplay => isFemale ? 'Female' : 'Male';
 
   String get mobile => phone;
   String get department => dept;
   bool get isCeo => roleType.toLowerCase() == 'ceo' || id == 'MN-CEO01';
-  bool get isHr => roleType.toLowerCase() == 'hr' || id == 'MN-HR1001';
+  bool get isHr => roleType.toLowerCase() == 'hr' || id == '7' || id == 'MN-HR1001';
   bool get isTeamLead => roleType.toLowerCase() == 'team_lead' || roleType.toLowerCase() == 'dept_head' || id == 'MN-TL1002';
 
   /// Straight-cut short role name for headers, badges & strips (never wraps)
@@ -235,7 +238,7 @@ class Employee {
     final rt = roleType.toLowerCase();
     final r = role.toLowerCase();
     if (rt == 'ceo' || id == 'MN-CEO01' || r.contains('ceo')) return 'CEO';
-    if (rt == 'hr' || id == 'MN-HR1001' || r.contains('hr')) return 'HR Manager';
+    if (rt == 'hr' || id == '7' || id == 'MN-HR1001' || r.contains('hr')) return 'HR Manager';
     if (rt == 'team_lead' || rt == 'dept_head' || id == 'MN-TL1002' || r.contains('lead') || r.contains('manager')) {
       return 'Team Lead';
     }
@@ -247,7 +250,7 @@ class Employee {
     final rt = roleType.toLowerCase();
     final r = role.toLowerCase();
     if (rt == 'ceo' || id == 'MN-CEO01' || r.contains('ceo')) return 'Managing Director & CEO';
-    if (rt == 'hr' || id == 'MN-HR1001' || r.contains('hr')) return 'HR Manager';
+    if (rt == 'hr' || id == '7' || id == 'MN-HR1001' || r.contains('hr')) return 'HR Manager';
     if (rt == 'team_lead' || rt == 'dept_head' || id == 'MN-TL1002' || r.contains('lead')) return 'Team Lead';
     return role;
   }
@@ -355,13 +358,18 @@ class Employee {
 
   static const Map<String, String> officialCorporatePasswords = {
     'MN-CEO01': 'adminnaandhan',
+    '7': 'hr@mnj123',
     'MN-HR1001': 'hr@mnj123',
     'MN-TL1002': 'praveen@mnj123',
+    '6': 'gokul@mnj123',
     'MN-1003': 'gokul@mnj123',
     'MN-1004': 'aravind@mnj123',
+    '33': 'mithra@mnj123',
     'MN-1005': 'mithra@mnj123',
     'MN-1006': 'ece@mnj123',
+    '65': 'kaaviya@mnj123',
     'MN-1007': 'kaaviya@mnj123',
+    '67': 'nisha@mnj123',
     'MN-1008': 'nisha@mnj123',
     'MN-1009': 'midhun@mnj123',
     'MN-1010': 'subash@mnj123',
@@ -383,7 +391,8 @@ class Employee {
         rawName.toLowerCase().contains('executive ceo') ||
         rawName.toLowerCase().contains('senthil');
 
-    final isHr = docOrId == 'MN-HR1001' ||
+    final isHr = docOrId == '7' ||
+        docOrId == 'MN-HR1001' ||
         email == 'hr@mnj.com' ||
         map['roleType'] == 'hr' ||
         rawRole.toLowerCase().contains('hr manager') ||
@@ -399,7 +408,7 @@ class Employee {
                     ? 'team_lead'
                     : 'employee')));
 
-    final resolvedId = isCeo ? 'MN-CEO01' : (isHr ? 'MN-HR1001' : (docId ?? (map['id'] as String? ?? '')));
+    final resolvedId = isCeo ? 'MN-CEO01' : (isHr ? '7' : (docId ?? (map['id'] as String? ?? '')));
     final resolvedName = isCeo ? 'M N Naveenraaj' : (isHr ? 'Mohankumar G' : rawName);
     final resolvedRole = isCeo
         ? 'Managing Director & CEO'

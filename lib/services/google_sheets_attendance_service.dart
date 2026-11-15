@@ -6,11 +6,76 @@ import '../models/hr_attendance_sheet_models.dart';
 
 class GoogleSheetsAttendanceService {
   static const String defaultSheetUrl =
-      'https://docs.google.com/spreadsheets/d/1847e_mO5XtPV6guNlZ0uAuOXETi0DaPs0075k8KL5hQ/gviz/tq?tqx=out:csv';
+      'https://docs.google.com/spreadsheets/d/1847e_mO5XtPV6guNlZ0uAuOXETi0DaPs0075k8KL5hQ/gviz/tq?tqx=out:csv&gid=1237865007';
+
+  static const String spreadsheetId = '1847e_mO5XtPV6guNlZ0uAuOXETi0DaPs0075k8KL5hQ';
+
+  /// Official Sheet GIDs for each of the 12 Monthly Tabs in Google Sheets
+  static const Map<int, String> monthGids = {
+    1: '1001',
+    2: '1002',
+    3: '1003',
+    4: '1004',
+    5: '1005',
+    6: '1006',
+    7: '1007',
+    8: '1008',
+    9: '1009',
+    10: '1010',
+    11: '1237865007',
+    12: '1773257736',
+  };
+
+  /// Display names for the 12 months
+  static const Map<int, String> monthNames = {
+    1: 'January',
+    2: 'February',
+    3: 'March',
+    4: 'April',
+    5: 'May',
+    6: 'June',
+    7: 'July',
+    8: 'August',
+    9: 'September',
+    10: 'October',
+    11: 'November',
+    12: 'December',
+  };
 
   static const String _prefCustomUrlKey = 'hr_google_sheet_custom_url';
   static const String _prefCachedCsvKey = 'hr_google_sheet_cached_csv';
   static const String _prefLastSyncTimeKey = 'hr_google_sheet_last_sync_time';
+
+  /// Fetch attendance sheet for any month (1..12) from its designated sheet tab
+  static Future<HrMonthlyAttendanceSheet> fetchAttendanceSheetForMonth(
+    int month, {
+    String? customUrl,
+  }) async {
+    final gid = monthGids[month] ?? '1237865007';
+    final monthName = monthNames[month] ?? 'November';
+    final prefs = await SharedPreferences.getInstance();
+    final cacheKey = 'hr_google_sheet_cached_csv_month_$month';
+
+    String? newCsv;
+    final exportUrl = 'https://docs.google.com/spreadsheets/d/$spreadsheetId/gviz/tq?tqx=out:csv&gid=$gid';
+    try {
+      final response = await http.get(Uri.parse(exportUrl)).timeout(const Duration(seconds: 12));
+      final body = response.body.trim();
+      if (response.statusCode == 200 &&
+          body.isNotEmpty &&
+          !body.toLowerCase().startsWith('<!doctype') &&
+          !body.toLowerCase().startsWith('<html')) {
+        newCsv = response.body;
+        await prefs.setString(cacheKey, newCsv);
+      }
+    } catch (e) {
+      debugPrint('GoogleSheetsAttendanceService fetch month $month error: $e');
+    }
+
+    final cached = prefs.getString(cacheKey);
+    final csvToParse = newCsv ?? cached ?? (month == 11 ? _embeddedNovemberSeedCsv : '"${monthName.toUpperCase()}",""\n"S.NO","EMP.NO","Name"\n');
+    return parseCsvToAttendanceSheet(csvToParse, defaultMonthTitle: monthName.toUpperCase());
+  }
 
   /// Transform any Google Sheets link into a direct CSV export endpoint
   static String formatToCsvExportUrl(String rawUrl) {
@@ -95,18 +160,21 @@ class GoogleSheetsAttendanceService {
   }
 
   /// Parses raw CSV text into a structured HrMonthlyAttendanceSheet
-  static HrMonthlyAttendanceSheet parseCsvToAttendanceSheet(String rawCsv) {
+  static HrMonthlyAttendanceSheet parseCsvToAttendanceSheet(
+    String rawCsv, {
+    String defaultMonthTitle = 'NOVEMBER',
+  }) {
     final lines = const LineSplitter().convert(rawCsv);
     if (lines.isEmpty) {
       return HrMonthlyAttendanceSheet(
-        monthTitle: 'NOVEMBER',
+        monthTitle: defaultMonthTitle,
         lastUpdated: DateTime.now(),
         rows: [],
       );
     }
 
     // Row 0: Month Title (e.g. "NOVEMBER",...)
-    String monthTitle = 'NOVEMBER';
+    String monthTitle = defaultMonthTitle;
     final firstRowCells = _parseCsvRow(lines.first);
     if (firstRowCells.isNotEmpty && firstRowCells.first.trim().isNotEmpty) {
       monthTitle = firstRowCells.first.trim().toUpperCase();

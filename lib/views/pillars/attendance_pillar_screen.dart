@@ -106,7 +106,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   _buildMonthlyKpiGrid(context, row),
                   const SizedBox(height: 16),
 
-                  // 4. Interactive 31-Day Attendance Ledger Calendar Grid
+                  // 4. Recent Attendance Performance (Past 7 Days Record from Sheet)
+                  _buildPast7DaysAttendanceLogCard(context, provider, currentEmp),
+                  const SizedBox(height: 16),
+
+                  // 5. Interactive 31-Day Attendance Ledger Calendar Grid
                   _buildAttendanceCalendarCard(context, row, sheet),
                   const SizedBox(height: 16),
 
@@ -620,6 +624,219 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+        ],
+      ),
+    );
+  }
+
+  // --- 4B. PAST 7 DAYS RECENT ATTENDANCE PERFORMANCE LOG ---
+  Widget _buildPast7DaysAttendanceLogCard(
+    BuildContext context,
+    EcosystemProvider provider,
+    Employee currentEmp,
+  ) {
+    final records = provider.getPast7DaysAttendanceForEmployee(currentEmp.id);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.sandGold.withOpacity(0.18),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.history_rounded, size: 18, color: AppColors.sandGold),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'RECENT ATTENDANCE PERFORMANCE',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.sandGold,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Official Past 7 Days Record from HR Ledger',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'PAST 7 DAYS',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF059669),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (records.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'No recent attendance entries recorded yet.',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+                ),
+              ),
+            )
+          else
+            ...records.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final rec = entry.value;
+              final isLast = idx == records.length - 1;
+
+              return Container(
+                margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: rec.statusColor.withOpacity(0.35),
+                    width: 1.0,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.sandGold.withOpacity(0.8)),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  rec.dateLabel,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: rec.statusColor.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: rec.statusColor.withOpacity(0.5)),
+                          ),
+                          child: Text(
+                            rec.status,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: rec.statusColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 6,
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.login_rounded, size: 12, color: Color(0xFF10B981)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'In: ${rec.loginTime}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.logout_rounded, size: 12, color: Color(0xFFEF4444)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Out: ${rec.logoutTime}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.schedule_rounded, size: 12, color: AppColors.sandGold),
+                            const SizedBox(width: 4),
+                            Text(
+                              rec.netHours,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandGold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );

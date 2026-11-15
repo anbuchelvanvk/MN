@@ -73,6 +73,7 @@ class FirebaseEmployeeService {
       final accounts = [
         {
           'id': 'MN-CEO01',
+          'empNo': '',
           'name': 'M N Naveenraaj',
           'email': 'ceoofmn@mnjpark.com',
           'role': 'Managing Director & CEO',
@@ -102,7 +103,8 @@ class FirebaseEmployeeService {
           },
         },
         {
-          'id': 'MN-HR1001',
+          'id': '7',
+          'empNo': '7',
           'name': 'Mohankumar G',
           'email': 'hr@mnj.com',
           'role': 'HR Manager & Operations Custodian',
@@ -133,6 +135,7 @@ class FirebaseEmployeeService {
         },
         {
           'id': 'MN-TL1002',
+          'empNo': '',
           'name': 'Praveenkumar M',
           'email': 'praveenkumarotm@mnj.com',
           'role': 'Online Team Manager (Editor)',
@@ -162,12 +165,13 @@ class FirebaseEmployeeService {
           },
         },
         {
-          'id': 'MN-1003',
+          'id': '6',
+          'empNo': '6',
           'name': 'Gokulakrishnan K',
           'email': 'gokulakrishnanosh@mnj.com',
           'role': 'Online Sale Head (OSH)',
           'roleType': 'employee',
-          'dept': 'Online Sales',
+          'dept': 'Online Department',
           'phone': '+91 94420 11002',
           'password': 'gokul@mnj123',
           'experienceYears': '5 yrs in Retail Sales',
@@ -192,42 +196,13 @@ class FirebaseEmployeeService {
           },
         },
         {
-          'id': 'MN-1004',
-          'name': 'Aravinda Samy Y',
-          'email': 'aravindasamyvpe@mnj.com',
-          'role': 'Chief Photographer & Videographer (VPE)',
-          'roleType': 'employee',
-          'dept': 'Media & Creative',
-          'phone': '+91 94420 11003',
-          'password': 'aravind@mnj123',
-          'experienceYears': '5 yrs in Jewelry Cinematography',
-          'experienceCategory': 'experienced',
-          'probationWeeks': 0,
-          'probationStatus': 'cleared',
-          'probationEndDate': 'Completed',
-          'status': 'active',
-          'ragStatus': 'green',
-          'initials': 'YA',
-          'lastActive': 'Active now',
-          'dob': '1996-03-24',
-          'relationshipStatus': 'Single',
-          'anniversaryDate': '',
-          'profileCompletion': {
-            'percentage': 100,
-            'isAuthorized': true,
-            'photoVerified': true,
-            'addressVerified': true,
-            'kycVerified': true,
-            'sopRolesAcknowledged': true,
-          },
-        },
-        {
-          'id': 'MN-1005',
+          'id': '33',
+          'empNo': '33',
           'name': 'Mithra M',
           'email': 'mithraassvpe@mnj.com',
           'role': 'Assistant Photographer & Videographer (Ass.VPE)',
           'roleType': 'employee',
-          'dept': 'Media & Creative',
+          'dept': 'Online Department',
           'phone': '+91 94420 11004',
           'password': 'mithra@mnj123',
           'experienceYears': '3 yrs in Photography',
@@ -252,42 +227,13 @@ class FirebaseEmployeeService {
           },
         },
         {
-          'id': 'MN-1006',
-          'name': 'E-Commerce Executive',
-          'email': 'ece@mnj.com',
-          'role': 'E-Commerce Executive (ECE)',
-          'roleType': 'employee',
-          'dept': 'Catalog & Listing',
-          'phone': '+91 94420 11005',
-          'password': 'ece@mnj123',
-          'experienceYears': '3 yrs in E-Commerce',
-          'experienceCategory': 'experienced',
-          'probationWeeks': 0,
-          'probationStatus': 'cleared',
-          'probationEndDate': 'Completed',
-          'status': 'active',
-          'ragStatus': 'green',
-          'initials': 'EC',
-          'lastActive': 'Active now',
-          'dob': '1998-01-19',
-          'relationshipStatus': 'Single',
-          'anniversaryDate': '',
-          'profileCompletion': {
-            'percentage': 100,
-            'isAuthorized': true,
-            'photoVerified': true,
-            'addressVerified': true,
-            'kycVerified': true,
-            'sopRolesAcknowledged': true,
-          },
-        },
-        {
-          'id': 'MN-1007',
+          'id': '65',
+          'empNo': '65',
           'name': 'Kaaviya',
           'email': 'kaaviyaos1@mnj.com',
           'role': 'Online Sale Person 1 (OS1)',
           'roleType': 'employee',
-          'dept': 'Online Sales',
+          'dept': 'Online Department',
           'phone': '+91 80567 36999',
           'password': 'kaaviya@mnj123',
           'experienceYears': '3 yrs in Jewelry Sales',
@@ -312,12 +258,13 @@ class FirebaseEmployeeService {
           },
         },
         {
-          'id': 'MN-1008',
+          'id': '67',
+          'empNo': '67',
           'name': 'Nisha',
           'email': 'nishaos2@mnj.com',
           'role': 'Online Sale Person 2 (OS2)',
           'roleType': 'employee',
-          'dept': 'Online Sales',
+          'dept': 'Online Department',
           'phone': '+91 89258 68077',
           'password': 'nisha@mnj123',
           'experienceYears': '3 yrs in Customer Care',
@@ -330,126 +277,6 @@ class FirebaseEmployeeService {
           'initials': 'NS',
           'lastActive': 'Active now',
           'dob': '1999-12-05',
-          'relationshipStatus': 'Single',
-          'anniversaryDate': '',
-          'profileCompletion': {
-            'percentage': 100,
-            'isAuthorized': true,
-            'photoVerified': true,
-            'addressVerified': true,
-            'kycVerified': true,
-            'sopRolesAcknowledged': true,
-          },
-        },
-        {
-          'id': 'MN-1009',
-          'name': 'Midhun Kumar J',
-          'email': 'midhunkumarac@mnj.com',
-          'role': 'Online Analytical Consultant (AC)',
-          'roleType': 'employee',
-          'dept': 'Analytics & Performance Ads',
-          'phone': '+91 94420 11006',
-          'password': 'midhun@mnj123',
-          'experienceYears': '4 yrs in Digital Ads',
-          'experienceCategory': 'experienced',
-          'probationWeeks': 0,
-          'probationStatus': 'cleared',
-          'probationEndDate': 'Completed',
-          'status': 'active',
-          'ragStatus': 'green',
-          'initials': 'JM',
-          'lastActive': 'Active now',
-          'dob': '1995-11-28',
-          'relationshipStatus': 'Single',
-          'anniversaryDate': '',
-          'profileCompletion': {
-            'percentage': 100,
-            'isAuthorized': true,
-            'photoVerified': true,
-            'addressVerified': true,
-            'kycVerified': true,
-            'sopRolesAcknowledged': true,
-          },
-        },
-        {
-          'id': 'MN-1010',
-          'name': 'Subash',
-          'email': 'subashoss@mnj.com',
-          'role': 'Online Support & Strategist (OSS)',
-          'roleType': 'employee',
-          'dept': 'Campaign Strategy',
-          'phone': '+91 94420 11007',
-          'password': 'subash@mnj123',
-          'experienceYears': '4 yrs in Marketing Strategy',
-          'experienceCategory': 'experienced',
-          'probationWeeks': 0,
-          'probationStatus': 'cleared',
-          'probationEndDate': 'Completed',
-          'status': 'active',
-          'ragStatus': 'green',
-          'initials': 'SB',
-          'lastActive': 'Active now',
-          'dob': '1996-06-17',
-          'relationshipStatus': 'Single',
-          'anniversaryDate': '',
-          'profileCompletion': {
-            'percentage': 100,
-            'isAuthorized': true,
-            'photoVerified': true,
-            'addressVerified': true,
-            'kycVerified': true,
-            'sopRolesAcknowledged': true,
-          },
-        },
-        {
-          'id': 'MN-1011',
-          'name': 'Eshwar K B',
-          'email': 'eshwardvp@mnj.com',
-          'role': 'Platform Developer (DVP)',
-          'roleType': 'employee',
-          'dept': 'Technology & E-Commerce',
-          'phone': '+91 94420 11008',
-          'password': 'eshwar@mnj123',
-          'experienceYears': '4 yrs in Full Stack Development',
-          'experienceCategory': 'experienced',
-          'probationWeeks': 0,
-          'probationStatus': 'cleared',
-          'probationEndDate': 'Completed',
-          'status': 'active',
-          'ragStatus': 'green',
-          'initials': 'KE',
-          'lastActive': 'Active now',
-          'dob': '1997-04-22',
-          'relationshipStatus': 'Single',
-          'anniversaryDate': '',
-          'profileCompletion': {
-            'percentage': 100,
-            'isAuthorized': true,
-            'photoVerified': true,
-            'addressVerified': true,
-            'kycVerified': true,
-            'sopRolesAcknowledged': true,
-          },
-        },
-        {
-          'id': 'MN-1012',
-          'name': 'Sam Roy',
-          'email': 'samroycc@mnj.com',
-          'role': 'Content Creator & Scriptwriter (CC)',
-          'roleType': 'employee',
-          'dept': 'Creative & Social Media',
-          'phone': '+91 94420 11009',
-          'password': 'samroy@mnj123',
-          'experienceYears': '3 yrs in Scriptwriting',
-          'experienceCategory': 'experienced',
-          'probationWeeks': 0,
-          'probationStatus': 'cleared',
-          'probationEndDate': 'Completed',
-          'status': 'active',
-          'ragStatus': 'green',
-          'initials': 'SR',
-          'lastActive': 'Active now',
-          'dob': '1998-09-30',
           'relationshipStatus': 'Single',
           'anniversaryDate': '',
           'profileCompletion': {
@@ -496,18 +323,12 @@ class FirebaseEmployeeService {
     try {
       final officialAccounts = {
         'MN-CEO01': {'email': 'ceoofmn@mnjpark.com', 'password': 'adminnaandhan', 'name': 'M N Naveenraaj', 'role': 'Managing Director & CEO', 'roleType': 'ceo'},
-        'MN-HR1001': {'email': 'hr@mnj.com', 'password': 'hr@mnj123', 'name': 'Mohankumar G', 'role': 'HR Manager & Operations Custodian', 'roleType': 'hr'},
+        '7': {'email': 'hr@mnj.com', 'password': 'hr@mnj123', 'name': 'Mohankumar G', 'role': 'HR Manager & Operations Custodian', 'roleType': 'hr'},
         'MN-TL1002': {'email': 'praveenkumarotm@mnj.com', 'password': 'praveen@mnj123', 'name': 'Praveenkumar M', 'role': 'Online Team Manager (Editor)', 'roleType': 'team_lead'},
-        'MN-1003': {'email': 'gokulakrishnanosh@mnj.com', 'password': 'gokul@mnj123', 'name': 'Gokulakrishnan K', 'role': 'Online Sale Head (OSH)', 'roleType': 'employee'},
-        'MN-1004': {'email': 'aravindasamyvpe@mnj.com', 'password': 'aravind@mnj123', 'name': 'Aravinda Samy Y', 'role': 'Chief Photographer & Videographer (VPE)', 'roleType': 'employee'},
-        'MN-1005': {'email': 'mithraassvpe@mnj.com', 'password': 'mithra@mnj123', 'name': 'Mithra M', 'role': 'Assistant Photographer & Videographer (Ass.VPE)', 'roleType': 'employee'},
-        'MN-1006': {'email': 'ece@mnj.com', 'password': 'ece@mnj123', 'name': 'E-Commerce Executive', 'role': 'E-Commerce Executive (ECE)', 'roleType': 'employee'},
-        'MN-1007': {'email': 'kaaviyaos1@mnj.com', 'password': 'kaaviya@mnj123', 'name': 'Kaaviya', 'role': 'Online Sale Person 1 (OS1)', 'roleType': 'employee'},
-        'MN-1008': {'email': 'nishaos2@mnj.com', 'password': 'nisha@mnj123', 'name': 'Nisha', 'role': 'Online Sale Person 2 (OS2)', 'roleType': 'employee'},
-        'MN-1009': {'email': 'midhunkumarac@mnj.com', 'password': 'midhun@mnj123', 'name': 'Midhun Kumar J', 'role': 'Online Analytical Consultant (AC)', 'roleType': 'employee'},
-        'MN-1010': {'email': 'subashoss@mnj.com', 'password': 'subash@mnj123', 'name': 'Subash', 'role': 'Online Support & Strategist (OSS)', 'roleType': 'employee'},
-        'MN-1011': {'email': 'eshwardvp@mnj.com', 'password': 'eshwar@mnj123', 'name': 'Eshwar K B', 'role': 'Platform Developer (DVP)', 'roleType': 'employee'},
-        'MN-1012': {'email': 'samroycc@mnj.com', 'password': 'samroy@mnj123', 'name': 'Sam Roy', 'role': 'Content Creator & Scriptwriter (CC)', 'roleType': 'employee'},
+        '6': {'email': 'gokulakrishnanosh@mnj.com', 'password': 'gokul@mnj123', 'name': 'Gokulakrishnan K', 'role': 'Online Sale Head (OSH)', 'roleType': 'employee'},
+        '33': {'email': 'mithraassvpe@mnj.com', 'password': 'mithra@mnj123', 'name': 'Mithra M', 'role': 'Assistant Photographer & Videographer (Ass.VPE)', 'roleType': 'employee'},
+        '65': {'email': 'kaaviyaos1@mnj.com', 'password': 'kaaviya@mnj123', 'name': 'Kaaviya', 'role': 'Online Sale Person 1 (OS1)', 'roleType': 'employee'},
+        '67': {'email': 'nishaos2@mnj.com', 'password': 'nisha@mnj123', 'name': 'Nisha', 'role': 'Online Sale Person 2 (OS2)', 'roleType': 'employee'},
       };
 
       for (final entry in officialAccounts.entries) {
@@ -603,25 +424,30 @@ class FirebaseEmployeeService {
 
       // Ensure HR document has official identity
       try {
-        final hrDoc = await _employeeCollection.doc('MN-HR1001').get();
-        if (!hrDoc.exists) {
-          await _employeeCollection.doc('MN-HR1001').set({
-            'name': 'Mohankumar G',
-            'initials': 'MG',
-            'role': 'HR Manager & Operations Custodian',
-            'dept': 'Administration',
-            'password': 'hr@mnj123',
-          }, SetOptions(merge: true));
-        } else {
-          final d = hrDoc.data() ?? {};
-          final name = d['name']?.toString() ?? '';
-          if (name.contains('Priyanka') || name.isEmpty) {
-            await _employeeCollection.doc('MN-HR1001').update({
+        final hrDocs = ['7', 'MN-HR1001'];
+        for (final docId in hrDocs) {
+          final hrDoc = await _employeeCollection.doc(docId).get();
+          if (!hrDoc.exists) {
+            await _employeeCollection.doc(docId).set({
+              'id': docId,
+              'empNo': '7',
               'name': 'Mohankumar G',
               'initials': 'MG',
               'role': 'HR Manager & Operations Custodian',
               'dept': 'Administration',
-            });
+              'password': 'hr@mnj123',
+            }, SetOptions(merge: true));
+          } else {
+            final d = hrDoc.data() ?? {};
+            final name = d['name']?.toString() ?? '';
+            if (name.contains('Priyanka') || name.isEmpty) {
+              await _employeeCollection.doc(docId).update({
+                'name': 'Mohankumar G',
+                'initials': 'MG',
+                'role': 'HR Manager & Operations Custodian',
+                'dept': 'Administration',
+              });
+            }
           }
         }
       } catch (_) {}
@@ -795,8 +621,8 @@ class FirebaseEmployeeService {
       }
     }
 
-    // Special HR Master Handling: 'hr@mnj.com', 'mn-hr1001'
-    if (query == 'hr@mnj.com' || query == 'mn-hr1001') {
+    // Special HR Master Handling: 'hr@mnj.com', 'mn-hr1001', '7', 'mohankumar@mnj.com'
+    if (query == 'hr@mnj.com' || query == 'mn-hr1001' || query == '7' || query == 'mohankumar@mnj.com') {
       if (password == 'hr@mnj123') {
         try {
           await _auth.signInWithEmailAndPassword(email: 'hr@mnj.com', password: password);
@@ -807,7 +633,7 @@ class FirebaseEmployeeService {
         }
 
         return {
-          'empId': 'MN-HR1001',
+          'empId': '7',
           'name': 'Mohankumar G',
           'email': 'hr@mnj.com',
           'role': 'hr',

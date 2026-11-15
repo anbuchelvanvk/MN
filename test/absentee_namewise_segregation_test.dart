@@ -45,10 +45,10 @@ void main() {
       // Check the subheader for Name-wise arrangement
       expect(find.text('Name-wise alphabetical arrangement (A to Z)'), findsOneWidget);
 
-      // Verify that alphabetical badges exist (A, G, P, etc.)
-      expect(find.text('A'), findsWidgets);
+      // Verify that alphabetical badges exist (G, K, M, etc.)
       expect(find.text('G'), findsWidgets);
-      expect(find.text('P'), findsWidgets);
+      expect(find.text('K'), findsWidgets);
+      expect(find.text('M'), findsWidgets);
     });
 
     testWidgets('DeptHeadPortalScreen Absentees tab renders Section letter headers for multiple absentees', (tester) async {
