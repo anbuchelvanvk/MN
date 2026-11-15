@@ -58,6 +58,9 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
       if (_selectedFilter == 'broadcastNotice') {
         return n.type == CompanyNotificationType.broadcastNotice;
       }
+      if (_selectedFilter == 'acceptances') {
+        return n.actionTag == 'PERM_ACCEPTED' || n.actionTag == 'LEAVE_ACCEPTED';
+      }
       if (_selectedFilter == 'todoReminder') {
         return n.type == CompanyNotificationType.todoReminder;
       }
@@ -238,6 +241,8 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                 _filterChip('teamAlerts', 'Team & Orders', Icons.notifications_none_rounded),
                 const SizedBox(width: 6),
                 _filterChip('broadcastNotice', 'Notices', Icons.campaign_outlined),
+                const SizedBox(width: 6),
+                _filterChip('acceptances', 'Acceptances', Icons.verified_outlined),
                 const SizedBox(width: 6),
                 _filterChip('todoReminder', 'To-Do Reminders', Icons.history_rounded),
                 const SizedBox(width: 6),

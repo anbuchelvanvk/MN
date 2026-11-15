@@ -80,6 +80,8 @@ class CompanyNotification {
   }
 
   IconData get icon {
+    if (actionTag == 'PERM_ACCEPTED') return Icons.check_circle_outline_rounded;
+    if (actionTag == 'LEAVE_ACCEPTED') return Icons.event_available_rounded;
     switch (type) {
       case CompanyNotificationType.birthday:
         return Icons.cake_outlined;
@@ -95,6 +97,9 @@ class CompanyNotification {
   }
 
   Color get color {
+    if (actionTag == 'PERM_ACCEPTED' || actionTag == 'LEAVE_ACCEPTED') {
+      return const Color(0xFF10B981); // Emerald Green for official acceptance
+    }
     switch (type) {
       case CompanyNotificationType.birthday:
         return const Color(0xFFEC4899); // Pink
@@ -110,6 +115,8 @@ class CompanyNotification {
   }
 
   String get categoryLabel {
+    if (actionTag == 'PERM_ACCEPTED') return 'Permission Acceptance';
+    if (actionTag == 'LEAVE_ACCEPTED') return 'Leave Acceptance';
     switch (type) {
       case CompanyNotificationType.birthday:
         return 'Birthday Celebration';

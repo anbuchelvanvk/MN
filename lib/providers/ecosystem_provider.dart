@@ -15,6 +15,7 @@ import '../models/social_cause_models.dart';
 import '../models/company_notification_models.dart';
 import '../models/personal_note_model.dart';
 import '../models/hr_attendance_sheet_models.dart';
+import '../models/acceptance_notification_model.dart';
 import '../services/google_sheets_attendance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/online_order_model.dart';
@@ -230,6 +231,129 @@ class EcosystemProvider extends ChangeNotifier {
 
   // Emergency Medical Leaves (with Mandatory Prescription <= 150 KB)
   List<MedicalLeaveRecord> _medicalLeaveRecords = [];
+
+  // Acceptance Pop-up Notifications (Dispatched to HR, CEO, and TL)
+  final List<AcceptancePopupNotification> _acceptancePopups = [];
+  List<AcceptancePopupNotification> get acceptancePopups => _acceptancePopups;
+
+  /// Returns the latest active unacknowledged acceptance popup for the active session user
+  AcceptancePopupNotification? get currentAcceptancePopupForActiveUser {
+    final emp = currentEmployee;
+    for (final popup in _acceptancePopups) {
+      if (popup.isTargetedFor(empId: emp.id, roleType: emp.roleType)) {
+        return popup;
+      }
+    }
+    return null;
+  }
+
+  void acknowledgeAcceptancePopup(String popupId) {
+    final idx = _acceptancePopups.indexWhere((p) => p.id == popupId);
+    if (idx != -1) {
+      _acceptancePopups[idx].acknowledgeBy(activeEmpId);
+      notifyListeners();
+    }
+  }
+
+  void dismissAllAcceptancePopupsForActiveUser() {
+    for (final popup in _acceptancePopups) {
+      popup.acknowledgeBy(activeEmpId);
+    }
+    notifyListeners();
+  }
+
+  /// Returns designated Team Lead for an employee (defaults to OTM Praveenkumar)
+  Employee? getTeamLeadForEmployee(String empId) {
+    final emp = _employees.firstWhere((e) => e.id == empId, orElse: () => _employees.first);
+    final leads = _employees.where((e) =>
+        (e.roleType == 'team_lead' || e.roleType == 'dept_head' || e.isTeamLead) &&
+        (e.dept == emp.dept || e.dept.toLowerCase().contains('online'))).toList();
+    if (leads.isNotEmpty) return leads.first;
+    final anyLead = _employees.where((e) => e.roleType == 'team_lead' || e.roleType == 'dept_head' || e.isTeamLead).toList();
+    return anyLead.isNotEmpty ? anyLead.first : null;
+  }
+
+  /// Dispatches an official acceptance pop-up and push notification to HR, CEO, and TL
+  void dispatchAcceptanceNotification({
+    required AcceptanceRequestType requestType,
+    required String employeeId,
+    required String employeeName,
+    required String durationOrDays,
+    required String reason,
+    required String approvedBy,
+    String? requesterRole,
+    String? department,
+  }) {
+    final now = DateTime.now();
+    final emp = _employees.firstWhere((e) => e.id == employeeId, orElse: () => _employees.first);
+    final empRole = requesterRole ?? emp.role;
+    final empDept = department ?? emp.dept;
+
+    // Resolve designated leadership recipients: HR, CEO, and TL
+    final tl = getTeamLeadForEmployee(employeeId);
+    final hr = _employees.firstWhere((e) => e.roleType == 'hr' || e.id == 'MN-HR1001', orElse: () => _employees.first);
+    final ceo = _employees.firstWhere((e) => e.roleType == 'ceo' || e.id == 'MN-CEO01', orElse: () => _employees.first);
+
+    final isPerm = requestType == AcceptanceRequestType.permission;
+    final typeLabel = isPerm ? 'Permission Request' : 'Leave Request';
+    final title = '✅ $typeLabel Accepted: ${emp.name}';
+    final message = '$typeLabel ($durationOrDays) for ${emp.name} ($empRole) has been accepted by $approvedBy. Reason: "$reason".';
+
+    final targetEmpIds = <String>{
+      employeeId,
+      hr.id,
+      ceo.id,
+      if (tl != null) tl.id,
+      'MN-CEO01',
+      'MN-HR1001',
+      'MN-TL1002',
+    }.toList();
+
+    // 1. In-App Pop-up notification record (shows floating card to HR, CEO, TL)
+    final popup = AcceptancePopupNotification(
+      id: 'ACCEPT-${now.millisecondsSinceEpoch}',
+      title: title,
+      message: message,
+      requestType: requestType,
+      employeeId: employeeId,
+      employeeName: emp.name,
+      employeeRole: empRole,
+      employeeDept: empDept,
+      durationOrDays: durationOrDays,
+      reason: reason,
+      approvedBy: approvedBy,
+      timestamp: now,
+      targetRoles: const ['hr', 'ceo', 'team_lead'],
+      targetEmpIds: targetEmpIds,
+    );
+
+    _acceptancePopups.insert(0, popup);
+
+    // 2. High-importance Native Push Notification (Lock screen & heads-up)
+    PushNotificationService().showNotification(
+      id: popup.id,
+      title: title,
+      body: '$message Notified to HR (${hr.name}), CEO (${ceo.name}), and TL (${tl?.name ?? 'Praveenkumar M'}).',
+      payload: isPerm ? 'permission_accepted' : 'leave_accepted',
+    );
+
+    // 3. Official Company Notification Center entry (Bell Icon on Top Bar)
+    _companyNotifications.insert(
+      0,
+      CompanyNotification(
+        id: 'NOTIF-${popup.id}',
+        title: title,
+        content: '$message\n\n📢 Official Distribution: HR (${hr.name}), CEO (${ceo.name}), and Team Lead (${tl?.name ?? 'Praveenkumar M'}).',
+        type: CompanyNotificationType.broadcastNotice,
+        timestamp: now,
+        senderName: approvedBy,
+        senderRole: 'Executive Approval Authority',
+        actionTag: isPerm ? 'PERM_ACCEPTED' : 'LEAVE_ACCEPTED',
+      ),
+    );
+
+    notifyListeners();
+  }
 
   // HR Google Sheet Live Attendance State
   HrMonthlyAttendanceSheet? _hrAttendanceSheet;
@@ -2242,13 +2366,16 @@ class EcosystemProvider extends ChangeNotifier {
     _permissionRecords.insert(0, record);
 
     final emp = _employees.firstWhere((e) => e.id == empId, orElse: () => _employees.first);
-    PushNotificationService().showNotification(
-      id: record.id,
-      title: 'Permission Granted: ${hours}h',
-      body: 'HR granted ${emp.name} $hours hrs permission for "$reason".',
-      payload: 'permission_granted',
+    dispatchAcceptanceNotification(
+      requestType: AcceptanceRequestType.permission,
+      employeeId: empId,
+      employeeName: emp.name,
+      durationOrDays: '$hours Hours',
+      reason: reason,
+      approvedBy: 'HR (Mohankumar G)',
+      requesterRole: emp.role,
+      department: emp.dept,
     );
-    notifyListeners();
   }
 
   // Employee requests standard permission
@@ -2452,13 +2579,16 @@ class EcosystemProvider extends ChangeNotifier {
         ceoApprovedBy: old.ceoApprovedBy,
       );
       final emp = _employees.firstWhere((e) => e.id == old.empId, orElse: () => _employees.first);
-      PushNotificationService().showNotification(
-        id: 'APP-${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Permission Approved',
-        body: 'HR approved permission (${old.actualHoursUsed}h) for ${emp.name}.',
-        payload: 'permission_approved',
+      dispatchAcceptanceNotification(
+        requestType: AcceptanceRequestType.permission,
+        employeeId: old.empId,
+        employeeName: emp.name,
+        durationOrDays: '${old.actualHoursUsed} Hours',
+        reason: old.reason,
+        approvedBy: 'HR (Mohankumar G)',
+        requesterRole: old.requesterRole,
+        department: old.department,
       );
-      notifyListeners();
     }
   }
 
@@ -2488,13 +2618,16 @@ class EcosystemProvider extends ChangeNotifier {
         ceoApprovedBy: 'M N Naveenraaj (CEO)',
       );
       final emp = _employees.firstWhere((e) => e.id == old.empId, orElse: () => _employees.first);
-      PushNotificationService().showNotification(
-        id: 'CEO-APPROVE-${DateTime.now().millisecondsSinceEpoch}',
-        title: '✅ Permission Approved by CEO',
-        body: 'CEO accepted permission (${old.actualHoursUsed}h) for ${emp.name}.',
-        payload: 'ceo_permission_approved',
+      dispatchAcceptanceNotification(
+        requestType: AcceptanceRequestType.permission,
+        employeeId: old.empId,
+        employeeName: emp.name,
+        durationOrDays: '${old.actualHoursUsed} Hours',
+        reason: old.reason,
+        approvedBy: 'CEO (M N Naveenraaj)',
+        requesterRole: old.requesterRole,
+        department: old.department,
       );
-      notifyListeners();
     }
   }
 
@@ -2585,13 +2718,16 @@ class EcosystemProvider extends ChangeNotifier {
         reviewedAt: DateTime.now(),
         isEmergency: old.isEmergency,
       );
-      PushNotificationService().showNotification(
-        id: 'CEO-MED-APPROVE-${DateTime.now().millisecondsSinceEpoch}',
-        title: '✅ Emergency Medical Leave Approved by CEO',
-        body: 'CEO approved ${old.days} days emergency medical leave for ${old.empName}.',
-        payload: 'ceo_med_approved',
+      dispatchAcceptanceNotification(
+        requestType: AcceptanceRequestType.leave,
+        employeeId: old.empId,
+        employeeName: old.empName,
+        durationOrDays: '${old.days} Days Medical Leave',
+        reason: old.reason,
+        approvedBy: 'CEO (M N Naveenraaj)',
+        requesterRole: old.empRole,
+        department: old.department,
       );
-      notifyListeners();
     }
   }
 
@@ -3877,7 +4013,17 @@ class EcosystemProvider extends ChangeNotifier {
         reason: reason,
       ),
     );
-    notifyListeners();
+
+    dispatchAcceptanceNotification(
+      requestType: AcceptanceRequestType.leave,
+      employeeId: absentEmpId,
+      employeeName: absentEmp.name,
+      durationOrDays: 'Emergency Leave',
+      reason: reason,
+      approvedBy: 'HR (Mohankumar G)',
+      requesterRole: absentEmp.role,
+      department: absentEmp.dept,
+    );
   }
 
   bool canManageEmployees() {

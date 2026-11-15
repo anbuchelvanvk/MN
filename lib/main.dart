@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'core/services/network_connectivity_service.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/widgets/internet_connection_banner.dart';
+import 'core/widgets/app_notification_host.dart';
 import 'providers/ecosystem_provider.dart';
 import 'views/auth/login_screen.dart';
 
@@ -54,7 +55,9 @@ class MnFamilyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppThemes.burgundySandTheme,
       home: const LoginScreen(),
-      builder: (context, child) => InternetConnectionBanner(child: child!),
+      builder: (context, child) => AppNotificationHost(
+        child: InternetConnectionBanner(child: child!),
+      ),
     );
   }
 }
