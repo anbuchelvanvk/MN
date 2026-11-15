@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 /// Attendance Status Types matching MN Jewel Park HR Master Excel
 enum HrAttendanceDayType {
-  present, // Normal / nil / empty - fully present on duty
+  present, // Normal / nil - fully present on duty (no remarks)
   late, // Yellow - l-1, l-2, l-3... (3 allowed/month)
   leaveCl, // Red - cl (Casual/Common Leave - 1/month)
   leaveLop, // Red - lop (Loss of Pay - 2nd day onwards)
@@ -13,6 +13,7 @@ enum HrAttendanceDayType {
   mnw, // Dark Blue - MNW (Official client/store visit outside)
   holiday, // Gray - H, O, L, I, D, A, Y (Sunday/Company Holiday)
   notApplicable, // - (Not joined yet)
+  pendingUpdate, // Empty cell - awaiting HR update (sheet updated up to 14th)
 }
 
 /// Represents a single day's attendance record from the HR Sheet
@@ -49,6 +50,8 @@ class HrAttendanceDayRecord {
         return const Color(0xFFF1F5F9); // Soft Gray
       case HrAttendanceDayType.notApplicable:
         return const Color(0xFFF8FAFC);
+      case HrAttendanceDayType.pendingUpdate:
+        return const Color(0xFFF8FAFC); // Neutral soft slate
       case HrAttendanceDayType.present:
         return Colors.white;
     }
@@ -72,6 +75,8 @@ class HrAttendanceDayRecord {
         return const Color(0xFFCBD5E1); // Gray border
       case HrAttendanceDayType.notApplicable:
         return const Color(0xFFE2E8F0);
+      case HrAttendanceDayType.pendingUpdate:
+        return const Color(0xFFE2E8F0); // Faint border
       case HrAttendanceDayType.present:
         return const Color(0xFFE2E8F0);
     }
@@ -95,16 +100,39 @@ class HrAttendanceDayRecord {
         return const Color(0xFF64748B); // Slate
       case HrAttendanceDayType.notApplicable:
         return const Color(0xFF94A3B8);
+      case HrAttendanceDayType.pendingUpdate:
+        return const Color(0xFF94A3B8); // Muted slate 400
       case HrAttendanceDayType.present:
         return const Color(0xFF0F172A);
     }
   }
 
-  static HrAttendanceDayRecord parse(int day, String raw) {
+  static HrAttendanceDayRecord parse(int day, String raw, {bool isColumnHoliday = false}) {
     final clean = raw.trim();
     final lower = clean.toLowerCase();
 
-    if (clean.isEmpty || lower == 'nil') {
+    // If whole column is a Sunday/Company Holiday across the showroom
+    if (isColumnHoliday && (clean.isEmpty || RegExp(r'^[holiday]$', caseSensitive: false).hasMatch(clean))) {
+      return HrAttendanceDayRecord(
+        day: day,
+        rawValue: raw.isEmpty ? 'H' : raw,
+        type: HrAttendanceDayType.holiday,
+        displayLabel: 'Holiday (Sunday)',
+      );
+    }
+
+    // Unrecorded / Empty cell (HR has only updated up to the 14th)
+    if (clean.isEmpty) {
+      return HrAttendanceDayRecord(
+        day: day,
+        rawValue: '',
+        type: HrAttendanceDayType.pendingUpdate,
+        displayLabel: 'Pending HR Update',
+      );
+    }
+
+    // Explicit NIL / nil -> Employee was present on duty (no remarks)
+    if (lower == 'nil') {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw,
@@ -326,8 +354,14 @@ class HrEmployeeAttendanceRow {
   /// Official work visits (MNW)
   int get mnwDaysCount => days.values.where((d) => d.type == HrAttendanceDayType.mnw).length;
 
-  /// Full present on duty days
+  /// Full present on duty days (only days marked with 'nil')
   int get presentDaysCount => days.values.where((d) => d.type == HrAttendanceDayType.present).length;
+
+  /// Days with records uploaded by HR
+  int get recordedDaysCount => days.values.where((d) => d.type != HrAttendanceDayType.pendingUpdate).length;
+
+  /// Days pending HR update
+  int get pendingDaysCount => days.values.where((d) => d.type == HrAttendanceDayType.pendingUpdate).length;
 
   /// Human-friendly permission display e.g. "1h 58m"
   String get formattedPermissionUsed {
@@ -364,6 +398,23 @@ class HrMonthlyAttendanceSheet {
 
   int get daysInMonth => 31;
   List<HrEmployeeAttendanceRow> get employees => rows;
+
+  /// The highest day number with actual attendance records uploaded by HR
+  int get latestRecordedDay {
+    int maxDay = 0;
+    for (final row in rows) {
+      for (final entry in row.days.entries) {
+        if (entry.value.type != HrAttendanceDayType.pendingUpdate &&
+            entry.value.type != HrAttendanceDayType.holiday &&
+            entry.value.type != HrAttendanceDayType.notApplicable) {
+          if (entry.key > maxDay) {
+            maxDay = entry.key;
+          }
+        }
+      }
+    }
+    return maxDay > 0 ? maxDay : 14;
+  }
 
   HrEmployeeAttendanceRow? findForEmployee({required String name, String? empNo}) {
     final cleanName = name.trim().toLowerCase();

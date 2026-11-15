@@ -109,6 +109,21 @@ class GoogleSheetsAttendanceService {
 
     final List<HrEmployeeAttendanceRow> rows = [];
 
+    // Pre-detect Sunday & Company Holiday columns (e.g. days 3, 10, 17, 24 in November)
+    final Set<int> holidayDays = {3, 10, 17, 24};
+    for (final line in lines) {
+      final cells = _parseCsvRow(line);
+      for (int day = 1; day <= 31; day++) {
+        final cellIdx = day + 2;
+        if (cellIdx < cells.length) {
+          final val = cells[cellIdx].trim().toUpperCase();
+          if (val == 'H' || val == 'O' || val == 'L' || val == 'I' || val == 'D' || val == 'A' || val == 'Y' || val == 'HOLIDAY') {
+            holidayDays.add(day);
+          }
+        }
+      }
+    }
+
     // Rows 2+ contain staff records
     for (int i = 2; i < lines.length; i++) {
       final line = lines[i].trim();
@@ -130,7 +145,11 @@ class GoogleSheetsAttendanceService {
       for (int day = 1; day <= 31; day++) {
         final cellIdx = day + 2;
         final cellVal = cellIdx < cells.length ? cells[cellIdx] : '';
-        dayMap[day] = HrAttendanceDayRecord.parse(day, cellVal);
+        dayMap[day] = HrAttendanceDayRecord.parse(
+          day,
+          cellVal,
+          isColumnHoliday: holidayDays.contains(day),
+        );
       }
 
       rows.add(

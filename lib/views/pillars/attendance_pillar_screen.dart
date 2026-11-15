@@ -77,8 +77,12 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             child: Center(
               child: LiquidGlassPill(
                 label: isOtm ? 'OTM EXEMPT' : 'PILLAR 4 • HR AUDIT',
-                color: isOtm ? const Color(0xFF10B981) : AppColors.magentaPrimary,
-                icon: isOtm ? Icons.verified : Icons.assignment_turned_in_rounded,
+                color: isOtm
+                    ? const Color(0xFF10B981)
+                    : AppColors.magentaPrimary,
+                icon: isOtm
+                    ? Icons.verified
+                    : Icons.assignment_turned_in_rounded,
               ),
             ),
           ),
@@ -131,7 +135,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           decoration: BoxDecoration(
             color: AppColors.burgundyCard,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF10B981).withOpacity(0.5), width: 1.5),
+            border: Border.all(
+              color: const Color(0xFF10B981).withOpacity(0.5),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF10B981).withOpacity(0.08),
@@ -148,9 +155,16 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: const Color(0xFF10B981).withOpacity(0.12),
-                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4), width: 2),
+                  border: Border.all(
+                    color: const Color(0xFF10B981).withOpacity(0.4),
+                    width: 2,
+                  ),
                 ),
-                child: const Icon(Icons.verified_rounded, size: 36, color: Color(0xFF10B981)),
+                child: const Icon(
+                  Icons.verified_rounded,
+                  size: 36,
+                  color: Color(0xFF10B981),
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -191,9 +205,21 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
                 children: [
-                  _exemptionBadge(Icons.assignment_turned_in, 'Milestone SLA Cadence', const Color(0xFF3B82F6)),
-                  _exemptionBadge(Icons.fingerprint, 'Biometrics Waived', const Color(0xFF10B981)),
-                  _exemptionBadge(Icons.face_retouching_natural, 'Grooming Exempt', const Color(0xFF8B5CF6)),
+                  _exemptionBadge(
+                    Icons.assignment_turned_in,
+                    'Milestone SLA Cadence',
+                    const Color(0xFF3B82F6),
+                  ),
+                  _exemptionBadge(
+                    Icons.fingerprint,
+                    'Biometrics Waived',
+                    const Color(0xFF10B981),
+                  ),
+                  _exemptionBadge(
+                    Icons.face_retouching_natural,
+                    'Grooming Exempt',
+                    const Color(0xFF8B5CF6),
+                  ),
                 ],
               ),
             ],
@@ -202,7 +228,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
         const SizedBox(height: 16),
 
         // Emergency Step-Out Pass for OTM
-        _buildEmergencyPermissionsAndLeavesSection(context, context.watch<EcosystemProvider>()),
+        _buildEmergencyPermissionsAndLeavesSection(
+          context,
+          context.watch<EcosystemProvider>(),
+        ),
       ],
     );
   }
@@ -258,7 +287,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               shape: BoxShape.circle,
               color: AppColors.magentaPrimary.withOpacity(0.12),
             ),
-            child: const Icon(Icons.verified_user_rounded, color: AppColors.magentaPrimary, size: 22),
+            child: const Icon(
+              Icons.verified_user_rounded,
+              color: AppColors.magentaPrimary,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -268,17 +301,25 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'OFFICIAL HR ATTENDANCE RECORDING',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.sandGold,
-                        letterSpacing: 0.5,
+                    Expanded(
+                      child: Text(
+                        'OFFICIAL HR ATTENDANCE RECORDING',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.sandGold,
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF10B981).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(6),
@@ -327,7 +368,9 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
     DateTime? lastSynced,
     bool isSyncing,
   ) {
-    final timeStr = lastSynced != null ? DateFormat('hh:mm a').format(lastSynced) : 'Auto';
+    final timeStr = lastSynced != null
+        ? DateFormat('hh:mm a').format(lastSynced)
+        : 'Auto';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -364,12 +407,16 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               onTap: isSyncing
                   ? null
                   : () async {
-                      await provider.syncGoogleSheetsAttendance(notifyIfUpdated: true);
+                      await provider.syncGoogleSheetsAttendance(
+                        notifyIfUpdated: true,
+                      );
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             backgroundColor: Color(0xFF10B981),
-                            content: Text('Attendance synchronized with Google Sheet!'),
+                            content: Text(
+                              'Attendance synchronized with Google Sheet!',
+                            ),
                             duration: Duration(seconds: 2),
                           ),
                         );
@@ -377,11 +424,16 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     },
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.magentaPrimary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.3)),
+                  border: Border.all(
+                    color: AppColors.magentaPrimary.withOpacity(0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -390,10 +442,17 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                       const SizedBox(
                         width: 12,
                         height: 12,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.magentaPrimary),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.magentaPrimary,
+                        ),
                       )
                     else
-                      const Icon(Icons.sync_rounded, size: 14, color: AppColors.magentaPrimary),
+                      const Icon(
+                        Icons.sync_rounded,
+                        size: 14,
+                        color: AppColors.magentaPrimary,
+                      ),
                     const SizedBox(width: 5),
                     Text(
                       isSyncing ? 'Syncing...' : 'Sync from Sheet',
@@ -414,7 +473,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
   }
 
   // --- 4. FOUR CORE MONTHLY METRICS ---
-  Widget _buildMonthlyKpiGrid(BuildContext context, HrEmployeeAttendanceRow? row) {
+  Widget _buildMonthlyKpiGrid(
+    BuildContext context,
+    HrEmployeeAttendanceRow? row,
+  ) {
     final lateCount = row?.lateCount ?? 0;
     final isLateOver = lateCount > 3;
     final penaltyDays = row?.latePenaltyDays ?? 0;
@@ -437,7 +499,9 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               child: _kpiMetricCard(
                 title: 'LATE COMING',
                 value: '$lateCount / 3 Allowed',
-                subtext: isLateOver ? '⚠️ $penaltyDays Penalty Day(s)' : 'Within monthly grace',
+                subtext: isLateOver
+                    ? '⚠️ $penaltyDays Penalty Day(s)'
+                    : 'Within monthly grace',
                 bgColor: const Color(0xFFFEF9C3),
                 borderColor: const Color(0xFFFACC15),
                 textColor: const Color(0xFF854D0E),
@@ -450,7 +514,8 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             Expanded(
               child: _kpiMetricCard(
                 title: 'LEAVES TAKEN',
-                value: 'CL: ${clUsed.toStringAsFixed(clUsed == clUsed.roundToDouble() ? 0 : 1)}/1 • LOP: ${lopUsed.toStringAsFixed(lopUsed == lopUsed.roundToDouble() ? 0 : 1)}',
+                value:
+                    'CL: ${clUsed.toStringAsFixed(clUsed == clUsed.roundToDouble() ? 0 : 1)}/1 • LOP: ${lopUsed.toStringAsFixed(lopUsed == lopUsed.roundToDouble() ? 0 : 1)}',
                 subtext: 'CL (Casual) • LOP (Penalty)',
                 bgColor: const Color(0xFFFEE2E2),
                 borderColor: const Color(0xFFF87171),
@@ -468,7 +533,9 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               child: _kpiMetricCard(
                 title: 'PERMISSION (4h)',
                 value: '$permUsedStr Used',
-                subtext: isPermOver ? '⚠️ Exceeded 4h Quota' : '$permRemStr Remaining',
+                subtext: isPermOver
+                    ? '⚠️ Exceeded 4h Quota'
+                    : '$permRemStr Remaining',
                 bgColor: const Color(0xFFDCFCE7),
                 borderColor: const Color(0xFF4ADE80),
                 textColor: const Color(0xFF166534),
@@ -623,7 +690,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  '$daysCount Days',
+                  'Updated up to ${sheet?.latestRecordedDay ?? 14}th • $daysCount Days',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -641,19 +708,61 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
-                _legendItem('Present (Nil)', Colors.white, const Color(0xFFE2E8F0), const Color(0xFF0F172A)),
+                _legendItem(
+                  'Present (Nil)',
+                  Colors.white,
+                  const Color(0xFFE2E8F0),
+                  const Color(0xFF0F172A),
+                ),
                 const SizedBox(width: 6),
-                _legendItem('Late (L-1..3)', const Color(0xFFFEF9C3), const Color(0xFFFACC15), const Color(0xFF854D0E)),
+                _legendItem(
+                  'Late (L-1..3)',
+                  const Color(0xFFFEF9C3),
+                  const Color(0xFFFACC15),
+                  const Color(0xFF854D0E),
+                ),
                 const SizedBox(width: 6),
-                _legendItem('Leave (CL/LOP)', const Color(0xFFFEE2E2), const Color(0xFFF87171), const Color(0xFF991B1B)),
+                _legendItem(
+                  'Leave (CL/LOP)',
+                  const Color(0xFFFEE2E2),
+                  const Color(0xFFF87171),
+                  const Color(0xFF991B1B),
+                ),
                 const SizedBox(width: 6),
-                _legendItem('Permission (4h)', const Color(0xFFDCFCE7), const Color(0xFF4ADE80), const Color(0xFF166534)),
+                _legendItem(
+                  'Permission (4h)',
+                  const Color(0xFFDCFCE7),
+                  const Color(0xFF4ADE80),
+                  const Color(0xFF166534),
+                ),
                 const SizedBox(width: 6),
-                _legendItem('Late+1/2D', const Color(0xFFFFEDD5), const Color(0xFFFB923C), const Color(0xFF9A3412)),
+                _legendItem(
+                  'Late+1/2D',
+                  const Color(0xFFFFEDD5),
+                  const Color(0xFFFB923C),
+                  const Color(0xFF9A3412),
+                ),
                 const SizedBox(width: 6),
-                _legendItem('MNW (Duty)', const Color(0xFFDBEAFE), const Color(0xFF3B82F6), const Color(0xFF1E40AF)),
+                _legendItem(
+                  'MNW (Duty)',
+                  const Color(0xFFDBEAFE),
+                  const Color(0xFF3B82F6),
+                  const Color(0xFF1E40AF),
+                ),
                 const SizedBox(width: 6),
-                _legendItem('Holiday', const Color(0xFFF1F5F9), const Color(0xFFCBD5E1), const Color(0xFF64748B)),
+                _legendItem(
+                  'Holiday',
+                  const Color(0xFFF1F5F9),
+                  const Color(0xFFCBD5E1),
+                  const Color(0xFF64748B),
+                ),
+                const SizedBox(width: 6),
+                _legendItem(
+                  'Pending (—)',
+                  const Color(0xFFF8FAFC),
+                  const Color(0xFFE2E8F0),
+                  const Color(0xFF94A3B8),
+                ),
               ],
             ),
           ),
@@ -672,12 +781,14 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             ),
             itemBuilder: (ctx, index) {
               final day = index + 1;
-              final record = row?.days[day] ??
+              final latestDay = sheet?.latestRecordedDay ?? 14;
+              final record =
+                  row?.days[day] ??
                   HrAttendanceDayRecord(
                     day: day,
                     rawValue: '',
-                    type: HrAttendanceDayType.present,
-                    displayLabel: 'Present',
+                    type: day <= latestDay ? HrAttendanceDayType.present : HrAttendanceDayType.pendingUpdate,
+                    displayLabel: day <= latestDay ? 'Present' : 'Pending HR Update',
                   );
 
               final isSelected = _selectedDay == day;
@@ -693,7 +804,9 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     color: record.backgroundColor,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isSelected ? AppColors.magentaPrimary : record.borderColor,
+                      color: isSelected
+                          ? AppColors.magentaPrimary
+                          : record.borderColor,
                       width: isSelected ? 2.0 : 1.0,
                     ),
                     boxShadow: [
@@ -752,36 +865,104 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
       case HrAttendanceDayType.late:
         return Text(
           record.rawValue.trim().toUpperCase(),
-          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: record.textColor),
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.bold,
+            color: record.textColor,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         );
       case HrAttendanceDayType.leaveCl:
-        return const Text('CL', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)));
+        return const Text(
+          'CL',
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF991B1B),
+          ),
+        );
       case HrAttendanceDayType.leaveLop:
-        return const Text('LOP', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)));
+        return const Text(
+          'LOP',
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF991B1B),
+          ),
+        );
       case HrAttendanceDayType.leaveHalfDay:
-        return const Text('1/2D', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)));
+        return const Text(
+          '1/2D',
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF991B1B),
+          ),
+        );
       case HrAttendanceDayType.permission:
         return Text(
           record.rawValue.trim(),
-          style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.bold, color: record.textColor),
+          style: TextStyle(
+            fontSize: 7.5,
+            fontWeight: FontWeight.bold,
+            color: record.textColor,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         );
       case HrAttendanceDayType.lateAndHalfDay:
-        return const Text('L+1/2', style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.bold, color: Color(0xFF9A3412)));
+        return const Text(
+          'L+1/2',
+          style: TextStyle(
+            fontSize: 7.5,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF9A3412),
+          ),
+        );
       case HrAttendanceDayType.mnw:
-        return const Text('MNW', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)));
+        return const Text(
+          'MNW',
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E40AF),
+          ),
+        );
       case HrAttendanceDayType.holiday:
         return Text(
-          record.rawValue.trim().isNotEmpty ? record.rawValue.trim().toUpperCase() : 'H',
-          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+          record.rawValue.trim().isNotEmpty
+              ? record.rawValue.trim().toUpperCase()
+              : 'H',
+          style: const TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF64748B),
+          ),
         );
       case HrAttendanceDayType.notApplicable:
-        return const Text('-', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)));
+        return const Text(
+          '-',
+          style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+        );
+      case HrAttendanceDayType.pendingUpdate:
+        return const Text(
+          '—',
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFCBD5E1),
+          ),
+        );
       case HrAttendanceDayType.present:
-        return const Text('P', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF10B981)));
+        return const Text(
+          'P',
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF10B981),
+          ),
+        );
     }
   }
 
@@ -847,7 +1028,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xFF64748B),
+                  ),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ],
@@ -857,9 +1041,19 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             const SizedBox(height: 14),
 
             // Detail Attributes
-            _detailRow('Status Category', record.displayLabel, record.textColor),
+            _detailRow(
+              'Status Category',
+              record.displayLabel,
+              record.textColor,
+            ),
             const SizedBox(height: 8),
-            _detailRow('Sheet Raw Value', record.rawValue.isEmpty ? 'nil (Fully Present)' : record.rawValue, AppColors.textDark),
+            _detailRow(
+              'Sheet Raw Value',
+              record.type == HrAttendanceDayType.pendingUpdate
+                  ? '— (Awaiting HR Upload)'
+                  : (record.rawValue.isEmpty ? 'nil (Fully Present)' : record.rawValue),
+              AppColors.textDark,
+            ),
             if (record.permissionMinutes > 0) ...[
               const SizedBox(height: 8),
               _detailRow(
@@ -869,7 +1063,15 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               ),
             ],
             const SizedBox(height: 8),
-            _detailRow('Official Authority', 'HR Department (Uploaded & Audited)', AppColors.sandGold),
+            _detailRow(
+              'Official Authority',
+              record.type == HrAttendanceDayType.pendingUpdate
+                  ? 'HR Department (Pending Entry)'
+                  : (record.type == HrAttendanceDayType.holiday
+                      ? 'Showroom Schedule (Weekly Holiday)'
+                      : 'HR Department (Uploaded & Audited)'),
+              AppColors.sandGold,
+            ),
 
             const SizedBox(height: 16),
             Container(
@@ -879,9 +1081,15 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: const Text(
-                '📌 Note: If you have any discrepancy regarding this date, please reach out to HR for verification and spreadsheet adjustment.',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.35),
+              child: Text(
+                record.type == HrAttendanceDayType.pendingUpdate
+                    ? '📌 Note: Attendance records in the HR master sheet are currently updated up to the 14th. When HR uploads data for this date, it will automatically reflect here.'
+                    : '📌 Note: If you have any discrepancy regarding this date, please reach out to HR for verification and spreadsheet adjustment.',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                  height: 1.35,
+                ),
               ),
             ),
           ],
@@ -894,17 +1102,27 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+        ),
         Text(
           value,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: valueColor),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12.5,
+            fontWeight: FontWeight.bold,
+            color: valueColor,
+          ),
         ),
       ],
     );
   }
 
   // --- 6. EMERGENCY PERMISSIONS (4H QUOTA) & MEDICAL LEAVE SECTION ---
-  Widget _buildEmergencyPermissionsAndLeavesSection(BuildContext context, EcosystemProvider provider) {
+  Widget _buildEmergencyPermissionsAndLeavesSection(
+    BuildContext context,
+    EcosystemProvider provider,
+  ) {
     final permissions = provider.currentEmployeePermissionRecords;
     final medicalLeaves = provider.currentEmployeeMedicalLeaves;
     final usedHours = provider.totalPermissionHoursUsed;
@@ -927,7 +1145,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   color: AppColors.sandGold.withOpacity(0.18),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.flash_on, color: AppColors.sandGold, size: 16),
+                child: const Icon(
+                  Icons.flash_on,
+                  color: AppColors.sandGold,
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -945,7 +1167,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     ),
                     const Text(
                       'Direct CEO & HR approval pipeline',
-                      style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -962,14 +1187,27 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.sandGold,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 9,
+                      horizontal: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
                   ),
                   onPressed: () => EmergencyPermissionModal.show(context),
-                  icon: const Icon(Icons.access_time_rounded, size: 13, color: Colors.white),
+                  icon: const Icon(
+                    Icons.access_time_rounded,
+                    size: 13,
+                    color: Colors.white,
+                  ),
                   label: const Text(
                     'Permission',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -979,14 +1217,27 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEF4444),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 9,
+                      horizontal: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9),
+                    ),
                   ),
                   onPressed: () => EmergencyMedicalLeaveModal.show(context),
-                  icon: const Icon(Icons.medical_services_outlined, size: 13, color: Colors.white),
+                  icon: const Icon(
+                    Icons.medical_services_outlined,
+                    size: 13,
+                    color: Colors.white,
+                  ),
                   label: const Text(
                     'Medical Leave',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -998,10 +1249,14 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isOverQuota ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
+              color: isOverQuota
+                  ? const Color(0xFFFFFBEB)
+                  : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isOverQuota ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+                color: isOverQuota
+                    ? const Color(0xFFFDE68A)
+                    : const Color(0xFFE2E8F0),
                 width: 1.0,
               ),
             ),
@@ -1012,11 +1267,21 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('4-Hour Monthly Quota Tally', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                      const Text(
+                        '4-Hour Monthly Quota Tally',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Text(
                         '${usedHours.toStringAsFixed(1)}h Used • ${remainingHours.toStringAsFixed(1)}h Remaining',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -1024,23 +1289,32 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: isOverQuota
                         ? const Color(0xFFFEF3C7)
                         : const Color(0xFFECFDF5),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isOverQuota ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                      color: isOverQuota
+                          ? const Color(0xFFF59E0B)
+                          : const Color(0xFF10B981),
                       width: 0.8,
                     ),
                   ),
                   child: Text(
-                    isOverQuota ? '⚠️ Over 4h (Penalty Trigger)' : 'Quota Healthy',
+                    isOverQuota
+                        ? '⚠️ Over 4h (Penalty Trigger)'
+                        : 'Quota Healthy',
                     style: TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold,
-                      color: isOverQuota ? const Color(0xFFD97706) : const Color(0xFF059669),
+                      color: isOverQuota
+                          ? const Color(0xFFD97706)
+                          : const Color(0xFF059669),
                     ),
                   ),
                 ),
@@ -1053,29 +1327,43 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             const SizedBox(height: 12),
             const Text(
               'Your Active Requests:',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandLight,
+              ),
             ),
             const SizedBox(height: 6),
             ...permissions.map((p) {
               final isOrange = p.isOrangeFlagged || p.requestedHours > 4.0;
-              final durStr = p.actualHoursUsed < 1.0 ? '${(p.actualHoursUsed * 60).round()}m' : '${p.actualHoursUsed}h';
+              final durStr = p.actualHoursUsed < 1.0
+                  ? '${(p.actualHoursUsed * 60).round()}m'
+                  : '${p.actualHoursUsed}h';
               return Container(
                 margin: const EdgeInsets.only(bottom: 6),
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: isOrange ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
+                  color: isOrange
+                      ? const Color(0xFFFFFBEB)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isOrange ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+                    color: isOrange
+                        ? const Color(0xFFFDE68A)
+                        : const Color(0xFFE2E8F0),
                     width: 1.0,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      isOrange ? Icons.warning_amber_rounded : Icons.timer_outlined,
+                      isOrange
+                          ? Icons.warning_amber_rounded
+                          : Icons.timer_outlined,
                       size: 15,
-                      color: isOrange ? const Color(0xFFD97706) : AppColors.sandGold,
+                      color: isOrange
+                          ? const Color(0xFFD97706)
+                          : AppColors.sandGold,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -1089,21 +1377,33 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: isOrange ? const Color(0xFFD97706) : AppColors.textDark,
+                                  color: isOrange
+                                      ? const Color(0xFFD97706)
+                                      : AppColors.textDark,
                                 ),
                               ),
                               if (isOrange) ...[
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFEF3C7),
                                     borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: const Color(0xFFF59E0B), width: 0.6),
+                                    border: Border.all(
+                                      color: const Color(0xFFF59E0B),
+                                      width: 0.6,
+                                    ),
                                   ),
                                   child: const Text(
                                     '>4h Mark',
-                                    style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                                    style: TextStyle(
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFD97706),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1111,7 +1411,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                           ),
                           Text(
                             p.reason,
-                            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textMuted,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1119,20 +1422,23 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: p.status == 'Approved'
                             ? const Color(0xFFECFDF5)
                             : p.status == 'Rejected'
-                                ? const Color(0xFFFFF1F2)
-                                : const Color(0xFFFDF2F8),
+                            ? const Color(0xFFFFF1F2)
+                            : const Color(0xFFFDF2F8),
                         borderRadius: BorderRadius.circular(4),
                         border: Border.all(
                           color: p.status == 'Approved'
                               ? const Color(0xFFA7F3D0)
                               : p.status == 'Rejected'
-                                  ? const Color(0xFFFECDD3)
-                                  : const Color(0xFFFBCFE8),
+                              ? const Color(0xFFFECDD3)
+                              : const Color(0xFFFBCFE8),
                           width: 0.8,
                         ),
                       ),
@@ -1144,8 +1450,8 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                           color: p.status == 'Approved'
                               ? const Color(0xFF059669)
                               : p.status == 'Rejected'
-                                  ? const Color(0xFFE11D48)
-                                  : AppColors.sandGold,
+                              ? const Color(0xFFE11D48)
+                              : AppColors.sandGold,
                         ),
                       ),
                     ),
@@ -1164,7 +1470,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.local_hospital_outlined, size: 15, color: Color(0xFFEF4444)),
+                    const Icon(
+                      Icons.local_hospital_outlined,
+                      size: 15,
+                      color: Color(0xFFEF4444),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -1172,11 +1482,18 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                         children: [
                           Text(
                             'Medical Leave (${m.days} Days)',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
                           ),
                           Text(
                             m.reason,
-                            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textMuted,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1185,13 +1502,27 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     ),
                     TextButton.icon(
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      onPressed: () => PrescriptionViewerDialog.show(context, leave: m),
-                      icon: const Icon(Icons.image, size: 12, color: AppColors.sandGold),
-                      label: const Text('Prescription', style: TextStyle(fontSize: 9.5, color: AppColors.sandGold)),
+                      onPressed: () =>
+                          PrescriptionViewerDialog.show(context, leave: m),
+                      icon: const Icon(
+                        Icons.image,
+                        size: 12,
+                        color: AppColors.sandGold,
+                      ),
+                      label: const Text(
+                        'Prescription',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          color: AppColors.sandGold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -1204,16 +1535,35 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
   }
 
   // --- 7. GREEN LIGHT IMPACT GATEWAY ---
-  Widget _buildGreenLightGateway(BuildContext context, EcosystemProvider provider) {
+  Widget _buildGreenLightGateway(
+    BuildContext context,
+    EcosystemProvider provider,
+  ) {
+    final color = provider.holisticTierColor;
+    final isRed = color == AppColors.ragRed;
+    final isGreen = color == AppColors.ragGreen;
+    final pillBg = isRed
+        ? const Color(0xFFFFF1F2)
+        : (isGreen ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB));
+    final pillBorder = isRed
+        ? const Color(0xFFFECDD3)
+        : (isGreen ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A));
+    final pillTextColor = isRed
+        ? const Color(0xFFE11D48)
+        : (isGreen ? const Color(0xFF059669) : const Color(0xFFD97706));
+
+    final isAttendanceOnTime = provider.hasLoggedAttendanceToday && provider.isAttendanceOnTime;
+    final statusPillBg = isAttendanceOnTime ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2);
+    final statusPillBorder = isAttendanceOnTime ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3);
+    final statusPillTextColor = isAttendanceOnTime ? const Color(0xFF059669) : const Color(0xFFE11D48);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (ctx) => const TierPillarScreen(),
-            ),
+            MaterialPageRoute(builder: (ctx) => const TierPillarScreen()),
           );
         },
         borderRadius: BorderRadius.circular(16),
@@ -1231,41 +1581,109 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               ),
             ],
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.sandGold.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.workspace_premium_outlined, color: AppColors.sandGold, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sovereign Green Light Impact',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.sandLight,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: pillBg,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: pillBorder, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.light_mode, size: 12, color: pillTextColor),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              'Green Factor',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: pillTextColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Pillar 4 attendance & leaves tally into your monthly Sovereign Tier scoring',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
-                        color: AppColors.textMuted,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusPillBg,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: statusPillBorder, width: 1),
+                      ),
+                      child: Text(
+                        isAttendanceOnTime ? 'On-Time Verified' : 'Attendance Pending',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: statusPillTextColor,
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.sandGold),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.sandGold.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_outlined,
+                      color: AppColors.sandGold,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sovereign Green Light Impact',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Pillar 4 attendance & leaves tally into your monthly Sovereign Tier scoring',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: AppColors.sandGold,
+                  ),
+                ],
+              ),
             ],
           ),
         ),

@@ -18,6 +18,27 @@ void main() {
       expect(mohan!.sNo, equals(5));
       expect(mohan.empNo, equals('7'));
 
+      // Verify that sheet is updated up to the 14th only
+      expect(sheet.latestRecordedDay, equals(14));
+
+      // Day 1..14 are recorded (Day 3 & 10 are holidays, Day 1..2 & 4..9 & 11..14 are present)
+      expect(mohan.days[1]!.type, equals(HrAttendanceDayType.present));
+      expect(mohan.days[3]!.type, equals(HrAttendanceDayType.holiday));
+      expect(mohan.days[14]!.type, equals(HrAttendanceDayType.present));
+
+      // Day 15, 16, 18.. are pending HR updates (NOT present!)
+      expect(mohan.days[15]!.type, equals(HrAttendanceDayType.pendingUpdate));
+      expect(mohan.days[18]!.type, equals(HrAttendanceDayType.pendingUpdate));
+      expect(mohan.days[31]!.type, equals(HrAttendanceDayType.pendingUpdate));
+
+      // Days 17 & 24 are Sundays / Holidays
+      expect(mohan.days[17]!.type, equals(HrAttendanceDayType.holiday));
+      expect(mohan.days[24]!.type, equals(HrAttendanceDayType.holiday));
+
+      // Present days count should only count actual 'nil' days up to 14th (12 days for Mohankumar)
+      expect(mohan.presentDaysCount, equals(12));
+      expect(mohan.pendingDaysCount, greaterThan(0));
+
       // Check Gokulakrishnan K (EMP NO: 6)
       final gokul = sheet.findForEmployee(name: 'Gokulakrishnan K', empNo: '6');
       expect(gokul, isNotNull);
@@ -40,10 +61,15 @@ void main() {
     });
 
     test('Color category parsing and display labels match rules', () {
-      // 1. Present / nil / empty
+      // 1. Present / nil
       final p1 = HrAttendanceDayRecord.parse(1, 'nil');
       expect(p1.type, equals(HrAttendanceDayType.present));
       expect(p1.displayLabel, equals('Present'));
+
+      // Empty cell should be pendingUpdate (awaiting HR entry)
+      final pEmpty = HrAttendanceDayRecord.parse(18, '');
+      expect(pEmpty.type, equals(HrAttendanceDayType.pendingUpdate));
+      expect(pEmpty.displayLabel, equals('Pending HR Update'));
 
       // 2. Late coming (Yellow: l-1, l-2)
       final l1 = HrAttendanceDayRecord.parse(2, 'l-1');
