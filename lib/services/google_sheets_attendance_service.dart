@@ -78,29 +78,39 @@ class GoogleSheetsAttendanceService {
   }
 
   /// Transform any Google Sheets link into a direct CSV export endpoint
-  static String formatToCsvExportUrl(String rawUrl) {
+  static String formatToCsvExportUrl(String rawUrl, {int month = 11}) {
     final clean = rawUrl.trim();
-    if (clean.isEmpty) return defaultSheetUrl;
+    final defaultGid = monthGids[month] ?? '1237865007';
+    if (clean.isEmpty) {
+      return 'https://docs.google.com/spreadsheets/d/$spreadsheetId/gviz/tq?tqx=out:csv&gid=$defaultGid';
+    }
 
     if (clean.contains('/gviz/tq') && clean.contains('out:csv')) {
+      if (!clean.contains('gid=')) {
+        return '$clean&gid=$defaultGid';
+      }
       return clean;
     }
 
     final idMatch = RegExp(r'/spreadsheets/d/([a-zA-Z0-9-_]+)').firstMatch(clean);
-    if (idMatch != null) {
-      final sheetId = idMatch.group(1);
-      return 'https://docs.google.com/spreadsheets/d/$sheetId/gviz/tq?tqx=out:csv';
-    }
+    final sheetId = idMatch != null ? idMatch.group(1) : spreadsheetId;
 
-    return clean;
+    final gidMatch = RegExp(r'[?&#]gid=([0-9]+)').firstMatch(clean);
+    final gid = gidMatch != null ? gidMatch.group(1) : defaultGid;
+
+    return 'https://docs.google.com/spreadsheets/d/$sheetId/gviz/tq?tqx=out:csv&gid=$gid';
   }
 
   /// Fetch live attendance sheet data from Google Sheets
   static Future<({HrMonthlyAttendanceSheet sheet, List<int> updatedDays})> fetchAttendanceSheet({
     String? customUrl,
+    int month = 11,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final url = formatToCsvExportUrl(customUrl ?? prefs.getString(_prefCustomUrlKey) ?? defaultSheetUrl);
+    final url = formatToCsvExportUrl(
+      customUrl ?? prefs.getString(_prefCustomUrlKey) ?? defaultSheetUrl,
+      month: month,
+    );
 
     String? newCsv;
     try {
@@ -217,6 +227,16 @@ class GoogleSheetsAttendanceService {
 
       if (nameStr.isEmpty || nameStr == '0') continue;
 
+      // Strictly retain ONLY the active workforce requested by the user:
+      // Gokulakrishnan (6), Mohankumar (7), Mithra (33), Kaaviya (65), Nisha (67)
+      final allowedEmpNos = {'6', '7', '33', '65', '67'};
+      final allowedNames = {'gokulakrishnan', 'mohankumar', 'mithra', 'kaaviya', 'nisha'};
+      final cleanLowerName = nameStr.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
+      final isAllowed = allowedEmpNos.contains(empNoStr) ||
+          allowedNames.any((allowed) => cleanLowerName.contains(allowed));
+
+      if (!isAllowed) continue;
+
       final sNo = int.tryParse(sNoStr) ?? (i - 1);
       final Map<int, HrAttendanceDayRecord> dayMap = {};
 
@@ -279,39 +299,10 @@ class GoogleSheetsAttendanceService {
   static const String _embeddedNovemberSeedCsv = '''
 "NOVEMBER","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""
 "","","Name","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","Leave /Late/Permission","","",""
-"1","1","Sakthivel","nil","nil","","nil","nil","nil","nil","nil","nil","","nil","nil","nil","1:58 m","","","","","","","","","","","","","","","","","","","","",""
-"2","2","Sivakumar","nil","nil","","nil","nil","nil","nil","1/2 d","cl","","l-1","nil","nil","mnw","","","","","","","","","","","","","","","","","","","","",""
-"3","4","Balaji","nil","nil","","nil","nil","nil","nil","nil","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
 "4","6","Gokulakrishnan","nil","nil","","nil","nil","nil","nil","2:49 m","nil","","nil","l-1","nil","1/2 d","","","","","","","","","","","","","","","","","","","","",""
 "5","7","Mohankumar","nil","nil","","nil","nil","nil","nil","nil","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"6","10","Somu","nil","nil","H","nil","nil","nil","l-1","nil","nil","H","nil","nil","nil","1:20 m","","","H","","","","","","","H","","","","","","","","","","",""
-"7","13","Vidhya","nil","nil","O","nil","nil","nil","nil","nil","nil","O","nil","nil","nil","nil","","","O","","","","","","","O","","","","","","","","","","","H"
-"8","16","Sankar","cl","lop","L","nil","nil","nil","nil","l-1","nil","L","l-2","nil","nil","nil","","","L","","","","","","","L","","","","","","","","","late","","O"
-"9","17","Lakshmi Priya","nil","nil","I","nil","nil","nil","nil","2 h","l-1","I","nil","nil","cl","lop","","","I","","","","","","","I","","","","","","","","","leave","","L"
-"10","22","Suganya","nil","nil","D","nil","cl","nil","l-1","lop","nil","D","nil","nil","nil","nil","","","D","","","","","","","D","","","","","","","","","per","","I"
-"11","24","Pavithra","nil","nil","A","nil","26 m","nil","nil","cl","33 m","A","nil","nil","nil","nil","","","A","","","","","","","A","","","","","","","","","l- &1/2d","","D"
-"12","28","Gokul  ( Sales )","nil","nil","Y","nil","nil","nil","nil","nil","nil","Y","nil","nil","nil","nil","","","Y","","","","","","","Y","","","","","","","","","mnw","","A"
-"13","31","Komathi","nil","l-1","","nil","nil","nil","l-2","l-3","33 m","","nil","nil","nil","1/2 d","","","","","","","","","","","","","","","","","","","","","Y"
-"14","32","Thirisha","nil","nil","","nil","nil","nil","nil","35 m","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
 "15","33","Mithra","nil","nil","","nil","l-1","nil","1:15 m","cl","lop","","nil","l-2","l-3","nil","","","","","","","","","","","","","","","","","","","","",""
-"16","34","Priyanka","nil","cl","H","lop","nil","nil","nil","l-1","nil","H","nil","nil","lop","l-2","","","H","","","","","","","H","","","","","","","","","","",""
-"17","35","Gomathi","l-1","nil","O","nil","l-2","nil","2:08 m","nil","1/2 d","O","nil","cl","nil","l-3","","","O","","","","","","","O","","","","","","","","","","",""
-"18","50","Bharathi Raja","nil","nil","L","nil","nil","nil","nil","nil","nil","L","nil","nil","nil","nil","","","L","","","","","","","L","","","","","","","","","","",""
-"19","52","Siva ( Driver )","nil","nil","I","nil","mnw","nil","nil","nil","nil","I","nil","nil","nil","nil","","","I","","","","","","","I","","","","","","","","","","",""
-"20","55","Sandhiya","nil","cl","D","l-1","nil","nil","nil","1:05 m","nil","D","nil","nil","l-2","1/2 d","","","D","","","","","","","D","","","","","","","","","","",""
-"21","57","Kowsalya","nil","l-1","A","nil","nil","nil","nil","nil","nil","A","nil","nil","nil","cl","","","A","","","","","","","A","","","","","","","","","","",""
-"22","60","Dhamodarakumar","nil","38 m","Y","cl","nil","nil","nil","l-1","l-2","Y","nil","3:15 m","nil","nil","","","Y","","","","","","","Y","","","","","","","","","","",""
-"23","63","Vijayalakshmi","nil","nil","","nil","2:48 m","nil","cl","nil","nil","","lop","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"24","64","Santhi","nil","nil","","nil","nil","nil","nil","1/2 d","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
 "25","65","Kaaviya","nil","nil","","nil","nil","nil","nil","cl","nil","","l-1","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"26","66","Papitha","nil","nil","","nil","nil","nil","nil","nil","nil","","nil","nil","cl","nil","","","","","","","","","","","","","","","","","","","","",""
 "27","67","Nisha","nil","nil","","nil","nil","nil","l-1","nil","nil","","l-2","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"28","69","Abitha","nil","nil","","nil","nil","nil","nil","nil","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"29","70","Rajkumar","nil","nil","","nil","nil","l-1","nil","1/2 d","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"30","71","Harini","nil","nil","","nil","nil","nil","4 h","l-1","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"31","72","Sathya","nil","nil","","nil","nil","nil","nil","40 m","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"32","73","Bernet asha","nil","nil","","cl","l-1","l-2","nil","nil","nil","","nil","nil","1:58 m","21 m","","","","","","","","","","","","","","","","","","","","",""
-"33","74","Karthika","nil","nil","","nil","nil","nil","1:42 m","l-1","47 m","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
-"34","","Gunasekaran","-","-","","-","-","-","-","nil","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
 ''';
 }

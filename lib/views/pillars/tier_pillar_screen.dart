@@ -217,7 +217,14 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
             children: [
               Expanded(child: _buildMiniScorePill('P3: Profile', s3, Icons.badge_rounded)),
               const SizedBox(width: 8),
-              Expanded(child: _buildMiniScorePill('P4: Attendance', s4, Icons.assignment_turned_in_rounded)),
+              Expanded(
+                child: _buildMiniScorePill(
+                  provider.currentEmployee.hasAttendanceAndGrooming ? 'P4: Attendance' : 'P4: Attendance',
+                  s4,
+                  Icons.assignment_turned_in_rounded,
+                  isExempt: !provider.currentEmployee.hasAttendanceAndGrooming,
+                ),
+              ),
             ],
           ),
         ],
@@ -225,10 +232,12 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildMiniScorePill(String title, int score, IconData icon) {
-    final color = score >= 80
-        ? const Color(0xFF10B981)
-        : (score >= 60 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444));
+  Widget _buildMiniScorePill(String title, int score, IconData icon, {bool isExempt = false}) {
+    final color = isExempt
+        ? const Color(0xFF3B82F6)
+        : (score >= 80
+            ? const Color(0xFF10B981)
+            : (score >= 60 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444)));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -259,7 +268,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
-                    value: (score / 100.0).clamp(0.0, 1.0),
+                    value: isExempt ? 1.0 : (score / 100.0).clamp(0.0, 1.0),
                     minHeight: 3.5,
                     backgroundColor: Colors.black.withOpacity(0.06),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -270,9 +279,9 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
           ),
           const SizedBox(width: 8),
           Text(
-            '$score%',
+            isExempt ? 'Exempt' : '$score%',
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
+              fontSize: isExempt ? 10 : 12,
               fontWeight: FontWeight.w800,
               color: color,
             ),

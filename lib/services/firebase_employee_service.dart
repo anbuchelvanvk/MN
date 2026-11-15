@@ -49,12 +49,14 @@ class FirebaseEmployeeService {
   CollectionReference<Map<String, dynamic>> get _ordersCollection =>
       _firestore.collection('online_orders');
 
-  /// Stream real-time employee list for Online Department
+  /// Stream real-time employee list for Online Department (strictly filtered to allowed official workforce)
   Stream<List<Employee>> streamEmployees() {
+    const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
     return _employeeCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Employee.fromMap(doc.data(), doc.id);
-      }).toList();
+      return snapshot.docs
+          .map((doc) => Employee.fromMap(doc.data(), doc.id))
+          .where((emp) => validIds.contains(emp.id) || validIds.contains(emp.empNo))
+          .toList();
     });
   }
 
@@ -422,6 +424,20 @@ class FirebaseEmployeeService {
         }
       } catch (_) {}
 
+      // Actively purge all obsolete mock employees from Cloud Firestore
+      try {
+        final allDocs = await _employeeCollection.get();
+        const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
+        for (final doc in allDocs.docs) {
+          final id = doc.id;
+          final d = doc.data();
+          final empNo = d['empNo']?.toString() ?? '';
+          if (!validIds.contains(id) && !validIds.contains(empNo)) {
+            await doc.reference.delete();
+          }
+        }
+      } catch (_) {}
+
       // Ensure HR document has official identity
       try {
         final hrDocs = ['7', 'MN-HR1001'];
@@ -448,6 +464,20 @@ class FirebaseEmployeeService {
                 'dept': 'Administration',
               });
             }
+          }
+        }
+      } catch (_) {}
+
+      // Actively purge all obsolete mock employees from Cloud Firestore
+      try {
+        final allDocs = await _employeeCollection.get();
+        const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
+        for (final doc in allDocs.docs) {
+          final id = doc.id;
+          final d = doc.data();
+          final empNo = d['empNo']?.toString() ?? '';
+          if (!validIds.contains(id) && !validIds.contains(empNo)) {
+            await doc.reference.delete();
           }
         }
       } catch (_) {}

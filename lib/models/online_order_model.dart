@@ -73,7 +73,7 @@ class OnlineOrderModel {
   final String orderId;
   final String customerName;
   final String salesChannel; // WhatsApp, Website, Instagram, Direct Call, Showroom
-  final String handledByEmpId; // 'MN-1007' (OS1 Kaaviya), 'MN-1008' (OS2 Nisha), etc.
+  final String handledByEmpId; // '65' (OS1 Kaaviya), '67' (OS2 Nisha), etc.
   final String handledByName;
   final String brand; // 'Vadivam' or 'MN Jewel Park'
   final String expectedDeliveryDate; // YYYY-MM-DD

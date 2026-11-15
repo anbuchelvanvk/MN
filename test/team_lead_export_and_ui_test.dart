@@ -11,6 +11,7 @@ void main() {
   group('Team Lead Export & Role Restrictions Test', () {
     testWidgets('RoleAppBar hides export button when onExportPressed is null (Employee)', (tester) async {
       final eco = EcosystemProvider();
+      eco.setActiveEmpId('6'); // Active showroom staff requiring attendance
 
       await tester.pumpWidget(
         MaterialApp(
@@ -37,6 +38,7 @@ void main() {
 
     testWidgets('Team Lead export modal is strictly scoped to team members and excludes Master Ledger', (tester) async {
       final eco = EcosystemProvider();
+      eco.setActiveEmpId('6'); // Active showroom staff requiring attendance
       eco.setActiveEmpId('MN-TL1002'); // Team Lead Praveenkumaar
 
       await tester.pumpWidget(
@@ -81,6 +83,7 @@ void main() {
 
     testWidgets('AttendancePillarScreen has removed punch logs area for all users and displays high-contrast gateway card', (tester) async {
       final eco = EcosystemProvider();
+      eco.setActiveEmpId('6'); // Active showroom staff requiring attendance
 
       await tester.pumpWidget(
         MaterialApp(

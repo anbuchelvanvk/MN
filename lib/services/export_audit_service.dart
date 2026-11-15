@@ -399,8 +399,8 @@ class ExportAuditService {
       orders = orders.where((o) =>
           o.handledByEmpId == targetedEmp.id ||
           o.reallocatedToEmpId == targetedEmp.id ||
-          (targetedEmp.id == 'MN-1008' && o.brand == 'Vadivam') ||
-          (targetedEmp.id == 'MN-1007' && o.brand == 'MN Jewel Park') ||
+          (targetedEmp.id == '67' && o.brand == 'Vadivam') ||
+          (targetedEmp.id == '65' && o.brand == 'MN Jewel Park') ||
           targetedEmp.roleType == 'ceo' ||
           targetedEmp.roleType == 'team_lead').toList();
     }

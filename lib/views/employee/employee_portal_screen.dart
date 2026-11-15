@@ -352,21 +352,23 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                       '',
                       () => EmergencyMedicalLeaveModal.show(context),
                     ),
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'Attendance Ledger',
-                      Icons.fingerprint,
-                      '',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                            value: eco,
-                            child: const AttendancePillarScreen(),
+                    if (emp.hasAttendanceAndGrooming) ...[
+                      const SizedBox(height: 8),
+                      _verticalActionTile(
+                        'Attendance Ledger',
+                        Icons.fingerprint,
+                        '',
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                              value: eco,
+                              child: const AttendancePillarScreen(),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 8),
                     _verticalActionTile(
                       'Digital ID Vault',
@@ -405,7 +407,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
           const SizedBox(height: 14),
 
           // Online Orders Handler (Dedicated Quick Access for OS1, OS2 & Sales Team)
-          if (emp.id == '65' || emp.id == '67' || emp.id == 'MN-1007' || emp.id == 'MN-1008' || emp.role.toLowerCase().contains('sales') || emp.role.toLowerCase().contains('online')) ...[
+          if (emp.id == '65' || emp.id == '67' || emp.role.toLowerCase().contains('sales') || emp.role.toLowerCase().contains('online')) ...[
             LiquidGlassCard(
               padding: const EdgeInsets.all(14),
               borderRadius: 16,

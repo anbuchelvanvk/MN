@@ -207,8 +207,12 @@ class Employee {
       id.toUpperCase() == 'MN-TL1002' ||
       email.toLowerCase().contains('praveenkumar');
 
-  /// Regular staff require attendance and grooming; OTM is exempt.
-  bool get hasAttendanceAndGrooming => !isOtm;
+  /// Regular staff require attendance and grooming; CEO and OTM are completely exempt.
+  bool get hasAttendanceAndGrooming =>
+      !isOtm &&
+      roleType.toLowerCase() != 'ceo' &&
+      id.toUpperCase() != 'MN-CEO01' &&
+      id.toUpperCase() != 'MN-TL1002';
 
   /// Clean display ID: Shows employee number for roster staff, MN-CEO01 for CEO, MN-TL1002 for OTM
   String get displayEmpId {
@@ -359,22 +363,11 @@ class Employee {
   static const Map<String, String> officialCorporatePasswords = {
     'MN-CEO01': 'adminnaandhan',
     '7': 'hr@mnj123',
-    'MN-HR1001': 'hr@mnj123',
     'MN-TL1002': 'praveen@mnj123',
     '6': 'gokul@mnj123',
-    'MN-1003': 'gokul@mnj123',
-    'MN-1004': 'aravind@mnj123',
     '33': 'mithra@mnj123',
-    'MN-1005': 'mithra@mnj123',
-    'MN-1006': 'ece@mnj123',
     '65': 'kaaviya@mnj123',
-    'MN-1007': 'kaaviya@mnj123',
     '67': 'nisha@mnj123',
-    'MN-1008': 'nisha@mnj123',
-    'MN-1009': 'midhun@mnj123',
-    'MN-1010': 'subash@mnj123',
-    'MN-1011': 'eshwar@mnj123',
-    'MN-1012': 'samroy@mnj123',
   };
 
   factory Employee.fromMap(Map<String, dynamic> map, [String? docId]) {

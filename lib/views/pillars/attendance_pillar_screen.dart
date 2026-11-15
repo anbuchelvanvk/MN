@@ -24,7 +24,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<EcosystemProvider>();
     final currentEmp = provider.currentEmployee;
-    final bool isOtm = currentEmp.isOtm;
+    final bool isExempt = !currentEmp.hasAttendanceAndGrooming;
     final row = provider.currentEmployeeHrAttendanceRow;
     final sheet = provider.hrAttendanceSheet;
     final lastSynced = provider.attendanceSheetLastSynced;
@@ -56,8 +56,8 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               overflow: TextOverflow.ellipsis,
             ),
             Text(
-              isOtm
-                  ? 'Autonomous Cadence • Project Deliverables'
+              isExempt
+                  ? 'Leadership Governance • Exempt from Shift Roster'
                   : '${sheet?.monthTitle ?? "November 2026"} • Official HR Master Ledger',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
@@ -74,11 +74,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             padding: const EdgeInsets.only(right: 14),
             child: Center(
               child: LiquidGlassPill(
-                label: isOtm ? 'OTM EXEMPT' : 'PILLAR 4 • HR AUDIT',
-                color: isOtm
+                label: isExempt ? 'EXEMPT' : 'PILLAR 4 • HR AUDIT',
+                color: isExempt
                     ? const Color(0xFF10B981)
                     : AppColors.magentaPrimary,
-                icon: isOtm
+                icon: isExempt
                     ? Icons.verified
                     : Icons.assignment_turned_in_rounded,
               ),
@@ -89,8 +89,8 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: isOtm
-            ? _buildOtmExemptionSection(context, currentEmp)
+        child: isExempt
+            ? _buildLeadershipExemptionSection(context, currentEmp)
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -127,8 +127,14 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
     );
   }
 
-  // --- 1. OTM EXEMPTION VIEW ---
-  Widget _buildOtmExemptionSection(BuildContext context, Employee emp) {
+  // --- 1. LEADERSHIP & OTM EXEMPTION VIEW ---
+  Widget _buildLeadershipExemptionSection(BuildContext context, Employee emp) {
+    final isCeo = emp.roleType.toLowerCase() == 'ceo' || emp.id.toUpperCase() == 'MN-CEO01';
+    final roleHeader = isCeo ? 'MANAGING DIRECTOR & CEO' : 'ONLINE TEAM MANAGER (OTM)';
+    final roleDesc = isCeo
+        ? 'As Managing Director & CEO, ${emp.name} provides executive governance and strategic leadership across MN Jewel Park.\n\nDaily retail showroom attendance punching, shift rosters, and grooming audits are Not Applicable to executive leadership.'
+        : 'As the Online Team Manager, ${emp.name} operates under autonomous project deliverable milestones, creative video turnarounds, and digital catalog SLA metrics.\n\nDaily retail showroom attendance punching, lunch logs, and grooming audits are Not Applicable to this function.';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -170,7 +176,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'ONLINE TEAM MANAGER (OTM)',
+                roleHeader,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
@@ -193,7 +199,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               const Divider(color: Color(0xFFE2E8F0), height: 1),
               const SizedBox(height: 14),
               Text(
-                'As the Online Team Manager, ${emp.name} operates under autonomous project deliverable milestones, creative video turnarounds, and digital catalog SLA metrics.\n\nDaily retail showroom attendance punching, lunch logs, and grooming audits are Not Applicable to this executive function.',
+                roleDesc,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12.5,
                   height: 1.55,

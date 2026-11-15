@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/employee_model.dart';
@@ -513,6 +515,10 @@ class EcosystemProvider extends ChangeNotifier {
 
   /// Sync live Google Sheets Attendance
   Future<void> syncGoogleSheetsAttendance({bool notifyIfUpdated = true}) async {
+    if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
+      _isLoadingAttendanceSheet = false;
+      return;
+    }
     _isLoadingAttendanceSheet = true;
     _attendanceSheetError = null;
     notifyListeners();
@@ -821,6 +827,8 @@ class EcosystemProvider extends ChangeNotifier {
     final summaries = <EmployeeDailyAttendanceSummary>[];
 
     for (final emp in _employees) {
+      // Exclude CEO and OTM Praveenkumar from all attendance calculations & daily summaries
+      if (!emp.hasAttendanceAndGrooming) continue;
       final empPunches = _attendancePunches.where((p) =>
         p.enrollNumber == emp.id &&
         p.timestamp.year == now.year &&
@@ -916,28 +924,8 @@ class EcosystemProvider extends ChangeNotifier {
       orElse: () => currentEmployee,
     );
 
-    // OTM Praveenkumar operates on autonomous milestones
-    if (emp.isOtm) {
-      for (int i = 0; i <= 6; i++) {
-        final targetDate = now.subtract(Duration(days: i));
-        final isToday = i == 0;
-        final dayName = days[targetDate.weekday - 1];
-        final monthName = months[targetDate.month - 1];
-        final dateLabel = isToday ? 'Today ($monthName ${targetDate.day})' : '$dayName, $monthName ${targetDate.day}';
-        records.add(EmployeeActivityDayRecord(
-          date: targetDate,
-          dateLabel: dateLabel,
-          loginTime: 'Autonomous',
-          logoutTime: 'Autonomous',
-          lunchOutTime: '--',
-          lunchInTime: '--',
-          netHours: '8h 00m',
-          status: 'Autonomous Cadence (Deliverables Verified)',
-          statusColor: const Color(0xFF10B981),
-          isOvertime: false,
-          isWeekoff: false,
-        ));
-      }
+    // CEO and OTM Praveenkumar are completely exempt from attendance
+    if (!emp.hasAttendanceAndGrooming) {
       return records;
     }
 
@@ -953,27 +941,27 @@ class EcosystemProvider extends ChangeNotifier {
       if (hrRow != null) {
         final dayRecord = hrRow.days[targetDate.day];
         if (dayRecord != null) {
-          String statusStr = 'Present (Full Day)';
+          String statusStr = 'Present';
           Color statusColor = const Color(0xFF10B981);
-          String netHoursStr = '9h 00m';
-          String inStr = '09:30 AM';
-          String outStr = isToday ? 'Active • On Duty' : '06:30 PM';
+          String netHoursStr = 'Full Day';
+          String inStr = '--';
+          String outStr = '--';
           bool isWeekoff = false;
 
           switch (dayRecord.type) {
             case HrAttendanceDayType.present:
-              statusStr = 'Present (Full Day)';
+              statusStr = 'Present (Nil)';
               statusColor = const Color(0xFF10B981);
-              netHoursStr = '9h 00m';
-              inStr = '09:30 AM';
-              outStr = isToday ? 'Active • On Duty' : '06:30 PM';
+              netHoursStr = 'Full Day';
+              inStr = '--';
+              outStr = '--';
               break;
             case HrAttendanceDayType.late:
-              statusStr = 'Late Arrival (${dayRecord.displayLabel})';
+              statusStr = 'Late (${dayRecord.displayLabel})';
               statusColor = const Color(0xFFF59E0B);
-              netHoursStr = '8h 30m';
-              inStr = '09:45 AM';
-              outStr = isToday ? 'Active • On Duty' : '06:30 PM';
+              netHoursStr = 'Late In';
+              inStr = '--';
+              outStr = '--';
               break;
             case HrAttendanceDayType.leaveCl:
               statusStr = 'Casual Leave (CL)';
@@ -992,32 +980,30 @@ class EcosystemProvider extends ChangeNotifier {
             case HrAttendanceDayType.leaveHalfDay:
               statusStr = 'Half Day Leave (1/2 D)';
               statusColor = const Color(0xFFF97316);
-              netHoursStr = '4h 30m';
-              inStr = '09:30 AM';
-              outStr = '01:30 PM';
+              netHoursStr = '0.5 Day';
+              inStr = '--';
+              outStr = '--';
               break;
             case HrAttendanceDayType.lateAndHalfDay:
               statusStr = 'Late + Half Day';
               statusColor = const Color(0xFFEA580C);
-              netHoursStr = '4h 00m';
-              inStr = '09:45 AM';
-              outStr = '01:45 PM';
+              netHoursStr = '0.5 Day';
+              inStr = '--';
+              outStr = '--';
               break;
             case HrAttendanceDayType.permission:
               statusStr = 'Permission (${dayRecord.displayLabel})';
               statusColor = const Color(0xFF10B981);
-              final pMins = dayRecord.permissionMinutes;
-              final remWorkMins = (9 * 60 - pMins).clamp(0, 540);
-              netHoursStr = '${(remWorkMins / 60.0).toStringAsFixed(1)}h';
-              inStr = '09:30 AM';
-              outStr = '06:30 PM';
+              netHoursStr = dayRecord.displayLabel;
+              inStr = '--';
+              outStr = '--';
               break;
             case HrAttendanceDayType.mnw:
               statusStr = 'MN Work Visit (MNW)';
               statusColor = const Color(0xFF2563EB);
-              netHoursStr = '9h 00m (On Duty)';
-              inStr = 'Official Duty';
-              outStr = 'Store Visit';
+              netHoursStr = 'On Duty (Store Visit)';
+              inStr = '--';
+              outStr = '--';
               break;
             case HrAttendanceDayType.holiday:
               statusStr = 'Holiday (Sunday)';
@@ -1028,11 +1014,11 @@ class EcosystemProvider extends ChangeNotifier {
               isWeekoff = true;
               break;
             case HrAttendanceDayType.pendingUpdate:
-              statusStr = isToday ? 'Present (In Progress)' : 'Pending HR Update';
-              statusColor = isToday ? const Color(0xFF10B981) : const Color(0xFF94A3B8);
-              netHoursStr = isToday ? 'Active' : '--';
-              inStr = isToday ? '09:30 AM' : '--';
-              outStr = isToday ? 'Active • On Duty' : '--';
+              statusStr = 'Pending HR Update';
+              statusColor = const Color(0xFF94A3B8);
+              netHoursStr = '--';
+              inStr = '--';
+              outStr = '--';
               break;
             case HrAttendanceDayType.notApplicable:
               statusStr = 'N/A';
@@ -1048,8 +1034,8 @@ class EcosystemProvider extends ChangeNotifier {
             dateLabel: dateLabel,
             loginTime: inStr,
             logoutTime: outStr,
-            lunchOutTime: '--:-- --',
-            lunchInTime: '--:-- --',
+            lunchOutTime: '--',
+            lunchInTime: '--',
             netHours: netHoursStr,
             status: statusStr,
             statusColor: statusColor,
@@ -1060,17 +1046,17 @@ class EcosystemProvider extends ChangeNotifier {
         }
       }
 
-      // Fallback if sheet is not yet loaded
+      // Unrecorded / pending days from Google Sheets
       records.add(EmployeeActivityDayRecord(
         date: targetDate,
         dateLabel: dateLabel,
-        loginTime: '09:30 AM',
-        logoutTime: isToday ? 'Active / On Duty' : '06:30 PM',
-        lunchOutTime: '01:00 PM',
-        lunchInTime: '02:00 PM',
-        netHours: '8h 00m',
-        status: 'Present (On Duty)',
-        statusColor: const Color(0xFF10B981),
+        loginTime: '--',
+        logoutTime: '--',
+        lunchOutTime: '--',
+        lunchInTime: '--',
+        netHours: '--',
+        status: 'Pending HR Update',
+        statusColor: const Color(0xFF94A3B8),
         isOvertime: false,
         isWeekoff: targetDate.weekday == DateTime.sunday,
       ));
@@ -1200,39 +1186,39 @@ class EcosystemProvider extends ChangeNotifier {
     return records;
   }
 
-  // Individual Pillar Scores (0 to 100)
+  // Individual Pillar Scores (0 to 100) based strictly on live user data
   int get pillar1HealthScore {
     final hasMetrics = _userHeightCm > 0 && _userWeightKg > 0;
-    if (!hasMetrics) return 75; // baseline calibrated profile
+    if (!hasMetrics) return 0; // Uncalibrated profile -> 0%
     final bmi = currentBmi;
-    int base = 60;
+    int base = 50;
     if (bmi >= 18.5 && bmi <= 25.0) {
-      base = 75;
+      base = 70;
     } else if (bmi >= 17.5 && bmi <= 29.9) {
-      base = 65;
+      base = 55;
     } else {
-      base = 50;
+      base = 40;
     }
     if (dailyWorkoutLogs.isNotEmpty) {
-      base += 25;
+      base += 30;
     } else if (totalWorkoutMinutes > 0) {
       base += 15;
-    } else {
-      base += 10;
     }
     return base.clamp(0, 100);
   }
 
   int get pillar2FamilyScore {
-    if (totalFamilyHoursToday > 0) return 100;
-    if (_familyActivityLogs.isNotEmpty) return 85;
-    return 75; // baseline family harmony
+    if (totalFamilyHoursToday > 0) {
+      return (totalFamilyHoursToday >= 1.0 ? 100 : (totalFamilyHoursToday * 100).round()).clamp(0, 100);
+    }
+    if (_familyActivityLogs.isNotEmpty) return 60;
+    return 0; // No time logged today -> 0%
   }
 
   int get pillar3ProfileScore {
     double total = 0.0;
     // 1. Documents (40% of Pillar 3)
-    final docRatio = _originalDocuments.isEmpty ? 1.0 : documentsSubmissionRatio;
+    final docRatio = _originalDocuments.isEmpty ? 0.0 : documentsSubmissionRatio;
     total += docRatio * 40.0;
 
     // 2. Permissions & Leaves (30% of Pillar 3)
@@ -1247,10 +1233,8 @@ class EcosystemProvider extends ChangeNotifier {
       total += (permRatio * 20.0 + clPenalty * 10.0);
     }
 
-    // 3. Grooming & Role Target (30% of Pillar 3)
-    if (currentEmployee.isOtm) {
-      total += 30.0; // Autonomous exemption
-    } else if (currentEmployee.roleType == 'ceo') {
+    // 3. Grooming & Role Target (30% of Pillar 3) - OTM & CEO exempt from grooming
+    if (!currentEmployee.hasAttendanceAndGrooming) {
       total += 30.0; // Executive standing
     } else {
       final gScore = (groomingPercentage / 100.0).clamp(0.0, 1.0);
@@ -1265,8 +1249,8 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   int get pillar4AttendanceScore {
-    if (currentEmployee.isOtm || currentEmployee.roleType == 'ceo') {
-      return 100;
+    if (!currentEmployee.hasAttendanceAndGrooming) {
+      return 100; // Not applicable
     }
     final row = currentEmployeeHrAttendanceRow;
     if (row != null) {
@@ -1281,7 +1265,7 @@ class EcosystemProvider extends ChangeNotifier {
       }
       return ratio.round().clamp(0, 100);
     }
-    return 95; // baseline HR audited
+    return 0; // No HR attendance uploaded yet
   }
 
   /// Overall Sovereign Equilibrium Holistic Score (0 - 100)
@@ -1289,6 +1273,12 @@ class EcosystemProvider extends ChangeNotifier {
     final s1 = pillar1HealthScore;
     final s2 = pillar2FamilyScore;
     final s3 = pillar3ProfileScore;
+
+    if (!currentEmployee.hasAttendanceAndGrooming) {
+      // For CEO and OTM who do not come under attendance, calculate from the 3 applicable pillars
+      return ((s1 / 3.0) + (s2 / 3.0) + (s3 / 3.0)).round().clamp(0, 100);
+    }
+
     final s4 = pillar4AttendanceScore;
     return ((s1 * 0.25) + (s2 * 0.25) + (s3 * 0.25) + (s4 * 0.25)).round().clamp(0, 100);
   }
@@ -1433,19 +1423,9 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
-    // Pillar 3: Grooming & Uniform (Omitted for OTM Praveenkumar)
-    if (!currentEmployee.isOtm) {
-      if (currentEmployee.roleType == 'ceo') {
-        lags.add(PillarLagItem(
-          pillarTitle: 'Pillar 3: Grooming & Uniform',
-          status: 'Executive Formal (Green)',
-          description: 'Managing Director & CEO executive presentation verified.',
-          improvementAction: 'Executive corporate leadership presentation maintained.',
-          isCompromised: false,
-          indicatorColor: const Color(0xFF10B981),
-          icon: Icons.content_cut,
-        ));
-      } else if (groomingAudits.any((g) => g.empId == _activeEmpId && _isToday(g.date))) {
+    // Pillar 3: Grooming & Uniform (Omitted for OTM Praveenkumar & CEO)
+    if (currentEmployee.hasAttendanceAndGrooming) {
+      if (groomingAudits.any((g) => g.empId == _activeEmpId && _isToday(g.date))) {
         if (groomingPercentage >= 80) {
           lags.add(PillarLagItem(
             pillarTitle: 'Pillar 3: Grooming & Uniform',
@@ -1572,62 +1552,44 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
-    // Pillar 4: Attendance & Punctuality (Official HR Master Ledger)
-    if (currentEmployee.isOtm) {
-      lags.add(PillarLagItem(
-        pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
-        status: 'Autonomous Cadence (Green)',
-        description: 'Praveenkumar M (OTM) operates on autonomous project deliverables. Exempt from daily attendance ledger & grooming.',
-        improvementAction: 'Project deliverables & architecture milestones verified by CEO.',
-        isCompromised: false,
-        indicatorColor: const Color(0xFF10B981),
-        icon: Icons.verified_rounded,
-      ));
-    } else if (hrRow != null) {
-      final recorded = hrRow.recordedDaysCount > 0 ? hrRow.recordedDaysCount : 14;
-      final attended = hrRow.presentDaysCount + (hrRow.lateCount <= 3 ? hrRow.lateCount : 3) + hrRow.mnwDaysCount;
-      final attPct = ((attended / recorded) * 100.0).clamp(0.0, 100.0);
-      if (hrRow.lateCount <= 3 && hrRow.lopDaysUsed == 0) {
+    // Pillar 4: Attendance & Punctuality (Official HR Master Ledger - Omitted for OTM & CEO)
+    if (currentEmployee.hasAttendanceAndGrooming) {
+      if (hrRow != null) {
+        final recorded = hrRow.recordedDaysCount > 0 ? hrRow.recordedDaysCount : 14;
+        final attended = hrRow.presentDaysCount + (hrRow.lateCount <= 3 ? hrRow.lateCount : 3) + hrRow.mnwDaysCount;
+        final attPct = ((attended / recorded) * 100.0).clamp(0.0, 100.0);
+        if (hrRow.lateCount <= 3 && hrRow.lopDaysUsed == 0) {
+          lags.add(PillarLagItem(
+            pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
+            status: 'Good (${attPct.toStringAsFixed(0)}% • Green)',
+            description: 'HR Ledger (Nov 1–$recorded): ${hrRow.presentDaysCount} days present, ${hrRow.lateCount} lates (within 3 allowed), ${hrRow.clDaysUsed} CL used.',
+            improvementAction: 'Attendance verified and approved by HR department in Master Ledger.',
+            isCompromised: false,
+            indicatorColor: const Color(0xFF10B981),
+            icon: Icons.assignment_turned_in_rounded,
+          ));
+        } else {
+          lags.add(PillarLagItem(
+            pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
+            status: 'Needs Attention (${attPct.toStringAsFixed(0)}% • Yellow)',
+            description: 'HR Ledger (Nov 1–$recorded): ${hrRow.lateCount} lates (${hrRow.latePenaltyDays} penalty), ${hrRow.lopDaysUsed} LOP days.',
+            improvementAction: 'Maintain regular punctuality (maximum 3 lates per month).',
+            isCompromised: true,
+            indicatorColor: const Color(0xFFF59E0B),
+            icon: Icons.warning_amber_rounded,
+          ));
+        }
+      } else {
         lags.add(PillarLagItem(
           pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
-          status: 'Good (${attPct.toStringAsFixed(0)}% • Green)',
-          description: 'HR Ledger (Nov 1–$recorded): ${hrRow.presentDaysCount} days present, ${hrRow.lateCount} lates (within 3 allowed), ${hrRow.clDaysUsed} CL used.',
-          improvementAction: 'Attendance verified and approved by HR department in Master Ledger.',
+          status: 'Audited by HR (Green)',
+          description: 'Attendance recorded and uploaded by HR. Contact HR for any spreadsheet adjustments.',
+          improvementAction: 'Daily attendance ledger maintained via Google Sheets.',
           isCompromised: false,
           indicatorColor: const Color(0xFF10B981),
           icon: Icons.assignment_turned_in_rounded,
         ));
-      } else {
-        lags.add(PillarLagItem(
-          pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
-          status: 'Needs Attention (${attPct.toStringAsFixed(0)}% • Yellow)',
-          description: 'HR Ledger (Nov 1–$recorded): ${hrRow.lateCount} lates (${hrRow.latePenaltyDays} penalty), ${hrRow.lopDaysUsed} LOP days.',
-          improvementAction: 'Maintain regular punctuality (maximum 3 lates per month).',
-          isCompromised: true,
-          indicatorColor: const Color(0xFFF59E0B),
-          icon: Icons.warning_amber_rounded,
-        ));
       }
-    } else if (currentEmployee.roleType == 'ceo') {
-      lags.add(PillarLagItem(
-        pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
-        status: 'Executive Governance (Green)',
-        description: 'Managing Director & CEO executive attendance is in sovereign standing.',
-        improvementAction: 'Leading MN Jewel Park executive and operational governance.',
-        isCompromised: false,
-        indicatorColor: const Color(0xFF10B981),
-        icon: Icons.admin_panel_settings_rounded,
-      ));
-    } else {
-      lags.add(PillarLagItem(
-        pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
-        status: 'Audited by HR (Green)',
-        description: 'Attendance recorded and uploaded by HR. Contact HR for any spreadsheet adjustments.',
-        improvementAction: 'Daily attendance ledger maintained via Google Sheets.',
-        isCompromised: false,
-        indicatorColor: const Color(0xFF10B981),
-        icon: Icons.assignment_turned_in_rounded,
-      ));
     }
 
     return lags;
@@ -1731,8 +1693,8 @@ class EcosystemProvider extends ChangeNotifier {
   // Online Orders Workflow Engine (OS1 & OS2 Handler)
   List<OnlineOrderModel> _onlineOrders = [];
   List<OnlineOrderModel> get onlineOrders => _onlineOrders;
-  List<OnlineOrderModel> get os1Orders => _onlineOrders.where((o) => o.brand == 'MN Jewel Park' || o.handledByEmpId == '65' || o.reallocatedToEmpId == '65' || o.handledByEmpId == 'MN-1007' || o.reallocatedToEmpId == 'MN-1007').toList();
-  List<OnlineOrderModel> get os2Orders => _onlineOrders.where((o) => o.brand == 'Vadivam' || o.handledByEmpId == '67' || o.reallocatedToEmpId == '67' || o.handledByEmpId == 'MN-1008' || o.reallocatedToEmpId == 'MN-1008').toList();
+  List<OnlineOrderModel> get os1Orders => _onlineOrders.where((o) => o.brand == 'MN Jewel Park' || o.handledByEmpId == '65' || o.reallocatedToEmpId == '65').toList();
+  List<OnlineOrderModel> get os2Orders => _onlineOrders.where((o) => o.brand == 'Vadivam' || o.handledByEmpId == '67' || o.reallocatedToEmpId == '67').toList();
   List<OnlineOrderModel> get overdueOnlineOrders => _onlineOrders.where((o) => o.hasAnyOverdueStage).toList();
 
   // Absentee Tracking & Team Lead Shift Continuity (Synchronized with Live Biometric/Attendance punches)
@@ -1740,10 +1702,14 @@ class EcosystemProvider extends ChangeNotifier {
   final Set<String> _manuallyPresentEmployeeIds = {};
 
   Set<String> get absentEmployeeIds =>
-      _employees.where((e) => isEmployeeAbsent(e.id)).map((e) => e.id).toSet();
+      _employees.where((e) => e.hasAttendanceAndGrooming && isEmployeeAbsent(e.id)).map((e) => e.id).toSet();
 
   bool isEmployeeAbsent(String empId) {
-    if (empId == 'MN-TL1002') return false; // OTM Praveenkumar is exempt from showroom attendance
+    final emp = _employees.firstWhere(
+      (e) => e.id == empId || e.empNo == empId,
+      orElse: () => currentEmployee,
+    );
+    if (!emp.hasAttendanceAndGrooming) return false; // CEO and OTM Praveenkumar are exempt from attendance
     if (_manuallyPresentEmployeeIds.contains(empId)) return false;
     if (_absentEmployeeIds.contains(empId)) return true;
     final summaries = allEmployeesTodayAttendance;
@@ -1808,22 +1774,27 @@ class EcosystemProvider extends ChangeNotifier {
       _employeeSubscription = _firebaseEmployeeService.streamEmployees().listen(
         (remoteEmployees) {
           if (remoteEmployees.isNotEmpty) {
+            const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
             final updatedList = List<Employee>.from(_employees);
             for (final remote in remoteEmployees) {
               final cleanRemote = (remote.id == 'MN-CEO01' || remote.roleType == 'ceo' || remote.name.toLowerCase().contains('executive ceo'))
-                  ? remote.copyWith(id: 'MN-CEO01', name: 'M N Naveenraaj', initials: 'MN', role: 'Managing Director & CEO', roleType: 'ceo')
-                  : ((remote.id == 'MN-HR1001' || remote.roleType == 'hr' || remote.email.toLowerCase() == 'hr@mnj.com')
-                      ? remote.copyWith(id: 'MN-HR1001', name: 'Mohankumar G', initials: 'MG', role: 'HR Manager & Operations Custodian', roleType: 'hr')
+                  ? remote.copyWith(id: 'MN-CEO01', empNo: '', name: 'M N Naveenraaj', initials: 'MN', role: 'Managing Director & CEO', roleType: 'ceo')
+                  : ((remote.id == '7' || remote.id == 'MN-HR1001' || remote.roleType == 'hr' || remote.email.toLowerCase() == 'hr@mnj.com')
+                      ? remote.copyWith(id: '7', empNo: '7', name: 'Mohankumar G', initials: 'MG', role: 'HR Manager & Operations Custodian', roleType: 'hr')
                       : remote);
 
-              final idx = updatedList.indexWhere((e) => e.id == cleanRemote.id || e.email.toLowerCase() == cleanRemote.email.toLowerCase());
+              if (!validIds.contains(cleanRemote.id) && !validIds.contains(cleanRemote.empNo)) {
+                continue;
+              }
+
+              final idx = updatedList.indexWhere((e) => e.id == cleanRemote.id || (cleanRemote.empNo.isNotEmpty && e.empNo == cleanRemote.empNo) || e.email.toLowerCase() == cleanRemote.email.toLowerCase());
               if (idx != -1) {
                 updatedList[idx] = cleanRemote;
               } else {
                 updatedList.add(cleanRemote);
               }
 
-              // Category 1, Item 1 Fix: Extract workforce punches across all devices
+              // Extract workforce punches across all devices
               if (remote.fourPillars != null && remote.fourPillars!['attendance'] is List) {
                 final list = remote.fourPillars!['attendance'] as List;
                 for (final pMap in list) {
@@ -1839,6 +1810,7 @@ class EcosystemProvider extends ChangeNotifier {
                 }
               }
             }
+            updatedList.retainWhere((e) => validIds.contains(e.id) || validIds.contains(e.empNo));
             _employees = updatedList;
             _firebaseSyncActive = true;
             notifyListeners();
@@ -2287,54 +2259,8 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _attendanceSheetLastSynced = DateTime.now();
 
-    // Pre-seed leadership verified baselines
-    _seedLeadershipDefaults();
-  }
-
-  void _seedLeadershipDefaults() {
-    final defaultDocs = [
-      OriginalDocumentItem(
-        id: 'DOC-AADHAAR',
-        title: 'Aadhaar Card (UIDAI Verified)',
-        category: 'Identity Proof',
-        certificateNumber: 'XXXX-XXXX-8921',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '1 Nov 2026',
-        vaultLockerRef: 'Safe Vault Locker #A-01',
-        isMandatory: true,
-        iconEmoji: '🪪',
-      ),
-      OriginalDocumentItem(
-        id: 'DOC-PAN',
-        title: 'Permanent Account Number (PAN)',
-        category: 'Statutory Proof',
-        certificateNumber: 'ABCDE1234F',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '1 Nov 2026',
-        vaultLockerRef: 'Safe Vault Locker #A-02',
-        isMandatory: true,
-        iconEmoji: '💳',
-      ),
-      OriginalDocumentItem(
-        id: 'DOC-DEGREE',
-        title: 'Degree & Educational Certificates',
-        category: 'Educational Proof',
-        certificateNumber: 'UNI-2018-9921',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '1 Nov 2026',
-        vaultLockerRef: 'Safe Vault Locker #A-03',
-        isMandatory: true,
-        iconEmoji: '🎓',
-      ),
-    ];
-
-    _employeeDocuments['MN-CEO01'] = List.from(defaultDocs);
-    _employeeDocuments['MN-HR1001'] = List.from(defaultDocs);
-    _employeeDocuments['MN-TL1002'] = List.from(defaultDocs);
-
-    if (_activeEmpId == 'MN-CEO01') {
-      _originalDocuments = List.from(defaultDocs);
-    }
+    // Fetch live Google Sheets immediately upon initialization
+    syncGoogleSheetsAttendance(notifyIfUpdated: false);
   }
 
   // --- ACTIONS ---
@@ -3661,14 +3587,6 @@ class EcosystemProvider extends ChangeNotifier {
         );
 
         notifyListeners();
-      } else {
-        if (empId == 'MN-CEO01' && (_userHeightCm <= 0 || _userWeightKg <= 0)) {
-          _userHeightCm = 175.0;
-          _userWeightKg = 70.0;
-          _healthOnboarded = true;
-          _originalDocuments = _employeeDocuments['MN-CEO01'] ?? [];
-          notifyListeners();
-        }
       }
     } catch (e) {
       debugPrint('Firestore loadEmployeeFourPillars note: $e');
@@ -5113,7 +5031,7 @@ class EcosystemProvider extends ChangeNotifier {
 
     final order = _onlineOrders[idx];
     final isVadivam = order.brand == 'Vadivam';
-    final primaryHandlerId = isVadivam ? 'MN-1008' : 'MN-1007'; // OS2 Nisha vs OS1 Kaaviya
+    final primaryHandlerId = isVadivam ? '67' : '65'; // OS2 Nisha (#67) vs OS1 Kaaviya (#65)
     final primaryHandlerName = isVadivam ? 'OS2 (Nisha)' : 'OS1 (Kaaviya)';
 
     final isPrimaryAbsent = isEmployeeAbsent(primaryHandlerId);

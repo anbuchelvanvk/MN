@@ -405,7 +405,9 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final teamMembers = eco.employees.where((e) => e.dept == 'Online Department' || e.dept == 'Operations').toList();
+    final teamMembers = eco.employees
+        .where((e) => e.hasAttendanceAndGrooming && (e.dept == 'Online Department' || e.dept == 'Operations'))
+        .toList();
     final teamAbsentees = teamMembers.where((e) => eco.isEmployeeAbsent(e.id)).toList();
 
     return TlSubpageScaffold(
@@ -474,8 +476,9 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                     ),
                   );
 
-                  final statusColor = isAbsent ? AppColors.ragRed : AppColors.ragGreen;
-                  final statusText = isAbsent ? 'Absent' : summary.statusBadgeText;
+                  final reallyAbsent = isAbsent || summary.status == DailyAttendanceStatus.absent;
+                  final statusColor = reallyAbsent ? AppColors.ragRed : AppColors.ragGreen;
+                  final statusText = reallyAbsent ? 'Absent' : summary.statusBadgeText;
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),

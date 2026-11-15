@@ -19,6 +19,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onExportPressed;
   final VoidCallback? onPillarsPressed;
   final VoidCallback? onRefreshPressed;
+  final bool? showBackButton;
 
   const RoleAppBar({
     super.key,
@@ -31,6 +32,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onExportPressed,
     this.onPillarsPressed,
     this.onRefreshPressed,
+    this.showBackButton,
   });
 
   void _handleSwitchRole(BuildContext context) {
@@ -166,6 +168,34 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               child: Row(
                 children: [
+                  if (showBackButton ?? Navigator.canPop(context)) ...[
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        key: const ValueKey('role_app_bar_back_button'),
+                        onTap: () => Navigator.maybePop(context),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            size: 16,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   Container(
                     width: 38,
                     height: 38,

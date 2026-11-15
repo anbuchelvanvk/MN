@@ -39,10 +39,10 @@ void main() {
     // 1. Employee Portal Edge Cases
     testWidgets('Employee: renders cleanly with 0 tasks and empty state', (tester) async {
       final eco = EcosystemProvider();
-      eco.setActiveEmpId('MN-1003');
+      eco.setActiveEmpId('6');
 
       // Edge case: clear all tasks for this employee
-      eco.tasks.removeWhere((t) => t.empId == 'MN-1003');
+      eco.tasks.removeWhere((t) => t.empId == '6');
 
       tester.view.physicalSize = const Size(2600, 2600);
       tester.view.devicePixelRatio = 1.0;
@@ -59,7 +59,7 @@ void main() {
 
     testWidgets('Employee: small screen (360x640) renders without overflow', (tester) async {
       final eco = EcosystemProvider();
-      eco.setActiveEmpId('MN-1003');
+      eco.setActiveEmpId('6');
 
       tester.view.physicalSize = const Size(360, 640);
       tester.view.devicePixelRatio = 1.0;
@@ -99,7 +99,7 @@ void main() {
     // 3. HR Portal Edge Cases
     testWidgets('HR Portal: renders all tabs including Blocker Tickets without errors', (tester) async {
       final eco = EcosystemProvider();
-      eco.setActiveEmpId('MN-HR1001'); // Mohankumar (HR)
+      eco.setActiveEmpId('7'); // Mohankumar (HR)
 
       tester.view.physicalSize = const Size(2600, 2600);
       tester.view.devicePixelRatio = 1.0;
@@ -147,7 +147,7 @@ void main() {
     // 5. CrossDeptBlockerSection Edge Cases
     testWidgets('BlockerSection: handles raise blocker and response edge cases', (tester) async {
       final eco = EcosystemProvider();
-      eco.setActiveEmpId('MN-1003');
+      eco.setActiveEmpId('6');
 
       await tester.pumpWidget(wrapWithApp(
         child: const CrossDeptBlockerSection(department: 'Workshop', isCeoView: false),
@@ -191,11 +191,11 @@ void main() {
     // 6. AssignTasksToOthersModal Edge Cases
     testWidgets('AssignTasksToOthersModal: absent employee with 0 tasks behaves cleanly', (tester) async {
       final eco = EcosystemProvider();
-      eco.toggleEmployeeAbsentStatus('MN-1005', isAbsent: true);
-      eco.tasks.removeWhere((t) => t.empId == 'MN-1005');
+      eco.toggleEmployeeAbsentStatus('33', isAbsent: true);
+      eco.tasks.removeWhere((t) => t.empId == '33');
 
       await tester.pumpWidget(wrapWithApp(
-        child: const AssignTasksToOthersModal(initialAbsentEmpId: 'MN-1005'),
+        child: const AssignTasksToOthersModal(initialAbsentEmpId: '33'),
         eco: eco,
       ));
       await tester.pumpAndSettle();

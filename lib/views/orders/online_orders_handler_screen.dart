@@ -50,8 +50,8 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
           )
         : null;
 
-    final isOS1Absent = eco.isEmployeeAbsent('65') || eco.isEmployeeAbsent('MN-1007');
-    final isOS2Absent = eco.isEmployeeAbsent('67') || eco.isEmployeeAbsent('MN-1008');
+    final isOS1Absent = eco.isEmployeeAbsent('65');
+    final isOS2Absent = eco.isEmployeeAbsent('67');
     final isTLOrCeo = eco.activeEmpId == 'MN-TL1002' ||
         eco.activeEmpId == 'MN-CEO01' ||
         eco.activeRole == 'dept_head' ||
