@@ -1026,11 +1026,89 @@ class HrAttendanceScreen extends StatefulWidget {
 class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
   String _searchQuery = '';
   final String _deptFilter = 'all';
+  int _activeViewTab = 0; // 0 = Google Sheets Master, 1 = Daily Shift Punches
+
+  void _showBroadcastUpdateDialog(BuildContext context, EcosystemProvider eco) {
+    final defaultDate = '${DateTime.now().day} Nov';
+    final controller = TextEditingController(text: defaultDate);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.campaign_rounded, color: AppColors.magentaPrimary, size: 24),
+            SizedBox(width: 8),
+            Text(
+              'Broadcast Update',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Notify all employees that their attendance for a specific date has been officially recorded or corrected by HR in Google Sheets.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'DATE / DATES UPDATED',
+              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'e.g. 14 Nov or 12 Nov, 13 Nov',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.magentaPrimary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              final dateText = controller.text.trim();
+              if (dateText.isNotEmpty) {
+                eco.broadcastAttendanceUpdateNotification(dateText);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFF10B981),
+                    content: Text('Attendance notification sent to all staff for $dateText!'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text('Send Notification to All Staff', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final allSummaries = eco.allEmployeesTodayAttendance;
+    final hrSheet = eco.hrAttendanceSheet;
+    final isSyncing = eco.isLoadingAttendanceSheet;
 
     final filteredSummaries = allSummaries.where((s) {
       final matchesDept = _deptFilter == 'all' || s.department == _deptFilter;
@@ -1045,20 +1123,39 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
     final lateCount = allSummaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
     final activeDutyCount = allSummaries.where((s) => s.isCurrentlyOnDuty).length;
 
+    // Filter Google Sheet rows
+    final allSheetRows = hrSheet?.employees ?? [];
+    final filteredSheetRows = allSheetRows.where((r) {
+      if (_searchQuery.isEmpty) return true;
+      final q = _searchQuery.toLowerCase();
+      return r.name.toLowerCase().contains(q) || r.empNo.toLowerCase().contains(q);
+    }).toList();
+
     return HrSubpageScaffold(
       title: 'Workforce Attendance',
-      subtitle: 'Biometric Punches & Compliance',
+      subtitle: 'Google Sheets Master & Biometrics',
       actions: [
         IconButton(
-          icon: const Icon(Icons.sync_rounded, color: AppColors.magentaPrimary),
-          tooltip: 'Sync Biometric Data',
+          icon: const Icon(Icons.campaign_rounded, color: AppColors.magentaPrimary),
+          tooltip: 'Broadcast Attendance Update to Staff',
+          onPressed: () => _showBroadcastUpdateDialog(context, eco),
+        ),
+        IconButton(
+          icon: isSyncing
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.magentaPrimary),
+                )
+              : const Icon(Icons.sync_rounded, color: AppColors.magentaPrimary),
+          tooltip: 'Sync Google Sheets Attendance',
           onPressed: () async {
-            await eco.syncFromEsslDevice();
+            await eco.syncGoogleSheetsAttendance(notifyIfUpdated: true);
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 backgroundColor: Color(0xFF10B981),
-                content: Text('HR Attendance synchronized with biometric devices!'),
+                content: Text('HR Attendance synchronized with Google Sheets!'),
               ),
             );
           },
@@ -1067,6 +1164,304 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // View Switcher Tabs: Google Sheets Master vs Today's Shifts
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _activeViewTab = 0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _activeViewTab == 0 ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                        boxShadow: _activeViewTab == 0
+                            ? const [BoxShadow(color: Color(0x10000000), blurRadius: 4, offset: Offset(0, 2))]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.table_chart_rounded,
+                            size: 14,
+                            color: _activeViewTab == 0 ? AppColors.magentaPrimary : AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              'Master Sheet',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _activeViewTab == 0 ? AppColors.textDark : AppColors.textMuted,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _activeViewTab = 1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _activeViewTab == 1 ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                        boxShadow: _activeViewTab == 1
+                            ? const [BoxShadow(color: Color(0x10000000), blurRadius: 4, offset: Offset(0, 2))]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 14,
+                            color: _activeViewTab == 1 ? AppColors.magentaPrimary : AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              'Today\'s Shifts',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _activeViewTab == 1 ? AppColors.textDark : AppColors.textMuted,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          if (_activeViewTab == 0) ...[
+            // --- TAB 0: GOOGLE SHEETS MASTER ---
+            // Live Sync Header Card
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF10B981).withOpacity(0.12),
+                        ),
+                        child: const Icon(Icons.cloud_done_rounded, color: Color(0xFF10B981), size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${hrSheet?.monthTitle ?? "November 2026"} HR Master Sheet',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            Text(
+                              '${allSheetRows.length} Workforce Rows • Live Synced',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                color: AppColors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.magentaPrimary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          elevation: 0,
+                        ),
+                        onPressed: () => _showBroadcastUpdateDialog(context, eco),
+                        icon: const Icon(Icons.send_rounded, size: 12, color: Colors.white),
+                        label: const Text('Broadcast', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Search Box for Sheet
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, size: 18, color: AppColors.magentaPrimary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textDark),
+                      decoration: InputDecoration(
+                        hintText: 'Search staff by name or EMP NO...',
+                        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                        border: InputBorder.none,
+                      ),
+                      onChanged: (v) => setState(() => _searchQuery = v),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Employee Google Sheet Rows List
+            if (filteredSheetRows.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                alignment: Alignment.center,
+                child: Text('No employee sheet records match query.', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted)),
+              )
+            else
+              ...filteredSheetRows.map((r) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                if (r.empNo.isNotEmpty) ...[
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                                    ),
+                                    child: Text(
+                                      'EMP #${r.empNo}',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    r.name,
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            'S.No ${r.sNo}',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Metrics Pills Row
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          _hrMetricChip('Late', '${r.lateCount}/3', const Color(0xFFFEF9C3), const Color(0xFF854D0E)),
+                          _hrMetricChip('CL', '${r.clDaysUsed}', const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
+                          _hrMetricChip('LOP', '${r.lopDaysUsed}', const Color(0xFFFEE2E2), const Color(0xFF991B1B)),
+                          _hrMetricChip('Perm', r.formattedPermissionUsed, const Color(0xFFDCFCE7), const Color(0xFF166534)),
+                          _hrMetricChip('MNW', '${r.mnwDaysCount}d', const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Horizontal 31-day visual strip
+                      SizedBox(
+                        height: 28,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: List.generate(hrSheet?.daysInMonth ?? 31, (dIdx) {
+                              final day = dIdx + 1;
+                              final rec = r.days[day];
+                              final bg = rec?.backgroundColor ?? Colors.white;
+                              final tc = rec?.textColor ?? const Color(0xFF64748B);
+                              final bc = rec?.borderColor ?? const Color(0xFFE2E8F0);
+
+                              return Container(
+                                width: 26,
+                                margin: const EdgeInsets.only(right: 3),
+                                decoration: BoxDecoration(
+                                  color: bg,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(color: bc, width: 0.8),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '$day',
+                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: tc),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+          ] else ...[
+            // --- TAB 1: TODAY'S SHIFTS ---
           // Live Date Banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1356,7 +1751,23 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                 ),
               );
             }),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _hrMetricChip(String label, String value, Color bg, Color text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: text.withOpacity(0.3), width: 0.8),
+      ),
+      child: Text(
+        '$label: $value',
+        style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: text),
       ),
     );
   }
@@ -1857,10 +2268,11 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final employees = eco.employees;
+    // Exclude CEO and OTM Praveenkumar from showroom attire and grooming audits
+    final employees = eco.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
     final selectedEmp = employees.firstWhere(
       (e) => e.id == (_selectedGroomingEmpId ?? eco.currentEmployee.id),
-      orElse: () => employees.first,
+      orElse: () => employees.isNotEmpty ? employees.first : eco.employees.first,
     );
 
     final auditHistory = eco.groomingAudits;

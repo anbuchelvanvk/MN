@@ -161,6 +161,7 @@ class Employee {
   }
   set password(String val) => _password = val;
   final String gender; // 'male' | 'female'
+  final String empNo; // Employee number from attendance roster (e.g. '7', '6', '33', etc.)
 
   Employee({
     required this.id,
@@ -192,10 +193,30 @@ class Employee {
     this.anniversaryDate = '',
     String password = '',
     this.gender = '',
+    this.empNo = '',
   })  : _dept = dept,
         _password = password,
         trainingAgenda = trainingAgenda ?? [],
         dailyReviews = dailyReviews ?? [];
+
+  /// OTM (Online Team Manager - Mr. Praveen Kumar) is not a regular employee
+  /// and does not have daily attendance or grooming requirements.
+  bool get isOtm =>
+      roleType.toLowerCase() == 'team_lead' ||
+      role.toLowerCase().contains('online team manager') ||
+      id.toUpperCase() == 'MN-TL1002' ||
+      email.toLowerCase().contains('praveenkumar');
+
+  /// Regular staff require attendance and grooming; OTM is exempt.
+  bool get hasAttendanceAndGrooming => !isOtm;
+
+  /// Clean display ID: Shows EMP #No for roster staff, MN-CEO01 for CEO, OTM for TL, or empty
+  String get displayEmpId {
+    if (empNo.isNotEmpty) return 'EMP #$empNo';
+    if (roleType.toLowerCase() == 'ceo' || id.toUpperCase() == 'MN-CEO01') return 'MN-CEO01';
+    if (isOtm) return 'OTM';
+    return '';
+  }
 
   bool get isFemale => gender.toLowerCase() == 'female' ||
       ['mn-1005', 'mn-1007', 'mn-1008'].contains(id.toLowerCase()) ||
@@ -261,6 +282,7 @@ class Employee {
     String? anniversaryDate,
     String? password,
     String? gender,
+    String? empNo,
   }) {
     return Employee(
       id: id ?? this.id,
@@ -292,6 +314,7 @@ class Employee {
       anniversaryDate: anniversaryDate ?? this.anniversaryDate,
       password: password ?? this.password,
       gender: gender ?? this.gender,
+      empNo: empNo ?? this.empNo,
     );
   }
 
@@ -326,6 +349,7 @@ class Employee {
       'anniversaryDate': anniversaryDate,
       'password': password,
       'gender': gender,
+      'empNo': empNo,
     };
   }
 
@@ -438,6 +462,7 @@ class Employee {
       anniversaryDate: map['anniversaryDate'] as String? ?? '',
       password: resolvedPassword,
       gender: map['gender'] as String? ?? '',
+      empNo: map['empNo'] as String? ?? '',
     );
   }
 }

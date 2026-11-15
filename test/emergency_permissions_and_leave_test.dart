@@ -45,17 +45,17 @@ void main() {
       expect(notification['body'], contains('Bank visit'));
     });
 
-    test('Emergency permission request exceeding 2 hours triggers Orange Mark', () {
+    test('Emergency permission request exceeding 4 hours triggers Orange Mark', () {
       provider.requestEmergencyPermission(
         empId: 'MN-1007',
-        hours: 3.0, // Exceeds 2 hours
+        hours: 5.0, // Exceeds 4 hours
         reason: 'Urgent family emergency',
         requesterRole: 'Employee',
       );
 
       final rec = provider.permissionRecords.first;
-      expect(rec.requestedHours, equals(3.0));
-      expect(rec.isOver2Hours, isTrue);
+      expect(rec.requestedHours, equals(5.0));
+      expect(rec.isOver4Hours, isTrue);
       expect(rec.isOrangeFlagged, isTrue); // Triggers Orange mark in permission section
     });
 
@@ -191,18 +191,19 @@ void main() {
       expect(find.text('30 Min'), findsOneWidget);
       expect(find.text('1 Hour'), findsOneWidget);
       expect(find.text('2 Hours'), findsOneWidget);
-      expect(find.text('> 2h Custom'), findsOneWidget);
+      expect(find.text('4 Hours'), findsOneWidget);
+      expect(find.text('> 4h Custom'), findsOneWidget);
 
-      // Tap > 2h Custom chip
-      final customChip = find.widgetWithText(ChoiceChip, '> 2h Custom');
+      // Tap > 4h Custom chip
+      final customChip = find.widgetWithText(ChoiceChip, '> 4h Custom');
       await tester.ensureVisible(customChip);
       await tester.tap(customChip);
       await tester.pumpAndSettle();
 
       // Check dynamic quota exceed warning format:
-      // "The time you gave [{time_given}] exceeds your quota of 2hr window, by [{time_difference}]. Do you still want to proceed?"
+      // "The time you gave [{time_given}] exceeds your quota of 4hr window, by [{time_difference}]. Do you still want to proceed?"
       expect(
-        find.text('The time you gave [2.5hr] exceeds your quota of 2hr window, by [0.5hr]. Do you still want to proceed?'),
+        find.text('The time you gave [4.5hr] exceeds your quota of 4hr window, by [0.5hr]. Do you still want to proceed?'),
         findsOneWidget,
       );
     });
@@ -238,7 +239,7 @@ void main() {
       expect(find.text('Reject'), findsOneWidget);
     });
 
-    testWidgets('AttendancePillarScreen renders Emergency Permission and Medical Leave section and tactile push button', (tester) async {
+    testWidgets('AttendancePillarScreen renders HR notice, calendar, and 4-Hour quota tally', (tester) async {
       final provider = EcosystemProvider();
 
       await tester.pumpWidget(
@@ -250,11 +251,13 @@ void main() {
         ),
       );
 
+      expect(find.text('OFFICIAL HR ATTENDANCE RECORDING'), findsOneWidget);
+      expect(find.text('Your attendance will be recorded and uploaded by HR. If any queries, please contact HR.'), findsOneWidget);
       expect(find.text('EMERGENCY PASS & MEDICAL LEAVE'), findsOneWidget);
       expect(find.text('Permission'), findsOneWidget);
       expect(find.text('Medical Leave'), findsOneWidget);
-      expect(find.text('2-Hour Monthly Quota Tally'), findsOneWidget);
-      expect(find.text('PUSH TO LOG'), findsOneWidget);
+      expect(find.text('4-Hour Monthly Quota Tally'), findsOneWidget);
+      expect(find.text('PUSH TO LOG'), findsNothing);
       expect(find.text('SCAN THUMB'), findsNothing);
     });
   });

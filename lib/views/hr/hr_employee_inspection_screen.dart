@@ -612,9 +612,11 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
             ),
             const SizedBox(height: 14),
 
-            // 5. Gender-Based Staff Attire & Grooming Audit
-            _buildGroomingAuditCard(context, eco, emp),
-            const SizedBox(height: 14),
+            // 5. Gender-Based Staff Attire & Grooming Audit (Exempt for OTM Praveenkumar)
+            if (emp.hasAttendanceAndGrooming) ...[
+              _buildGroomingAuditCard(context, eco, emp),
+              const SizedBox(height: 14),
+            ],
 
             // 5. Active Requests & Leaves History
             if (empPermissions.isNotEmpty || empMedicalLeaves.isNotEmpty) ...[

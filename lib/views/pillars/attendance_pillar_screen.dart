@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/emergency_permission_modal.dart';
 import '../../core/widgets/emergency_medical_leave_modal.dart';
 import '../../core/widgets/prescription_viewer_dialog.dart';
-import '../../models/attendance_models.dart';
+import '../../models/employee_model.dart';
+import '../../models/hr_attendance_sheet_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import 'tier_pillar_screen.dart';
 
@@ -17,39 +19,18 @@ class AttendancePillarScreen extends StatefulWidget {
   State<AttendancePillarScreen> createState() => _AttendancePillarScreenState();
 }
 
-class _AttendancePillarScreenState extends State<AttendancePillarScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _scannerPulseController;
-  late Animation<double> _scannerPulseAnimation;
-  bool _isScanning = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scannerPulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    )..repeat(reverse: true);
-
-    _scannerPulseAnimation = Tween<double>(begin: 0.96, end: 1.04).animate(
-      CurvedAnimation(parent: _scannerPulseController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _scannerPulseController.dispose();
-    super.dispose();
-  }
+class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
+  int? _selectedDay;
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<EcosystemProvider>();
-    final todayLogin = provider.todayLoginPunch;
-    final todayLogout = provider.todayLogoutPunch;
-    final isOnDuty = provider.isCurrentlyOnDuty;
-    final statusLabel = provider.attendanceStatusLabel;
-    final statusColor = provider.attendanceStatusColor;
-
+    final currentEmp = provider.currentEmployee;
+    final bool isOtm = currentEmp.isOtm;
+    final row = provider.currentEmployeeHrAttendanceRow;
+    final sheet = provider.hrAttendanceSheet;
+    final lastSynced = provider.attendanceSheetLastSynced;
+    final isSyncing = provider.isLoadingAttendanceSheet;
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
@@ -61,25 +42,43 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
           icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'ATTENDANCE',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'ATTENDANCE',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandLight,
+                letterSpacing: 0.8,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              isOtm
+                  ? 'Autonomous Cadence • Project Deliverables'
+                  : '${sheet?.monthTitle ?? "November 2026"} • Official HR Master Ledger',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 10,
+                color: AppColors.sandGold,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: Center(
               child: LiquidGlassPill(
-                label: 'PILLAR 4 • DAILY',
-                color: statusColor,
-                icon: Icons.fingerprint,
+                label: isOtm ? 'OTM EXEMPT' : 'PILLAR 4 • HR AUDIT',
+                color: isOtm ? const Color(0xFF10B981) : AppColors.magentaPrimary,
+                icon: isOtm ? Icons.verified : Icons.assignment_turned_in_rounded,
               ),
             ),
           ),
@@ -88,63 +87,506 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 1. Today's Attendance Status Card (Login/Logout/Duration)
-            _buildTodayAttendanceCard(context, provider, todayLogin, todayLogout, isOnDuty, statusLabel, statusColor),
-            const SizedBox(height: 16),
+        child: isOtm
+            ? _buildOtmExemptionSection(context, currentEmp)
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Official HR Notice Card
+                  _buildHrNoticeCard(context),
+                  const SizedBox(height: 14),
 
-            // Emergency Permission (15m/30m/1h/2h/>2h) & Medical Leave Section
-            _buildEmergencyPermissionsAndLeavesSection(context, provider),
-            const SizedBox(height: 16),
+                  // 2. Google Sheets Live Sync Bar
+                  _buildLiveSyncBar(context, provider, lastSynced, isSyncing),
+                  const SizedBox(height: 14),
 
-            // 2. In-App Attendance Punch Module
-            _buildThumbScannerModule(context, provider, isOnDuty),
-            const SizedBox(height: 16),
+                  // 3. Four Core Monthly Metrics (Late, Leaves, 4h Permission, MNW)
+                  _buildMonthlyKpiGrid(context, row),
+                  const SizedBox(height: 16),
 
-            // 3. Tabular Column: Your Recent Activities (Past 7 Days) for Self Review
-            _buildPast7DaysActivityTable(context, provider),
-            const SizedBox(height: 16),
+                  // 4. Interactive 31-Day Attendance Ledger Calendar Grid
+                  _buildAttendanceCalendarCard(context, row, sheet),
+                  const SizedBox(height: 16),
 
-            // 4. Sovereign Green Light Impact Gateway
-            _buildGreenLightGateway(context, provider),
-            const SizedBox(height: 24),
-          ],
-        ),
+                  // 5. Emergency Permissions (4-Hour Quota) & Medical Leave Section
+                  _buildEmergencyPermissionsAndLeavesSection(context, provider),
+                  const SizedBox(height: 16),
+
+                  // 6. Sovereign Green Light Impact Gateway
+                  _buildGreenLightGateway(context, provider),
+                  const SizedBox(height: 24),
+                ],
+              ),
       ),
     );
   }
 
-  // --- WIDGET BUILDERS ---
+  // --- 1. OTM EXEMPTION VIEW ---
+  Widget _buildOtmExemptionSection(BuildContext context, Employee emp) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF10B981).withOpacity(0.5), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withOpacity(0.08),
+                blurRadius: 18,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF10B981).withOpacity(0.12),
+                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4), width: 2),
+                ),
+                child: const Icon(Icons.verified_rounded, size: 36, color: Color(0xFF10B981)),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'ONLINE TEAM MANAGER (OTM)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: AppColors.sandLight,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Attendance & Daily Grooming Exemption',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF059669),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+              const Divider(color: Color(0xFFE2E8F0), height: 1),
+              const SizedBox(height: 14),
+              Text(
+                'As the Online Team Manager, ${emp.name} operates under autonomous project deliverable milestones, creative video turnarounds, and digital catalog SLA metrics.\n\nDaily retail showroom attendance punching, lunch logs, and grooming audits are Not Applicable to this executive function.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  height: 1.55,
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  _exemptionBadge(Icons.assignment_turned_in, 'Milestone SLA Cadence', const Color(0xFF3B82F6)),
+                  _exemptionBadge(Icons.fingerprint, 'Biometrics Waived', const Color(0xFF10B981)),
+                  _exemptionBadge(Icons.face_retouching_natural, 'Grooming Exempt', const Color(0xFF8B5CF6)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
 
-  Widget _buildTodayAttendanceCard(
-    BuildContext context,
-    EcosystemProvider provider,
-    AttendancePunchRecord? login,
-    AttendancePunchRecord? logout,
-    bool isOnDuty,
-    String statusLabel,
-    Color statusColor,
-  ) {
+        // Emergency Step-Out Pass for OTM
+        _buildEmergencyPermissionsAndLeavesSection(context, context.watch<EcosystemProvider>()),
+      ],
+    );
+  }
+
+  Widget _exemptionBadge(IconData icon, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: statusColor.withOpacity(0.5), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: statusColor.withOpacity(0.18),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  // --- 2. OFFICIAL HR NOTICE CARD ---
+  Widget _buildHrNoticeCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.magentaPrimary.withOpacity(0.12),
+            ),
+            child: const Icon(Icons.verified_user_rounded, color: AppColors.magentaPrimary, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'OFFICIAL HR ATTENDANCE RECORDING',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.sandGold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'HR MANAGED',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF059669),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Your attendance will be recorded and uploaded by HR. If any queries, please contact HR.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.sandLight,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'HR Custodian: Mohankumar G • Ext: 1001 • hr@mnj.com',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 3. LIVE SYNC BAR ---
+  Widget _buildLiveSyncBar(
+    BuildContext context,
+    EcosystemProvider provider,
+    DateTime? lastSynced,
+    bool isSyncing,
+  ) {
+    final timeStr = lastSynced != null ? DateFormat('hh:mm a').format(lastSynced) : 'Auto';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.burgundySurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFF10B981),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Google Sheet Synced ($timeStr)',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isSyncing
+                  ? null
+                  : () async {
+                      await provider.syncGoogleSheetsAttendance(notifyIfUpdated: true);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            backgroundColor: Color(0xFF10B981),
+                            content: Text('Attendance synchronized with Google Sheet!'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.magentaPrimary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isSyncing)
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.magentaPrimary),
+                      )
+                    else
+                      const Icon(Icons.sync_rounded, size: 14, color: AppColors.magentaPrimary),
+                    const SizedBox(width: 5),
+                    Text(
+                      isSyncing ? 'Syncing...' : 'Sync from Sheet',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.magentaPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 4. FOUR CORE MONTHLY METRICS ---
+  Widget _buildMonthlyKpiGrid(BuildContext context, HrEmployeeAttendanceRow? row) {
+    final lateCount = row?.lateCount ?? 0;
+    final isLateOver = lateCount > 3;
+    final penaltyDays = row?.latePenaltyDays ?? 0;
+
+    final clUsed = row?.clDaysUsed ?? 0.0;
+    final lopUsed = row?.lopDaysUsed ?? 0.0;
+
+    final permUsedStr = row?.formattedPermissionUsed ?? '0m';
+    final permRemStr = row?.formattedPermissionRemaining ?? '4.0h';
+    final isPermOver = row?.isPermissionExceeded ?? false;
+
+    final mnwDays = row?.mnwDaysCount ?? 0;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            // 🟨 LATE (Allowed up to 3)
+            Expanded(
+              child: _kpiMetricCard(
+                title: 'LATE COMING',
+                value: '$lateCount / 3 Allowed',
+                subtext: isLateOver ? '⚠️ $penaltyDays Penalty Day(s)' : 'Within monthly grace',
+                bgColor: const Color(0xFFFEF9C3),
+                borderColor: const Color(0xFFFACC15),
+                textColor: const Color(0xFF854D0E),
+                icon: Icons.access_time_rounded,
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // 🟥 LEAVES (CL: 1, rest LOP)
+            Expanded(
+              child: _kpiMetricCard(
+                title: 'LEAVES TAKEN',
+                value: 'CL: ${clUsed.toStringAsFixed(clUsed == clUsed.roundToDouble() ? 0 : 1)}/1 • LOP: ${lopUsed.toStringAsFixed(lopUsed == lopUsed.roundToDouble() ? 0 : 1)}',
+                subtext: 'CL (Casual) • LOP (Penalty)',
+                bgColor: const Color(0xFFFEE2E2),
+                borderColor: const Color(0xFFF87171),
+                textColor: const Color(0xFF991B1B),
+                icon: Icons.event_busy_rounded,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            // 🟩 PERMISSION (4.0 Hours Quota)
+            Expanded(
+              child: _kpiMetricCard(
+                title: 'PERMISSION (4h)',
+                value: '$permUsedStr Used',
+                subtext: isPermOver ? '⚠️ Exceeded 4h Quota' : '$permRemStr Remaining',
+                bgColor: const Color(0xFFDCFCE7),
+                borderColor: const Color(0xFF4ADE80),
+                textColor: const Color(0xFF166534),
+                icon: Icons.timer_outlined,
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // 🟦 MNW (Official Work Outside)
+            Expanded(
+              child: _kpiMetricCard(
+                title: 'MNW (OFFICIAL)',
+                value: '$mnwDays Days',
+                subtext: 'Official client & field visits',
+                bgColor: const Color(0xFFDBEAFE),
+                borderColor: const Color(0xFF3B82F6),
+                textColor: const Color(0xFF1E40AF),
+                icon: Icons.storefront_rounded,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _kpiMetricCard({
+    required String title,
+    required String value,
+    required String subtext,
+    required Color bgColor,
+    required Color borderColor,
+    required Color textColor,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
+          Row(
+            children: [
+              Icon(icon, size: 14, color: textColor),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    letterSpacing: 0.4,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtext,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              color: textColor.withOpacity(0.85),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 5. INTERACTIVE 31-DAY ATTENDANCE CALENDAR ---
+  Widget _buildAttendanceCalendarCard(
+    BuildContext context,
+    HrEmployeeAttendanceRow? row,
+    HrMonthlyAttendanceSheet? sheet,
+  ) {
+    final daysCount = sheet?.daysInMonth ?? 31;
+    final monthTitle = sheet?.monthTitle ?? 'November 2026';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -153,321 +595,22 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'TODAY\'S ATTENDANCE STATUS',
+                      '$monthTitle ATTENDANCE LEDGER',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
+                        fontSize: 12.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
-                        letterSpacing: 0.6,
+                        letterSpacing: 0.5,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Daily Cadence • Punch In, Breaks & Punch Out Recorded with Date & Time',
+                      'Tap any day tile to inspect official remarks & HR notes',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
+                        fontSize: 10,
                         color: AppColors.textMuted,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: statusColor.withOpacity(0.5)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: statusColor)),
-                    const SizedBox(width: 5),
-                    Text(
-                      statusLabel.toUpperCase(),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.bold,
-                        color: statusColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Two Primary Metrics: Login & Logout
-          Row(
-            children: [
-              // LOGIN TIME
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.burgundySurface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.sandBorder),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.login, size: 14, color: Color(0xFF10B981)),
-                          SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              'Punch In',
-                              style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        login != null ? login.timeString : '--:-- --',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: login != null ? AppColors.sandLight : AppColors.textMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        login != null ? 'In-App Punch (On-Time)' : 'Scheduled: 09:30 AM',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
-                          color: login != null ? const Color(0xFF10B981) : AppColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-
-              // LOGOUT TIME
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.burgundySurface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.sandBorder),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.logout, size: 14, color: Color(0xFFEF4444)),
-                          SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              'Punch Out',
-                              style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        logout != null ? logout.timeString : (isOnDuty ? 'On Duty' : '--:-- --'),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isOnDuty ? const Color(0xFFF59E0B) : (logout != null ? AppColors.sandLight : AppColors.textMuted),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isOnDuty ? 'Shift ongoing (Active)' : (logout != null ? 'Shift completed' : 'Standard: 06:00 PM'),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
-                          color: isOnDuty ? const Color(0xFFF59E0B) : AppColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Shift Working Duration Footer
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.burgundyPrimary.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.sandBorder),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.timer_outlined, size: 15, color: AppColors.sandGold),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Net Hours:',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    login != null 
-                      ? '${provider.todayNetWorkDurationHours.toStringAsFixed(1)}h (${provider.todayLunchDurationMinutes}m lunch)' 
-                      : 'Not clocked in',
-                    textAlign: TextAlign.end,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandGold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // LUNCH BREAK DEDICATED TRACKER
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.burgundySurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: provider.isCurrentlyOnLunch 
-                    ? const Color(0xFFF59E0B) 
-                    : AppColors.sandBorder.withOpacity(0.6),
-                width: provider.isCurrentlyOnLunch ? 1.5 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: (provider.isCurrentlyOnLunch ? const Color(0xFFF59E0B) : const Color(0xFF3B82F6)).withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    provider.isCurrentlyOnLunch ? Icons.restaurant_menu : Icons.free_breakfast_outlined,
-                    size: 18,
-                    color: provider.isCurrentlyOnLunch ? const Color(0xFFF59E0B) : const Color(0xFF60A5FA),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Lunch Window',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (provider.isCurrentlyOnLunch)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF59E0B).withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: const Color(0xFFF59E0B)),
-                              ),
-                              child: const Text(
-                                'ON BREAK NOW',
-                                style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFFF59E0B)),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        provider.todayLunchOutPunch != null
-                            ? '${provider.todayLunchOutPunch!.timeString} → ${provider.todayLunchInPunch?.timeString ?? "Active (${provider.todayLunchDurationMinutes}m)"}'
-                            : 'No Lunch Punch Recorded Yet (Window: 1:00 PM - 2:00 PM)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          color: provider.todayLunchOutPunch != null ? AppColors.sandGold : AppColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildThumbScannerModule(BuildContext context, EcosystemProvider provider, bool isOnDuty) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: const [
-                    Icon(Icons.bolt_rounded, size: 16, color: AppColors.sandGold),
-                    SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        'Punch Station',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandLight,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -476,574 +619,107 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
+                  color: AppColors.magentaPrimary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  'In-App Active',
-                  style: TextStyle(fontSize: 10, color: Color(0xFF10B981), fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Mark your attendance directly in-app: Push the button or tap quick action buttons for In, Lunch and Out:',
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-          ),
-          const SizedBox(height: 16),
-
-          // Central Tactile Push Button to Mark Punch Log
-          ScaleTransition(
-            scale: _scannerPulseAnimation,
-            child: GestureDetector(
-              onTap: () => _handlePunchLogInteraction(provider, isOnDuty),
-              child: Container(
-                width: 110,
-                height: 110,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: _isScanning
-                        ? [
-                            const Color(0xFF34D399),
-                            const Color(0xFF10B981),
-                            const Color(0xFF059669),
-                          ]
-                        : (isOnDuty
-                            ? [
-                                const Color(0xFF34D399),
-                                const Color(0xFF10B981),
-                                const Color(0xFF047857),
-                              ]
-                            : [
-                                const Color(0xFFFB7185),
-                                AppColors.sandGold,
-                                const Color(0xFF9D174D),
-                              ]),
-                  ),
-                  border: Border.all(
-                    color: _isScanning
-                        ? const Color(0xFFA7F3D0)
-                        : (isOnDuty ? const Color(0xFF6EE7B7) : const Color(0xFFFECDD3)),
-                    width: 3.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (_isScanning || isOnDuty)
-                          ? const Color(0xFF10B981).withOpacity(0.4)
-                          : AppColors.sandGold.withOpacity(0.35),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _isScanning
-                          ? Icons.sync_rounded
-                          : Icons.touch_app_rounded,
-                      size: 32,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _isScanning ? 'RECORDING...' : 'PUSH TO LOG',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // 4 Direct Quick Action Punch Buttons (In, Lunch Out, Lunch In, Out)
-          Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.login, size: 14, color: AppColors.burgundyBg),
-                      label: Text(
-                        '1. Login (In)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.burgundyBg,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      onPressed: () {
-                        final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.login);
-                        if (ok) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Color(0xFF10B981),
-                              content: Text('Attendance log verified: Login check-in recorded!'),
-                            ),
-                          );
-                        } else if (provider.notificationMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFFEF4444),
-                              content: Text(provider.notificationMessage!),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.restaurant_outlined, size: 14, color: Colors.white),
-                      label: Text(
-                        '2. Lunch Out',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF59E0B),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      onPressed: () {
-                        final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.breakOut);
-                        if (ok) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Color(0xFFF59E0B),
-                              content: Text('Lunch break started! Timer active in audit ledger.'),
-                            ),
-                          );
-                        } else if (provider.notificationMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFFEF4444),
-                              content: Text(provider.notificationMessage!),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.free_breakfast, size: 14, color: Colors.white),
-                      label: Text(
-                        '3. Lunch In',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      onPressed: () {
-                        final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.breakIn);
-                        if (ok) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Color(0xFF3B82F6),
-                              content: Text('Lunch break ended! Resumed active duty.'),
-                            ),
-                          );
-                        } else if (provider.notificationMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFFEF4444),
-                              content: Text(provider.notificationMessage!),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.logout, size: 14, color: Colors.white),
-                      label: Text(
-                        '4. Logout (Out)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEF4444),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      onPressed: () {
-                        final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.logout);
-                        if (ok) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Color(0xFFEF4444),
-                              content: Text('Attendance log verified: Logout check-out recorded!'),
-                            ),
-                          );
-                        } else if (provider.notificationMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFFEF4444),
-                              content: Text(provider.notificationMessage!),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPast7DaysActivityTable(BuildContext context, EcosystemProvider provider) {
-    final records = provider.getPast7DaysAttendanceForEmployee(provider.activeEmpId);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Table Card Header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.sandGold.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-                  ),
-                  child: const Icon(Icons.table_chart_outlined, color: AppColors.sandGold, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Your Recent Activities (Past 7 Days)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandLight,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Login, logout, lunch in/out & hours for self-review',
-                        style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
-                  ),
-                  child: const Text(
-                    '1-Week Data',
-                    style: TextStyle(fontSize: 10, color: Color(0xFF10B981), fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(color: AppColors.sandBorder, height: 1),
-
-          // Scrollable Table
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              headingRowHeight: 38,
-              dataRowMinHeight: 44,
-              dataRowMaxHeight: 48,
-              horizontalMargin: 16,
-              columnSpacing: 16,
-              headingRowColor: MaterialStateProperty.all(AppColors.burgundySurface),
-              columns: const [
-                DataColumn(
-                  label: Text('Date', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
-                ),
-                DataColumn(
-                  label: Text('Login Time', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
-                ),
-                DataColumn(
-                  label: Text('Lunch Out', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFF59E0B))),
-                ),
-                DataColumn(
-                  label: Text('Lunch In', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8))),
-                ),
-                DataColumn(
-                  label: Text('Logout Time', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFEF4444))),
-                ),
-                DataColumn(
-                  label: Text('Hours & Status', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight)),
-                ),
-              ],
-              rows: records.map((r) {
-                return DataRow(
-                  color: MaterialStateProperty.resolveWith<Color?>((states) {
-                    if (r.dateLabel.startsWith('Today')) {
-                      return AppColors.sandGold.withOpacity(0.08);
-                    }
-                    return null;
-                  }),
-                  cells: [
-                    DataCell(
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (r.dateLabel.startsWith('Today'))
-                            Container(
-                              width: 6,
-                              height: 6,
-                              margin: const EdgeInsets.only(right: 6),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF10B981),
-                              ),
-                            ),
-                          Text(
-                            r.dateLabel,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: r.dateLabel.startsWith('Today') ? FontWeight.bold : FontWeight.w500,
-                              color: r.dateLabel.startsWith('Today') ? AppColors.sandGold : AppColors.sandLight,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        r.loginTime,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF10B981)),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        r.lunchOutTime,
-                        style: const TextStyle(fontSize: 11, color: Color(0xFFF59E0B)),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        r.lunchInTime,
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF38BDF8)),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        r.logoutTime,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: r.logoutTime.contains('Active') ? const Color(0xFF10B981) : AppColors.sandLight,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: r.statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: r.statusColor.withOpacity(0.4)),
-                        ),
-                        child: Text(
-                          '${r.netHours} • ${r.status}',
-                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: r.statusColor),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-
-  Widget _buildGreenLightGateway(BuildContext context, EcosystemProvider provider) {
-    final color = provider.holisticTierColor;
-    final isRed = color == AppColors.ragRed;
-    final isGreen = color == AppColors.ragGreen;
-    final pillBg = isRed
-        ? const Color(0xFFFFF1F2)
-        : (isGreen ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB));
-    final pillBorder = isRed
-        ? const Color(0xFFFECDD3)
-        : (isGreen ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A));
-    final pillTextColor = isRed
-        ? const Color(0xFFE11D48)
-        : (isGreen ? const Color(0xFF059669) : const Color(0xFFD97706));
-
-    final isAttendanceOnTime = provider.hasLoggedAttendanceToday && provider.isAttendanceOnTime;
-    final statusPillBg = isAttendanceOnTime ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2);
-    final statusPillBorder = isAttendanceOnTime ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3);
-    final statusPillTextColor = isAttendanceOnTime ? const Color(0xFF059669) : const Color(0xFFE11D48);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.25), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: pillBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: pillBorder, width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.light_mode, size: 12, color: pillTextColor),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          'Green Factor',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
-                            color: pillTextColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusPillBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: statusPillBorder, width: 1),
-                  ),
-                  child: Text(
-                    isAttendanceOnTime ? 'On-Time Verified' : 'Attendance Pending',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: statusPillTextColor,
-                    ),
+                child: Text(
+                  '$daysCount Days',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.magentaPrimary,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            'Attendance Impact',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14.5,
-              fontWeight: FontWeight.bold,
-              color: AppColors.sandLight,
+
+          // Color Code Legend
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                _legendItem('Present (Nil)', Colors.white, const Color(0xFFE2E8F0), const Color(0xFF0F172A)),
+                const SizedBox(width: 6),
+                _legendItem('Late (L-1..3)', const Color(0xFFFEF9C3), const Color(0xFFFACC15), const Color(0xFF854D0E)),
+                const SizedBox(width: 6),
+                _legendItem('Leave (CL/LOP)', const Color(0xFFFEE2E2), const Color(0xFFF87171), const Color(0xFF991B1B)),
+                const SizedBox(width: 6),
+                _legendItem('Permission (4h)', const Color(0xFFDCFCE7), const Color(0xFF4ADE80), const Color(0xFF166534)),
+                const SizedBox(width: 6),
+                _legendItem('Late+1/2D', const Color(0xFFFFEDD5), const Color(0xFFFB923C), const Color(0xFF9A3412)),
+                const SizedBox(width: 6),
+                _legendItem('MNW (Duty)', const Color(0xFFDBEAFE), const Color(0xFF3B82F6), const Color(0xFF1E40AF)),
+                const SizedBox(width: 6),
+                _legendItem('Holiday', const Color(0xFFF1F5F9), const Color(0xFFCBD5E1), const Color(0xFF64748B)),
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Punching in on time with your thumb on the biometric machine keeps your status Green.',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.35),
           ),
           const SizedBox(height: 14),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.radar_outlined, size: 16, color: Colors.white),
-            label: Text(
-              'Check Overall Status',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+
+          // 31-Day Grid
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: daysCount,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 0.95,
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sandGold,
-              minimumSize: const Size.fromHeight(42),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const TierPillarScreen()),
+            itemBuilder: (ctx, index) {
+              final day = index + 1;
+              final record = row?.days[day] ??
+                  HrAttendanceDayRecord(
+                    day: day,
+                    rawValue: '',
+                    type: HrAttendanceDayType.present,
+                    displayLabel: 'Present',
+                  );
+
+              final isSelected = _selectedDay == day;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() => _selectedDay = day);
+                  _showDayDetailModal(context, day, record, monthTitle);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  decoration: BoxDecoration(
+                    color: record.backgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? AppColors.magentaPrimary : record.borderColor,
+                      width: isSelected ? 2.0 : 1.0,
+                    ),
+                    boxShadow: [
+                      if (isSelected)
+                        BoxShadow(
+                          color: AppColors.magentaPrimary.withOpacity(0.3),
+                          blurRadius: 6,
+                        ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$day',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: record.textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      _renderCellBadge(record),
+                    ],
+                  ),
+                ),
               );
             },
           ),
@@ -1052,170 +728,188 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
     );
   }
 
-  // --- ACTIONS & DIALOGS ---
-
-  void _handlePunchLogInteraction(EcosystemProvider provider, bool isOnDuty) {
-    setState(() => _isScanning = true);
-    Future.delayed(const Duration(milliseconds: 700), () {
-      if (!mounted) return;
-      setState(() => _isScanning = false);
-
-      // Prompt for punch action
-      if (!mounted) return;
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (ctx) => Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: AppColors.sandGold, width: 1.2),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: const [
-                  Icon(Icons.assignment_turned_in_outlined, size: 20, color: AppColors.ragGreen),
-                  SizedBox(width: 10),
-                  Text(
-                    'Attendance Punch Log Verified',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.sandLight),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'In-App attendance profile matched: ${provider.currentEmployee.name} (${provider.currentEmployee.id}). Select punch action:',
-                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
-              ),
-              const SizedBox(height: 16),
-
-              ElevatedButton.icon(
-                icon: const Icon(Icons.login, color: AppColors.burgundyBg, size: 16),
-                label: const Text('Record Work Login (Check-In)'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
-                  foregroundColor: AppColors.burgundyBg,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: () {
-                  final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.login);
-                  Navigator.pop(ctx);
-                  if (ok) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Color(0xFF10B981),
-                        content: Text('Attendance punch recorded: Work Login (In)'),
-                      ),
-                    );
-                  } else if (provider.notificationMessage != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: const Color(0xFFEF4444),
-                        content: Text(provider.notificationMessage!),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-
-              ElevatedButton.icon(
-                icon: const Icon(Icons.logout, color: Colors.white, size: 16),
-                label: const Text('Record Work Logout (Check-Out)'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEF4444),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: () {
-                  final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.logout);
-                  Navigator.pop(ctx);
-                  if (ok) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Color(0xFFEF4444),
-                        content: Text('Attendance punch recorded: Work Logout (Out)'),
-                      ),
-                    );
-                  } else if (provider.notificationMessage != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: const Color(0xFFEF4444),
-                        content: Text(provider.notificationMessage!),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.sandBorder),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () {
-                        final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.breakOut);
-                        Navigator.pop(ctx);
-                        if (!ok && provider.notificationMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFFEF4444),
-                              content: Text(provider.notificationMessage!),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text('Break Out', style: TextStyle(color: AppColors.sandGold, fontSize: 11)),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.sandBorder),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () {
-                        final ok = provider.recordThumbImpressionPunch(punchType: AttendancePunchType.breakIn);
-                        Navigator.pop(ctx);
-                        if (!ok && provider.notificationMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFFEF4444),
-                              content: Text(provider.notificationMessage!),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text('Break In', style: TextStyle(color: AppColors.sandGold, fontSize: 11)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+  Widget _legendItem(String label, Color bg, Color border, Color text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: border, width: 0.8),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          color: text,
         ),
-      );
-    });
+      ),
+    );
   }
 
-  /// Emergency Permissions (15m, 30m, 1h, 2h, >2h) & Medical Leave Section
+  Widget _renderCellBadge(HrAttendanceDayRecord record) {
+    switch (record.type) {
+      case HrAttendanceDayType.late:
+        return Text(
+          record.rawValue.trim().toUpperCase(),
+          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: record.textColor),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+      case HrAttendanceDayType.leaveCl:
+        return const Text('CL', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)));
+      case HrAttendanceDayType.leaveLop:
+        return const Text('LOP', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)));
+      case HrAttendanceDayType.leaveHalfDay:
+        return const Text('1/2D', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF991B1B)));
+      case HrAttendanceDayType.permission:
+        return Text(
+          record.rawValue.trim(),
+          style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.bold, color: record.textColor),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        );
+      case HrAttendanceDayType.lateAndHalfDay:
+        return const Text('L+1/2', style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.bold, color: Color(0xFF9A3412)));
+      case HrAttendanceDayType.mnw:
+        return const Text('MNW', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)));
+      case HrAttendanceDayType.holiday:
+        return Text(
+          record.rawValue.trim().isNotEmpty ? record.rawValue.trim().toUpperCase() : 'H',
+          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+        );
+      case HrAttendanceDayType.notApplicable:
+        return const Text('-', style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)));
+      case HrAttendanceDayType.present:
+        return const Text('P', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF10B981)));
+    }
+  }
+
+  void _showDayDetailModal(
+    BuildContext context,
+    int day,
+    HrAttendanceDayRecord record,
+    String monthTitle,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: record.backgroundColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: record.borderColor, width: 1.5),
+                  ),
+                  child: Text(
+                    '$day',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: record.textColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$day $monthTitle',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'HR Attendance Classification',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Divider(color: Color(0xFFE2E8F0), height: 1),
+            const SizedBox(height: 14),
+
+            // Detail Attributes
+            _detailRow('Status Category', record.displayLabel, record.textColor),
+            const SizedBox(height: 8),
+            _detailRow('Sheet Raw Value', record.rawValue.isEmpty ? 'nil (Fully Present)' : record.rawValue, AppColors.textDark),
+            if (record.permissionMinutes > 0) ...[
+              const SizedBox(height: 8),
+              _detailRow(
+                'Permission Minutes',
+                '${record.permissionMinutes.round()} Min (${(record.permissionMinutes / 60.0).toStringAsFixed(1)} Hours)',
+                const Color(0xFF166534),
+              ),
+            ],
+            const SizedBox(height: 8),
+            _detailRow('Official Authority', 'HR Department (Uploaded & Audited)', AppColors.sandGold),
+
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Text(
+                '📌 Note: If you have any discrepancy regarding this date, please reach out to HR for verification and spreadsheet adjustment.',
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.35),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value, Color valueColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: valueColor),
+        ),
+      ],
+    );
+  }
+
+  // --- 6. EMERGENCY PERMISSIONS (4H QUOTA) & MEDICAL LEAVE SECTION ---
   Widget _buildEmergencyPermissionsAndLeavesSection(BuildContext context, EcosystemProvider provider) {
     final permissions = provider.currentEmployeePermissionRecords;
     final medicalLeaves = provider.currentEmployeeMedicalLeaves;
     final usedHours = provider.totalPermissionHoursUsed;
     final remainingHours = provider.permissionHoursRemaining;
-    final isOverQuota = usedHours > 2.0;
+    final isOverQuota = usedHours > 4.0;
 
     return LiquidGlassCard(
       borderRadius: 16,
@@ -1300,7 +994,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
           ),
           const SizedBox(height: 12),
 
-          // 2.0 Hours Permission Quota Tally Box
+          // 4.0 Hours Permission Quota Tally Box
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -1318,7 +1012,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('2-Hour Monthly Quota Tally', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                      const Text('4-Hour Monthly Quota Tally', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
                       const SizedBox(height: 2),
                       Text(
                         '${usedHours.toStringAsFixed(1)}h Used • ${remainingHours.toStringAsFixed(1)}h Remaining',
@@ -1342,7 +1036,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                     ),
                   ),
                   child: Text(
-                    isOverQuota ? '⚠️ Over 2h (Orange Mark)' : 'Quota Healthy',
+                    isOverQuota ? '⚠️ Over 4h (Penalty Trigger)' : 'Quota Healthy',
                     style: TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold,
@@ -1363,7 +1057,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
             ),
             const SizedBox(height: 6),
             ...permissions.map((p) {
-              final isOrange = p.isOrangeFlagged || p.requestedHours > 2.0;
+              final isOrange = p.isOrangeFlagged || p.requestedHours > 4.0;
               final durStr = p.actualHoursUsed < 1.0 ? '${(p.actualHoursUsed * 60).round()}m' : '${p.actualHoursUsed}h';
               return Container(
                 margin: const EdgeInsets.only(bottom: 6),
@@ -1408,7 +1102,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
                                     border: Border.all(color: const Color(0xFFF59E0B), width: 0.6),
                                   ),
                                   child: const Text(
-                                    '>2h Orange Mark',
+                                    '>4h Mark',
                                     style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
                                   ),
                                 ),
@@ -1505,6 +1199,76 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> with Si
             }),
           ],
         ],
+      ),
+    );
+  }
+
+  // --- 7. GREEN LIGHT IMPACT GATEWAY ---
+  Widget _buildGreenLightGateway(BuildContext context, EcosystemProvider provider) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (ctx) => const TierPillarScreen(),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A0F172A),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.sandGold.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.workspace_premium_outlined, color: AppColors.sandGold, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sovereign Green Light Impact',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandLight,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Pillar 4 attendance & leaves tally into your monthly Sovereign Tier scoring',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.sandGold),
+            ],
+          ),
+        ),
       ),
     );
   }

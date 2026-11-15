@@ -116,6 +116,13 @@ void main() {
 
       // Verify on HrAttendanceScreen
       expect(find.byType(HrAttendanceScreen), findsOneWidget);
+
+      // Switch to Today's Shifts tab to inspect live punches
+      final shiftsTab = find.text("Today's Shifts");
+      expect(shiftsTab, findsOneWidget);
+      await tester.tap(shiftsTab);
+      await tester.pumpAndSettle();
+
       expect(find.text('View Biometric Punch Audit'), findsWidgets);
 
       // Tap View Biometric Punch Audit on first staff

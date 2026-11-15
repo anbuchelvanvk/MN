@@ -14,6 +14,8 @@ import '../models/konar_tasks_catalog.dart';
 import '../models/social_cause_models.dart';
 import '../models/company_notification_models.dart';
 import '../models/personal_note_model.dart';
+import '../models/hr_attendance_sheet_models.dart';
+import '../services/google_sheets_attendance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/online_order_model.dart';
 import '../services/firebase_employee_service.dart';
@@ -221,13 +223,87 @@ class EcosystemProvider extends ChangeNotifier {
   double get salesAchievementPercentage =>
       _monthlySalesTarget <= 0 ? 100.0 : ((totalSalesAchieved / _monthlySalesTarget) * 100.0).clamp(0.0, 150.0);
 
-  // Ring 5: Permission & Late Arrivals Account (2.0 hrs monthly balance + 1 CL rule)
+  // Ring 5: Permission & Late Arrivals Account (4.0 hrs monthly balance + 1 CL rule)
   List<PermissionRecord> _permissionRecords = [];
-  final double _monthlyPermissionHoursLimit = 2.0;
+  final double _monthlyPermissionHoursLimit = 4.0;
   final int _monthlyCasualLeavesLimit = 1;
 
   // Emergency Medical Leaves (with Mandatory Prescription <= 150 KB)
   List<MedicalLeaveRecord> _medicalLeaveRecords = [];
+
+  // HR Google Sheet Live Attendance State
+  HrMonthlyAttendanceSheet? _hrAttendanceSheet;
+  HrMonthlyAttendanceSheet? get hrAttendanceSheet => _hrAttendanceSheet;
+
+  bool _isLoadingAttendanceSheet = false;
+  bool get isLoadingAttendanceSheet => _isLoadingAttendanceSheet;
+
+  String? _attendanceSheetError;
+  String? get attendanceSheetError => _attendanceSheetError;
+
+  DateTime? _attendanceSheetLastSynced;
+  DateTime? get attendanceSheetLastSynced => _attendanceSheetLastSynced;
+
+  /// Find attendance row for the current active employee
+  HrEmployeeAttendanceRow? get currentEmployeeHrAttendanceRow {
+    if (_hrAttendanceSheet == null) return null;
+    return _hrAttendanceSheet!.findForEmployee(
+      name: currentEmployee.name,
+      empNo: currentEmployee.empNo,
+    );
+  }
+
+  /// Sync live Google Sheets Attendance
+  Future<void> syncGoogleSheetsAttendance({bool notifyIfUpdated = true}) async {
+    _isLoadingAttendanceSheet = true;
+    _attendanceSheetError = null;
+    notifyListeners();
+
+    try {
+      final res = await GoogleSheetsAttendanceService.fetchAttendanceSheet();
+      _hrAttendanceSheet = res.sheet;
+      _attendanceSheetLastSynced = DateTime.now();
+
+      if (notifyIfUpdated && res.updatedDays.isNotEmpty) {
+        final daysStr = res.updatedDays.map((d) => '$d ${_hrAttendanceSheet?.monthTitle ?? 'Nov'}').join(', ');
+        broadcastAttendanceUpdateNotification(daysStr);
+      }
+    } catch (e) {
+      _attendanceSheetError = e.toString();
+    } finally {
+      _isLoadingAttendanceSheet = false;
+      notifyListeners();
+    }
+  }
+
+  /// Broadcast notification to all staff that attendance has been updated
+  void broadcastAttendanceUpdateNotification(String dateOrDays) {
+    final title = '📋 Attendance Updated ($dateOrDays)';
+    final body = 'Attendance for $dateOrDays has been officially updated by HR. Please check your attendance tab.';
+
+    // Push local notification
+    PushNotificationService().showNotification(
+      id: 'ATTENDANCE-UPDATE-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      body: body,
+      payload: 'attendance_sheet_updated',
+    );
+
+    // Add in-app notification to company broadcast list
+    _companyNotifications.insert(
+      0,
+      CompanyNotification(
+        id: 'NOTIF-ATT-${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        content: body,
+        type: CompanyNotificationType.broadcastNotice,
+        timestamp: DateTime.now(),
+        senderName: 'HR Department (Mohankumar G)',
+        senderRole: 'HR Manager',
+      ),
+    );
+    notifyListeners();
+  }
 
   List<PermissionRecord> get permissionRecords => _permissionRecords;
   List<PermissionRecord> get allPendingPermissions =>
@@ -279,7 +355,7 @@ class EcosystemProvider extends ChangeNotifier {
       count += (casualLeavesUsed - _monthlyCasualLeavesLimit).toDouble();
     }
     if (isPermissionExcessHalfDay) {
-      count += 0.5; // Excess hours over 2.0 considered as half day leave
+      count += 0.5; // Excess hours over 4.0 considered as half day leave
     }
     return count;
   }
@@ -1239,6 +1315,7 @@ class EcosystemProvider extends ChangeNotifier {
       _employees.where((e) => isEmployeeAbsent(e.id)).map((e) => e.id).toSet();
 
   bool isEmployeeAbsent(String empId) {
+    if (empId == 'MN-TL1002') return false; // OTM Praveenkumar is exempt from showroom attendance
     if (_manuallyPresentEmployeeIds.contains(empId)) return false;
     if (_absentEmployeeIds.contains(empId)) return true;
     final summaries = allEmployeesTodayAttendance;
@@ -1504,6 +1581,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 2. HR Management
       Employee(
         id: 'MN-HR1001',
+        empNo: '7',
         name: 'Mohankumar G',
         role: 'HR Manager & Operations Custodian',
         roleType: 'hr',
@@ -1538,6 +1616,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 3. OTM - Online Team Manager / Team Lead (Mr. M. Praveen Kumar)
       Employee(
         id: 'MN-TL1002',
+        empNo: '',
         name: 'Praveenkumar M',
         role: 'Online Team Manager (Editor)',
         roleType: 'team_lead',
@@ -1572,6 +1651,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 4. OSH - Online Sale Head (Mr. K. Gokulakrishnan)
       Employee(
         id: 'MN-1003',
+        empNo: '6',
         name: 'Gokulakrishnan K',
         role: 'Online Sale Head (OSH)',
         roleType: 'employee',
@@ -1606,6 +1686,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 5. VPE - Chief Photographer & Videographer (Mr. Y. Aravinda Samy)
       Employee(
         id: 'MN-1004',
+        empNo: '',
         name: 'Aravinda Samy Y',
         role: 'Chief Photographer & Videographer (VPE)',
         roleType: 'employee',
@@ -1640,6 +1721,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 6. Ass.VPE - Assistant Photographer (Mrs. M. Mithra)
       Employee(
         id: 'MN-1005',
+        empNo: '33',
         name: 'Mithra M',
         role: 'Assistant Photographer & Videographer (Ass.VPE)',
         roleType: 'employee',
@@ -1674,6 +1756,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 7. ECE - E-Commerce Executive
       Employee(
         id: 'MN-1006',
+        empNo: '',
         name: 'E-Commerce Executive',
         role: 'E-Commerce Executive (ECE)',
         roleType: 'employee',
@@ -1708,6 +1791,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 8. OS1 - Online Sale Person 1 (Ms. Kaaviya)
       Employee(
         id: 'MN-1007',
+        empNo: '65',
         name: 'Kaaviya',
         role: 'Online Sale Person 1 (OS1)',
         roleType: 'employee',
@@ -1742,6 +1826,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 9. OS2 - Online Sale Person 2 (Ms. Nisha)
       Employee(
         id: 'MN-1008',
+        empNo: '67',
         name: 'Nisha',
         role: 'Online Sale Person 2 (OS2)',
         roleType: 'employee',
@@ -1776,6 +1861,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 10. AC - Online Analytical Consultant (Mr. J. Midhun Kumar)
       Employee(
         id: 'MN-1009',
+        empNo: '',
         name: 'Midhun Kumar J',
         role: 'Online Analytical Consultant (AC)',
         roleType: 'employee',
@@ -1810,6 +1896,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 11. OSS - Online Support & Strategist (Mr. Subash)
       Employee(
         id: 'MN-1010',
+        empNo: '',
         name: 'Subash',
         role: 'Online Support & Strategist (OSS)',
         roleType: 'employee',
@@ -1844,6 +1931,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 12. DVP - Developer (Mr. K.B. Eshwar)
       Employee(
         id: 'MN-1011',
+        empNo: '',
         name: 'Eshwar K B',
         role: 'Platform Developer (DVP)',
         roleType: 'employee',
@@ -1878,6 +1966,7 @@ class EcosystemProvider extends ChangeNotifier {
       // 13. CC - Content Creator (Mr. Sam Roy)
       Employee(
         id: 'MN-1012',
+        empNo: '',
         name: 'Sam Roy',
         role: 'Content Creator & Scriptwriter (CC)',
         roleType: 'employee',
@@ -1972,6 +2061,12 @@ class EcosystemProvider extends ChangeNotifier {
 
     // Online Orders Handler (Clean state: only real data created or streamed from Firestore)
     _onlineOrders = [];
+
+    // Pre-seed Google Sheets HR Attendance data with official November ledger
+    _hrAttendanceSheet = GoogleSheetsAttendanceService.parseCsvToAttendanceSheet(
+      GoogleSheetsAttendanceService.embeddedNovemberSeedCsv,
+    );
+    _attendanceSheetLastSynced = DateTime.now();
   }
 
   // --- ACTIONS ---

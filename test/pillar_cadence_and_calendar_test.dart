@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/models/attendance_models.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
+
   group('Pillar Cadences & Full Calendar Verification Tests', () {
     late EcosystemProvider provider;
 

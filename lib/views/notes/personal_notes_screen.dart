@@ -435,31 +435,40 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                 const Divider(color: Color(0xFFE2E8F0), height: 1),
                 const SizedBox(height: 12),
 
-                // Actions: Delete, Share, Edit (Reworked cohesive button bar)
+                // Actions: Delete, Share, Edit (Reworked cohesive, balanced button bar)
                 Row(
                   children: [
                     // Delete Button
                     Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _confirmDeleteNote(context, eco, note);
-                        },
-                        icon: const Icon(Icons.delete_outline_rounded, size: 15, color: Color(0xFFDC2626)),
-                        label: const Text(
-                          'Delete',
-                          style: TextStyle(
-                            color: Color(0xFFDC2626),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                      child: SizedBox(
+                        height: 44,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _confirmDeleteNote(context, eco, note);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
+                            backgroundColor: const Color(0xFFFFF1F2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            elevation: 0,
                           ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
-                          backgroundColor: const Color(0xFFFFF1F2),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          elevation: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.delete_outline_rounded, size: 16, color: Color(0xFFDC2626)),
+                              SizedBox(width: 5),
+                              Text(
+                                'Delete',
+                                style: TextStyle(
+                                  color: Color(0xFFDC2626),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -467,26 +476,35 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
 
                     // Share Button
                     Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _showShareNotePreviewDialog(context, eco, note);
-                        },
-                        icon: const Icon(Icons.share_rounded, size: 15, color: Color(0xFF9D174D)),
-                        label: const Text(
-                          'Share',
-                          style: TextStyle(
-                            color: Color(0xFF9D174D),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                      child: SizedBox(
+                        height: 44,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _showShareNotePreviewDialog(context, eco, note);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
+                            backgroundColor: const Color(0xFFFDF2F8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            elevation: 0,
                           ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
-                          backgroundColor: const Color(0xFFFDF2F8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          elevation: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.share_rounded, size: 16, color: Color(0xFF9D174D)),
+                              SizedBox(width: 5),
+                              Text(
+                                'Share Image',
+                                style: TextStyle(
+                                  color: Color(0xFF9D174D),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -494,26 +512,36 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
 
                     // Edit Button
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _showAddOrEditNoteDialog(context, eco, existing: note);
-                        },
-                        icon: const Icon(Icons.edit_rounded, size: 15, color: Colors.white),
-                        label: const Text(
-                          'Edit',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                      child: SizedBox(
+                        height: 44,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _showAddOrEditNoteDialog(context, eco, existing: note);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.magentaPrimary,
+                            foregroundColor: Colors.white,
+                            elevation: 1,
+                            shadowColor: AppColors.magentaPrimary.withOpacity(0.35),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                           ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.magentaPrimary,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.edit_rounded, size: 16, color: Colors.white),
+                              SizedBox(width: 5),
+                              Text(
+                                'Edit Note',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -831,7 +859,11 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                       const SizedBox(height: 2),
                       // Role & ID
                       Text(
-                        '${author.role} • ${author.id}',
+                        author.isOtm
+                            ? author.role
+                            : (author.displayEmpId.isNotEmpty
+                                ? '${author.role} • ${author.displayEmpId}'
+                                : author.role),
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,

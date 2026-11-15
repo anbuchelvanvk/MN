@@ -665,6 +665,21 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               const SizedBox(width: 8),
               Builder(
                 builder: (context) {
+                  final emp = provider.currentEmployee;
+                  if (emp.isOtm) {
+                    return Expanded(
+                      child: _buildRingCard(
+                        index: 2,
+                        title: 'Grooming',
+                        displayValue: 'N/A',
+                        subText: 'Exempt (OTM)',
+                        progress: 1.0,
+                        ringColor: AppColors.sandGold,
+                        icon: Icons.face_retouching_natural,
+                        statusText: 'Not Applicable',
+                      ),
+                    );
+                  }
                   final hasAudit = provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty;
                   final groomingPercent = provider.getEmployeeGroomingPercentage(provider.activeEmpId);
                   final groomingPoints = provider.getEmployeeGroomingDailyPoints(provider.activeEmpId);
@@ -1291,6 +1306,28 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   Widget _buildGroomingSection(BuildContext context, EcosystemProvider provider) {
     final emp = provider.currentEmployee;
+    if (emp.isOtm) {
+      return LiquidGlassCard(
+        padding: const EdgeInsets.all(22),
+        borderRadius: 18,
+        child: Column(
+          children: [
+            const Icon(Icons.verified_user_outlined, size: 36, color: AppColors.sandGold),
+            const SizedBox(height: 10),
+            Text(
+              'Grooming & Attire: Not Applicable',
+              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Online Team Manager (OTM) operates under digital project delivery and media editor standards, and is exempt from retail showroom attire & grooming audits.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: AppColors.textMuted, height: 1.4),
+            ),
+          ],
+        ),
+      );
+    }
     final isFemale = emp.isFemale;
     final dailyPoints = provider.getEmployeeGroomingDailyPoints(emp.id);
     final percentage = provider.getEmployeeGroomingPercentage(emp.id);

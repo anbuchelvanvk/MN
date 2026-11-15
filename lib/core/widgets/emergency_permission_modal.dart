@@ -33,10 +33,10 @@ class EmergencyPermissionModal extends StatefulWidget {
 }
 
 class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
-  // Preset durations: 15m (0.25h), 30m (0.5h), 1hr (1.0h), 2hr (2.0h), custom
+  // Preset durations: 15m (0.25h), 30m (0.5h), 1hr (1.0h), 2hr (2.0h), 4hr (4.0h), custom
   double _selectedHours = 0.5; // Default 30m
   bool _isCustomDuration = false;
-  final TextEditingController _customHoursController = TextEditingController(text: '2.5');
+  final TextEditingController _customHoursController = TextEditingController(text: '4.5');
   final TextEditingController _reasonController = TextEditingController();
 
   @override
@@ -69,18 +69,18 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
     final role = widget.empRole ?? activeEmp.role;
 
     final effectiveHours = _isCustomDuration
-        ? (double.tryParse(_customHoursController.text.trim()) ?? 2.5)
+        ? (double.tryParse(_customHoursController.text.trim()) ?? 4.5)
         : _selectedHours;
 
-    // Check if this request exceeds standard 2.0 hr quota or cumulative monthly usage
+    // Check if this request exceeds standard 4.0 hr quota or cumulative monthly usage
     final currentUsed = eco.totalPermissionHoursUsed;
     final remainingQuota = eco.permissionHoursRemaining;
-    final willExceedQuota = effectiveHours > 2.0 || (currentUsed + effectiveHours) > eco.monthlyPermissionHoursLimit;
+    final willExceedQuota = effectiveHours > 4.0 || (currentUsed + effectiveHours) > eco.monthlyPermissionHoursLimit;
 
     final excessHours = (effectiveHours > remainingQuota)
         ? (effectiveHours - remainingQuota)
-        : (effectiveHours - 2.0);
-    final positiveDiff = excessHours > 0 ? excessHours : (effectiveHours > 2.0 ? effectiveHours - 2.0 : 0.5);
+        : (effectiveHours - 4.0);
+    final positiveDiff = excessHours > 0 ? excessHours : (effectiveHours > 4.0 ? effectiveHours - 4.0 : 0.5);
     final timeGiven = _formatDuration(effectiveHours);
     final timeDifference = _formatDuration(positiveDiff);
 
@@ -170,12 +170,12 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            '2-Hour Permission Quota',
+                            '4-Hour Permission Quota',
                             style: TextStyle(fontSize: 10, color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${remainingQuota.toStringAsFixed(1)}h Remaining of 2.0h',
+                            '${remainingQuota.toStringAsFixed(1)}h Remaining of 4.0h',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -198,7 +198,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                         ),
                       ),
                       child: Text(
-                        willExceedQuota ? 'Orange Flag (Exceeds 2h)' : 'Within 2h Quota',
+                        willExceedQuota ? 'Orange Flag (Exceeds 4h)' : 'Within 4h Quota',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -211,7 +211,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
               ),
               const SizedBox(height: 14),
 
-              // Duration selector (15m, 30m, 1hr, 2hr, >2h custom)
+              // Duration selector (15m, 30m, 1hr, 2hr, 4hr, >4h custom)
               Text(
                 'Select Step-Out Duration:',
                 style: GoogleFonts.plusJakartaSans(
@@ -229,8 +229,9 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                   _durationChip('30 Min', 0.5, isSelected: !_isCustomDuration && _selectedHours == 0.5),
                   _durationChip('1 Hour', 1.0, isSelected: !_isCustomDuration && _selectedHours == 1.0),
                   _durationChip('2 Hours', 2.0, isSelected: !_isCustomDuration && _selectedHours == 2.0),
+                  _durationChip('4 Hours', 4.0, isSelected: !_isCustomDuration && _selectedHours == 4.0),
                   ChoiceChip(
-                    label: const Text('> 2h Custom', style: TextStyle(fontSize: 11)),
+                    label: const Text('> 4h Custom', style: TextStyle(fontSize: 11)),
                     selected: _isCustomDuration,
                     onSelected: (val) {
                       setState(() {
@@ -256,7 +257,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                   style: const TextStyle(color: AppColors.textDark, fontSize: 13),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    labelText: 'Enter Custom Duration in Hours (e.g. 2.5, 3.0)',
+                    labelText: 'Enter Custom Duration in Hours (e.g. 4.5, 5.0)',
                     labelStyle: const TextStyle(color: AppColors.magentaPrimary, fontSize: 11),
                     suffixText: 'Hours',
                     suffixStyle: const TextStyle(color: AppColors.textMuted),
@@ -272,7 +273,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
               ],
               const SizedBox(height: 12),
 
-              // Orange Mark Banner if exceeding 2.0 hrs
+              // Orange Mark Banner if exceeding 4.0 hrs
               if (willExceedQuota) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -291,7 +292,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'The time you gave [$timeGiven] exceeds your quota of 2hr window, by [$timeDifference]. Do you still want to proceed?',
+                          'The time you gave [$timeGiven] exceeds your quota of 4hr window, by [$timeDifference]. Do you still want to proceed?',
                           style: const TextStyle(
                             fontSize: 11.5,
                             color: Color(0xFFB45309),

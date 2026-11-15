@@ -37,16 +37,16 @@ class GroomingAuditItem {
   }
 }
 
-/// Ring 5: Permission & Late Arrival request with auto 2-hr balance & 1 CL rule
+/// Ring 5: Permission & Late Arrival request with auto 4-hr balance & 1 CL rule
 class PermissionRecord {
   final String id;
   final String empId;
   final DateTime date;
-  final double requestedHours; // e.g. 2.0 hrs
+  final double requestedHours; // e.g. 4.0 hrs
   final double actualHoursUsed; // e.g. 1.0 hr
   final String reason;
   final String status; // 'Approved', 'Pending', 'Pending HR & CEO', 'Granted by HR (Pending CEO Approval)', 'Pending CEO', 'Rejected'
-  final bool isHalfDayTriggered; // True if monthly > 2 hrs
+  final bool isHalfDayTriggered; // True if monthly > 4 hrs
   final bool isCasualLeave; // True if taken as CL (max 1/month)
   final bool isSalaryDeducted; // True if exceeding 1 CL
   final String grantedBy; // 'HR Direct Grant' or 'Employee Request'
@@ -56,7 +56,8 @@ class PermissionRecord {
   final String? employeeName;
   final String? department;
   final String? requesterRole; // 'Employee', 'Team Lead', 'HR', 'CEO'
-  final bool isOver2Hours; // True if requested > 2h or monthly balance exceeded (Orange flag)
+  final bool isOver4Hours; // True if requested > 4h or monthly balance exceeded (Orange flag)
+  bool get isOver2Hours => isOver4Hours; // Backwards compatibility alias
   final String? hrApprovedBy;
   final String? ceoApprovedBy;
 
@@ -76,10 +77,11 @@ class PermissionRecord {
     this.employeeName,
     this.department,
     this.requesterRole,
-    this.isOver2Hours = false,
+    bool isOver4Hours = false,
+    bool isOver2Hours = false,
     this.hrApprovedBy,
     this.ceoApprovedBy,
-  });
+  }) : isOver4Hours = isOver4Hours || isOver2Hours;
 
   /// Hours saved back to the employee's account
   double get creditedBackHours => (requestedHours - actualHoursUsed).clamp(0.0, requestedHours);
@@ -93,7 +95,7 @@ class PermissionRecord {
       status == 'Granted by HR (Pending CEO Approval)' ||
       (status == 'Pending HR & CEO' && requesterRole != 'HR');
 
-  bool get isOrangeFlagged => isOver2Hours || requestedHours > 2.0 || isHalfDayTriggered;
+  bool get isOrangeFlagged => isOver4Hours || requestedHours > 4.0 || isHalfDayTriggered;
 
   String get dateFormatted {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -289,7 +291,7 @@ class RoleAllocationConfig {
       ],
       perks: [
         'Monthly sales commission tier qualification',
-        '2.0 hours flexible monthly emergency permission balance',
+        '4.0 hours flexible monthly emergency permission balance',
         '1 paid Casual Leave per calendar month',
         'Access to MN Family Wellness & Tier Rewards'
       ],
