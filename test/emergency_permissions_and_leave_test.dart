@@ -253,10 +253,9 @@ void main() {
 
       expect(find.text('OFFICIAL HR ATTENDANCE RECORDING'), findsOneWidget);
       expect(find.text('Your attendance will be recorded and uploaded by HR. If any queries, please contact HR.'), findsOneWidget);
-      expect(find.text('EMERGENCY PASS & MEDICAL LEAVE'), findsOneWidget);
-      expect(find.text('Permission'), findsOneWidget);
-      expect(find.text('Medical Leave'), findsOneWidget);
+      expect(find.text('OFFICIAL ATTENDANCE, LEAVES & PERMISSIONS'), findsOneWidget);
       expect(find.text('4-Hour Monthly Quota Tally'), findsOneWidget);
+      expect(find.text('EMERGENCY PASS & MEDICAL LEAVE'), findsNothing);
       expect(find.text('PUSH TO LOG'), findsNothing);
       expect(find.text('SCAN THUMB'), findsNothing);
     });

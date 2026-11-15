@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 enum AcceptanceRequestType {
   permission,
   leave,
+  socialCausePending,
+  socialCauseApproved,
 }
 
 /// Represents an official acceptance notification dispatched to HR, CEO, and Team Lead (TL)
@@ -20,7 +22,7 @@ class AcceptancePopupNotification {
   final String reason;
   final String approvedBy;
   final DateTime timestamp;
-  final List<String> targetRoles; // ['hr', 'ceo', 'team_lead']
+  final List<String> targetRoles; // ['hr', 'ceo', 'team_lead', 'all']
   final List<String> targetEmpIds; // list of empIds that must be notified
   final Set<String> acknowledgedByEmpIds;
 
@@ -46,6 +48,9 @@ class AcceptancePopupNotification {
   bool isTargetedFor({required String empId, required String roleType}) {
     // Check if dismissed/acknowledged by this specific user
     if (acknowledgedByEmpIds.contains(empId)) return false;
+
+    // Check if targeted to all users
+    if (targetRoles.contains('all')) return true;
 
     // Check by roleType
     final rLower = roleType.toLowerCase();
@@ -76,10 +81,19 @@ class AcceptancePopupNotification {
         return Icons.timer_outlined;
       case AcceptanceRequestType.leave:
         return Icons.event_available_rounded;
+      case AcceptanceRequestType.socialCausePending:
+        return Icons.volunteer_activism_rounded;
+      case AcceptanceRequestType.socialCauseApproved:
+        return Icons.verified_rounded;
     }
   }
 
   Color get accentColor {
-    return const Color(0xFF10B981); // Emerald green acceptance color
+    switch (requestType) {
+      case AcceptanceRequestType.socialCausePending:
+        return const Color(0xFFF59E0B);
+      default:
+        return const Color(0xFF10B981); // Emerald green acceptance color
+    }
   }
 }

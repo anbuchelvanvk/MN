@@ -20,6 +20,16 @@ class FoodApiService {
     final results = <FoodItem>[];
     final seenNames = <String>{};
 
+    // 0. Priority #1: Curated Indian & everyday database matches always served FIRST
+    final localMatches = FoodDatabase.search(query);
+    for (var f in localMatches) {
+      final dedupeKey = f.name.toLowerCase();
+      if (!seenNames.contains(dedupeKey)) {
+        seenNames.add(dedupeKey);
+        results.add(f);
+      }
+    }
+
     // 1. Query DummyJSON Recipes API (Lightning fast, reliable, includes calories)
     try {
       final dummyJsonUrl = Uri.parse(

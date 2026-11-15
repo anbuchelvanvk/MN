@@ -2067,7 +2067,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Monthly Quota',
+                          'HR Master Ledger Audited',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10.5,
                             color: AppColors.textMuted,
@@ -2077,11 +2077,24 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  LiquidGlassButton(
-                    label: 'Request',
-                    icon: Icons.timer,
-                    height: 32,
-                    onPressed: () => _openRequestPermissionDialog(context, provider),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.sandGold.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.assignment_turned_in, size: 13, color: AppColors.sandGold),
+                        SizedBox(width: 4),
+                        Text(
+                          'Ledger Linked',
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -2093,7 +2106,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Expanded(
                     child: _metricColumn(
                       title: 'Quota',
-                      value: '2.0h',
+                      value: '4.0h',
                       color: AppColors.sandLight,
                       icon: Icons.hourglass_top,
                     ),
@@ -2283,186 +2296,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  void _openRequestPermissionDialog(BuildContext context, EcosystemProvider provider) {
-    final reasonCtrl = TextEditingController();
-    double requestedHours = 2.0;
-    double actualArrivedHours = 1.0;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlgState) {
-          final credited = (requestedHours - actualArrivedHours).clamp(0.0, requestedHours);
-          final newTotalUsed = provider.totalPermissionHoursUsed + actualArrivedHours;
-          final willExceed = newTotalUsed > provider.monthlyPermissionHoursLimit;
-
-          return AlertDialog(
-            backgroundColor: AppColors.burgundyCard,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-              side: const BorderSide(color: AppColors.sandGold),
-            ),
-            title: Text(
-              'Request Permission / Late Arrival',
-              style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _dialogTextField(controller: reasonCtrl, label: 'Reason for Permission', hint: 'e.g. Bank token, medical', icon: Icons.edit_note),
-                  const SizedBox(height: 12),
-
-                  Text('Requested Permission Hours:', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [0.5, 1.0, 1.5, 2.0].map((h) {
-                      final isSel = requestedHours == h;
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: InkWell(
-                            onTap: () => setDlgState(() => requestedHours = h),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isSel ? AppColors.magentaPrimary : AppColors.cardSurface,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: isSel ? AppColors.magentaPrimary : AppColors.sandBorder),
-                              ),
-                              child: Text(
-                                '${h}h',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSel ? Colors.white : AppColors.textDark,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Text('Actual Arrival / Time Spent:', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [0.5, 1.0, 1.5, 2.0].map((h) {
-                      final isSel = actualArrivedHours == h;
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: InkWell(
-                            onTap: () => setDlgState(() => actualArrivedHours = h),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isSel ? AppColors.magentaPrimary : AppColors.cardSurface,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: isSel ? AppColors.magentaPrimary : AppColors.sandBorder),
-                              ),
-                              child: Text(
-                                '${h}h',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSel ? Colors.white : AppColors.textDark,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Real-time calculation preview box
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.burgundySurface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: willExceed ? const Color(0xFFEF4444) : AppColors.ragGreen.withOpacity(0.5)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Auto Credit-Back:', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
-                            Text('+${credited.toStringAsFixed(1)}h kept in account', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.ragGreen)),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('New Monthly Used:', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                            Text('${newTotalUsed.toStringAsFixed(1)}h / 2.0h', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: willExceed ? const Color(0xFFEF4444) : AppColors.sandLight)),
-                          ],
-                        ),
-                        if (willExceed) ...[
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Warning: Exceeds 2.0h allowance. Will trigger Half-Day Leave.',
-                              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFFEF4444)),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted)),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sandGold,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () {
-                  final reason = reasonCtrl.text.trim().isEmpty ? 'General Permission' : reasonCtrl.text.trim();
-                  provider.requestPermission(
-                    empId: provider.currentEmployee.id,
-                    reason: reason,
-                    requestedHours: requestedHours,
-                    actualHoursUsed: actualArrivedHours,
-                  );
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: const Color(0xFF10B981),
-                      content: Text('Permission recorded: ${credited.toStringAsFixed(1)}h credited back to account!'),
-                    ),
-                  );
-                },
-                child: Text('Submit & Sync', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: AppColors.burgundyBg)),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 

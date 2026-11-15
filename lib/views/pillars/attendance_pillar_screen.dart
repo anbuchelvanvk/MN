@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
-import '../../core/widgets/emergency_permission_modal.dart';
-import '../../core/widgets/emergency_medical_leave_modal.dart';
 import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../../models/employee_model.dart';
 import '../../models/hr_attendance_sheet_models.dart';
@@ -1181,7 +1179,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  Icons.flash_on,
+                  Icons.assignment_turned_in_rounded,
                   color: AppColors.sandGold,
                   size: 16,
                 ),
@@ -1192,16 +1190,16 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'EMERGENCY PASS & MEDICAL LEAVE',
+                      'OFFICIAL ATTENDANCE, LEAVES & PERMISSIONS',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
                         letterSpacing: 0.5,
                       ),
                     ),
                     const Text(
-                      'Direct CEO & HR approval pipeline',
+                      'Audited & uploaded directly by HR in Master Ledger',
                       style: TextStyle(
                         fontSize: 10,
                         color: AppColors.textMuted,
@@ -1212,71 +1210,31 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // Two Action Buttons: Emergency Permission & Emergency Medical Leave
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.sandGold,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 9,
-                      horizontal: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                  ),
-                  onPressed: () => EmergencyPermissionModal.show(context),
-                  icon: const Icon(
-                    Icons.access_time_rounded,
-                    size: 13,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Permission',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                      color: Colors.white,
+          // Official Notice
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.sandGold.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.sandGold.withOpacity(0.25)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, size: 14, color: AppColors.sandGold),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Your attendance, 4.0h monthly permission quota, CL, and LOP are maintained via the HR Master Ledger. For any queries, please reach out to HR.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      color: AppColors.sandLight,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFEF4444),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 9,
-                      horizontal: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                  ),
-                  onPressed: () => EmergencyMedicalLeaveModal.show(context),
-                  icon: const Icon(
-                    Icons.medical_services_outlined,
-                    size: 13,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Medical Leave',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 12),
 

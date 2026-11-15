@@ -20,6 +20,26 @@ class FoodItem {
     this.iconEmoji = '🍽️',
   });
 
+  bool get isBeverage =>
+      category == 'Snacks & Beverages' ||
+      name.toLowerCase().contains('tea') ||
+      name.toLowerCase().contains('coffee') ||
+      name.toLowerCase().contains('chai') ||
+      name.toLowerCase().contains('kaapi') ||
+      name.toLowerCase().contains('juice') ||
+      name.toLowerCase().contains('milk') ||
+      name.toLowerCase().contains('lassi') ||
+      name.toLowerCase().contains('mor') ||
+      name.toLowerCase().contains('water');
+
+  double get smallPortionGrams => isBeverage ? 100.0 : defaultServingGrams * 0.7;
+  double get normalPortionGrams => isBeverage ? 150.0 : defaultServingGrams;
+  double get bigPortionGrams => isBeverage ? 250.0 : defaultServingGrams * 1.4;
+
+  String get smallPortionLabel => isBeverage ? 'Small Cup (~100ml)' : 'Small (~${smallPortionGrams.toInt()}g)';
+  String get normalPortionLabel => isBeverage ? 'Regular Cup (~150ml)' : 'Normal (~${normalPortionGrams.toInt()}g)';
+  String get bigPortionLabel => isBeverage ? 'Mug / Glass (~250ml)' : 'Big / Large (~${bigPortionGrams.toInt()}g)';
+
   double caloriesForGrams(double grams) {
     return (grams / 100.0) * caloriesPer100g;
   }
@@ -34,6 +54,8 @@ class FoodLogItem {
   final double calories;
   final DateTime timestamp;
   final String timeString;
+  final String portionSize; // 'Small', 'Normal', 'Big', 'Cup', 'Mug'
+  final int quantity; // 1, 2, 3...
 
   FoodLogItem({
     required this.id,
@@ -43,6 +65,8 @@ class FoodLogItem {
     required this.calories,
     required this.timestamp,
     required this.timeString,
+    this.portionSize = 'Normal',
+    this.quantity = 1,
   });
 
   Map<String, dynamic> toMap() => {
@@ -53,6 +77,8 @@ class FoodLogItem {
     'calories': calories,
     'timestamp': timestamp.toIso8601String(),
     'timeString': timeString,
+    'portionSize': portionSize,
+    'quantity': quantity,
   };
 
   factory FoodLogItem.fromMap(Map<String, dynamic> map) => FoodLogItem(
@@ -63,6 +89,8 @@ class FoodLogItem {
     calories: (map['calories'] as num?)?.toDouble() ?? 0.0,
     timestamp: map['timestamp'] != null ? DateTime.tryParse(map['timestamp']) ?? DateTime.now() : DateTime.now(),
     timeString: map['timeString'] ?? '',
+    portionSize: map['portionSize'] ?? 'Normal',
+    quantity: (map['quantity'] as num?)?.toInt() ?? 1,
   );
 }
 
@@ -79,6 +107,10 @@ class WorkoutLogItem {
   final DateTime timestamp;
   final String timeString;
   final String notes;
+  final int laps;
+  final int sets;
+  final int rounds;
+  final String customMetric;
 
   WorkoutLogItem({
     required this.id,
@@ -92,6 +124,10 @@ class WorkoutLogItem {
     required this.timestamp,
     required this.timeString,
     this.notes = '',
+    this.laps = 0,
+    this.sets = 0,
+    this.rounds = 0,
+    this.customMetric = '',
   });
 
   Map<String, dynamic> toMap() => {
@@ -106,6 +142,10 @@ class WorkoutLogItem {
     'timestamp': timestamp.toIso8601String(),
     'timeString': timeString,
     'notes': notes,
+    'laps': laps,
+    'sets': sets,
+    'rounds': rounds,
+    'customMetric': customMetric,
   };
 
   factory WorkoutLogItem.fromMap(Map<String, dynamic> map) => WorkoutLogItem(
@@ -120,6 +160,10 @@ class WorkoutLogItem {
     timestamp: map['timestamp'] != null ? DateTime.tryParse(map['timestamp']) ?? DateTime.now() : DateTime.now(),
     timeString: map['timeString'] ?? '',
     notes: map['notes'] ?? '',
+    laps: (map['laps'] as num?)?.toInt() ?? 0,
+    sets: (map['sets'] as num?)?.toInt() ?? 0,
+    rounds: (map['rounds'] as num?)?.toInt() ?? 0,
+    customMetric: map['customMetric'] ?? '',
   );
 }
 
@@ -144,7 +188,353 @@ class WeightHeightRecord {
 class FoodDatabase {
   static const List<FoodItem> catalog = [
     // =========================================================================
-    // 1. FAST FOOD, PIZZAS, BURGERS & GLOBAL FAVORITES
+    // 1. EVERYDAY INDIAN STAPLES, TIFFINS, TEA & COFFEE (PRIORITY #1)
+    // =========================================================================
+    FoodItem(
+      id: 'food_ind_chai_1',
+      name: 'Tea / Masala Chai (Hot Milk Tea)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 60.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup (~150ml = 90 kcal)',
+      iconEmoji: '☕',
+    ),
+    FoodItem(
+      id: 'food_ind_coffee_1',
+      name: 'Filter Coffee (South Indian Kaapi)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 70.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup (~150ml = 105 kcal)',
+      iconEmoji: '☕',
+    ),
+    FoodItem(
+      id: 'food_ind_chai_ginger',
+      name: 'Ginger Cardamom Tea (Adrak Chai)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 58.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup (~150ml = 87 kcal)',
+      iconEmoji: '🫖',
+    ),
+    FoodItem(
+      id: 'food_ind_greentea',
+      name: 'Green Tea / Black Tea (Zero Sugar)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 1.5,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup (~150ml = 2 kcal)',
+      iconEmoji: '🍵',
+    ),
+    FoodItem(
+      id: 'food_ind_blackcoffee',
+      name: 'Black Coffee / Americano (No Sugar)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 2.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup (~150ml = 3 kcal)',
+      iconEmoji: '☕',
+    ),
+    FoodItem(
+      id: 'food_ind_coldcoffee',
+      name: 'Cold Coffee (with Chilled Milk)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 75.0,
+      defaultServingGrams: 250.0,
+      servingUnit: '1 glass (~250ml = 188 kcal)',
+      iconEmoji: '🧋',
+    ),
+    FoodItem(
+      id: 'food_ind_idly',
+      name: 'Idly (Steamed Rice & Urad Dal)',
+      category: 'Breakfast',
+      caloriesPer100g: 140.0,
+      defaultServingGrams: 50.0,
+      servingUnit: '1 normal idly (~50g = 70 kcal)',
+      iconEmoji: '⚪',
+    ),
+    FoodItem(
+      id: 'food_ind_plain_dosa',
+      name: 'Plain Dosa (Crispy Golden Dosa)',
+      category: 'Breakfast',
+      caloriesPer100g: 165.0,
+      defaultServingGrams: 100.0,
+      servingUnit: '1 medium dosa (~100g = 165 kcal)',
+      iconEmoji: '🥞',
+    ),
+    FoodItem(
+      id: 'food_ind_masala_dosa',
+      name: 'Masala Dosa (with Potato Masala)',
+      category: 'Breakfast',
+      caloriesPer100g: 220.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 masala dosa (~150g = 330 kcal)',
+      iconEmoji: '🌯',
+    ),
+    FoodItem(
+      id: 'food_ind_ghee_dosa',
+      name: 'Ghee Roast Dosa (Crispy Ney Roast)',
+      category: 'Breakfast',
+      caloriesPer100g: 250.0,
+      defaultServingGrams: 120.0,
+      servingUnit: '1 dosa (~120g = 300 kcal)',
+      iconEmoji: '🥞',
+    ),
+    FoodItem(
+      id: 'food_ind_rava_dosa',
+      name: 'Onion Rava Dosa',
+      category: 'Breakfast',
+      caloriesPer100g: 210.0,
+      defaultServingGrams: 130.0,
+      servingUnit: '1 dosa (~130g = 273 kcal)',
+      iconEmoji: '🥞',
+    ),
+    FoodItem(
+      id: 'food_ind_vada',
+      name: 'Medu Vada (Crispy Lentil Fritter)',
+      category: 'Breakfast',
+      caloriesPer100g: 290.0,
+      defaultServingGrams: 50.0,
+      servingUnit: '1 vada (~50g = 145 kcal)',
+      iconEmoji: '🍩',
+    ),
+    FoodItem(
+      id: 'food_ind_pongal',
+      name: 'Ven Pongal (Ghee & Cashew Pongal)',
+      category: 'Breakfast',
+      caloriesPer100g: 160.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 bowl (~150g = 240 kcal)',
+      iconEmoji: '🍲',
+    ),
+    FoodItem(
+      id: 'food_ind_poori',
+      name: 'Poori with Potato Masala (Aloo Bhaji)',
+      category: 'Breakfast',
+      caloriesPer100g: 295.0,
+      defaultServingGrams: 40.0,
+      servingUnit: '1 poori (~40g = 118 kcal)',
+      iconEmoji: '🫓',
+    ),
+    FoodItem(
+      id: 'food_ind_chapati',
+      name: 'Chapati / Phulka (Whole Wheat Roti)',
+      category: 'Main Course',
+      caloriesPer100g: 275.0,
+      defaultServingGrams: 40.0,
+      servingUnit: '1 chapati (~40g = 110 kcal)',
+      iconEmoji: '🫓',
+    ),
+    FoodItem(
+      id: 'food_ind_parotta',
+      name: 'Parotta (Malabar Layered Flatbread)',
+      category: 'Main Course',
+      caloriesPer100g: 325.0,
+      defaultServingGrams: 80.0,
+      servingUnit: '1 parotta (~80g = 260 kcal)',
+      iconEmoji: '🫓',
+    ),
+    FoodItem(
+      id: 'food_ind_upma',
+      name: 'Rava Upma (Semolina & Vegetables)',
+      category: 'Breakfast',
+      caloriesPer100g: 140.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 bowl (~150g = 210 kcal)',
+      iconEmoji: '🥣',
+    ),
+    FoodItem(
+      id: 'food_ind_meals_thali',
+      name: 'South Indian Full Meals (Thali with Rice, Sambar, Rasam, Curd)',
+      category: 'Main Course',
+      caloriesPer100g: 130.0,
+      defaultServingGrams: 500.0,
+      servingUnit: '1 full meal (~500g = 650 kcal)',
+      iconEmoji: '🍱',
+    ),
+    FoodItem(
+      id: 'food_ind_white_rice',
+      name: 'Steamed White Rice (Ponni / Sona Masoori)',
+      category: 'Main Course',
+      caloriesPer100g: 130.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup cooked (~150g = 195 kcal)',
+      iconEmoji: '🍚',
+    ),
+    FoodItem(
+      id: 'food_ind_sambar_rice',
+      name: 'Sambar Rice (Bisibelebath style)',
+      category: 'Main Course',
+      caloriesPer100g: 145.0,
+      defaultServingGrams: 200.0,
+      servingUnit: '1 plate (~200g = 290 kcal)',
+      iconEmoji: '🍛',
+    ),
+    FoodItem(
+      id: 'food_ind_curd_rice',
+      name: 'Curd Rice (Thayir Sadam with Mustard Seasoning)',
+      category: 'Main Course',
+      caloriesPer100g: 135.0,
+      defaultServingGrams: 200.0,
+      servingUnit: '1 bowl (~200g = 270 kcal)',
+      iconEmoji: '🍚',
+    ),
+    FoodItem(
+      id: 'food_ind_lemon_rice',
+      name: 'Lemon Rice (Elumichai Sadam)',
+      category: 'Main Course',
+      caloriesPer100g: 155.0,
+      defaultServingGrams: 200.0,
+      servingUnit: '1 bowl (~200g = 310 kcal)',
+      iconEmoji: '🍋',
+    ),
+    FoodItem(
+      id: 'food_ind_chicken_biryani',
+      name: 'Chicken Biryani (Seeraga Samba / Basmati)',
+      category: 'Main Course',
+      caloriesPer100g: 175.0,
+      defaultServingGrams: 300.0,
+      servingUnit: '1 portion (~300g = 525 kcal)',
+      iconEmoji: '🍗',
+    ),
+    FoodItem(
+      id: 'food_ind_mutton_biryani',
+      name: 'Mutton Biryani',
+      category: 'Main Course',
+      caloriesPer100g: 200.0,
+      defaultServingGrams: 300.0,
+      servingUnit: '1 portion (~300g = 600 kcal)',
+      iconEmoji: '🥩',
+    ),
+    FoodItem(
+      id: 'food_ind_veg_biryani',
+      name: 'Veg Dum Biryani (with Paneer & Vegetables)',
+      category: 'Main Course',
+      caloriesPer100g: 145.0,
+      defaultServingGrams: 300.0,
+      servingUnit: '1 portion (~300g = 435 kcal)',
+      iconEmoji: '🍲',
+    ),
+    FoodItem(
+      id: 'food_ind_sambar',
+      name: 'Vegetable Sambar (Toor Dal, Drumstick, Veggies)',
+      category: 'Lentils & Curries',
+      caloriesPer100g: 65.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup (~150g = 98 kcal)',
+      iconEmoji: '🍲',
+    ),
+    FoodItem(
+      id: 'food_ind_rasam',
+      name: 'Pepper Garlic Rasam',
+      category: 'Lentils & Curries',
+      caloriesPer100g: 30.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 cup (~150g = 45 kcal)',
+      iconEmoji: '🥣',
+    ),
+    FoodItem(
+      id: 'food_ind_chutney_coconut',
+      name: 'Coconut Chutney (Fresh Grated Coconut)',
+      category: 'Dairy & Sides',
+      caloriesPer100g: 220.0,
+      defaultServingGrams: 40.0,
+      servingUnit: '2 tbsp (~40g = 88 kcal)',
+      iconEmoji: '🥥',
+    ),
+    FoodItem(
+      id: 'food_ind_chutney_tomato',
+      name: 'Tomato Kara Chutney',
+      category: 'Dairy & Sides',
+      caloriesPer100g: 115.0,
+      defaultServingGrams: 40.0,
+      servingUnit: '2 tbsp (~40g = 46 kcal)',
+      iconEmoji: '🍅',
+    ),
+    FoodItem(
+      id: 'food_ind_paneer_curry',
+      name: 'Paneer Butter Masala',
+      category: 'Lentils & Curries',
+      caloriesPer100g: 215.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 bowl (~150g = 323 kcal)',
+      iconEmoji: '🧀',
+    ),
+    FoodItem(
+      id: 'food_ind_chicken_curry',
+      name: 'Chettinad Chicken Curry',
+      category: 'Main Course',
+      caloriesPer100g: 170.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 bowl (~150g = 255 kcal)',
+      iconEmoji: '🍗',
+    ),
+    FoodItem(
+      id: 'food_ind_dal_tadka',
+      name: 'Dal Tadka (Yellow Lentils with Cumin Tadka)',
+      category: 'Lentils & Curries',
+      caloriesPer100g: 110.0,
+      defaultServingGrams: 150.0,
+      servingUnit: '1 bowl (~150g = 165 kcal)',
+      iconEmoji: '🥣',
+    ),
+    FoodItem(
+      id: 'food_ind_buttermilk',
+      name: 'Spiced Buttermilk (Neer Mor with Ginger & Curry Leaves)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 20.0,
+      defaultServingGrams: 200.0,
+      servingUnit: '1 glass (~200ml = 40 kcal)',
+      iconEmoji: '🥛',
+    ),
+    FoodItem(
+      id: 'food_ind_lassi',
+      name: 'Sweet Lassi (Chilled Yogurt Drink)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 85.0,
+      defaultServingGrams: 250.0,
+      servingUnit: '1 glass (~250ml = 213 kcal)',
+      iconEmoji: '🥛',
+    ),
+    FoodItem(
+      id: 'food_ind_orange_juice',
+      name: 'Fresh Orange / Mosambi Juice (No Added Sugar)',
+      category: 'Fruits & Healthy',
+      caloriesPer100g: 45.0,
+      defaultServingGrams: 200.0,
+      servingUnit: '1 glass (~200ml = 90 kcal)',
+      iconEmoji: '🍊',
+    ),
+    FoodItem(
+      id: 'food_ind_samosa',
+      name: 'Samosa (Spiced Potato Pastry)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 280.0,
+      defaultServingGrams: 75.0,
+      servingUnit: '1 piece (~75g = 210 kcal)',
+      iconEmoji: '🥟',
+    ),
+    FoodItem(
+      id: 'food_ind_bajji',
+      name: 'Onion Pakoda / Mirchi Bajji',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 310.0,
+      defaultServingGrams: 100.0,
+      servingUnit: '1 small plate (~100g = 310 kcal)',
+      iconEmoji: '🧅',
+    ),
+    FoodItem(
+      id: 'food_ind_sundal',
+      name: 'Sundal (Boiled Chickpeas with Coconut Seasoning)',
+      category: 'Snacks & Beverages',
+      caloriesPer100g: 140.0,
+      defaultServingGrams: 100.0,
+      servingUnit: '1 cup (~100g = 140 kcal)',
+      iconEmoji: '🧆',
+    ),
+
+    // =========================================================================
+    // 2. FAST FOOD, PIZZAS, BURGERS & GLOBAL FAVORITES
     // =========================================================================
     FoodItem(
       id: 'food_pizza_1',
@@ -1599,6 +1989,17 @@ class FoodDatabase {
   }
 }
 
+enum WorkoutMetricCategory {
+  walking,
+  running,
+  swimming,
+  cycling,
+  gym,
+  yoga,
+  badminton,
+  general,
+}
+
 /// Standard Metabolic Equivalent of Task (MET) calculations for Workouts
 class WorkoutActivityType {
   final String name;
@@ -1606,6 +2007,7 @@ class WorkoutActivityType {
   final double met;
   final IconData icon;
   final String description;
+  final WorkoutMetricCategory metricCategory;
 
   const WorkoutActivityType({
     required this.name,
@@ -1613,6 +2015,7 @@ class WorkoutActivityType {
     required this.met,
     required this.icon,
     required this.description,
+    this.metricCategory = WorkoutMetricCategory.general,
   });
 
   /// Calculates estimated burned calories: (MET * 3.5 * weightKg / 200) * minutes
@@ -1630,6 +2033,7 @@ class WorkoutDatabase {
       met: 3.8,
       icon: Icons.directions_walk,
       description: 'Aerobic walking (approx 4.8 km/h). 1,000 steps ≈ 10 mins.',
+      metricCategory: WorkoutMetricCategory.walking,
     ),
     WorkoutActivityType(
       name: 'Outdoor Running / Jogging',
@@ -1637,6 +2041,7 @@ class WorkoutDatabase {
       met: 8.0,
       icon: Icons.directions_run,
       description: 'High cardiovascular stamina training (~8.5 km/h).',
+      metricCategory: WorkoutMetricCategory.running,
     ),
     WorkoutActivityType(
       name: 'Gym & Weight Training',
@@ -1644,6 +2049,7 @@ class WorkoutDatabase {
       met: 5.0,
       icon: Icons.fitness_center,
       description: 'Resistance training, muscle conditioning & core work.',
+      metricCategory: WorkoutMetricCategory.gym,
     ),
     WorkoutActivityType(
       name: 'Yoga & Pranayama',
@@ -1651,6 +2057,7 @@ class WorkoutDatabase {
       met: 3.0,
       icon: Icons.self_improvement,
       description: 'Postural flexibility, spine alignment & mindfulness.',
+      metricCategory: WorkoutMetricCategory.yoga,
     ),
     WorkoutActivityType(
       name: 'Cycling (Stationary / Road)',
@@ -1658,6 +2065,7 @@ class WorkoutDatabase {
       met: 6.8,
       icon: Icons.directions_bike,
       description: 'Leg strength and sustained aerobic cardio.',
+      metricCategory: WorkoutMetricCategory.cycling,
     ),
     WorkoutActivityType(
       name: 'Swimming (Laps)',
@@ -1665,6 +2073,7 @@ class WorkoutDatabase {
       met: 7.0,
       icon: Icons.pool,
       description: 'Zero-impact full body resistance & lung capacity.',
+      metricCategory: WorkoutMetricCategory.swimming,
     ),
     WorkoutActivityType(
       name: 'Badminton / Court Sports',
@@ -1672,6 +2081,7 @@ class WorkoutDatabase {
       met: 5.5,
       icon: Icons.sports_tennis,
       description: 'Agility, rapid reflexes & high-energy intervals.',
+      metricCategory: WorkoutMetricCategory.badminton,
     ),
   ];
 }

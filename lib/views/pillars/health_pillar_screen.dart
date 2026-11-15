@@ -33,12 +33,56 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   final TextEditingController _updateHeightController = TextEditingController();
   final TextEditingController _updateWeightController = TextEditingController();
 
+  // Date selection & center date navigation state
+  DateTime _selectedDate = DateTime.now();
+  bool _hasCheckedTargetCaloriePopup = false;
+
+  static const List<String> _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const List<String> _months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  bool _isToday(DateTime d) {
+    final now = DateTime.now();
+    return _isSameDay(d, now);
+  }
+
+  String _formatDayLabel(DateTime d) {
+    if (_isToday(d)) return 'Today (${d.day} ${_months[d.month - 1].substring(0, 3)})';
+    return '${_weekdays[d.weekday - 1]}, ${d.day} ${_months[d.month - 1].substring(0, 3)}';
+  }
+
+  String _formatDayShort(DateTime d) {
+    if (_isToday(d)) return 'Today';
+    return '${d.day} ${_months[d.month - 1].substring(0, 3)}';
+  }
+
+  void _checkAndShowTargetCaloriePopup(BuildContext context) {
+    if (_hasCheckedTargetCaloriePopup) return;
+    _hasCheckedTargetCaloriePopup = true;
+    final eco = context.read<EcosystemProvider>();
+    if (eco.healthOnboarded && !eco.hasSetDailyCalorieTarget) {
+      _showDailyCalorieTargetModal(context, eco, isFirstTime: true);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     final eco = context.read<EcosystemProvider>();
     _updateHeightController.text = eco.userHeightCm > 0 ? eco.userHeightCm.toStringAsFixed(0) : '';
     _updateWeightController.text = eco.userWeightKg > 0 ? eco.userWeightKg.toStringAsFixed(1) : '';
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _checkAndShowTargetCaloriePopup(context);
+      }
+    });
   }
 
   @override
@@ -447,6 +491,12 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             content: Text('Biometrics calibrated & stored successfully! Welcome to Pillar 1.'),
                           ),
                         );
+
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            _showDailyCalorieTargetModal(context, eco, isFirstTime: true);
+                          }
+                        });
                       },
                     ),
                   ],
@@ -470,7 +520,11 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildDailySummaryBanner(eco),
+          _buildCalorieTargetHeaderCard(context, eco),
+          const SizedBox(height: 14),
+          _buildHorizontalDateStrip(eco),
+          const SizedBox(height: 14),
+          _buildDailyStepTrackerCard(context, eco),
           const SizedBox(height: 16),
           _buildTheFourGrids(eco),
           const SizedBox(height: 20),
@@ -480,36 +534,410 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     );
   }
 
-  Widget _buildDailySummaryBanner(EcosystemProvider eco) {
-    const targetCalories = 2000.0;
-    final pctConsumed = (eco.totalCaloriesConsumed / targetCalories).clamp(0.0, 1.0);
+  // =========================================================================
+  // TOP CARD: DAILY CALORIE TARGET (Consumed vs Goal, Progress Bar, Tap to Edit)
+  // =========================================================================
+
+  Widget _buildCalorieTargetHeaderCard(BuildContext context, EcosystemProvider eco) {
+    final targetKcal = eco.dailyCalorieTarget;
+    final consumedKcal = eco.getCaloriesConsumedForDate(_selectedDate);
+    final burnedKcal = eco.getCaloriesBurnedForDate(_selectedDate);
+    final netKcal = consumedKcal - burnedKcal;
+    final pctConsumed = targetKcal > 0 ? (consumedKcal / targetKcal) : 0.0;
+    final displayPct = (pctConsumed * 100).toInt();
+
+    final Color progressColor;
+    final String progressStatus;
+    if (displayPct < 50) {
+      progressColor = const Color(0xFF38BDF8); // Sky blue
+      progressStatus = 'Intake Starting';
+    } else if (displayPct <= 90) {
+      progressColor = const Color(0xFF10B981); // Vibrant green
+      progressStatus = 'On Track (Healthy)';
+    } else if (displayPct <= 105) {
+      progressColor = const Color(0xFFF59E0B); // Amber gold
+      progressStatus = 'Target Reached';
+    } else {
+      progressColor = const Color(0xFFEF4444); // Red
+      progressStatus = 'Over Target';
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => _showDailyCalorieTargetModal(context, eco, isFirstTime: false),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.burgundyCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.sandBorder),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A0F172A),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundySurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: progressColor.withOpacity(0.5)),
+                  ),
+                  child: Icon(Icons.local_fire_department, color: progressColor, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'DAILY CALORIE TARGET',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.edit_outlined, size: 14, color: AppColors.sandGold),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${_formatDayLabel(_selectedDate)} • $progressStatus • Tap to adjust target',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          color: AppColors.sandPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: progressColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: progressColor.withOpacity(0.4)),
+                  ),
+                  child: Text(
+                    '$displayPct%',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: progressColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '${consumedKcal.toInt()}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.sandLight,
+                      ),
+                    ),
+                    Text(
+                      ' of ${targetKcal.toInt()} kcal',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.sandPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  '${burnedKcal.toInt()} burned • ${netKcal >= 0 ? '+' : ''}${netKcal.toInt()} net',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.sandGold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: pctConsumed.clamp(0.0, 1.0),
+                minHeight: 8,
+                backgroundColor: AppColors.burgundySurface,
+                valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // HORIZONTAL DATE STRIP: CENTER DATE CAROUSEL WITH +/- 3 DAYS & MONTH NAV
+  // =========================================================================
+
+  Widget _buildHorizontalDateStrip(EcosystemProvider eco) {
+    // Current center is _selectedDate: 3 days before and 3 days after [-3, -2, -1, 0, 1, 2, 3]
+    final days = List.generate(7, (i) => _selectedDate.add(Duration(days: i - 3)));
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left, color: AppColors.sandGold, size: 24),
+                tooltip: 'Previous 7 Days',
+                onPressed: () {
+                  setState(() {
+                    _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+                  });
+                },
+              ),
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime(2025, 1, 1),
+                    lastDate: DateTime(2027, 12, 31),
+                    builder: (context, child) {
+                      return Theme(
+                        data: ThemeData.dark().copyWith(
+                          colorScheme: const ColorScheme.dark(
+                            primary: AppColors.sandGold,
+                            onPrimary: AppColors.burgundyBg,
+                            surface: AppColors.burgundyCard,
+                            onSurface: AppColors.sandLight,
+                          ),
+                          dialogBackgroundColor: AppColors.burgundyCard,
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _selectedDate = picked;
+                    });
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_month, color: AppColors.sandGold, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${_months[_selectedDate.month - 1]} ${_selectedDate.year}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandLight,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, color: AppColors.sandPrimary, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!_isToday(_selectedDate))
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = DateTime.now();
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.burgundySurface,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                        ),
+                        child: Text(
+                          'Today',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandGold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right, color: AppColors.sandGold, size: 24),
+                    tooltip: 'Next 7 Days',
+                    onPressed: () {
+                      setState(() {
+                        _selectedDate = _selectedDate.add(const Duration(days: 7));
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // 7 Days centered strip: Tapping moves that date directly to the center
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: days.map((date) {
+              final isSelected = _isSameDay(date, _selectedDate);
+              final isCurrentToday = _isToday(date);
+
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      setState(() {
+                        _selectedDate = date;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.magentaPrimary
+                            : (isCurrentToday ? AppColors.burgundySurface : Colors.transparent),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.sandGold
+                              : (isCurrentToday ? AppColors.sandGold.withOpacity(0.4) : AppColors.sandBorder.withOpacity(0.4)),
+                          width: isSelected ? 1.5 : 1.0,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.magentaPrimary.withOpacity(0.35),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _weekdays[date.weekday - 1],
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isCurrentToday ? AppColors.sandGold : AppColors.sandPrimary),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            date.day.toString(),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : AppColors.sandLight,
+                            ),
+                          ),
+                          if (isCurrentToday) ...[
+                            const SizedBox(height: 2),
+                            Container(
+                              width: 4,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSelected ? Colors.white : AppColors.sandGold,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // DAILY STEP COUNT TRACKER CARD & PHONE PEDOMETER PERMISSION
+  // =========================================================================
+
+  Widget _buildDailyStepTrackerCard(BuildContext context, EcosystemProvider eco) {
+    final recordedSteps = eco.getStepsForDate(_selectedDate);
+    const int stepGoal = 6000;
+    final pct = (recordedSteps / stepGoal).clamp(0.0, 1.0);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.sandBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
+                  color: const Color(0xFF10B981).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
                 ),
-                child: const Icon(Icons.favorite, color: AppColors.sandGold, size: 24),
+                child: const Icon(Icons.directions_walk, color: Color(0xFF10B981), size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -517,46 +945,140 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Daily Vitality Status • Daily Cadence',
+                      'DAILY STEP COUNT TRACKER',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandLight,
+                        letterSpacing: 0.5,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Diet & Workout: Daily • Height & Weight: Occasional (Net: ${eco.netCalories >= 0 ? '+' : ''}${eco.netCalories.toInt()} kcal)',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: AppColors.sandPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                      '${_formatDayLabel(_selectedDate)} • Goal: $stepGoal steps',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
                     ),
                   ],
+                ),
+              ),
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => _openStepCountRecordingDialog(context, eco),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundySurface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.sandGold.withOpacity(0.6)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.edit, size: 12, color: AppColors.sandGold),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Log Steps',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandGold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '$recordedSteps steps',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.sandLight,
+                ),
+              ),
+              Text(
+                '${(pct * 100).toInt()}% of daily goal',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                  color: pct >= 1.0 ? const Color(0xFF10B981) : AppColors.sandGold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: pctConsumed,
-              minHeight: 6,
+              value: pct,
+              minHeight: 8,
               backgroundColor: AppColors.burgundySurface,
               valueColor: AlwaysStoppedAnimation<Color>(
-                pctConsumed > 1.0 ? AppColors.ragYellow : AppColors.sandGold,
+                pct >= 1.0 ? const Color(0xFF10B981) : AppColors.sandGold,
               ),
             ),
           ),
+          const SizedBox(height: 10),
+
+          // Device Sensor Permission banner if not yet connected
+          if (!eco.stepPermissionGranted)
+            InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => _showPedometerSensorPermissionDialog(context, eco),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.sensors, size: 16, color: AppColors.sandGold),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Sync with phone hardware step counter sensor',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, size: 11, color: AppColors.sandGold),
+                  ],
+                ),
+              ),
+            )
+          else
+            Row(
+              children: [
+                const Icon(Icons.check_circle, size: 14, color: Color(0xFF10B981)),
+                const SizedBox(width: 6),
+                Text(
+                  'Phone motion pedometer sensor linked & syncing',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF10B981), fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
         ],
       ),
     );
   }
 
   Widget _buildTheFourGrids(EcosystemProvider eco) {
+    final dayConsumed = eco.getCaloriesConsumedForDate(_selectedDate);
+    final dayFoodLogs = eco.getFoodLogsForDate(_selectedDate);
+    final dayWorkoutMins = eco.getWorkoutMinutesForDate(_selectedDate);
+    final daySteps = eco.getStepsForDate(_selectedDate);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -581,16 +1103,16 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             _gridTile(
               index: 0,
               title: 'Calories',
-              value: '${eco.totalCaloriesConsumed.toInt()} kcal',
-              subtitle: 'Daily Cadence • ${eco.dailyFoodLogs.length} meals',
+              value: '${dayConsumed.toInt()} kcal',
+              subtitle: '${dayFoodLogs.length} meals • ${_formatDayShort(_selectedDate)}',
               icon: Icons.restaurant_menu,
               iconColor: const Color(0xFFF97316),
             ),
             _gridTile(
               index: 1,
               title: 'Workout',
-              value: '${eco.totalWorkoutMinutes} mins',
-              subtitle: 'Daily Cadence • ${eco.totalWorkoutSteps} steps',
+              value: '$dayWorkoutMins mins',
+              subtitle: '$daySteps steps • ${_formatDayShort(_selectedDate)}',
               icon: Icons.fitness_center,
               iconColor: const Color(0xFF10B981),
             ),
@@ -749,6 +1271,8 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
   Widget _buildCaloriesSection(BuildContext context, EcosystemProvider eco) {
     final queryText = _foodSearchController.text.trim();
+    final selectedDateLogs = eco.getFoodLogsForDate(_selectedDate);
+    final selectedDateCalories = eco.getCaloriesConsumedForDate(_selectedDate);
 
     // 1. Only retrieve food items when user has actually typed something to search
     List<FoodItem> localResults = [];
@@ -927,36 +1451,79 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             border: Border.all(color: AppColors.sandBorder),
           ),
           child: queryText.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(28),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.search, size: 30, color: AppColors.sandGold),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Type something...',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
-                            letterSpacing: 0.5,
-                          ),
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: const BoxDecoration(
+                        color: AppColors.burgundySurface,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(15),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Search for any dish, food or ingredient to view calories',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppColors.textMuted,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.star, color: AppColors.sandGold, size: 14),
+                          const SizedBox(width: 6),
+                          Text(
+                            'POPULAR EVERYDAY INDIAN FOODS & BEVERAGES',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandGold,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    Expanded(
+                      child: ListView.separated(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: FoodDatabase.catalog.take(25).length,
+                        separatorBuilder: (_, __) => const Divider(color: AppColors.sandBorder, height: 1),
+                        itemBuilder: (ctx, idx) {
+                          final item = FoodDatabase.catalog[idx];
+                          return ListTile(
+                            dense: true,
+                            leading: Text(item.iconEmoji, style: const TextStyle(fontSize: 20)),
+                            title: Text(
+                              item.name,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.sandLight,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              '${item.caloriesPer100g.toStringAsFixed(0)} kcal / 100g • ${item.servingUnit}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                            ),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.burgundySurface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                              ),
+                              child: Text(
+                                '+ Log',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.sandGold,
+                                ),
+                              ),
+                            ),
+                            onTap: () => _openLogFoodDialog(context, eco, item),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 )
               : combinedResults.isEmpty
                   ? Center(
@@ -1081,21 +1648,21 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
         ),
         const SizedBox(height: 18),
 
-        // Today's Food Log Diary
+        // Selected Date's Food Log Diary
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "TODAY'S INTAKE DIARY (${eco.dailyFoodLogs.length})",
+              "INTAKE DIARY • ${_formatDayLabel(_selectedDate).toUpperCase()} (${selectedDateLogs.length})",
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandGold,
                 letterSpacing: 0.5,
               ),
             ),
             Text(
-              'Total: ${eco.totalCaloriesConsumed.toInt()} kcal',
+              'Total: ${selectedDateCalories.toInt()} kcal',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -1106,7 +1673,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
         ),
         const SizedBox(height: 10),
 
-        if (eco.dailyFoodLogs.isEmpty)
+        if (selectedDateLogs.isEmpty)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -1116,7 +1683,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             ),
             child: Center(
               child: Text(
-                'No meals logged yet today.\nSelect an item from the catalog above to add.',
+                'No meals logged for ${_formatDayLabel(_selectedDate)}.\nSelect an item from the catalog above to add.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
               ),
@@ -1124,7 +1691,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           )
         else
           Column(
-            children: eco.dailyFoodLogs.map((log) {
+            children: selectedDateLogs.map((log) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
@@ -1165,7 +1732,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             ),
                           ),
                           Text(
-                            '${log.grams.toStringAsFixed(0)}g • ${log.timeString}',
+                            '${log.portionSize} • ${log.quantity > 1 ? 'Qty: ${log.quantity} • ' : ''}${log.grams.toStringAsFixed(0)}g • ${log.timeString}',
                             style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
                           ),
                         ],
@@ -1193,17 +1760,38 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   }
 
   void _openLogFoodDialog(BuildContext context, EcosystemProvider eco, FoodItem item) {
-    double grams = item.defaultServingGrams;
-    String mealType = 'Breakfast';
-    final gramsController = TextEditingController(text: grams.toStringAsFixed(0));
+    final hour = DateTime.now().hour;
+    String selectedMealType = (hour < 11)
+        ? 'Breakfast'
+        : (hour < 16)
+            ? 'Lunch'
+            : (hour < 19)
+                ? 'Snack'
+                : 'Dinner';
+
+    String selectedPortion = 'Normal';
+    int quantity = 1;
 
     showDialog(
       context: context,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (dialogCtx, setDialogState) {
-            final enteredGrams = double.tryParse(gramsController.text) ?? item.defaultServingGrams;
-            final calculatedKcal = item.caloriesForGrams(enteredGrams);
+            double baseGrams;
+            String portionLabel;
+            if (selectedPortion == 'Small') {
+              baseGrams = item.smallPortionGrams;
+              portionLabel = item.smallPortionLabel;
+            } else if (selectedPortion == 'Big') {
+              baseGrams = item.bigPortionGrams;
+              portionLabel = item.bigPortionLabel;
+            } else {
+              baseGrams = item.normalPortionGrams;
+              portionLabel = item.normalPortionLabel;
+            }
+
+            final totalGrams = baseGrams * quantity;
+            final calculatedKcal = item.caloriesForGrams(totalGrams);
 
             return Dialog(
               backgroundColor: AppColors.burgundyCard,
@@ -1212,200 +1800,317 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 side: const BorderSide(color: AppColors.sandGold, width: 1.2),
               ),
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 400),
+                constraints: const BoxConstraints(maxWidth: 420),
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Text(item.iconEmoji, style: const TextStyle(fontSize: 26)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.name,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.sandLight,
-                                ),
-                              ),
-                              Text(
-                                'Baseline: ${item.caloriesPer100g.toStringAsFixed(0)} kcal per 100g',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(color: AppColors.sandBorder, height: 1),
-                    const SizedBox(height: 14),
-
-                    Text(
-                      'Meal Timing',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.sandLight,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
-                      value: mealType,
-                      isExpanded: true,
-                      dropdownColor: AppColors.burgundySurface,
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12.5),
-                      icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.sandPrimary),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: AppColors.burgundySurface,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'Breakfast', child: Text('Breakfast (Morning)')),
-                        DropdownMenuItem(value: 'Lunch', child: Text('Lunch (Mid-day)')),
-                        DropdownMenuItem(value: 'Snacks', child: Text('Evening Snacks & Tea')),
-                        DropdownMenuItem(value: 'Dinner', child: Text('Dinner (Night)')),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) setDialogState(() => mealType = v);
-                      },
-                    ),
-                    const SizedBox(height: 14),
-
-                    Text(
-                      'Intake Quantity / Weight (Grams)',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.sandLight,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: gramsController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: GoogleFonts.plusJakartaSans(
-                        color: AppColors.sandLight,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      onChanged: (_) => setDialogState(() {}),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: AppColors.burgundySurface,
-                        suffixText: 'grams',
-                        suffixStyle: const TextStyle(color: AppColors.sandPrimary, fontSize: 12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    Wrap(
-                      spacing: 6,
-                      children: <double>{
-                        item.defaultServingGrams,
-                        item.defaultServingGrams * 2,
-                        100.0,
-                        150.0,
-                        200.0,
-                      }.map((g) {
-                        return ActionChip(
-                          label: Text('${g.toInt()}g'),
-                          backgroundColor: AppColors.burgundySurface,
-                          labelStyle: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
-                          side: const BorderSide(color: AppColors.sandBorder),
-                          onPressed: () {
-                            setDialogState(() {
-                              gramsController.text = g.toInt().toString();
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.burgundySurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            'Calculated Energy:',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: AppColors.sandLight,
-                              fontWeight: FontWeight.w600,
+                          Text(item.iconEmoji, style: const TextStyle(fontSize: 28)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${item.caloriesPer100g.toStringAsFixed(0)} kcal / 100g • ${item.category}',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                                ),
+                              ],
                             ),
                           ),
-                          Text(
-                            '${calculatedKcal.toStringAsFixed(0)} kcal',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandGold,
+                          IconButton(
+                            icon: const Icon(Icons.close, color: AppColors.sandPrimary, size: 20),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Divider(color: AppColors.sandBorder, height: 1),
+                      const SizedBox(height: 12),
+
+                      // 1. Meal Category Selection (Required first)
+                      Text(
+                        '1. Choose Meal Timing',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.sandGold,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _mealTypeButton(
+                            label: 'Breakfast',
+                            icon: '🌅',
+                            isSelected: selectedMealType == 'Breakfast',
+                            onTap: () => setDialogState(() => selectedMealType = 'Breakfast'),
+                          ),
+                          const SizedBox(width: 6),
+                          _mealTypeButton(
+                            label: 'Lunch',
+                            icon: '☀️',
+                            isSelected: selectedMealType == 'Lunch',
+                            onTap: () => setDialogState(() => selectedMealType = 'Lunch'),
+                          ),
+                          const SizedBox(width: 6),
+                          _mealTypeButton(
+                            label: 'Snack',
+                            icon: '☕',
+                            isSelected: selectedMealType == 'Snack',
+                            onTap: () => setDialogState(() => selectedMealType = 'Snack'),
+                          ),
+                          const SizedBox(width: 6),
+                          _mealTypeButton(
+                            label: 'Dinner',
+                            icon: '🌙',
+                            isSelected: selectedMealType == 'Dinner',
+                            onTap: () => setDialogState(() => selectedMealType = 'Dinner'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 2. Portion Size Selection
+                      Text(
+                        item.isBeverage ? '2. Cup / Serving Size' : '2. Portion Size',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.sandGold,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _portionOptionCard(
+                              label: item.smallPortionLabel,
+                              sublabel: 'Small',
+                              isSelected: selectedPortion == 'Small',
+                              onTap: () => setDialogState(() => selectedPortion = 'Small'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _portionOptionCard(
+                              label: item.normalPortionLabel,
+                              sublabel: 'Normal',
+                              isSelected: selectedPortion == 'Normal',
+                              onTap: () => setDialogState(() => selectedPortion = 'Normal'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _portionOptionCard(
+                              label: item.bigPortionLabel,
+                              sublabel: 'Big / Large',
+                              isSelected: selectedPortion == 'Big',
+                              onTap: () => setDialogState(() => selectedPortion = 'Big'),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 18),
+                      const SizedBox(height: 16),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: Text(
-                            'Cancel',
-                            style: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 12),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.sandGold,
-                            foregroundColor: AppColors.burgundyBg,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          onPressed: () {
-                            final g = double.tryParse(gramsController.text) ?? item.defaultServingGrams;
-                            if (g <= 0) return;
-                            eco.addFoodLog(
-                              foodName: item.name,
-                              mealType: mealType,
-                              grams: g,
-                              calories: item.caloriesForGrams(g),
-                            );
-                            Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: AppColors.burgundyPrimary,
-                                content: Text('Logged ${item.name} (${g.toInt()}g = ${item.caloriesForGrams(g).toInt()} kcal)'),
+                      // 3. Quantity Stepper
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '3. Quantity / Count',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.sandGold,
+                                  letterSpacing: 0.4,
+                                ),
                               ),
-                            );
-                          },
-                          child: Text(
-                            'Add to Daily Intake',
-                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$portionLabel x $quantity = ${totalGrams.toInt()}g total',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  color: AppColors.sandPrimary,
+                                ),
+                              ),
+                            ],
                           ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.burgundySurface,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.remove, size: 18, color: AppColors.sandGold),
+                                  onPressed: quantity > 1
+                                      ? () => setDialogState(() => quantity--)
+                                      : null,
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  child: Text(
+                                    quantity.toString(),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.sandLight,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.add, size: 18, color: AppColors.sandGold),
+                                  onPressed: () => setDialogState(() => quantity++),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+
+                      // 4. Live Calculated Energy Banner
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.burgundySurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.sandGold.withOpacity(0.6)),
                         ),
-                      ],
-                    ),
-                  ],
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'CALCULATED ENERGY',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandGold,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${totalGrams.toInt()}g • $selectedMealType',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppColors.sandPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  calculatedKcal.toStringAsFixed(0),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.sandGold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'kcal',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: AppColors.sandBorder),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: () => Navigator.pop(ctx),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.add, size: 16),
+                              label: Text(
+                                'Add to Diary ($selectedMealType)',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.sandGold,
+                                foregroundColor: AppColors.burgundyBg,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              onPressed: () {
+                                eco.addFoodLog(
+                                  foodName: item.name,
+                                  mealType: selectedMealType,
+                                  grams: totalGrams,
+                                  calories: calculatedKcal,
+                                  logDate: _selectedDate,
+                                  portionSize: portionLabel,
+                                  quantity: quantity,
+                                );
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: AppColors.burgundyPrimary,
+                                    content: Text('Logged $quantity x ${item.name} (${calculatedKcal.toInt()} kcal) for ${_formatDayLabel(_selectedDate)}'),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -1515,6 +2220,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           mealType: meal,
                           grams: g,
                           calories: kcal,
+                          logDate: _selectedDate,
                         );
                         Navigator.pop(ctx);
                       },
@@ -1535,6 +2241,10 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   // -------------------------------------------------------------------------
 
   Widget _buildWorkoutSection(BuildContext context, EcosystemProvider eco) {
+    final selectedDateWorkouts = eco.getWorkoutLogsForDate(_selectedDate);
+    final selectedDateWorkoutMins = eco.getWorkoutMinutesForDate(_selectedDate);
+    final selectedDateWorkoutSteps = eco.getWorkoutStepsForDate(_selectedDate);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1637,16 +2347,16 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "TODAY'S WORKOUTS (${eco.dailyWorkoutLogs.length})",
+              "WORKOUTS • ${_formatDayLabel(_selectedDate).toUpperCase()} (${selectedDateWorkouts.length})",
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandGold,
                 letterSpacing: 0.5,
               ),
             ),
             Text(
-              '${eco.totalWorkoutMinutes}m • ${eco.totalWorkoutSteps} steps',
+              '${selectedDateWorkoutMins}m • $selectedDateWorkoutSteps steps',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -1657,7 +2367,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
         ),
         const SizedBox(height: 10),
 
-        if (eco.dailyWorkoutLogs.isEmpty)
+        if (selectedDateWorkouts.isEmpty)
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -1667,7 +2377,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             ),
             child: Center(
               child: Text(
-                'No workout sessions recorded yet today.\nTap "Record Session" above to add your activity.',
+                'No workout sessions recorded for ${_formatDayLabel(_selectedDate)}.\nTap "Record Session" above to add your activity.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
               ),
@@ -1675,7 +2385,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           )
         else
           Column(
-            children: eco.dailyWorkoutLogs.map((w) {
+            children: selectedDateWorkouts.map((w) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(14),
@@ -1727,7 +2437,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${w.durationMinutes} mins • ${w.steps > 0 ? '${w.steps} steps • ' : ''}${w.timeAllocation}',
+                            '${w.durationMinutes} mins • ${w.laps > 0 ? '${w.laps} laps • ' : ''}${w.sets > 0 ? '${w.sets} sets • ' : ''}${w.rounds > 0 ? '${w.rounds} rounds • ' : ''}${w.steps > 0 ? '${w.steps} steps • ' : ''}${w.distanceKm > 0 ? '${w.distanceKm.toStringAsFixed(1)} km • ' : ''}${w.customMetric.isNotEmpty ? '${w.customMetric} • ' : ''}${w.timeAllocation}',
                             style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
                           ),
                           if (w.notes.isNotEmpty)
@@ -1772,13 +2482,25 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   void _openRecordWorkoutDialog(BuildContext context, EcosystemProvider eco, {WorkoutActivityType? presetActivity}) {
     WorkoutActivityType selectedActivity = presetActivity ?? WorkoutDatabase.activities.first;
     int durationMinutes = 30;
-    int stepCount = selectedActivity.name.contains('Walk') ? 3000 : 0;
-    double distanceKm = selectedActivity.name.contains('Walk') ? 2.0 : 0.0;
     String intensity = 'Moderate';
-    String timeAllocation = 'Morning (06:00 - 08:00)';
+    String timeAllocation = 'Morning Routine';
     final durationController = TextEditingController(text: durationMinutes.toString());
-    final stepsController = TextEditingController(text: stepCount > 0 ? stepCount.toString() : '');
     final notesController = TextEditingController();
+
+    // Exclusive controllers and states based on activity category:
+    final stepsController = TextEditingController(text: selectedActivity.metricCategory == WorkoutMetricCategory.walking ? '3000' : (selectedActivity.metricCategory == WorkoutMetricCategory.running ? '3500' : ''));
+    final distanceController = TextEditingController(text: selectedActivity.metricCategory == WorkoutMetricCategory.running ? '3.0' : (selectedActivity.metricCategory == WorkoutMetricCategory.cycling ? '8.0' : ''));
+    final lapsController = TextEditingController(text: '20'); // Swimming laps
+    final setsController = TextEditingController(text: '12'); // Gym sets / Badminton games
+    final roundsController = TextEditingController(text: '10'); // Yoga rounds / Surya Namaskars
+
+    String strokeStyle = 'Freestyle / Crawl';
+    String walkingPace = 'Moderate (5.0 km/h)';
+    String runningStyle = 'Steady Jogging';
+    String cyclingMode = 'Road Cycling';
+    String targetMuscle = 'Full Body & Core';
+    String yogaStyle = 'Hatha Yoga & Asanas';
+    String badmintonFormat = 'Doubles Rally Match';
 
     showDialog(
       context: context,
@@ -1791,6 +2513,8 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               minutes: dur,
             );
 
+            final category = selectedActivity.metricCategory;
+
             return Dialog(
               backgroundColor: AppColors.pureWhite,
               shape: RoundedRectangleBorder(
@@ -1798,7 +2522,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
               ),
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 420),
+                constraints: const BoxConstraints(maxWidth: 440),
                 padding: const EdgeInsets.all(20),
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -1837,12 +2561,17 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               ],
                             ),
                           ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: AppColors.textMuted, size: 20),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 14),
                       const Divider(color: Color(0xFFF1F5F9), height: 1),
                       const SizedBox(height: 12),
 
+                      // Activity Type Dropdown
                       Text(
                         'Activity Type',
                         style: GoogleFonts.plusJakartaSans(
@@ -1868,22 +2597,26 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         items: WorkoutDatabase.activities.map((act) {
                           return DropdownMenuItem(
                             value: act,
-                            child: Text(act.name, overflow: TextOverflow.ellipsis),
+                            child: Row(
+                              children: [
+                                Icon(act.icon, size: 16, color: AppColors.magentaPrimary),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(act.name, overflow: TextOverflow.ellipsis)),
+                              ],
+                            ),
                           );
                         }).toList(),
                         onChanged: (v) {
                           if (v != null) {
                             setDialogState(() {
                               selectedActivity = v;
-                              if (v.name.contains('Walk') && stepsController.text.isEmpty) {
-                                stepsController.text = '';
-                              }
                             });
                           }
                         },
                       ),
                       const SizedBox(height: 12),
 
+                      // Health Time Allocation
                       Text(
                         'Health Time Allocation',
                         style: GoogleFonts.plusJakartaSans(
@@ -1907,10 +2640,10 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'Morning (06:00 - 08:00)', child: Text('Morning Routine', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Afternoon Break', child: Text('Mid-day Break', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Post-Shift Evening', child: Text('Evening Routine', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Night Routine', child: Text('Night Routine', overflow: TextOverflow.ellipsis)),
+                          DropdownMenuItem(value: 'Morning Routine', child: Text('Morning Routine (06:00 - 08:30)')),
+                          DropdownMenuItem(value: 'Mid-day Break', child: Text('Mid-day Break')),
+                          DropdownMenuItem(value: 'Evening Routine', child: Text('Evening Routine (18:00 - 20:30)')),
+                          DropdownMenuItem(value: 'Night Routine', child: Text('Night Routine (Post-Dinner)')),
                         ],
                         onChanged: (v) {
                           if (v != null) setDialogState(() => timeAllocation = v);
@@ -1918,112 +2651,391 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Duration (mins)',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                TextField(
-                                  controller: durationController,
-                                  keyboardType: TextInputType.number,
-                                  style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 13),
-                                  onChanged: (_) => setDialogState(() {}),
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFFF8FAFC),
-                                    suffixText: 'mins',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  ),
-                                ),
-                              ],
+                      // DYNAMIC ACTIVITY-EXCLUSIVE FIELDS
+                      // 1. SWIMMING (LAPS): Duration + Laps Count + Stroke Style (NO steps!)
+                      if (category == WorkoutMetricCategory.swimming) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Duration (mins)',
+                                controller: durationController,
+                                suffix: 'mins',
+                                onChanged: () => setDialogState(() {}),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Step Count',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                TextField(
-                                  controller: stepsController,
-                                  keyboardType: TextInputType.number,
-                                  style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 13),
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFFF8FAFC),
-                                    hintText: 'e.g. 4000',
-                                    hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
-                                    suffixText: 'steps',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Laps Count',
+                                controller: lapsController,
+                                suffix: 'laps',
+                                onChanged: () => setDialogState(() {}),
+                              ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Stroke Style',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 5),
+                        DropdownButtonFormField<String>(
+                          value: strokeStyle,
+                          isExpanded: true,
+                          dropdownColor: AppColors.pureWhite,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          decoration: _inputDecoration(),
+                          items: const [
+                            DropdownMenuItem(value: 'Freestyle / Crawl', child: Text('Freestyle / Front Crawl')),
+                            DropdownMenuItem(value: 'Breaststroke', child: Text('Breaststroke')),
+                            DropdownMenuItem(value: 'Backstroke', child: Text('Backstroke')),
+                            DropdownMenuItem(value: 'Butterfly', child: Text('Butterfly')),
+                            DropdownMenuItem(value: 'Mixed Medley', child: Text('Mixed Medley')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => strokeStyle = v);
+                          },
+                        ),
+                      ]
+                      // 2. BRISK WALKING: Duration + Step Count + Pace
+                      else if (category == WorkoutMetricCategory.walking) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Duration (mins)',
+                                controller: durationController,
+                                suffix: 'mins',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Step Count',
+                                controller: stepsController,
+                                suffix: 'steps',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Walking Pace',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 5),
+                        DropdownButtonFormField<String>(
+                          value: walkingPace,
+                          isExpanded: true,
+                          dropdownColor: AppColors.pureWhite,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          decoration: _inputDecoration(),
+                          items: const [
+                            DropdownMenuItem(value: 'Casual Walk (4.0 km/h)', child: Text('Casual Walk (~4.0 km/h)')),
+                            DropdownMenuItem(value: 'Moderate (5.0 km/h)', child: Text('Moderate Pace (~5.0 km/h)')),
+                            DropdownMenuItem(value: 'Power Walk (6.2 km/h)', child: Text('Power Walk (~6.2 km/h)')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => walkingPace = v);
+                          },
+                        ),
+                      ]
+                      // 3. RUNNING: Duration + Step Count + Distance + Running Style
+                      else if (category == WorkoutMetricCategory.running) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Duration (mins)',
+                                controller: durationController,
+                                suffix: 'mins',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Cadence (steps)',
+                                controller: stepsController,
+                                suffix: 'steps',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Distance (km)',
+                                controller: distanceController,
+                                suffix: 'km',
+                                isDecimal: true,
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Running Style',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  DropdownButtonFormField<String>(
+                                    value: runningStyle,
+                                    isExpanded: true,
+                                    dropdownColor: AppColors.pureWhite,
+                                    style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                                    decoration: _inputDecoration(),
+                                    items: const [
+                                      DropdownMenuItem(value: 'Steady Jogging', child: Text('Jogging')),
+                                      DropdownMenuItem(value: 'Paced Running', child: Text('Paced Run')),
+                                      DropdownMenuItem(value: 'Interval Sprinting', child: Text('Sprints')),
+                                    ],
+                                    onChanged: (v) {
+                                      if (v != null) setDialogState(() => runningStyle = v);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ]
+                      // 4. CYCLING: Duration + Distance + Mode (NO steps!)
+                      else if (category == WorkoutMetricCategory.cycling) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Duration (mins)',
+                                controller: durationController,
+                                suffix: 'mins',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Distance (km)',
+                                controller: distanceController,
+                                suffix: 'km',
+                                isDecimal: true,
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Cycling Terrain / Mode',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 5),
+                        DropdownButtonFormField<String>(
+                          value: cyclingMode,
+                          isExpanded: true,
+                          dropdownColor: AppColors.pureWhite,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          decoration: _inputDecoration(),
+                          items: const [
+                            DropdownMenuItem(value: 'Road Cycling', child: Text('Outdoor Road Cycling')),
+                            DropdownMenuItem(value: 'Stationary Spin Bike', child: Text('Stationary / Spin Bike')),
+                            DropdownMenuItem(value: 'Trail / Incline Riding', child: Text('Trail / Incline Riding')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => cyclingMode = v);
+                          },
+                        ),
+                      ]
+                      // 5. GYM & WEIGHTS: Duration + Sets + Target Muscle (NO steps!)
+                      else if (category == WorkoutMetricCategory.gym) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Duration (mins)',
+                                controller: durationController,
+                                suffix: 'mins',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Sets Completed',
+                                controller: setsController,
+                                suffix: 'sets',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Target Muscle Focus',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 5),
+                        DropdownButtonFormField<String>(
+                          value: targetMuscle,
+                          isExpanded: true,
+                          dropdownColor: AppColors.pureWhite,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          decoration: _inputDecoration(),
+                          items: const [
+                            DropdownMenuItem(value: 'Full Body & Core', child: Text('Full Body & Core')),
+                            DropdownMenuItem(value: 'Chest & Triceps', child: Text('Chest & Triceps')),
+                            DropdownMenuItem(value: 'Back & Biceps', child: Text('Back & Biceps')),
+                            DropdownMenuItem(value: 'Legs & Quads', child: Text('Legs & Lower Body')),
+                            DropdownMenuItem(value: 'Shoulders & Traps', child: Text('Shoulders & Arms')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => targetMuscle = v);
+                          },
+                        ),
+                      ]
+                      // 6. YOGA: Duration + Rounds + Practice Style (NO steps!)
+                      else if (category == WorkoutMetricCategory.yoga) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Duration (mins)',
+                                controller: durationController,
+                                suffix: 'mins',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Rounds / Asanas',
+                                controller: roundsController,
+                                suffix: 'rounds',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Practice Style',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 5),
+                        DropdownButtonFormField<String>(
+                          value: yogaStyle,
+                          isExpanded: true,
+                          dropdownColor: AppColors.pureWhite,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          decoration: _inputDecoration(),
+                          items: const [
+                            DropdownMenuItem(value: 'Hatha Yoga & Asanas', child: Text('Hatha Yoga & Postures')),
+                            DropdownMenuItem(value: 'Surya Namaskar (Sun Salutations)', child: Text('Surya Namaskar Series')),
+                            DropdownMenuItem(value: 'Pranayama & Meditation', child: Text('Pranayama & Breathwork')),
+                            DropdownMenuItem(value: 'Flexibility & Stretches', child: Text('Flexibility & Deep Stretches')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => yogaStyle = v);
+                          },
+                        ),
+                      ]
+                      // 7. BADMINTON: Duration + Games / Sets + Format (NO steps!)
+                      else if (category == WorkoutMetricCategory.badminton) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Duration (mins)',
+                                controller: durationController,
+                                suffix: 'mins',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _numberInputField(
+                                label: 'Sets / Games',
+                                controller: setsController,
+                                suffix: 'games',
+                                onChanged: () => setDialogState(() {}),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Match Format',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                        ),
+                        const SizedBox(height: 5),
+                        DropdownButtonFormField<String>(
+                          value: badmintonFormat,
+                          isExpanded: true,
+                          dropdownColor: AppColors.pureWhite,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          decoration: _inputDecoration(),
+                          items: const [
+                            DropdownMenuItem(value: 'Doubles Rally Match', child: Text('Doubles Rally Match')),
+                            DropdownMenuItem(value: 'Singles Competitive', child: Text('Singles Competitive')),
+                            DropdownMenuItem(value: 'Casual Warmup Rally', child: Text('Casual Warmup Rally')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => badmintonFormat = v);
+                          },
+                        ),
+                      ]
+                      // 8. GENERAL / DEFAULT: Duration + Intensity
+                      else ...[
+                        _numberInputField(
+                          label: 'Duration (mins)',
+                          controller: durationController,
+                          suffix: 'mins',
+                          onChanged: () => setDialogState(() {}),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Session Intensity',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textDark,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      Text(
-                        'Session Intensity',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark,
                         ),
-                      ),
-                      const SizedBox(height: 5),
-                      DropdownButtonFormField<String>(
-                        value: intensity,
-                        isExpanded: true,
-                        dropdownColor: AppColors.pureWhite,
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12.5),
-                        icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: const Color(0xFFF8FAFC),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                        const SizedBox(height: 5),
+                        DropdownButtonFormField<String>(
+                          value: intensity,
+                          isExpanded: true,
+                          dropdownColor: AppColors.pureWhite,
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12.5),
+                          decoration: _inputDecoration(),
+                          items: const [
+                            DropdownMenuItem(value: 'Light', child: Text('Light Pace')),
+                            DropdownMenuItem(value: 'Moderate', child: Text('Moderate Pace')),
+                            DropdownMenuItem(value: 'Vigorous', child: Text('Vigorous Pace')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => intensity = v);
+                          },
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'Light', child: Text('Light Pace', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Moderate', child: Text('Moderate Pace', overflow: TextOverflow.ellipsis)),
-                          DropdownMenuItem(value: 'Vigorous', child: Text('Vigorous Pace', overflow: TextOverflow.ellipsis)),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) setDialogState(() => intensity = v);
-                        },
-                      ),
+                      ],
                       const SizedBox(height: 14),
 
+                      // Optional workout notes
                       TextField(
                         controller: notesController,
                         style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
                         decoration: InputDecoration(
-                          hintText: 'Optional workout notes (e.g. brisk park loop)...',
+                          hintText: 'Optional workout notes (e.g. morning park session)...',
                           hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
@@ -2034,7 +3046,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Refined Estimated Energy Burned Banner (Warm amber gradient with flame icon)
+                      // Estimated Calories Burned Banner
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
@@ -2142,32 +3154,56 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 elevation: 2,
                               ),
                               onPressed: () {
-                              final d = int.tryParse(durationController.text) ?? 30;
-                              final s = int.tryParse(stepsController.text) ?? 0;
-                              eco.addWorkoutLog(
-                                activityName: selectedActivity.name,
-                                durationMinutes: d,
-                                steps: s,
-                                distanceKm: distanceKm,
-                                caloriesBurned: selectedActivity.calculateCalories(
-                                  weightKg: eco.userWeightKg,
-                                  minutes: d,
-                                ),
-                                intensity: intensity,
-                                timeAllocation: timeAllocation,
-                                notes: notesController.text.trim(),
-                              );
-                              Navigator.pop(ctx);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: AppColors.burgundyPrimary,
-                                  content: Text('Logged ${selectedActivity.name} session (${d}m)!'),
-                                ),
-                              );
-                            },
+                                final d = int.tryParse(durationController.text) ?? 30;
+                                final s = int.tryParse(stepsController.text) ?? 0;
+                                final dist = double.tryParse(distanceController.text) ?? 0.0;
+                                final l = int.tryParse(lapsController.text) ?? 0;
+                                final st = int.tryParse(setsController.text) ?? 0;
+                                final r = int.tryParse(roundsController.text) ?? 0;
+
+                                String customMeta = '';
+                                if (category == WorkoutMetricCategory.swimming) {
+                                  customMeta = 'Stroke: $strokeStyle';
+                                } else if (category == WorkoutMetricCategory.walking) {
+                                  customMeta = 'Pace: $walkingPace';
+                                } else if (category == WorkoutMetricCategory.running) {
+                                  customMeta = 'Style: $runningStyle';
+                                } else if (category == WorkoutMetricCategory.cycling) {
+                                  customMeta = 'Mode: $cyclingMode';
+                                } else if (category == WorkoutMetricCategory.gym) {
+                                  customMeta = 'Focus: $targetMuscle';
+                                } else if (category == WorkoutMetricCategory.yoga) {
+                                  customMeta = 'Style: $yogaStyle';
+                                } else if (category == WorkoutMetricCategory.badminton) {
+                                  customMeta = 'Format: $badmintonFormat';
+                                }
+
+                                eco.addWorkoutLog(
+                                  activityName: selectedActivity.name,
+                                  durationMinutes: d,
+                                  steps: (category == WorkoutMetricCategory.walking || category == WorkoutMetricCategory.running) ? s : 0,
+                                  distanceKm: dist,
+                                  caloriesBurned: calculatedKcal,
+                                  intensity: intensity,
+                                  timeAllocation: timeAllocation,
+                                  logDate: _selectedDate,
+                                  notes: notesController.text.trim(),
+                                  laps: category == WorkoutMetricCategory.swimming ? l : 0,
+                                  sets: (category == WorkoutMetricCategory.gym || category == WorkoutMetricCategory.badminton) ? st : 0,
+                                  rounds: category == WorkoutMetricCategory.yoga ? r : 0,
+                                  customMetric: customMeta,
+                                );
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: AppColors.burgundyPrimary,
+                                    content: Text('Logged ${selectedActivity.name} (${d}m = ${calculatedKcal.toInt()} kcal) for ${_formatDayLabel(_selectedDate)}!'),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
                       ),
                     ],
                   ),
@@ -2689,6 +3725,521 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           ],
         );
       },
+    );
+  }
+
+  // =========================================================================
+  // HELPER MODALS: CALORIE TARGET, PEDOMETER PERMISSION, STEP RECORDING
+  // =========================================================================
+
+  void _showDailyCalorieTargetModal(BuildContext context, EcosystemProvider eco, {bool isFirstTime = false}) {
+    final suggested = eco.suggestedDailyCalories;
+    final currentTarget = eco.hasSetDailyCalorieTarget ? eco.dailyCalorieTarget : suggested;
+    final targetCtrl = TextEditingController(text: currentTarget.toInt().toString());
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isFirstTime,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (dCtx, setDState) {
+            final val = double.tryParse(targetCtrl.text) ?? currentTarget;
+            return Dialog(
+              backgroundColor: AppColors.burgundyCard,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+                side: const BorderSide(color: AppColors.sandGold, width: 1.4),
+              ),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 420),
+                padding: const EdgeInsets.all(22),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.burgundySurface,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.sandGold),
+                            ),
+                            child: const Icon(Icons.local_fire_department, color: AppColors.sandGold, size: 24),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isFirstTime ? 'SET DAILY CALORIE TARGET' : 'EDIT DAILY CALORIE GOAL',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  isFirstTime
+                                      ? 'Calibrated from your height & weight'
+                                      : 'Adjust your daily expected calorie intake',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppColors.sandPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (!isFirstTime)
+                            IconButton(
+                              icon: const Icon(Icons.close, color: AppColors.sandPrimary, size: 20),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(color: AppColors.sandBorder, height: 1),
+                      const SizedBox(height: 14),
+
+                      // Formula suggestion explanation
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.burgundySurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.sandBorder),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.auto_awesome, color: AppColors.sandGold, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Based on your height (${eco.userHeightCm.toStringAsFixed(0)} cm) & weight (${eco.userWeightKg.toStringAsFixed(1)} kg), we suggest ${suggested.toInt()} kcal/day.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  color: AppColors.sandLight,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      Text(
+                        'Target Calories (kcal/day)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandLight,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: targetCtrl,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: AppColors.sandLight,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        onChanged: (_) => setDState(() {}),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: AppColors.burgundySurface,
+                          suffixText: 'kcal',
+                          suffixStyle: const TextStyle(color: AppColors.sandGold, fontWeight: FontWeight.bold, fontSize: 14),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.sandGold, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          _calorieChip(
+                            label: 'Suggested (${suggested.toInt()})',
+                            isSelected: val.toInt() == suggested.toInt(),
+                            onTap: () {
+                              setDState(() {
+                                targetCtrl.text = suggested.toInt().toString();
+                              });
+                            },
+                          ),
+                          _calorieChip(
+                            label: 'Light Deficit (${(suggested - 250).toInt()})',
+                            isSelected: val.toInt() == (suggested - 250).toInt(),
+                            onTap: () {
+                              setDState(() {
+                                targetCtrl.text = (suggested - 250).toInt().toString();
+                              });
+                            },
+                          ),
+                          _calorieChip(
+                            label: 'Active (${(suggested + 250).toInt()})',
+                            isSelected: val.toInt() == (suggested + 250).toInt(),
+                            onTap: () {
+                              setDState(() {
+                                targetCtrl.text = (suggested + 250).toInt().toString();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.sandGold,
+                          foregroundColor: AppColors.burgundyBg,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () {
+                          final target = double.tryParse(targetCtrl.text) ?? suggested;
+                          if (target < 800 || target > 6000) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: AppColors.burgundyPrimary,
+                                content: Text('Please enter a realistic calorie target (800 - 6000 kcal).'),
+                              ),
+                            );
+                            return;
+                          }
+                          eco.setDailyCalorieTarget(target);
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: AppColors.burgundyPrimary,
+                              content: Text('Daily calorie target updated to ${target.toInt()} kcal!'),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          isFirstTime ? 'Save Target & Start Tracking' : 'Update Calorie Target',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _calorieChip({required String label, required bool isSelected, required VoidCallback onTap}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.sandGold : AppColors.burgundySurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: isSelected ? AppColors.sandGold : AppColors.sandBorder),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPedometerSensorPermissionDialog(BuildContext context, EcosystemProvider eco) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: AppColors.burgundyCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.sandGold, width: 1.2),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.sandGold),
+                ),
+                child: const Icon(Icons.sensors, color: AppColors.sandGold, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Share Step Count Data with MN Family?',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandLight,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'MN Family requests permission to read your device\'s built-in step counter and motion sensors to seamlessly track your daily walking habits and stamina in Pillar 1.\n\nYour data remains private to your personal profile.',
+            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary, height: 1.45),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Not Now', style: TextStyle(color: AppColors.sandPrimary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.sandGold,
+                foregroundColor: AppColors.burgundyBg,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                eco.setStepPermissionGranted(true);
+                if (eco.getStepsForDate(_selectedDate) == 0) {
+                  eco.recordDailySteps(date: _selectedDate, steps: 3500);
+                }
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: AppColors.burgundyPrimary,
+                    content: Text('Device pedometer sensors connected successfully!'),
+                  ),
+                );
+              },
+              child: const Text('Allow & Connect Sensors'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openStepCountRecordingDialog(BuildContext context, EcosystemProvider eco) {
+    final curSteps = eco.getStepsForDate(_selectedDate);
+    final ctrl = TextEditingController(text: curSteps > 0 ? curSteps.toString() : '');
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: AppColors.burgundyCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: AppColors.sandGold),
+          ),
+          title: Text(
+            'Record Steps for ${_formatDayLabel(_selectedDate)}',
+            style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Enter total steps walked on this date:',
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: ctrl,
+                keyboardType: TextInputType.number,
+                style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.burgundySurface,
+                  suffixText: 'steps',
+                  suffixStyle: const TextStyle(color: AppColors.sandGold),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.sandPrimary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.sandGold,
+                foregroundColor: AppColors.burgundyBg,
+              ),
+              onPressed: () {
+                final s = int.tryParse(ctrl.text) ?? 0;
+                eco.recordDailySteps(date: _selectedDate, steps: s);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: AppColors.burgundyPrimary,
+                    content: Text('Saved $s steps for ${_formatDayLabel(_selectedDate)}'),
+                  ),
+                );
+              },
+              child: const Text('Save Steps'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _mealTypeButton({
+    required String label,
+    required String icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.sandGold : AppColors.burgundySurface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+              width: isSelected ? 1.4 : 1.0,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(icon, style: const TextStyle(fontSize: 14)),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _portionOptionCard({
+    required String label,
+    required String sublabel,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.sandGold.withOpacity(0.18) : AppColors.burgundySurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+            width: isSelected ? 1.4 : 1.0,
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(
+              sublabel,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? AppColors.sandGold : AppColors.sandLight,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 9.5,
+                color: isSelected ? AppColors.sandLight : AppColors.sandPrimary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _numberInputField({
+    required String label,
+    required TextEditingController controller,
+    required String suffix,
+    bool isDecimal = false,
+    required VoidCallback onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+        ),
+        const SizedBox(height: 5),
+        TextField(
+          controller: controller,
+          keyboardType: isDecimal ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.number,
+          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 13, fontWeight: FontWeight.w600),
+          onChanged: (_) => onChanged(),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+            suffixText: suffix,
+            suffixStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _inputDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
     );
   }
 }

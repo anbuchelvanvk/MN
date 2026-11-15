@@ -53,7 +53,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(LoginScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('CeoSuiteScreen renders without overflow on 1.5K display', (tester) async {
@@ -66,7 +72,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(CeoSuiteScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('DeptHeadPortalScreen renders without overflow on 1.5K display', (tester) async {
@@ -79,7 +91,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(DeptHeadPortalScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('HrPortalScreen renders without overflow on 1.5K display', (tester) async {
@@ -92,7 +110,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(HrPortalScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('EmployeePortalScreen renders without overflow on 1.5K display', (tester) async {
@@ -105,7 +129,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(EmployeePortalScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('EmployeeProfileScreen renders without overflow on 1.5K display', (tester) async {
@@ -116,7 +146,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(EmployeeProfileScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('OnlineOrdersHandlerScreen renders without overflow on 1.5K display', (tester) async {
@@ -127,7 +163,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(OnlineOrdersHandlerScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('ExportAuditModal renders without overflow on 1.5K display', (tester) async {
@@ -138,7 +180,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(ExportAuditModal), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('HealthPillarScreen renders without overflow on 1.5K display', (tester) async {
@@ -155,7 +203,13 @@ void main() {
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.text('Save BMI'), findsOneWidget);
       }
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('FamilyPillarScreen renders without overflow on 1.5K display', (tester) async {
@@ -167,7 +221,13 @@ void main() {
 
       expect(find.byType(FamilyPillarScreen), findsOneWidget);
       expect(find.text('Friends & Peers'), findsWidgets);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('AttendancePillarScreen renders without overflow on 1.5K display', (tester) async {
@@ -178,7 +238,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(AttendancePillarScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('ProfilePillarScreen renders without overflow on 1.5K display', (tester) async {
@@ -189,7 +255,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(ProfilePillarScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('SocialCausePillarScreen renders without overflow on 1.5K display', (tester) async {
@@ -200,18 +272,33 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(SocialCausePillarScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('TierPillarScreen renders without overflow on 1.5K display', (tester) async {
       configureDisplay(tester);
       final eco = EcosystemProvider();
 
+      final oldHandler = FlutterError.onError;
+      FlutterError.onError = (FlutterErrorDetails details) {
+        debugPrint('FLUTTER_ERROR_DETAILS: ${details.toString()}');
+        oldHandler?.call(details);
+      };
+
       await tester.pumpWidget(createTestApp(const TierPillarScreen(), eco));
       await tester.pump(const Duration(milliseconds: 300));
 
+      FlutterError.onError = oldHandler;
+
       expect(find.byType(TierPillarScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      expect(err, isNull);
     });
 
     testWidgets('WorkPillarScreen renders without overflow on 1.5K display', (tester) async {
@@ -222,7 +309,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(WorkPillarScreen), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
 
     testWidgets('PillarsPopupDialog renders without overflow on 1.5K display', (tester) async {
@@ -233,7 +326,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(PillarsPopupDialog), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final err = tester.takeException();
+      if (err is FlutterError) {
+        for (final d in err.diagnostics) {
+          debugPrint('${d.name}: ${d.toDescription()}');
+        }
+      }
+      expect(err, isNull);
     });
   });
 }

@@ -56,6 +56,9 @@ class EcosystemProvider extends ChangeNotifier {
   bool _healthOnboarded = false;
   double _userHeightCm = 0.0;
   double _userWeightKg = 0.0;
+  double? _dailyCalorieTarget;
+  bool _stepPermissionGranted = false;
+  Map<String, int> _dailyStepsMap = {};
   List<FoodLogItem> _dailyFoodLogs = [];
   List<WorkoutLogItem> _dailyWorkoutLogs = [];
   List<WeightHeightRecord> _weightHistory = [];
@@ -63,9 +66,60 @@ class EcosystemProvider extends ChangeNotifier {
   bool get healthOnboarded => _healthOnboarded;
   double get userHeightCm => _userHeightCm;
   double get userWeightKg => _userWeightKg;
+  double get dailyCalorieTarget => _dailyCalorieTarget ?? 2000.0;
+  bool get hasSetDailyCalorieTarget => _dailyCalorieTarget != null && _dailyCalorieTarget! > 0;
+  bool get stepPermissionGranted => _stepPermissionGranted;
+  Map<String, int> get dailyStepsMap => _dailyStepsMap;
   List<FoodLogItem> get dailyFoodLogs => _dailyFoodLogs;
   List<WorkoutLogItem> get dailyWorkoutLogs => _dailyWorkoutLogs;
   List<WeightHeightRecord> get weightHistory => _weightHistory;
+
+  double get suggestedDailyCalories {
+    if (_userWeightKg > 0 && _userHeightCm > 0) {
+      final bmr = (10 * _userWeightKg) + (6.25 * _userHeightCm) - (5 * 28) + 5;
+      final suggested = (bmr * 1.375).roundToDouble();
+      return (suggested / 50).round() * 50.0;
+    }
+    return 2000.0;
+  }
+
+  int getStepsForDate(DateTime date) {
+    final key = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    if (_dailyStepsMap.containsKey(key)) {
+      return _dailyStepsMap[key]!;
+    }
+    return getWorkoutStepsForDate(date);
+  }
+
+  List<FoodLogItem> getFoodLogsForDate(DateTime date) {
+    return _dailyFoodLogs.where((f) =>
+        f.timestamp.year == date.year &&
+        f.timestamp.month == date.month &&
+        f.timestamp.day == date.day).toList();
+  }
+
+  List<WorkoutLogItem> getWorkoutLogsForDate(DateTime date) {
+    return _dailyWorkoutLogs.where((w) =>
+        w.timestamp.year == date.year &&
+        w.timestamp.month == date.month &&
+        w.timestamp.day == date.day).toList();
+  }
+
+  double getCaloriesConsumedForDate(DateTime date) {
+    return getFoodLogsForDate(date).fold(0.0, (sum, f) => sum + f.calories);
+  }
+
+  double getCaloriesBurnedForDate(DateTime date) {
+    return getWorkoutLogsForDate(date).fold(0.0, (sum, w) => sum + w.caloriesBurned);
+  }
+
+  int getWorkoutMinutesForDate(DateTime date) {
+    return getWorkoutLogsForDate(date).fold(0, (sum, w) => sum + w.durationMinutes);
+  }
+
+  int getWorkoutStepsForDate(DateTime date) {
+    return getWorkoutLogsForDate(date).fold(0, (sum, w) => sum + w.steps);
+  }
 
   // Family & Harmony Pillar 2 State (Unforced, natural quality time)
   List<FamilyActivityItem> _familyActivityLogs = [];
@@ -295,14 +349,28 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Returns designated Team Lead for an employee (defaults to OTM Praveenkumar)
+  /// Returns designated Team Lead for an employee (department-aware: accounts team, showroom, online, etc.)
   Employee? getTeamLeadForEmployee(String empId) {
     final emp = _employees.firstWhere((e) => e.id == empId, orElse: () => _employees.first);
-    final leads = _employees.where((e) =>
+    final empDept = emp.dept.toLowerCase().trim();
+
+    // 1. Direct match: lead in the exact same department
+    final deptLeads = _employees.where((e) =>
         (e.roleType == 'team_lead' || e.roleType == 'dept_head' || e.isTeamLead) &&
-        (e.dept == emp.dept || e.dept.toLowerCase().contains('online'))).toList();
-    if (leads.isNotEmpty) return leads.first;
-    final anyLead = _employees.where((e) => e.roleType == 'team_lead' || e.roleType == 'dept_head' || e.isTeamLead).toList();
+        e.dept.toLowerCase().trim() == empDept &&
+        e.id != emp.id).toList();
+    if (deptLeads.isNotEmpty) return deptLeads.first;
+
+    // 2. If employee belongs to Online Team or E-Commerce, Praveenkumar M is designated lead
+    if (empDept.contains('online') || empDept.contains('e-commerce')) {
+      final otm = _employees.where((e) => e.id == 'MN-TL1002').toList();
+      if (otm.isNotEmpty) return otm.first;
+    }
+
+    // 3. Fallback: Any active department lead or team lead
+    final anyLead = _employees.where((e) =>
+        (e.roleType == 'team_lead' || e.roleType == 'dept_head' || e.isTeamLead) &&
+        e.id != emp.id).toList();
     return anyLead.isNotEmpty ? anyLead.first : null;
   }
 
@@ -3075,14 +3143,54 @@ class EcosystemProvider extends ChangeNotifier {
     );
   }
 
+  void setDailyCalorieTarget(double target) {
+    _dailyCalorieTarget = target;
+    notifyListeners();
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'health',
+      data: {
+        'heightCm': _userHeightCm,
+        'weightKg': _userWeightKg,
+        'onboarded': _healthOnboarded,
+        'dailyCalorieTarget': target,
+      },
+    );
+  }
+
+  void setStepPermissionGranted(bool granted) {
+    _stepPermissionGranted = granted;
+    notifyListeners();
+  }
+
+  void recordDailySteps({required DateTime date, required int steps}) {
+    final key = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    _dailyStepsMap[key] = steps;
+    notifyListeners();
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'health',
+      data: {
+        'heightCm': _userHeightCm,
+        'weightKg': _userWeightKg,
+        'onboarded': _healthOnboarded,
+        if (_dailyCalorieTarget != null) 'dailyCalorieTarget': _dailyCalorieTarget,
+        'dailySteps': _dailyStepsMap,
+      },
+    );
+  }
+
   void addFoodLog({
     required String foodName,
     required String mealType,
     required double grams,
     required double calories,
+    DateTime? logDate,
+    String portionSize = 'Normal',
+    int quantity = 1,
   }) {
-    final now = DateTime.now();
-    final timeStr = '${now.day} ${_monthName(now.month)} ${now.year}, ${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final targetDate = logDate ?? DateTime.now();
+    final timeStr = '${targetDate.day} ${_monthName(targetDate.month)} ${targetDate.year}, ${targetDate.hour % 12 == 0 ? 12 : targetDate.hour % 12}:${targetDate.minute.toString().padLeft(2, '0')} ${targetDate.hour >= 12 ? 'PM' : 'AM'}';
     _dailyFoodLogs.insert(
       0,
       FoodLogItem(
@@ -3091,8 +3199,10 @@ class EcosystemProvider extends ChangeNotifier {
         mealType: mealType,
         grams: grams,
         calories: calories,
-        timestamp: now,
+        timestamp: targetDate,
         timeString: timeStr,
+        portionSize: portionSize,
+        quantity: quantity,
       ),
     );
     notifyListeners();
@@ -3123,10 +3233,15 @@ class EcosystemProvider extends ChangeNotifier {
     required double caloriesBurned,
     required String intensity,
     required String timeAllocation,
+    DateTime? logDate,
     String notes = '',
+    int laps = 0,
+    int sets = 0,
+    int rounds = 0,
+    String customMetric = '',
   }) {
-    final now = DateTime.now();
-    final timeStr = '${now.day} ${_monthName(now.month)} ${now.year}, ${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final targetDate = logDate ?? DateTime.now();
+    final timeStr = '${targetDate.day} ${_monthName(targetDate.month)} ${targetDate.year}, ${targetDate.hour % 12 == 0 ? 12 : targetDate.hour % 12}:${targetDate.minute.toString().padLeft(2, '0')} ${targetDate.hour >= 12 ? 'PM' : 'AM'}';
     _dailyWorkoutLogs.insert(
       0,
       WorkoutLogItem(
@@ -3138,9 +3253,13 @@ class EcosystemProvider extends ChangeNotifier {
         caloriesBurned: caloriesBurned,
         intensity: intensity,
         timeAllocation: timeAllocation,
-        timestamp: now,
+        timestamp: targetDate,
         timeString: timeStr,
         notes: notes,
+        laps: laps,
+        sets: sets,
+        rounds: rounds,
+        customMetric: customMetric,
       ),
     );
     notifyListeners();
@@ -3558,6 +3677,12 @@ class EcosystemProvider extends ChangeNotifier {
           _userHeightCm = (h['heightCm'] as num?)?.toDouble() ?? _userHeightCm;
           _userWeightKg = (h['weightKg'] as num?)?.toDouble() ?? _userWeightKg;
           _healthOnboarded = h['onboarded'] as bool? ?? _healthOnboarded;
+          if (h['dailyCalorieTarget'] != null) {
+            _dailyCalorieTarget = (h['dailyCalorieTarget'] as num?)?.toDouble();
+          }
+          if (h['dailySteps'] is Map) {
+            _dailyStepsMap = (h['dailySteps'] as Map).map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
+          }
         }
         if (pillars['meals'] is List) {
           _dailyFoodLogs = (pillars['meals'] as List)
@@ -4713,6 +4838,38 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _socialCauses.insert(0, newCause);
     _notificationMessage = 'Social deed submitted for HR & CEO review!';
+
+    // Executive Acceptance Notification: Dispatch pop-up to CEO and HR
+    final ceoHrTargets = <String>{
+      'MN-CEO01',
+      'MN-HR1001',
+      ..._employees.where((e) => e.roleType == 'ceo' || e.roleType == 'hr').map((e) => e.id),
+    };
+    _acceptancePopups.insert(
+      0,
+      AcceptancePopupNotification(
+        id: 'POP-SC-PEND-${newCause.id}',
+        title: '💛 New Social Cause: CEO & HR Approval Required',
+        message: '${newCause.employeeName} (${newCause.employeeRole}) posted a social cause: "${newCause.title}" (${newCause.causeType}, ₹${newCause.amountSpent.toStringAsFixed(0)}). Awaiting CEO & HR verification.',
+        requestType: AcceptanceRequestType.socialCausePending,
+        employeeId: newCause.empId,
+        employeeName: newCause.employeeName,
+        employeeRole: newCause.employeeRole,
+        employeeDept: 'Showroom & Online',
+        durationOrDays: '₹${newCause.amountSpent.toStringAsFixed(0)}',
+        reason: newCause.description,
+        approvedBy: 'Pending Review',
+        timestamp: DateTime.now(),
+        targetRoles: const ['hr', 'ceo'],
+        targetEmpIds: ceoHrTargets.toList(),
+      ),
+    );
+    PushNotificationService().showNotification(
+      id: 'SC-PEND-${newCause.id}',
+      title: '💛 New Social Cause: Approval Required',
+      body: '${newCause.employeeName} posted "${newCause.title}". Requires CEO & HR verification.',
+      payload: 'social_cause_pending',
+    );
     notifyListeners();
 
     _firebaseEmployeeService.saveSocialCause(newCause).catchError((err) {
@@ -4788,6 +4945,28 @@ class EcosystemProvider extends ChangeNotifier {
         body: notif.content,
         payload: notif.id,
       );
+
+      // When accepted, the social cause alone MUST be notified as a pop-up notification for ALL existing users!
+      _acceptancePopups.insert(
+        0,
+        AcceptancePopupNotification(
+          id: 'POP-SC-APP-${old.id}',
+          title: '🌟 Certified Good Deed: ${old.title}',
+          message: '${old.employeeName} (${old.employeeRole}) completed an inspiring social deed: "${old.title}" (${old.causeType}, ₹${old.amountSpent.toStringAsFixed(0)}). Certified by $approverLabel.',
+          requestType: AcceptanceRequestType.socialCauseApproved,
+          employeeId: old.empId,
+          employeeName: old.employeeName,
+          employeeRole: old.employeeRole,
+          employeeDept: 'MN Jewel Park',
+          durationOrDays: '₹${old.amountSpent.toStringAsFixed(0)}',
+          reason: old.description,
+          approvedBy: approverLabel,
+          timestamp: approvedAt,
+          targetRoles: const ['all', 'hr', 'ceo', 'team_lead', 'employee'],
+          targetEmpIds: _employees.map((e) => e.id).toList(),
+        ),
+      );
+
       _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
         debugPrint('Firestore save notif note: $err');
       });
