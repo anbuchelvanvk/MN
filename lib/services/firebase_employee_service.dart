@@ -715,6 +715,16 @@ class FirebaseEmployeeService {
     }
   }
 
+  /// Save or update employee document in Firestore
+  Future<void> saveEmployee(Employee employee) async {
+    try {
+      final data = employee.toMap();
+      await _employeeCollection.doc(employee.id).set(data, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveEmployee error: $e');
+    }
+  }
+
   /// Add new employee (Exclusively allowed for HR and CEO)
   Future<void> addEmployee({
     required Employee employee,
@@ -1152,6 +1162,34 @@ class FirebaseEmployeeService {
       }
     } catch (e) {
       debugPrint('Firestore purgeDeadNotifications note: $e');
+    }
+  }
+
+  /// Permanently deletes a single personal notification from Cloud Firestore upon read
+  Future<void> deleteCompanyNotification(String notifId) async {
+    if (!isFirebaseAvailable) return;
+    try {
+      await _notificationsCollection.doc(notifId).delete();
+    } catch (e) {
+      debugPrint('Firestore deleteCompanyNotification error: $e');
+    }
+  }
+
+  /// Erases operational datasets (notifications, social causes) from Firestore
+  /// Keeps employee dossiers, credentials, departments, health metrics, and document vaults completely safe!
+  Future<void> resetOperationalData() async {
+    if (!isFirebaseAvailable) return;
+    try {
+      final notifsSnap = await _notificationsCollection.get();
+      for (final doc in notifsSnap.docs) {
+        await doc.reference.delete();
+      }
+      final causesSnap = await _socialCausesCollection.get();
+      for (final doc in causesSnap.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      debugPrint('Firestore resetOperationalData error: $e');
     }
   }
 

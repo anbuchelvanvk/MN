@@ -21,6 +21,7 @@ class CompanyNotification {
   final String? actionTag;
   final List<String> likedStaffIds;
   final List<String> dismissedByStaffIds;
+  final String? targetEmpId;
 
   CompanyNotification({
     required this.id,
@@ -35,6 +36,7 @@ class CompanyNotification {
     this.actionTag,
     this.likedStaffIds = const [],
     this.dismissedByStaffIds = const [],
+    this.targetEmpId,
   });
 
   bool isReadBy(String empId) {
@@ -43,6 +45,14 @@ class CompanyNotification {
 
   bool isDismissedBy(String empId) {
     return dismissedByStaffIds.contains(empId);
+  }
+
+  /// Whether notification is targeted for a specific employee
+  bool isTargetedFor(String empId) {
+    if (targetEmpId != null && targetEmpId!.trim().isNotEmpty) {
+      return targetEmpId == empId;
+    }
+    return true;
   }
 
   /// Only notifications with real non-empty title or content are valid (prevents blank/dead stubs)
@@ -65,6 +75,7 @@ class CompanyNotification {
     String? actionTag,
     List<String>? likedStaffIds,
     List<String>? dismissedByStaffIds,
+    String? targetEmpId,
   }) {
     return CompanyNotification(
       id: id ?? this.id,
@@ -79,6 +90,7 @@ class CompanyNotification {
       actionTag: actionTag ?? this.actionTag,
       likedStaffIds: likedStaffIds ?? this.likedStaffIds,
       dismissedByStaffIds: dismissedByStaffIds ?? this.dismissedByStaffIds,
+      targetEmpId: targetEmpId ?? this.targetEmpId,
     );
   }
 
@@ -152,6 +164,7 @@ class CompanyNotification {
     'actionTag': actionTag,
     'likedStaffIds': likedStaffIds,
     'dismissedByStaffIds': dismissedByStaffIds,
+    'targetEmpId': targetEmpId,
   };
 
   factory CompanyNotification.fromJson(Map<String, dynamic> json) {
@@ -207,6 +220,7 @@ class CompanyNotification {
       actionTag: json['actionTag']?.toString(),
       likedStaffIds: (json['likedStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       dismissedByStaffIds: (json['dismissedByStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      targetEmpId: json['targetEmpId']?.toString(),
     );
   }
 }

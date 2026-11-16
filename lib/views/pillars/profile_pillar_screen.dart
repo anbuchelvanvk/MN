@@ -109,16 +109,16 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
             // 4. Dynamic Subsystem Views based on selected ring
             if (_selectedRingIndex == 0) ...[
-              if (employee.isCeo)
+              if (employee.isCeo || employee.isOtm)
                 _buildCeoStaffAttendanceSection(context, provider)
-              else if (employee.isOtm || employee.isExternalSupport)
+              else if (employee.isExternalSupport)
                 _buildOtmExemptSection('Attendance', employee)
               else
                 _buildMonthlyAttendanceSection(context, provider),
             ] else if (_selectedRingIndex == 1) ...[
-              if (employee.isCeo)
+              if (employee.isCeo || employee.isOtm)
                 _buildCeoStaffVaultCustodySection(context, provider)
-              else if (employee.isOtm || employee.isExternalSupport)
+              else if (employee.isExternalSupport)
                 _buildOtmExemptSection('Document Verification & Safe Vault Custody', employee)
               else ...[
                 // Inside here: Document Submission (Original Document Custody)
@@ -140,7 +140,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   ),
               ],
             ] else if (_selectedRingIndex == 2) ...[
-              if (employee.isCeo || employee.isOtm || employee.isExternalSupport)
+              if (employee.isOtm)
+                _buildTeamGroomingInspectionSection(context, provider)
+              else if (employee.isCeo || employee.isExternalSupport)
                 _buildOtmExemptSection('Daily Retail Showroom Grooming & Attire', employee)
               else
                 _buildGroomingSection(context, provider),
@@ -544,20 +546,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         ),
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.lock_clock_outlined, size: 12, color: AppColors.textMuted),
-                        const SizedBox(width: 3),
-                        Text(
-                          'Locker #B-14',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ],
@@ -664,7 +652,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     index: 1,
                     title: 'Staff Vault',
                     displayValue: provider.allStaffDocsCount == 0 ? '0 Docs' : '${provider.allStaffSubmittedCount}/${provider.allStaffDocsCount}',
-                    subText: provider.allStaffDocsCount == 0 ? '0 Lockers' : '${provider.allStaffSubmittedCount} Lockers',
+                    subText: provider.allStaffDocsCount == 0 ? '0 Verified' : '${provider.allStaffSubmittedCount} Verified',
                     progress: 1.0,
                     ringColor: provider.allStaffPendingCount == 0 ? AppColors.ragGreen : const Color(0xFFF59E0B),
                     icon: Icons.lock_clock_outlined,
@@ -675,72 +663,85 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             ),
           ] else ...[
             // Staff & OTM have 3 rings: Attendance, Documents, Grooming
-            Row(
-              children: [
-                Expanded(
-                  child: _buildRingCard(
-                    index: 0,
-                    title: 'Attendance',
-                    displayValue: employee.isOtm
-                        ? 'N/A'
-                        : '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%',
-                    subText: employee.isOtm
-                        ? 'Exempt (OTM)'
-                        : '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days',
-                    progress: employee.isOtm ? 1.0 : (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
-                    ringColor: employee.isOtm
-                        ? AppColors.sandGold
-                        : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B))),
-                    icon: Icons.fact_check_outlined,
-                    statusText: employee.isOtm
-                        ? 'Not Applicable'
-                        : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio'),
+            Builder(builder: (_) {
+              final onlineTeam = provider.employees.where((e) => e.dept.toLowerCase().contains('online') && e.id != employee.id).toList();
+              final onlineTeamTotal = onlineTeam.length;
+              final onlineTeamPresent = onlineTeam.where((e) => !provider.isEmployeeAbsent(e.id)).length;
+              final onlineTeamDocs = onlineTeam.expand((e) => provider.getEmployeeDocuments(e.id)).toList();
+              final onlineTeamSubmittedDocs = onlineTeamDocs.where((d) => d.status == DocumentSubmissionStatus.submitted).length;
+              final onlineTeamTotalDocs = onlineTeamDocs.length;
+
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildRingCard(
+                      index: 0,
+                      title: employee.isOtm ? 'Team Attend' : 'Attendance',
+                      displayValue: employee.isOtm
+                          ? (onlineTeamTotal > 0 ? '$onlineTeamPresent/$onlineTeamTotal' : 'All Set')
+                          : '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%',
+                      subText: employee.isOtm
+                          ? 'Online Team'
+                          : '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days',
+                      progress: employee.isOtm
+                          ? (onlineTeamTotal > 0 ? (onlineTeamPresent / onlineTeamTotal) : 1.0)
+                          : (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
+                      ringColor: employee.isOtm
+                          ? const Color(0xFF10B981)
+                          : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B))),
+                      icon: Icons.fact_check_outlined,
+                      statusText: employee.isOtm
+                          ? '$onlineTeamPresent Present'
+                          : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildRingCard(
-                    index: 1,
-                    title: 'Documents',
-                    displayValue: employee.isOtm
-                        ? 'N/A'
-                        : (provider.totalOriginalsCount == 0 ? '0 Docs' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%'),
-                    subText: employee.isOtm
-                        ? 'Exempt (OTM)'
-                        : (provider.totalOriginalsCount == 0 ? '0 Uploaded' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault'),
-                    progress: employee.isOtm ? 1.0 : provider.documentsSubmissionRatio,
-                    ringColor: employee.isOtm
-                        ? AppColors.sandGold
-                        : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444))),
-                    icon: Icons.lock_clock_outlined,
-                    statusText: employee.isOtm
-                        ? 'Not Applicable'
-                        : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending')),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildRingCard(
+                      index: 1,
+                      title: employee.isOtm ? 'Team Vault' : 'Documents',
+                      displayValue: employee.isOtm
+                          ? (onlineTeamTotalDocs > 0 ? '$onlineTeamSubmittedDocs/$onlineTeamTotalDocs' : 'Safe')
+                          : (provider.totalOriginalsCount == 0 ? '0 Docs' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%'),
+                      subText: employee.isOtm
+                          ? 'Custody Safe'
+                          : (provider.totalOriginalsCount == 0 ? '0 Uploaded' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault'),
+                      progress: employee.isOtm
+                          ? (onlineTeamTotalDocs > 0 ? (onlineTeamSubmittedDocs / onlineTeamTotalDocs) : 1.0)
+                          : provider.documentsSubmissionRatio,
+                      ringColor: employee.isOtm
+                          ? const Color(0xFF10B981)
+                          : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444))),
+                      icon: Icons.lock_clock_outlined,
+                      statusText: employee.isOtm
+                          ? '$onlineTeamSubmittedDocs Verified'
+                          : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending')),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildRingCard(
-                    index: 2,
-                    title: 'Grooming',
-                    displayValue: employee.isOtm
-                        ? 'N/A'
-                        : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingPercentage(provider.activeEmpId).toStringAsFixed(0)}%' : '0%'),
-                    subText: employee.isOtm
-                        ? 'Exempt (OTM)'
-                        : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingDailyPoints(provider.activeEmpId)}/50 Pts' : 'Pending Audit'),
-                    progress: employee.isOtm ? 1.0 : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) / 100.0).clamp(0.0, 1.0),
-                    ringColor: employee.isOtm
-                        ? AppColors.sandGold
-                        : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isEmpty
-                            ? const Color(0xFF94A3B8)
-                            : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) >= 80 ? AppColors.magentaPrimary : const Color(0xFFF59E0B))),
-                    icon: Icons.face_retouching_natural,
-                    statusText: employee.isOtm ? 'Not Applicable' : 'Showroom Attire',
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildRingCard(
+                      index: 2,
+                      title: employee.isOtm ? 'Team Groom' : 'Grooming',
+                      displayValue: employee.isOtm
+                          ? '50 Pts'
+                          : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingPercentage(provider.activeEmpId).toStringAsFixed(0)}%' : '0%'),
+                      subText: employee.isOtm
+                          ? 'Inspection'
+                          : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingDailyPoints(provider.activeEmpId)}/50 Pts' : 'Pending Audit'),
+                      progress: employee.isOtm ? 1.0 : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) / 100.0).clamp(0.0, 1.0),
+                      ringColor: employee.isOtm
+                          ? AppColors.sandGold
+                          : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isEmpty
+                              ? const Color(0xFF94A3B8)
+                              : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) >= 80 ? AppColors.magentaPrimary : const Color(0xFFF59E0B))),
+                      icon: Icons.face_retouching_natural,
+                      statusText: employee.isOtm ? 'Team Audits' : 'Showroom Attire',
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
           ],
         ],
       ),
@@ -874,11 +875,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     final List<Map<String, dynamic>> tabs;
 
     if (employee.isOtm) {
-      // Document verification, attendance, and showroom grooming are NOT applicable to Praveenkumar (OTM)
+      // Praveenkumar (OTM) guides his Online Department team
       tabs = [
-        {'index': 0, 'label': '1. Attendance (Exempt)', 'icon': Icons.fact_check_outlined},
-        {'index': 1, 'label': '2. Vault Custody (Exempt)', 'icon': Icons.lock_clock_outlined},
-        {'index': 2, 'label': '3. Grooming (Exempt)', 'icon': Icons.face_retouching_natural},
+        {'index': 0, 'label': '1. Team Attendance Overview', 'icon': Icons.fact_check_outlined},
+        {'index': 1, 'label': '2. Team Vault Custody', 'icon': Icons.shield_outlined},
+        {'index': 2, 'label': '3. Team Grooming Inspection', 'icon': Icons.face_retouching_natural},
       ];
     } else if (employee.isCeo) {
       // CEO inspects staff attendance and document vault custody
@@ -2738,7 +2739,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   void _showAddDocumentDialog(BuildContext context, EcosystemProvider provider) {
     final titleCtrl = TextEditingController();
     final certCtrl = TextEditingController();
-    final lockerCtrl = TextEditingController();
     String selectedCategory = 'Academic Marksheet';
     DocumentSubmissionStatus selectedStatus = DocumentSubmissionStatus.submitted;
     bool isMandatory = true;
@@ -2836,15 +2836,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Safe Vault Locker Reference
-                _dialogTextField(
-                  controller: lockerCtrl,
-                  label: 'Safe Vault Locker Box',
-                  hint: 'Company Safe Vault Locker #B-14',
-                  icon: Icons.lock_outline,
-                ),
-                const SizedBox(height: 10),
-
                 // Custody Status Selection
                 Text(
                   'Submission Status',
@@ -2932,7 +2923,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   category: selectedCategory,
                   certificateNumber: certCtrl.text.trim().isEmpty ? 'N/A' : certCtrl.text.trim(),
                   status: selectedStatus,
-                  vaultLockerRef: lockerCtrl.text.trim().isEmpty ? 'Safe Vault Locker #B-14' : lockerCtrl.text.trim(),
+                  vaultLockerRef: 'Safe Custody',
                   isMandatory: isMandatory,
                   iconEmoji: selectedEmoji,
                 );
@@ -3074,7 +3065,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   // =========================================================================
 
   Widget _buildCeoStaffAttendanceSection(BuildContext context, EcosystemProvider provider) {
-    final corporateStaff = provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
+    final isOtm = provider.currentEmployee.isOtm;
+    final corporateStaff = isOtm
+        ? provider.employees.where((e) => e.hasAttendanceAndGrooming && e.dept.toLowerCase().contains('online') && e.id != provider.currentEmployee.id).toList()
+        : provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
     final sheet = provider.hrAttendanceSheet;
     final lastSynced = provider.attendanceSheetLastSynced;
     final timeStr = lastSynced != null ? DateFormat('hh:mm a').format(lastSynced) : 'Live';
@@ -3124,7 +3118,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'STAFF ATTENDANCE OVERVIEW',
+                                isOtm ? 'ONLINE TEAM ATTENDANCE' : 'STAFF ATTENDANCE OVERVIEW',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.bold,
@@ -3549,7 +3543,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   }
 
   Widget _buildCeoStaffVaultCustodySection(BuildContext context, EcosystemProvider provider) {
-    final corporateStaff = provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
+    final isOtm = provider.currentEmployee.isOtm;
+    final corporateStaff = isOtm
+        ? provider.employees.where((e) => e.hasAttendanceAndGrooming && e.dept.toLowerCase().contains('online') && e.id != provider.currentEmployee.id).toList()
+        : provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
 
     final List<_StaffDocEntry> allStaffDocs = [];
     for (final emp in corporateStaff) {
@@ -3603,7 +3600,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'STAFF VAULT CUSTODY & VERIFICATION',
+                          isOtm ? 'ONLINE TEAM VAULT CUSTODY' : 'STAFF VAULT CUSTODY & VERIFICATION',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
@@ -3633,8 +3630,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _miniKpiBox(
-                      label: 'SAFE LOCKERS',
-                      value: totalCount == 0 ? '0 Lockers' : '$submittedCount Lockers',
+                      label: 'SAFE CUSTODY',
+                      value: totalCount == 0 ? '0 Verified' : '$submittedCount Verified',
                       color: AppColors.sandGold,
                     ),
                   ),
@@ -3900,11 +3897,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.lock_outline, size: 11, color: AppColors.textMuted),
+                                const Icon(Icons.shield_outlined, size: 11, color: Color(0xFF10B981)),
                                 const SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
-                                    doc.vaultLockerRef,
+                                    'Safe Custody',
                                     style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textDark, fontWeight: FontWeight.w600),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -4170,6 +4167,159 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTeamGroomingInspectionSection(BuildContext context, EcosystemProvider provider) {
+    final teamStaff = provider.employees.where((e) => e.hasAttendanceAndGrooming && e.dept.toLowerCase().contains('online') && e.id != provider.currentEmployee.id).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.sandGold.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.face_retouching_natural, color: AppColors.sandGold, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ONLINE TEAM GROOMING INSPECTION',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          'Daily showroom attire & grooming compliance across online team staff',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...teamStaff.map((emp) {
+          final pts = provider.getEmployeeGroomingDailyPoints(emp.id);
+          final isCompliant = pts >= 40;
+          final audits = provider.getEmployeeGroomingAudits(emp.id);
+          final latestAudit = audits.isNotEmpty ? audits.first : null;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.sandBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 14,
+                          backgroundColor: AppColors.sandGold.withOpacity(0.2),
+                          child: Text(
+                            emp.initials,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              emp.name,
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                            ),
+                            Text(
+                              '${emp.id} • ${emp.role}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: isCompliant ? const Color(0xFF10B981).withOpacity(0.15) : AppColors.sandGold.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: isCompliant ? const Color(0xFF10B981).withOpacity(0.3) : AppColors.sandGold.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        '$pts / 50 Pts',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isCompliant ? const Color(0xFF10B981) : AppColors.sandGold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (latestAudit != null && latestAudit.followedItems.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 5,
+                    runSpacing: 4,
+                    children: latestAudit.followedItems.take(4).map((item) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.burgundyBg,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: AppColors.sandBorder),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.check, size: 10, color: Color(0xFF10B981)),
+                            const SizedBox(width: 3),
+                            Text(
+                              item,
+                              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandLight),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 }

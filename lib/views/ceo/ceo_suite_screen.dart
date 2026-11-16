@@ -12,8 +12,8 @@ import '../../models/hr_attendance_sheet_models.dart';
 import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
+import '../employee/employee_profile_screen.dart';
 import '../pillars/attendance_pillar_screen.dart';
-import '../pillars/profile_pillar_screen.dart';
 import '../hr/hr_management_widgets.dart';
 import '../orders/online_orders_handler_screen.dart';
 import '../../core/widgets/export_audit_modal.dart';
@@ -144,7 +144,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                 }
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
+                  MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
                 );
               },
               borderRadius: BorderRadius.circular(18),
@@ -401,6 +401,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         icon: Icons.lock_outline_rounded,
                         badge: 'Private',
                         destination: const PersonalNotesScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Data Vault & Reset DB',
+                        icon: Icons.table_chart_outlined,
+                        badge: 'Admin',
+                        destination: const CeoDataVaultAndResetScreen(),
                       ),
                     ],
                   ),

@@ -11,7 +11,7 @@ import '../../core/widgets/role_app_bar.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
-import '../pillars/profile_pillar_screen.dart';
+import '../employee/employee_profile_screen.dart';
 import 'hr_management_widgets.dart';
 import 'hr_portal_subpages.dart';
 import '../notes/personal_notes_screen.dart';
@@ -67,7 +67,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
+                    MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
                   );
                 },
                 borderRadius: BorderRadius.circular(16),

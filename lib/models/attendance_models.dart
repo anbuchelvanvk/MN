@@ -168,6 +168,7 @@ enum DailyAttendanceStatus {
   absent,        // No thumb login recorded (Red)
   onDuty,        // Currently working shift
   completed,     // Completed full shift and logged out
+  weekOff,       // Scheduled weekly day off / Holiday
 }
 
 /// eSSL Hardware Device Live Configuration & State

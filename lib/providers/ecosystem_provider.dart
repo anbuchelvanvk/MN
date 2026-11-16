@@ -972,9 +972,9 @@ class EcosystemProvider extends ChangeNotifier {
   List<CompanyNotification> _companyNotifications = [];
   List<CompanyNotification> get companyNotifications => _companyNotifications;
   List<CompanyNotification> get activeCompanyNotifications =>
-      _companyNotifications.where((n) => n.isValid && !n.isDismissedBy(_activeEmpId)).toList();
+      _companyNotifications.where((n) => n.isValid && !n.isDismissedBy(_activeEmpId) && n.isTargetedFor(_activeEmpId)).toList();
   int get unreadNotificationCount =>
-      _companyNotifications.where((n) => n.isValid && !n.isDismissedBy(_activeEmpId) && !n.isReadBy(_activeEmpId)).length;
+      _companyNotifications.where((n) => n.isValid && !n.isDismissedBy(_activeEmpId) && n.isTargetedFor(_activeEmpId) && !n.isReadBy(_activeEmpId)).length;
   final Set<String> _notifiedCompanyNotifIds = {};
   int _notifSequence = 0;
 
@@ -1183,10 +1183,10 @@ class EcosystemProvider extends ChangeNotifier {
       lunchIns.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       final lunchIn = lunchIns.isNotEmpty ? lunchIns.first : null;
 
-      final isPresent = login != null;
-      final isOnTime = login != null && ((login.timestamp.hour < 9) || (login.timestamp.hour == 9 && login.timestamp.minute <= 30));
-      final isOnLunch = lunchOut != null && (lunchIn == null || lunchOut.timestamp.isAfter(lunchIn.timestamp));
-      final isOnDuty = isPresent && logout == null;
+      bool isPresent = login != null;
+      bool isOnTime = login != null && ((login.timestamp.hour < 9) || (login.timestamp.hour == 9 && login.timestamp.minute <= 30));
+      bool isOnLunch = lunchOut != null && (lunchIn == null || lunchOut.timestamp.isAfter(lunchIn.timestamp));
+      bool isOnDuty = isPresent && logout == null;
 
       int lunchMins = 0;
       if (lunchOut != null) {
@@ -1208,14 +1208,70 @@ class EcosystemProvider extends ChangeNotifier {
       }
 
       DailyAttendanceStatus status;
-      if (!isPresent) {
-        status = DailyAttendanceStatus.absent;
-      } else if (logout != null) {
-        status = DailyAttendanceStatus.completed;
-      } else if (isOnTime) {
-        status = DailyAttendanceStatus.presentOnTime;
+      if (login != null) {
+        if (logout != null) {
+          status = DailyAttendanceStatus.completed;
+        } else if (isOnTime) {
+          status = DailyAttendanceStatus.presentOnTime;
+        } else {
+          status = DailyAttendanceStatus.lateLogin;
+        }
       } else {
-        status = DailyAttendanceStatus.lateLogin;
+        // Evaluate from Google Sheet / Official HR Master Ledger
+        final isManuallyAbsent = _absentEmployeeIds.contains(emp.id) || _absentEmployeeIds.contains(emp.empNo);
+        final isManuallyPresent = _manuallyPresentEmployeeIds.contains(emp.id) || _manuallyPresentEmployeeIds.contains(emp.empNo);
+
+        if (isManuallyAbsent) {
+          isPresent = false;
+          isOnTime = false;
+          isOnDuty = false;
+          status = DailyAttendanceStatus.absent;
+        } else if (isManuallyPresent) {
+          isPresent = true;
+          isOnTime = true;
+          isOnDuty = true;
+          status = DailyAttendanceStatus.presentOnTime;
+        } else {
+          final sheet = hrAttendanceSheet;
+          final hrRow = sheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
+          final todayRec = hrRow?.days[now.day];
+          final latestDay = sheet?.latestRecordedDay ?? now.day;
+          final latestRec = hrRow?.days[latestDay];
+          final activeRec = todayRec ?? latestRec;
+
+          final isTuesday = now.weekday == DateTime.tuesday;
+
+          if (activeRec != null && activeRec.type != HrAttendanceDayType.pendingUpdate) {
+            if (activeRec.type == HrAttendanceDayType.leaveCl ||
+                activeRec.type == HrAttendanceDayType.leaveLop) {
+              isPresent = false;
+              isOnTime = false;
+              isOnDuty = false;
+              status = DailyAttendanceStatus.absent;
+            } else if (isTuesday && activeRec.type == HrAttendanceDayType.holiday) {
+              isPresent = false;
+              isOnTime = false;
+              isOnDuty = false;
+              status = DailyAttendanceStatus.weekOff;
+            } else if (activeRec.type == HrAttendanceDayType.late) {
+              isPresent = true;
+              isOnTime = false;
+              isOnDuty = true;
+              status = DailyAttendanceStatus.lateLogin;
+            } else {
+              isPresent = true;
+              isOnTime = true;
+              isOnDuty = true;
+              status = DailyAttendanceStatus.presentOnTime;
+            }
+          } else {
+            // Active workforce default to on-duty unless marked absent in ledger
+            isPresent = !isTuesday;
+            isOnTime = !isTuesday;
+            isOnDuty = !isTuesday;
+            status = isTuesday ? DailyAttendanceStatus.weekOff : DailyAttendanceStatus.presentOnTime;
+          }
+        }
       }
 
       summaries.add(EmployeeDailyAttendanceSummary(
@@ -2899,31 +2955,62 @@ class EcosystemProvider extends ChangeNotifier {
   // --- ACTIONS ---
 
   // CEO Role & Privilege Allocation Action
-  void allocateEmployeeRole({
+  Future<void> allocateEmployeeRole({
     required String empId,
     required String newRole,
     required String newDept,
     List<String>? perks,
     List<String>? responsibilities,
-  }) {
-    final idx = _employees.indexWhere((e) => e.id == empId);
+  }) async {
+    final idx = _employees.indexWhere((e) => e.id == empId || e.empNo == empId);
     if (idx != -1) {
-      _employees[idx] = _employees[idx].copyWith(
+      final existing = _employees[idx];
+      String newRoleType = existing.roleType;
+      final r = newRole.toLowerCase();
+      if (r.contains('ceo') || r.contains('managing director')) {
+        newRoleType = 'ceo';
+      } else if (r.contains('hr') || r.contains('human resources')) {
+        newRoleType = 'hr';
+      } else if (r.contains('team lead') || r.contains('manager') || r.contains('dept head') || r.contains('lead') || r.contains('otm')) {
+        newRoleType = 'team_lead';
+      } else {
+        newRoleType = 'employee';
+      }
+
+      final updated = existing.copyWith(
         role: newRole,
         dept: newDept,
+        roleType: newRoleType,
       );
+      _employees[idx] = updated;
+
       if (empId == _activeEmpId) {
-        final r = newRole.toLowerCase();
-        if (r.contains('ceo')) {
-          _activeRole = 'ceo';
-        } else if (r.contains('dept head')) {
-          _activeRole = 'dept_head';
-        } else if (r.contains('hr')) {
-          _activeRole = 'hr';
-        } else {
-          _activeRole = 'employee';
-        }
+        _activeRole = newRoleType;
       }
+
+      // Sync updated employee to Firestore
+      await _firebaseEmployeeService.saveEmployee(updated);
+
+      // Create personal notification targeted ONLY to this specific employee
+      final notifId = 'ROLE_${DateTime.now().millisecondsSinceEpoch}_$empId';
+      final perksText = (perks != null && perks.isNotEmpty)
+          ? '\n\nExecutive Privileges Granted:\n• ${perks.join('\n• ')}'
+          : '';
+      final roleNotif = CompanyNotification(
+        id: notifId,
+        title: '🎖️ Role & Privileges Assigned: $newRole',
+        content: 'Executive Management (CEO) has officially assigned you the role of $newRole in $newDept.$perksText\n\nYour portal account is updated with active executive privileges.',
+        type: CompanyNotificationType.broadcastNotice,
+        timestamp: DateTime.now(),
+        senderName: 'M N Naveenraaj',
+        senderRole: 'Managing Director & CEO',
+        actionTag: 'ROLE_PRIVILEGE',
+        targetEmpId: empId,
+      );
+
+      _companyNotifications.insert(0, roleNotif);
+      await _firebaseEmployeeService.saveCompanyNotification(roleNotif);
+
       notifyListeners();
     }
   }
@@ -5109,15 +5196,33 @@ class EcosystemProvider extends ChangeNotifier {
   void markNotificationAsRead(String id) {
     final idx = _companyNotifications.indexWhere((n) => n.id == id);
     if (idx != -1) {
-      final updatedStaffIds = List<String>.from(_companyNotifications[idx].readByStaffIds);
+      final notif = _companyNotifications[idx];
+      // If notification was personally targeted to active employee, delete upon reading per company policy
+      if (notif.targetEmpId != null && notif.targetEmpId!.isNotEmpty && notif.targetEmpId == _activeEmpId) {
+        _companyNotifications.removeAt(idx);
+        notifyListeners();
+        _firebaseEmployeeService.deleteCompanyNotification(id);
+        return;
+      }
+
+      final updatedStaffIds = List<String>.from(notif.readByStaffIds);
       if (!updatedStaffIds.contains(_activeEmpId)) {
         updatedStaffIds.add(_activeEmpId);
       }
-      _companyNotifications[idx] = _companyNotifications[idx].copyWith(readByStaffIds: updatedStaffIds);
+      _companyNotifications[idx] = notif.copyWith(readByStaffIds: updatedStaffIds);
       notifyListeners();
     }
-    // Category 1, Item 2 Fix: Per-user notification read in Cloud Firestore
+    // Per-user notification read in Cloud Firestore
     _firebaseEmployeeService.markNotificationRead(id, _activeEmpId);
+  }
+
+  /// Reset all operational data (notifications, social causes) while strictly preserving
+  /// employee dossiers, departments, health metrics, and document vaults safe
+  Future<void> resetOperationalData() async {
+    _companyNotifications.clear();
+    _socialCauses.clear();
+    await _firebaseEmployeeService.resetOperationalData();
+    notifyListeners();
   }
 
   void markAllNotificationsAsRead() {

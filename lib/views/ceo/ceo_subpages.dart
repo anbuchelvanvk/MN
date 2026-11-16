@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/personal_todo_section.dart';
@@ -9,6 +12,7 @@ import '../../core/widgets/cross_dept_blocker_section.dart';
 import '../../models/attendance_models.dart';
 import '../../models/employee_model.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../../services/ceo_excel_backup_service.dart';
 import '../hr/hr_management_widgets.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 
@@ -100,7 +104,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
   final Set<String> _selectedPerks = {
     'Can Assign Works to Others',
     'Can Approve Negotiation Discounts',
-    'Can Approve Staff Permission Slips',
+    'Access to Vault Keys & Custody',
   };
 
   @override
@@ -475,9 +479,10 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 ...[
                   'Can Assign Works to Others',
                   'Can Approve Negotiation Discounts',
-                  'Can Approve Staff Permission Slips',
                   'Access to Vault Keys & Custody',
-                  'Authority to Grant Medical Leaves',
+                  'View Biometric Workforce Reports',
+                  'Access Company Audit Logs',
+                  'Manage Department Tasks & Blockers',
                 ].map((perk) {
                   final isChecked = _selectedPerks.contains(perk);
                   return Padding(
@@ -539,20 +544,22 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 2,
                     ),
-                    onPressed: () {
-                      eco.allocateEmployeeRole(
+                    onPressed: () async {
+                      await eco.allocateEmployeeRole(
                         empId: activeEmp.id,
                         newRole: effectiveRole,
                         newDept: effectiveDept,
                         perks: _selectedPerks.toList(),
                         responsibilities: const ['Executive Leadership', 'Corporate Governance'],
                       );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: const Color(0xFF10B981),
-                          content: Text('Updated ${activeEmp.name} to $effectiveRole in $effectiveDept!'),
-                        ),
-                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: const Color(0xFF10B981),
+                            content: Text('Updated ${activeEmp.name} to $effectiveRole in $effectiveDept and dispatched personal notification!'),
+                          ),
+                        );
+                      }
                     },
                     child: Text(
                       'Confirm & Save Role Allocation',
@@ -2013,6 +2020,655 @@ class CeoPipelinesBlockersScreen extends StatelessWidget {
           // Cross-Dept Blocker Section
           const CrossDeptBlockerSection(department: 'Executive Board'),
           const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+// 12. CEO DATA VAULT & SYSTEM RESET SUBPAGE
+class CeoDataVaultAndResetScreen extends StatefulWidget {
+  const CeoDataVaultAndResetScreen({super.key});
+
+  @override
+  State<CeoDataVaultAndResetScreen> createState() => _CeoDataVaultAndResetScreenState();
+}
+
+class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen> {
+  bool _isDownloading = false;
+  bool _isUploading = false;
+  bool _isResetting = false;
+
+  String? _uploadedFileName;
+  Map<String, List<List<String>>> _uploadedSheets = {};
+  String? _activeSheetKey;
+
+  Future<void> _handleDownloadBackup(EcosystemProvider eco) async {
+    setState(() => _isDownloading = true);
+    try {
+      final path = await CeoExcelBackupService.generateCompleteExcelBackup(eco);
+      if (mounted) {
+        await Share.shareXFiles(
+          [XFile(path)],
+          text: 'MN Jewel Park Master System Backup (8 Comprehensive Datasets)',
+          subject: 'MN Jewel Park Master Backup .xlsx',
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFF10B981),
+              content: Text('Excel backup generated successfully: ${path.split(Platform.pathSeparator).last}'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            content: Text('Error generating Excel backup: $e'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloading = false);
+    }
+  }
+
+  Future<void> _handleUploadBackup() async {
+    setState(() => _isUploading = true);
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx', 'xls'],
+        withData: true,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        List<int>? bytes = file.bytes;
+        if (bytes == null && file.path != null) {
+          bytes = await File(file.path!).readAsBytes();
+        }
+
+        if (bytes != null && bytes.isNotEmpty) {
+          final parsed = CeoExcelBackupService.parseExcelBackupBytes(bytes);
+          setState(() {
+            _uploadedFileName = file.name;
+            _uploadedSheets = parsed;
+            _activeSheetKey = parsed.keys.isNotEmpty ? parsed.keys.first : null;
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: const Color(0xFF10B981),
+                content: Text('Successfully loaded "${file.name}" with ${parsed.length} sheets!'),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFEF4444),
+            content: Text('Error parsing uploaded Excel file: $e'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  Future<void> _confirmAndResetOperationalData(EcosystemProvider eco) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Confirm Database Reset',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.sandLight,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to clean operational database records?',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandLight,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '• ALL old & current notifications will be permanently deleted from Firebase.\n• ALL social cause feed entries will be cleared.\n\n• STRICTLY PRESERVED: Employee accounts, departments, health metrics (BMI/height/weight/calories), and document vault submissions & safe custody.\n\nEnsure you have downloaded an Excel backup before proceeding.',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                color: AppColors.textMuted,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.plusJakartaSans(color: AppColors.sandGold, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Reset Operational Data',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isResetting = true);
+      try {
+        await eco.resetOperationalData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: Color(0xFF10B981),
+              content: Text('Firebase operational collections reset successfully! Users, health, and documents preserved.'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFFEF4444),
+              content: Text('Failed to reset operational data: $e'),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isResetting = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.watch<EcosystemProvider>();
+
+    return CeoSubpageScaffold(
+      title: 'DATA VAULT & RESET',
+      subtitle: 'Multi-Sheet Excel Backups & Database Maintenance',
+      body: ListView(
+        physics: const BouncingScrollPhysics(),
+        children: [
+          // Section 1: Executive Download Backup Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.file_download_outlined, color: Color(0xFF10B981), size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'DOWNLOAD MASTER BACKUP (.XLSX)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            '8 Comprehensive sheets exported to Microsoft Excel format',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: const [
+                    _DatasetChip(label: 'Staff Directory'),
+                    _DatasetChip(label: 'Attendance Master'),
+                    _DatasetChip(label: 'Social Causes'),
+                    _DatasetChip(label: 'Notifications'),
+                    _DatasetChip(label: 'Health Profiles'),
+                    _DatasetChip(label: 'Document Vault'),
+                    _DatasetChip(label: 'Grooming Audits'),
+                    _DatasetChip(label: 'Operations Tasks'),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 2,
+                    ),
+                    icon: _isDownloading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Icon(Icons.cloud_download_outlined, size: 18),
+                    label: Text(
+                      _isDownloading ? 'Generating Excel Workbook...' : 'Download Full Backup (.xlsx)',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: _isDownloading ? null : () => _handleDownloadBackup(eco),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Section 2: Upload & Inspect Backup Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.sandGold.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.table_view_rounded, color: AppColors.sandGold, size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'INSPECT & VERIFY BACKUP (.XLSX)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            'Upload previously generated Excel backup to verify and view data',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 42,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.sandGold,
+                      side: const BorderSide(color: AppColors.sandGold, width: 1.2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: _isUploading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(color: AppColors.sandGold, strokeWidth: 2),
+                          )
+                        : const Icon(Icons.file_upload_outlined, size: 18),
+                    label: Text(
+                      _isUploading ? 'Reading Excel File...' : 'Upload Backup File (.xlsx)',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: _isUploading ? null : _handleUploadBackup,
+                  ),
+                ),
+
+                // Sheet Tabs & Table Preview
+                if (_uploadedSheets.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(Icons.check_circle_outline, size: 15, color: Color(0xFF10B981)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Loaded: ${_uploadedFileName ?? "Backup.xlsx"} (${_uploadedSheets.length} sheets)',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF10B981),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Sheet Selector Tabs
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: _uploadedSheets.keys.map((sheetKey) {
+                        final isSelected = _activeSheetKey == sheetKey;
+                        final rowCount = _uploadedSheets[sheetKey]?.length ?? 0;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ChoiceChip(
+                            label: Text('$sheetKey ($rowCount)'),
+                            selected: isSelected,
+                            selectedColor: AppColors.sandGold,
+                            backgroundColor: AppColors.burgundyBg,
+                            labelStyle: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? AppColors.burgundyCard : AppColors.sandLight,
+                            ),
+                            side: BorderSide(
+                              color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+                              width: 1,
+                            ),
+                            onSelected: (_) => setState(() => _activeSheetKey = sheetKey),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Scrollable Table Preview
+                  if (_activeSheetKey != null && _uploadedSheets.containsKey(_activeSheetKey))
+                    _buildSheetTablePreview(_uploadedSheets[_activeSheetKey]!),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Section 3: Reset Operational Data (Danger Zone / Admin Maintenance)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.5), width: 1.2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444).withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.delete_sweep_outlined, color: Color(0xFFEF4444), size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'RESET OPERATIONAL DATA (CLEAN FIREBASE)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFFF87171),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            'Cleans notifications and social causes while preserving users & documents',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundyBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.shield_outlined, size: 14, color: Color(0xFF10B981)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Preserved: All User Accounts, Staff Directory, Departments, Health Profiles (BMI, weight, height, calorie targets), and Document Vault Submissions & Safe Custody.',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF10B981), height: 1.3),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.cleaning_services_outlined, size: 14, color: Color(0xFFF87171)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Erased from Firebase: All company and personal notification alerts, social cause posts, and transient logs to keep database performant.',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFF87171), height: 1.3),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 42,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 2,
+                    ),
+                    icon: _isResetting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Icon(Icons.delete_forever_rounded, size: 18),
+                    label: Text(
+                      _isResetting ? 'Resetting Firebase Collections...' : 'Reset Operational Data',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: _isResetting ? null : () => _confirmAndResetOperationalData(eco),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSheetTablePreview(List<List<String>> rows) {
+    if (rows.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        alignment: Alignment.center,
+        child: Text(
+          'This sheet contains no data.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+        ),
+      );
+    }
+
+    final headers = rows.first;
+    final dataRows = rows.skip(1).toList();
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 280),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Scrollbar(
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowColor: WidgetStateProperty.all(AppColors.sandGold.withOpacity(0.15)),
+              headingTextStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandGold,
+              ),
+              dataTextStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 10.5,
+                color: AppColors.sandLight,
+              ),
+              horizontalMargin: 12,
+              columnSpacing: 16,
+              headingRowHeight: 36,
+              dataRowMinHeight: 30,
+              dataRowMaxHeight: 38,
+              columns: headers.map((h) => DataColumn(label: Text(h.isNotEmpty ? h : '-'))).toList(),
+              rows: dataRows.map((row) {
+                return DataRow(
+                  cells: List.generate(headers.length, (colIdx) {
+                    final cellVal = colIdx < row.length ? row[colIdx] : '';
+                    return DataCell(
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 180),
+                        child: Text(
+                          cellVal,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    );
+                  }),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DatasetChip extends StatelessWidget {
+  final String label;
+  const _DatasetChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10B981).withOpacity(0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.check, size: 11, color: Color(0xFF10B981)),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF10B981),
+            ),
+          ),
         ],
       ),
     );

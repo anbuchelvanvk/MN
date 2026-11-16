@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/role_app_bar.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../models/employee_model.dart';
+import '../../models/hr_attendance_sheet_models.dart';
 import '../../providers/ecosystem_provider.dart';
 
 class EmployeeProfileScreen extends StatefulWidget {
@@ -706,11 +708,352 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Grooming Points & Compliance Section
+            _buildGroomingPointsSection(eco, emp),
+            const SizedBox(height: 16),
+
+            // Attendance Last 7 Days Logs Section
+            _buildPast7DaysAttendance(eco, emp),
+            const SizedBox(height: 16),
+
             // Logout Button with confirmation
             LogoutConfirmDialog.buildButton(context),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildGroomingPointsSection(EcosystemProvider eco, Employee emp) {
+    if (!emp.hasAttendanceAndGrooming) {
+      return LiquidGlassCard(
+        padding: const EdgeInsets.all(16),
+        borderRadius: 18,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.sandGold.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.dry_cleaning_outlined, color: AppColors.sandGold, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'GROOMING & ATTIRE POINTS',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                    ),
+                  ),
+                  Text(
+                    'Exempt from retail showroom attire & grooming audits',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final dailyPoints = eco.getEmployeeGroomingDailyPoints(emp.id);
+    final isStar = dailyPoints >= 40;
+
+    return LiquidGlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: 18,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.stars_rounded, color: AppColors.sandGold, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'GROOMING POINTS & COMPLIANCE',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isStar ? const Color(0xFF10B981).withOpacity(0.15) : AppColors.sandGold.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isStar ? const Color(0xFF10B981).withOpacity(0.3) : AppColors.sandGold.withOpacity(0.3),
+                  ),
+                ),
+                child: Text(
+                  isStar ? '★ Star Groomed' : 'Standard Grooming',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isStar ? const Color(0xFF10B981) : AppColors.sandGold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.burgundySurface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.sandBorder),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Daily Grooming Score',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$dailyPoints / 50 Points',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundyCard,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${((dailyPoints / 50) * 100).toInt()}% Score',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPast7DaysAttendance(EcosystemProvider eco, Employee emp) {
+    if (!emp.hasAttendanceAndGrooming) {
+      return LiquidGlassCard(
+        padding: const EdgeInsets.all(16),
+        borderRadius: 18,
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.verified_outlined, color: Color(0xFF10B981), size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ATTENDANCE LOGS',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                    ),
+                  ),
+                  Text(
+                    'Autonomous Leadership Cadence • Biometrics Waived',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final hrSheet = eco.hrAttendanceSheet;
+    final hrRow = hrSheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
+    final now = DateTime.now();
+
+    final List<Widget> dayItems = [];
+    for (int i = 0; i < 7; i++) {
+      final date = now.subtract(Duration(days: i));
+      final dayNum = date.day;
+      final isTuesday = date.weekday == DateTime.tuesday;
+      final dayRec = hrRow?.days[dayNum];
+
+      final dateLabel = i == 0
+          ? 'Today (${DateFormat('MMM d').format(date)})'
+          : DateFormat('EEE, MMM d').format(date);
+
+      String statusLabel = 'On Duty (Present)';
+      Color statusColor = const Color(0xFF10B981);
+      Color statusBg = const Color(0xFF10B981).withOpacity(0.12);
+
+      if (isTuesday) {
+        statusLabel = 'Tuesday Week-off';
+        statusColor = const Color(0xFF94A3B8);
+        statusBg = const Color(0xFF94A3B8).withOpacity(0.12);
+      } else if (dayRec != null && dayRec.type != HrAttendanceDayType.pendingUpdate) {
+        statusLabel = dayRec.displayLabel;
+        switch (dayRec.type) {
+          case HrAttendanceDayType.present:
+            statusLabel = 'Present (Nil)';
+            statusColor = const Color(0xFF10B981);
+            statusBg = const Color(0xFF10B981).withOpacity(0.12);
+            break;
+          case HrAttendanceDayType.late:
+            statusLabel = 'Late (${dayRec.rawValue})';
+            statusColor = const Color(0xFFF59E0B);
+            statusBg = const Color(0xFFF59E0B).withOpacity(0.12);
+            break;
+          case HrAttendanceDayType.permission:
+            statusLabel = 'Permission (${dayRec.rawValue})';
+            statusColor = const Color(0xFF3B82F6);
+            statusBg = const Color(0xFF3B82F6).withOpacity(0.12);
+            break;
+          case HrAttendanceDayType.leaveCl:
+          case HrAttendanceDayType.leaveLop:
+          case HrAttendanceDayType.leaveHalfDay:
+            statusLabel = dayRec.displayLabel;
+            statusColor = const Color(0xFFEF4444);
+            statusBg = const Color(0xFFEF4444).withOpacity(0.12);
+            break;
+          default:
+            break;
+        }
+      }
+
+      dayItems.add(
+        Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.burgundySurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.sandBorder),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.sandGold),
+                  const SizedBox(width: 8),
+                  Text(
+                    dateLabel,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.sandLight,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: statusColor.withOpacity(0.3)),
+                ),
+                child: Text(
+                  statusLabel,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return LiquidGlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: 18,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.history_rounded, color: AppColors.sandGold, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'RECENT ATTENDANCE',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: AppColors.sandGold.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'PAST 7 DAYS',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandGold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Official record from HR Google Sheets Master Ledger',
+            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 12),
+          ...dayItems,
+        ],
       ),
     );
   }

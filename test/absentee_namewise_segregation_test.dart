@@ -45,13 +45,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Check the subheader for Name-wise arrangement
-      expect(find.text('Name-wise alphabetical arrangement (A to Z)'), findsOneWidget);
+      // Check the subheader for staff dropdown selector
+      expect(find.text('Select a team member from the dropdown below to view their to-do list'), findsOneWidget);
 
-      // Verify that alphabetical badges exist (G, K, M, etc.)
-      expect(find.text('G'), findsWidgets);
-      expect(find.text('K'), findsWidgets);
-      expect(find.text('M'), findsWidgets);
+      // Verify that dropdown selector exists for team members
+      expect(find.byType(DropdownButton<String>), findsOneWidget);
     });
 
     testWidgets('DeptHeadPortalScreen Absentees tab renders Section letter headers for multiple absentees', (tester) async {

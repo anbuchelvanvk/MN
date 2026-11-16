@@ -14,7 +14,6 @@ import '../auth/pillars_popup_dialog.dart';
 import '../pillars/social_cause_pillar_screen.dart';
 import '../../core/widgets/company_notification_sheet.dart';
 import '../pillars/attendance_pillar_screen.dart';
-import '../pillars/profile_pillar_screen.dart';
 
 import 'employee_profile_screen.dart';
 import 'employee_subpages.dart';
@@ -173,7 +172,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
+                MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
               );
             },
             borderRadius: BorderRadius.circular(18),

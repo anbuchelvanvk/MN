@@ -85,9 +85,16 @@ class TlSubpageScaffold extends StatelessWidget {
   }
 }
 
-/// 1. TL Team Tasks Screen (Deliverables Monitor sorted Name-wise A to Z)
-class TlTeamTasksScreen extends StatelessWidget {
+/// 1. TL Team Tasks Screen (Deliverables Monitor with Staff Dropdown Filter)
+class TlTeamTasksScreen extends StatefulWidget {
   const TlTeamTasksScreen({super.key});
+
+  @override
+  State<TlTeamTasksScreen> createState() => _TlTeamTasksScreenState();
+}
+
+class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
+  String? _selectedEmpId;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +108,7 @@ class TlTeamTasksScreen extends StatelessWidget {
     );
   }
 
-  static Widget _buildDeliverablesMonitor(BuildContext context, EcosystemProvider eco, List<TaskItem> tasks) {
+  Widget _buildDeliverablesMonitor(BuildContext context, EcosystemProvider eco, List<TaskItem> tasks) {
     if (tasks.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
@@ -131,6 +138,17 @@ class TlTeamTasksScreen extends StatelessWidget {
       sortedEmps.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     }
 
+    // Default selection to first employee if not set or invalid
+    final effectiveSelectedId = (_selectedEmpId != null && (_selectedEmpId == 'all' || sortedEmps.any((e) => e.id == _selectedEmpId)))
+        ? _selectedEmpId!
+        : (sortedEmps.isNotEmpty ? sortedEmps.first.id : 'all');
+
+    final displayedEmps = effectiveSelectedId == 'all'
+        ? sortedEmps
+        : sortedEmps.where((e) => e.id == effectiveSelectedId).toList();
+
+    final displayedTaskCount = displayedEmps.fold<int>(0, (sum, e) => sum + (tasksByEmpId[e.id]?.length ?? 0));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -147,7 +165,7 @@ class TlTeamTasksScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 2),
                   Text(
-                    'Name-wise alphabetical arrangement (A to Z)',
+                    'Select a team member from the dropdown below to view their to-do list',
                     style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -163,7 +181,7 @@ class TlTeamTasksScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.magentaBorder),
               ),
               child: Text(
-                '${sortedEmps.length} Staff • ${tasks.length} Tasks',
+                '${displayedEmps.length} Staff • $displayedTaskCount Tasks',
                 style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
               ),
             ),
@@ -171,7 +189,94 @@ class TlTeamTasksScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        ...sortedEmps.map((emp) {
+        // Staff Dropdown Selector
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
+            boxShadow: const [
+              BoxShadow(color: Color(0x060F172A), blurRadius: 4, offset: Offset(0, 2)),
+            ],
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: effectiveSelectedId,
+              isExpanded: true,
+              icon: const Icon(Icons.arrow_drop_down_rounded, color: AppColors.magentaPrimary, size: 24),
+              items: [
+                DropdownMenuItem<String>(
+                  value: 'all',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.groups_outlined, size: 16, color: AppColors.magentaPrimary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'All Staff Members (${sortedEmps.length} Total)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ...sortedEmps.map((emp) {
+                  final empTasks = tasksByEmpId[emp.id] ?? [];
+                  final isAbsent = eco.isEmployeeAbsent(emp.id);
+                  return DropdownMenuItem<String>(
+                    value: emp.id,
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 11,
+                          backgroundColor: isAbsent ? const Color(0xFFFEE2E2) : AppColors.magentaSubtle,
+                          child: Text(
+                            emp.initials,
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: isAbsent ? const Color(0xFFDC2626) : AppColors.magentaPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${emp.name} • ${emp.role}',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '${empTasks.length} tasks',
+                            style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _selectedEmpId = val);
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        ...displayedEmps.map((emp) {
           final empTasks = tasksByEmpId[emp.id] ?? [];
           final isAbsent = eco.isEmployeeAbsent(emp.id);
           final firstLetter = emp.name.isNotEmpty ? emp.name.substring(0, 1).toUpperCase() : '#';
@@ -476,8 +581,10 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                     ),
                   );
 
-                  final reallyAbsent = isAbsent || summary.status == DailyAttendanceStatus.absent;
-                  final statusColor = reallyAbsent ? AppColors.ragRed : AppColors.ragGreen;
+                  final reallyAbsent = isAbsent;
+                  final statusColor = reallyAbsent
+                      ? AppColors.ragRed
+                      : (summary.status == DailyAttendanceStatus.lateLogin ? AppColors.ragYellow : AppColors.ragGreen);
                   final statusText = reallyAbsent ? 'Absent' : summary.statusBadgeText;
 
                   return Container(
@@ -939,14 +1046,7 @@ class TlDailySopsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final eco = context.watch<EcosystemProvider>();
-    final opsTasks = eco.operationsDeptTasks;
-
-    return TlSubpageScaffold(
-      title: 'Daily SOPs',
-      subtitle: 'Daily Standard Operating Procedures',
-      body: TlTeamTasksScreen._buildDeliverablesMonitor(context, eco, opsTasks),
-    );
+    return const TlTeamTasksScreen();
   }
 }
 
