@@ -1030,15 +1030,15 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             ),
             itemBuilder: (ctx, index) {
               final day = index + 1;
-              final isSunday = (day == 3 || day == 10 || day == 17 || day == 24);
+              final isTuesday = (day == 3 || day == 10 || day == 17 || day == 24);
               final record =
                   row?.days[day] ??
-                  (isSunday
+                  (isTuesday
                       ? HrAttendanceDayRecord(
                           day: day,
                           rawValue: 'H',
                           type: HrAttendanceDayType.holiday,
-                          displayLabel: 'Holiday (Sunday)',
+                          displayLabel: 'Holiday (Tuesday)',
                         )
                       : HrAttendanceDayRecord(
                           day: day,

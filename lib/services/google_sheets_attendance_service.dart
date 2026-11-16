@@ -96,9 +96,12 @@ class GoogleSheetsAttendanceService {
     }
 
     final cached = prefs.getString(cacheKey);
+    // Ensure we don't use stale cache that lacks newer embedded staff entries (e.g. 77 Anbu)
+    final shouldUseSeed = month == 11 && (cached == null || cached.split('\n').length < _embeddedNovemberSeedCsv.split('\n').length || !cached.contains('Anbu'));
+    final effectiveCached = shouldUseSeed ? _embeddedNovemberSeedCsv : cached;
     final csvToParse = (forceRefresh && newCsv != null)
         ? newCsv
-        : (newCsv ?? cached ?? (month == 11 ? _embeddedNovemberSeedCsv : '"${monthName.toUpperCase()}",""\n"S.NO","EMP.NO","Name"\n'));
+        : (newCsv ?? effectiveCached ?? (month == 11 ? _embeddedNovemberSeedCsv : '"${monthName.toUpperCase()}",""\n"S.NO","EMP.NO","Name"\n'));
     return parseCsvToAttendanceSheet(csvToParse, defaultMonthTitle: monthName.toUpperCase());
   }
 
@@ -178,11 +181,14 @@ class GoogleSheetsAttendanceService {
     }
 
     final previousCsv = prefs.getString(_prefCachedCsvKey);
+    // Ensure we don't use stale cache that lacks newer embedded staff entries (e.g. 77 Anbu)
+    final shouldUseSeed = month == 11 && (previousCsv == null || previousCsv.split('\n').length < _embeddedNovemberSeedCsv.split('\n').length || !previousCsv.contains('Anbu'));
+    final effectivePrevious = shouldUseSeed ? _embeddedNovemberSeedCsv : previousCsv;
 
     // If network failed, fall back to cached CSV or embedded static CSV
     final csvToParse = (forceRefresh && newCsv != null)
         ? newCsv
-        : (newCsv ?? previousCsv ?? _embeddedNovemberSeedCsv);
+        : (newCsv ?? effectivePrevious ?? _embeddedNovemberSeedCsv);
 
     // Detect changed dates if we received a fresh response
     List<int> updatedDays = [];
@@ -279,7 +285,7 @@ class GoogleSheetsAttendanceService {
       }
     }
 
-    // Pre-detect Sunday & Company Holiday columns (e.g. days 3, 10, 17, 24 in November)
+    // Pre-detect Tuesday & Company Holiday columns (e.g. days 3, 10, 17, 24 in November)
     final Set<int> holidayDays = {3, 10, 17, 24};
     final Map<int, int> holidayLetterCounts = {};
     for (int i = headerLineIdx + 1; i < lines.length; i++) {

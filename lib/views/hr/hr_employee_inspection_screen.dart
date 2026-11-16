@@ -51,6 +51,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
     final empPermissions = eco.permissionRecords.where((p) => p.empId == emp.id).toList();
     final empMedicalLeaves = eco.medicalLeaveRecords.where((m) => m.empId == emp.id).toList();
     final empPassword = emp.password;
+    final isTargetCeo = emp.roleType.toLowerCase() == 'ceo' || emp.id.toUpperCase() == 'MN-CEO01';
 
     // Real Attendance Calculations from Past 1-Week Ledger (Full Calendar Days)
     final weekRecords = eco.getPast7DaysAttendanceForEmployee(emp.id);
@@ -367,28 +368,73 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               const SizedBox(height: 14),
             ],
 
-            // 3. Document Submission Status & Vault Custody
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              borderRadius: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.folder_shared_outlined, size: 18, color: AppColors.magentaPrimary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Document Vault Custody',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+            if (isTargetCeo) ...[
+              LiquidGlassCard(
+                padding: const EdgeInsets.all(16),
+                borderRadius: 16,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.sandGold.withOpacity(0.15),
+                        shape: BoxShape.circle,
                       ),
+                      child: const Icon(Icons.workspace_premium, color: AppColors.sandGold, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Executive CEO Governance',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'Exempt from retail punch logs and document vault custody.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
+
+            // 3. Document Submission Status & Vault Custody (Exempt for CEO)
+            if (!isTargetCeo) ...[
+              LiquidGlassCard(
+                padding: const EdgeInsets.all(16),
+                borderRadius: 16,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.folder_shared_outlined, size: 18, color: AppColors.magentaPrimary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Document Vault Custody',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -551,8 +597,10 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               ),
             ),
             const SizedBox(height: 14),
+          ],
 
-            // 4. Attendance & 1-Week Performance
+          // 4. Attendance & 1-Week Performance (Exempt for CEO and OTM)
+          if (emp.hasAttendanceAndGrooming && !isTargetCeo) ...[
             LiquidGlassCard(
               padding: const EdgeInsets.all(16),
               borderRadius: 16,
@@ -611,6 +659,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               ),
             ),
             const SizedBox(height: 14),
+          ],
 
             // 5. Gender-Based Staff Attire & Grooming Audit (Exempt for OTM Praveenkumar)
             if (emp.hasAttendanceAndGrooming) ...[

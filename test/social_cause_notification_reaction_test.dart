@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/models/company_notification_models.dart';
 import 'package:mn_family_app/models/social_cause_models.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
@@ -10,6 +11,7 @@ import 'package:mn_family_app/core/models/monthly_scorecard_model.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues({});
 
   group('Social Cause Notification & Reaction Tests', () {
     test('SocialCauseItem likedEmpIds, isCeoReacted, and totalLikesCount', () {

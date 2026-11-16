@@ -950,10 +950,20 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
 
     final totalMonthDays = monthlyRecords.length;
-    final presentCount = monthlyRecords.where((r) => !r.isWeekoff && !r.isOvertime && r.loginTime != '--:-- --').length;
+    final presentCount = monthlyRecords.where((r) =>
+        !r.isWeekoff &&
+        !r.isOvertime &&
+        (r.status.contains('Present') ||
+            r.status.contains('Late') ||
+            r.status.contains('Permission') ||
+            r.status.contains('MN Work') ||
+            (r.loginTime != '--:-- --' && r.loginTime != '--' && !r.status.contains('Absent') && !r.status.contains('Leave')))).length;
     final tuesdayOtCount = monthlyRecords.where((r) => r.isOvertime).length;
     final weekoffCount = monthlyRecords.where((r) => r.isWeekoff).length;
-    final liveAttendancePercentage = totalMonthDays > 0 ? (((presentCount + tuesdayOtCount) / totalMonthDays) * 100).round() : 0;
+    final workingDaysCount = (totalMonthDays - weekoffCount).clamp(1, 31);
+    final liveAttendancePercentage = totalMonthDays > 0
+        ? (((presentCount + tuesdayOtCount) / workingDaysCount) * 100).round().clamp(0, 100)
+        : 0;
 
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
@@ -1175,12 +1185,43 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     textColor = const Color(0xFF94A3B8);
                     statusTag = 'OFF';
                     icon = Icons.beach_access;
-                  } else if (r.loginTime != '--:-- --') {
+                  } else if (r.status.contains('Present') ||
+                      (r.loginTime != '--:-- --' && r.loginTime != '--' && !r.status.contains('Absent') && !r.status.contains('Leave'))) {
                     boxColor = AppColors.ragGreen.withOpacity(0.18);
                     borderColor = AppColors.ragGreen.withOpacity(0.6);
                     textColor = AppColors.ragGreen;
                     statusTag = 'P';
                     icon = Icons.check;
+                  } else if (r.status.contains('Late')) {
+                    boxColor = const Color(0xFFF59E0B).withOpacity(0.18);
+                    borderColor = const Color(0xFFF59E0B).withOpacity(0.6);
+                    textColor = const Color(0xFFF59E0B);
+                    statusTag = 'L';
+                    icon = Icons.access_time;
+                  } else if (r.status.contains('Permission')) {
+                    boxColor = const Color(0xFF10B981).withOpacity(0.18);
+                    borderColor = const Color(0xFF10B981).withOpacity(0.6);
+                    textColor = const Color(0xFF10B981);
+                    statusTag = 'PM';
+                    icon = Icons.timer;
+                  } else if (r.status.contains('Leave') || r.status.contains('CL') || r.status.contains('LOP')) {
+                    boxColor = const Color(0xFFEF4444).withOpacity(0.18);
+                    borderColor = const Color(0xFFEF4444).withOpacity(0.5);
+                    textColor = const Color(0xFFEF4444);
+                    statusTag = 'CL';
+                    icon = Icons.event_busy;
+                  } else if (r.status.contains('Half Day')) {
+                    boxColor = const Color(0xFFF97316).withOpacity(0.18);
+                    borderColor = const Color(0xFFF97316).withOpacity(0.5);
+                    textColor = const Color(0xFFF97316);
+                    statusTag = '½D';
+                    icon = Icons.hourglass_bottom;
+                  } else if (r.status.contains('MN Work')) {
+                    boxColor = const Color(0xFF2563EB).withOpacity(0.18);
+                    borderColor = const Color(0xFF2563EB).withOpacity(0.5);
+                    textColor = const Color(0xFF60A5FA);
+                    statusTag = 'MNW';
+                    icon = Icons.storefront;
                   } else if (r.status == 'Absent') {
                     boxColor = const Color(0xFFEF4444).withOpacity(0.18);
                     borderColor = const Color(0xFFEF4444).withOpacity(0.5);
@@ -1245,8 +1286,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 runSpacing: 6,
                 children: [
                   _legendPill(label: 'Present (P)', color: AppColors.ragGreen),
+                  _legendPill(label: 'Late (L)', color: const Color(0xFFF59E0B)),
+                  _legendPill(label: 'Permission (PM)', color: const Color(0xFF10B981)),
                   _legendPill(label: 'Tuesday Overtime (OT)', color: const Color(0xFF8B5CF6)),
                   _legendPill(label: 'Tuesday Week-off (OFF)', color: const Color(0xFF94A3B8)),
+                  _legendPill(label: 'Leave (CL/LOP)', color: const Color(0xFFEF4444)),
                   _legendPill(label: 'Absent (A)', color: const Color(0xFFEF4444)),
                 ],
               ),
@@ -3146,7 +3190,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Interactive Status Dropdown Menu
-                PopupMenuButton<DocumentSubmissionStatus>(
+                Flexible(
+                  child: PopupMenuButton<DocumentSubmissionStatus>(
                   color: AppColors.pureWhite,
                   elevation: 4,
                   shape: RoundedRectangleBorder(
@@ -3208,12 +3253,16 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          isSubmitted ? 'Submitted (In Safe Vault)' : doc.statusLabel,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: statusColor,
+                        Flexible(
+                          child: Text(
+                            isSubmitted ? 'Submitted (In Safe Vault)' : doc.statusLabel,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -3222,6 +3271,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     ),
                   ),
                 ),
+              ),
 
                 // Delete Action Button
                 InkWell(

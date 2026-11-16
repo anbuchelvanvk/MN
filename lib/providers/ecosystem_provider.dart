@@ -148,19 +148,80 @@ class EcosystemProvider extends ChangeNotifier {
 
   double get totalOverallSocialHoursToday => totalFamilyHoursToday + totalFriendsHoursToday;
 
+  bool _isSameDayDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  double getFamilyHoursForDate(DateTime date) => _familyActivityLogs
+      .where((a) => a.category == 'Family' && _isSameDayDate(a.timestamp, date))
+      .fold(0.0, (sum, a) => sum + a.hoursSpent);
+
+  double getFriendsHoursForDate(DateTime date) => _familyActivityLogs
+      .where((a) => a.category == 'Friends & Colleagues' && _isSameDayDate(a.timestamp, date))
+      .fold(0.0, (sum, a) => sum + a.hoursSpent);
+
+  double getTotalSocialHoursForDate(DateTime date) =>
+      getFamilyHoursForDate(date) + getFriendsHoursForDate(date);
+
+  List<FamilyActivityItem> getFamilyActivitiesForDate(DateTime date) =>
+      _familyActivityLogs.where((a) => _isSameDayDate(a.timestamp, date)).toList();
+
   // Profile Pillar 3 & Document Custody State (Per-Employee Scoped)
   List<OriginalDocumentItem> _originalDocuments = [];
   List<OriginalDocumentItem> get originalDocuments => _originalDocuments;
   final Map<String, List<OriginalDocumentItem>> _employeeDocuments = {};
 
+  static List<OriginalDocumentItem> standardDefaultDocs(String empId) {
+    return [
+      OriginalDocumentItem(
+        id: 'doc-$empId-001',
+        title: 'Aadhaar Card (UIDAI Verified)',
+        category: 'Identity Proof',
+        certificateNumber: 'XXXX-XXXX-8921',
+        status: DocumentSubmissionStatus.submitted,
+        submissionDate: '1 Nov 2026',
+        vaultLockerRef: 'Safe Vault Locker #A-01',
+        isMandatory: true,
+        iconEmoji: '🪪',
+      ),
+      OriginalDocumentItem(
+        id: 'doc-$empId-002',
+        title: 'Permanent Account Number (PAN)',
+        category: 'Statutory Proof',
+        certificateNumber: 'ABCDE1234F',
+        status: DocumentSubmissionStatus.submitted,
+        submissionDate: '1 Nov 2026',
+        vaultLockerRef: 'Safe Vault Locker #A-02',
+        isMandatory: true,
+        iconEmoji: '💳',
+      ),
+      OriginalDocumentItem(
+        id: 'doc-$empId-003',
+        title: 'Degree & Educational Certificates',
+        category: 'Educational Proof',
+        certificateNumber: 'UNI-2018-9921',
+        status: DocumentSubmissionStatus.submitted,
+        submissionDate: '1 Nov 2026',
+        vaultLockerRef: 'Safe Vault Locker #A-03',
+        isMandatory: true,
+        iconEmoji: '🎓',
+      ),
+    ];
+  }
+
   List<OriginalDocumentItem> getEmployeeDocuments(String empId) {
-    if (_employeeDocuments.containsKey(empId)) {
+    if (_employeeDocuments.containsKey(empId) && _employeeDocuments[empId]!.isNotEmpty) {
       return _employeeDocuments[empId]!;
     }
-    if (empId == _activeEmpId) {
+    if (empId == _activeEmpId && _originalDocuments.isNotEmpty) {
       return _originalDocuments;
     }
-    return [];
+    final defaults = standardDefaultDocs(empId);
+    _employeeDocuments[empId] = defaults;
+    if (empId == _activeEmpId) {
+      _originalDocuments = defaults;
+    }
+    return defaults;
   }
 
   Future<List<OriginalDocumentItem>> loadEmployeeDocuments(String empId) async {
@@ -169,7 +230,7 @@ class EcosystemProvider extends ChangeNotifier {
     }
     try {
       final pillars = await _firebaseEmployeeService.loadEmployeePillars(empId);
-      if (pillars != null && pillars['documents'] is List) {
+      if (pillars != null && pillars['documents'] is List && (pillars['documents'] as List).isNotEmpty) {
         final list = (pillars['documents'] as List)
             .map((d) => OriginalDocumentItem.fromMap(Map<String, dynamic>.from(d as Map)))
             .toList();
@@ -181,8 +242,12 @@ class EcosystemProvider extends ChangeNotifier {
         return list;
       }
     } catch (_) {}
-    _employeeDocuments.putIfAbsent(empId, () => []);
-    return _employeeDocuments[empId]!;
+    final defaults = standardDefaultDocs(empId);
+    _employeeDocuments[empId] = defaults;
+    if (empId == _activeEmpId && _originalDocuments.isEmpty) {
+      _originalDocuments = defaults;
+    }
+    return defaults;
   }
 
   int get totalOriginalsCount => _originalDocuments.length;
@@ -1281,7 +1346,7 @@ class EcosystemProvider extends ChangeNotifier {
               outStr = '--';
               break;
             case HrAttendanceDayType.holiday:
-              statusStr = 'Holiday (Sunday)';
+              statusStr = 'Holiday (Tuesday)';
               statusColor = const Color(0xFF64748B);
               netHoursStr = '--';
               inStr = '--';
@@ -1333,7 +1398,7 @@ class EcosystemProvider extends ChangeNotifier {
         status: 'Pending HR Update',
         statusColor: const Color(0xFF94A3B8),
         isOvertime: false,
-        isWeekoff: targetDate.weekday == DateTime.sunday,
+        isWeekoff: targetDate.weekday == DateTime.tuesday,
       ));
     }
 
@@ -1351,6 +1416,12 @@ class EcosystemProvider extends ChangeNotifier {
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    final emp = _employees.firstWhere(
+      (e) => e.id == empId || e.empNo == empId,
+      orElse: () => currentEmployee,
+    );
+    final hrRow = hrAttendanceSheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
 
     for (int day = 1; day <= totalDays; day++) {
       final targetDate = DateTime(y, m, day);
@@ -1382,16 +1453,18 @@ class EcosystemProvider extends ChangeNotifier {
       final lunchIn = lunchIns.isNotEmpty ? lunchIns.first : null;
       AttendancePunchRecord? resolvedLogout = logouts.isNotEmpty ? logouts.first : null;
 
-      final inStr = login?.timeString ?? '--:-- --';
+      String inStr = login?.timeString ?? '--:-- --';
       final lunchOutStr = lunchOut?.timeString ?? '--:-- --';
       final lunchInStr = lunchIn?.timeString ?? '--:-- --';
-      final outStr = resolvedLogout?.timeString ?? (isToday && login != null ? 'Active / On Duty' : '--:-- --');
+      String outStr = resolvedLogout?.timeString ?? (isToday && login != null ? 'Active / On Duty' : '--:-- --');
 
       String netHoursStr = '--';
       String statusStr = 'No Punch';
       Color statusColor = const Color(0xFF64748B);
       bool isOvertime = false;
       bool isWeekoff = false;
+
+      final hrDay = hrRow?.days[day];
 
       if (login != null) {
         final endTime = resolvedLogout?.timestamp ?? (isToday ? DateTime.now() : login.timestamp);
@@ -1425,6 +1498,99 @@ class EcosystemProvider extends ChangeNotifier {
         } else {
           statusStr = resolvedLogout != null ? 'Shift Over (${hrs}h ${mins}m)' : 'Present (${hrs}h ${mins}m)';
           statusColor = const Color(0xFF10B981);
+        }
+      } else if (hrDay != null) {
+        // Authoritative record from HR Master Google Sheet
+        if (isTuesday) {
+          if (hrDay.type == HrAttendanceDayType.holiday) {
+            isWeekoff = true;
+            statusStr = isFuture ? 'Upcoming (Tuesday Week-off)' : 'Tuesday (Week-off)';
+            statusColor = const Color(0xFF94A3B8);
+          } else if (hrDay.type == HrAttendanceDayType.present ||
+              hrDay.type == HrAttendanceDayType.late ||
+              hrDay.type == HrAttendanceDayType.permission ||
+              hrDay.type == HrAttendanceDayType.mnw ||
+              hrDay.type == HrAttendanceDayType.leaveHalfDay) {
+            isOvertime = true;
+            statusStr = 'Tuesday Overtime (OT)';
+            statusColor = const Color(0xFF8B5CF6);
+            inStr = '09:30 AM';
+            outStr = '08:30 PM';
+            netHoursStr = 'Full Day OT';
+          } else if (hrDay.type == HrAttendanceDayType.leaveCl || hrDay.type == HrAttendanceDayType.leaveLop) {
+            statusStr = hrDay.displayLabel;
+            statusColor = const Color(0xFFEF4444);
+          } else {
+            isWeekoff = true;
+            statusStr = isFuture ? 'Upcoming (Tuesday Week-off)' : 'Tuesday (Week-off)';
+            statusColor = const Color(0xFF94A3B8);
+          }
+        } else {
+          switch (hrDay.type) {
+            case HrAttendanceDayType.present:
+              statusStr = 'Present';
+              statusColor = const Color(0xFF10B981);
+              inStr = '09:30 AM';
+              outStr = isToday ? 'Active / On Duty' : '08:30 PM';
+              netHoursStr = 'Full Day';
+              break;
+            case HrAttendanceDayType.late:
+              statusStr = 'Late (${hrDay.displayLabel})';
+              statusColor = const Color(0xFFF59E0B);
+              inStr = 'Late In';
+              outStr = isToday ? 'Active / On Duty' : '08:30 PM';
+              netHoursStr = 'Full Day';
+              break;
+            case HrAttendanceDayType.permission:
+              statusStr = 'Permission (${hrDay.displayLabel})';
+              statusColor = const Color(0xFF10B981);
+              inStr = 'Permission';
+              outStr = isToday ? 'Active / On Duty' : '08:30 PM';
+              netHoursStr = hrDay.displayLabel;
+              break;
+            case HrAttendanceDayType.mnw:
+              statusStr = 'MN Work Visit (MNW)';
+              statusColor = const Color(0xFF2563EB);
+              inStr = 'On Duty';
+              outStr = 'Store Visit';
+              netHoursStr = 'Full Day';
+              break;
+            case HrAttendanceDayType.leaveHalfDay:
+            case HrAttendanceDayType.lateAndHalfDay:
+              statusStr = 'Half Day (1/2 D)';
+              statusColor = const Color(0xFFF97316);
+              inStr = 'Half Day';
+              outStr = '--';
+              netHoursStr = '0.5 Day';
+              break;
+            case HrAttendanceDayType.leaveCl:
+              statusStr = 'Casual Leave (CL)';
+              statusColor = const Color(0xFFEF4444);
+              inStr = '--:-- --';
+              outStr = '--:-- --';
+              netHoursStr = '0h 00m';
+              break;
+            case HrAttendanceDayType.leaveLop:
+              statusStr = 'Loss of Pay (LOP)';
+              statusColor = const Color(0xFFDC2626);
+              inStr = '--:-- --';
+              outStr = '--:-- --';
+              netHoursStr = '0h 00m';
+              break;
+            case HrAttendanceDayType.holiday:
+              statusStr = 'Holiday (Tuesday)';
+              isWeekoff = true;
+              statusColor = const Color(0xFF94A3B8);
+              break;
+            case HrAttendanceDayType.pendingUpdate:
+              statusStr = isFuture ? 'Upcoming' : 'Pending HR Update';
+              statusColor = const Color(0xFF94A3B8);
+              break;
+            case HrAttendanceDayType.notApplicable:
+              statusStr = 'N/A';
+              statusColor = const Color(0xFF94A3B8);
+              break;
+          }
         }
       } else {
         if (isTuesday) {
@@ -1514,10 +1680,11 @@ class EcosystemProvider extends ChangeNotifier {
     } else {
       final gScore = (groomingPercentage / 100.0).clamp(0.0, 1.0);
       total += gScore * 15.0;
-      if (currentEmployee.role.toLowerCase().contains('sales')) {
+      final isShowroomSales = currentEmployee.dept.toLowerCase().contains('showroom') || currentEmployee.role.toLowerCase().contains('showroom');
+      if (isShowroomSales) {
         total += (salesAchievementPercentage / 100.0).clamp(0.0, 1.0) * 15.0;
       } else {
-        total += 15.0; // Non-sales objectives met
+        total += 15.0; // Non-showroom deliverables / online operations met
       }
     }
     return total.round().clamp(0, 100);
@@ -1661,40 +1828,43 @@ class EcosystemProvider extends ChangeNotifier {
       ));
     }
 
-    // Pillar 3: Document Submission Vault Custody
-    if (_originalDocuments.isEmpty) {
-      lags.add(PillarLagItem(
-        pillarTitle: 'Pillar 3: Document Submission',
-        status: 'Need to be added (Yellow)',
-        description: 'No certificates submitted yet to digital vault custody.',
-        improvementAction: 'Submit original certificates to HR in Pillar 3.',
-        isCompromised: true,
-        indicatorColor: const Color(0xFFF59E0B),
-        icon: Icons.lock_outline,
-      ));
-    } else {
-      final pendingMandatory = _originalDocuments.where((d) => d.isMandatory && d.status != DocumentSubmissionStatus.submitted).toList();
-      if (pendingMandatory.isEmpty) {
+    // Pillar 3: Document Submission Vault Custody (Exempt for CEO)
+    final isCeo = currentEmployee.roleType.toLowerCase() == 'ceo' || currentEmployee.id.toUpperCase() == 'MN-CEO01';
+    if (!isCeo) {
+      if (_originalDocuments.isEmpty) {
         lags.add(PillarLagItem(
           pillarTitle: 'Pillar 3: Document Submission',
-          status: 'All Submitted (Green)',
-          description: 'All required original certificates are safely submitted to company vault.',
-          improvementAction: 'All certificates are verified by HR.',
-          isCompromised: false,
-          indicatorColor: const Color(0xFF10B981),
+          status: 'Need to be added (Yellow)',
+          description: 'No certificates submitted yet to digital vault custody.',
+          improvementAction: 'Submit original certificates to HR in Pillar 3.',
+          isCompromised: true,
+          indicatorColor: const Color(0xFFF59E0B),
           icon: Icons.lock_outline,
         ));
       } else {
-        final names = pendingMandatory.map((d) => d.title.split('(').first.trim()).join(', ');
-        lags.add(PillarLagItem(
-          pillarTitle: 'Pillar 3: Document Submission',
-          status: pendingMandatory.length == 1 ? '1 Document Pending (Yellow)' : 'Documents Missing (Red)',
-          description: '${pendingMandatory.length} required original document(s) not yet submitted: $names.',
-          improvementAction: 'Submit your pending documents to HR in Pillar 3.',
-          isCompromised: true,
-          indicatorColor: pendingMandatory.length == 1 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
-          icon: Icons.warning_amber_rounded,
-        ));
+        final pendingMandatory = _originalDocuments.where((d) => d.isMandatory && d.status != DocumentSubmissionStatus.submitted).toList();
+        if (pendingMandatory.isEmpty) {
+          lags.add(PillarLagItem(
+            pillarTitle: 'Pillar 3: Document Submission',
+            status: 'All Submitted (Green)',
+            description: 'All required original certificates are safely submitted to company vault.',
+            improvementAction: 'All certificates are verified by HR.',
+            isCompromised: false,
+            indicatorColor: const Color(0xFF10B981),
+            icon: Icons.lock_outline,
+          ));
+        } else {
+          final names = pendingMandatory.map((d) => d.title.split('(').first.trim()).join(', ');
+          lags.add(PillarLagItem(
+            pillarTitle: 'Pillar 3: Document Submission',
+            status: pendingMandatory.length == 1 ? '1 Document Pending (Yellow)' : 'Documents Missing (Red)',
+            description: '${pendingMandatory.length} required original document(s) not yet submitted: $names.',
+            improvementAction: 'Submit your pending documents to HR in Pillar 3.',
+            isCompromised: true,
+            indicatorColor: pendingMandatory.length == 1 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444),
+            icon: Icons.warning_amber_rounded,
+          ));
+        }
       }
     }
 
@@ -1735,9 +1905,9 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
-    // Pillar 3: Sales Target (Role-Aware)
-    final isSalesRole = currentEmployee.role.toLowerCase().contains('sales') || currentEmployee.role.toLowerCase().contains('showroom');
-    if (isSalesRole) {
+    // Pillar 3: Sales Target (Role-Aware: only showroom floor executives evaluated against ₹25L target)
+    final isShowroomSales = currentEmployee.dept.toLowerCase().contains('showroom') || currentEmployee.role.toLowerCase().contains('showroom');
+    if (isShowroomSales) {
       if (salesAchievementPercentage >= 75.0) {
         lags.add(PillarLagItem(
           pillarTitle: 'Pillar 3: Sales Target',
@@ -3179,6 +3349,11 @@ class EcosystemProvider extends ChangeNotifier {
         'onboarded': true,
       },
     );
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setDouble('health_height_$_activeEmpId', heightCm);
+      prefs.setDouble('health_weight_$_activeEmpId', weightKg);
+      prefs.setBool('health_onboarded_$_activeEmpId', true);
+    }).catchError((_) {});
   }
 
   void updateWeightAndHeight({required double heightCm, required double weightKg}) {
@@ -3207,6 +3382,11 @@ class EcosystemProvider extends ChangeNotifier {
         'onboarded': true,
       },
     );
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setDouble('health_height_$_activeEmpId', heightCm);
+      prefs.setDouble('health_weight_$_activeEmpId', weightKg);
+      prefs.setBool('health_onboarded_$_activeEmpId', true);
+    }).catchError((_) {});
   }
 
   void setDailyCalorieTarget(double target) {
@@ -3780,13 +3960,18 @@ class EcosystemProvider extends ChangeNotifier {
         }
 
         // 3. Profile Pillar (Original Documents Custody)
-        if (pillars['documents'] is List) {
+        if (pillars['documents'] is List && (pillars['documents'] as List).isNotEmpty) {
           final loadedDocs = (pillars['documents'] as List)
               .map((d) => OriginalDocumentItem.fromMap(Map<String, dynamic>.from(d as Map)))
               .toList();
           _employeeDocuments[empId] = loadedDocs;
           if (empId == _activeEmpId) {
             _originalDocuments = loadedDocs;
+          }
+        } else {
+          final defDocs = getEmployeeDocuments(empId);
+          if (empId == _activeEmpId && _originalDocuments.isEmpty) {
+            _originalDocuments = defDocs;
           }
         }
 
@@ -3863,6 +4048,34 @@ class EcosystemProvider extends ChangeNotifier {
 
         notifyListeners();
       }
+
+      // Ensure fallback defaults if Firestore had no record or missing fields
+      if (_originalDocuments.isEmpty) {
+        _originalDocuments = getEmployeeDocuments(empId);
+      }
+      if (_userHeightCm <= 0 || _userWeightKg <= 0) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final savedH = prefs.getDouble('health_height_$empId');
+          final savedW = prefs.getDouble('health_weight_$empId');
+          final savedOnb = prefs.getBool('health_onboarded_$empId');
+          if (savedH != null && savedW != null && savedH > 0 && savedW > 0) {
+            _userHeightCm = savedH;
+            _userWeightKg = savedW;
+            _healthOnboarded = savedOnb ?? true;
+          } else {
+            // Standard healthy baseline calibrated (68.0 kg body weight matching Image 2 workout calibration)
+            _userHeightCm = 170.0;
+            _userWeightKg = 68.0;
+            _healthOnboarded = true;
+          }
+        } catch (_) {
+          _userHeightCm = 170.0;
+          _userWeightKg = 68.0;
+          _healthOnboarded = true;
+        }
+      }
+      notifyListeners();
     } catch (e) {
       debugPrint('Firestore loadEmployeeFourPillars note: $e');
     }
@@ -3876,9 +4089,13 @@ class EcosystemProvider extends ChangeNotifier {
     required double hoursSpent,
     String iconEmoji = '❤️',
     String? notes,
+    DateTime? date,
   }) {
     final now = DateTime.now();
-    final timeStr = '${now.day} ${_monthName(now.month)} ${now.year}, ${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final entryDate = date != null
+        ? DateTime(date.year, date.month, date.day, now.hour, now.minute)
+        : now;
+    final timeStr = '${entryDate.day} ${_monthName(entryDate.month)} ${entryDate.year}, ${entryDate.hour % 12 == 0 ? 12 : entryDate.hour % 12}:${entryDate.minute.toString().padLeft(2, '0')} ${entryDate.hour >= 12 ? 'PM' : 'AM'}';
     _familyActivityLogs.insert(
       0,
       FamilyActivityItem(
@@ -3889,7 +4106,7 @@ class EcosystemProvider extends ChangeNotifier {
         hoursSpent: hoursSpent,
         iconEmoji: iconEmoji,
         notes: notes,
-        timestamp: now,
+        timestamp: entryDate,
         timeString: timeStr,
       ),
     );

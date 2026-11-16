@@ -14,8 +14,7 @@ import '../auth/pillars_popup_dialog.dart';
 import '../pillars/social_cause_pillar_screen.dart';
 import '../../core/widgets/company_notification_sheet.dart';
 import '../pillars/attendance_pillar_screen.dart';
-import '../../core/widgets/emergency_permission_modal.dart';
-import '../../core/widgets/emergency_medical_leave_modal.dart';
+
 import 'employee_profile_screen.dart';
 import 'employee_subpages.dart';
 import '../orders/online_orders_handler_screen.dart';
@@ -337,20 +336,6 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'Ask Permission',
-                      Icons.timer_outlined,
-                      '${eco.permissionHoursRemaining.toStringAsFixed(1)}h',
-                      () => EmergencyPermissionModal.show(context),
-                    ),
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'Medical Leave',
-                      Icons.local_hospital_outlined,
-                      '',
-                      () => EmergencyMedicalLeaveModal.show(context),
                     ),
                     if (emp.hasAttendanceAndGrooming) ...[
                       const SizedBox(height: 8),

@@ -15,6 +15,33 @@ class FamilyPillarScreen extends StatefulWidget {
 class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   int _selectedSectionIndex = 0; // 0: Family Time, 1: Friends Time, 2: How You Spent Time (Logger), 3: Activity Diary
   String _diaryFilter = 'All'; // 'All', 'Family', 'Friends & Colleagues'
+  DateTime _selectedDate = DateTime.now();
+  bool _showAllHistory = false;
+
+  static const List<String> _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const List<String> _months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  bool _isToday(DateTime d) {
+    final now = DateTime.now();
+    return d.year == now.year && d.month == now.month && d.day == now.day;
+  }
+
+  String _formatDayLabel(DateTime d) {
+    if (_isToday(d)) return 'Today (${d.day} ${_months[d.month - 1].substring(0, 3)})';
+    return '${_weekdays[d.weekday - 1]}, ${d.day} ${_months[d.month - 1].substring(0, 3)}';
+  }
+
+  String _formatDayShort(DateTime d) {
+    if (_isToday(d)) return 'Today';
+    return '${d.day} ${_months[d.month - 1].substring(0, 3)}';
+  }
 
   // Activity Logger Form Controllers & State
   String _logCategory = 'Family'; // 'Family' or 'Friends & Colleagues'
@@ -89,6 +116,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
       hoursSpent: _loggedHours,
       iconEmoji: _selectedEmoji,
       notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      date: _selectedDate,
     );
 
     _notesController.clear();
@@ -97,7 +125,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
       SnackBar(
         backgroundColor: AppColors.burgundyPrimary,
         content: Text(
-          'Logged "$activityName" ($_loggedHours hrs with $_logCategory)!',
+          'Logged "$activityName" ($_loggedHours hrs) for ${_formatDayLabel(_selectedDate)}!',
           style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight),
         ),
       ),
@@ -124,7 +152,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'FAMILY PILLAR • DAILY',
+          'FAMILY PILLAR • ${_formatDayShort(_selectedDate).toUpperCase()}',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.bold,
@@ -151,7 +179,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     const Icon(Icons.family_restroom, size: 14, color: AppColors.sandGold),
                     const SizedBox(width: 5),
                     Text(
-                      '${eco.totalOverallSocialHoursToday.toStringAsFixed(1)}h Total',
+                      '${eco.getTotalSocialHoursForDate(_selectedDate).toStringAsFixed(1)}h Total',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -174,6 +202,10 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
             children: [
               // Hero Welcome Card
               _buildHeroHeader(eco),
+              const SizedBox(height: 14),
+
+              // Horizontal Date Strip (Center Carousel with +/- 3 Days & Month Nav)
+              _buildHorizontalDateStrip(eco),
               const SizedBox(height: 16),
 
               // 4 Interactive Navigation Section Cards
@@ -266,13 +298,215 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   }
 
   // =========================================================================
+  // HORIZONTAL DATE STRIP: CENTER DATE CAROUSEL WITH +/- 3 DAYS & MONTH NAV
+  // =========================================================================
+
+  Widget _buildHorizontalDateStrip(EcosystemProvider eco) {
+    final days = List.generate(7, (i) => _selectedDate.add(Duration(days: i - 3)));
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left, color: AppColors.sandGold, size: 24),
+                tooltip: 'Previous 7 Days',
+                onPressed: () {
+                  setState(() {
+                    _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+                  });
+                },
+              ),
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime(2025, 1, 1),
+                    lastDate: DateTime(2027, 12, 31),
+                    builder: (context, child) {
+                      return Theme(
+                        data: ThemeData.dark().copyWith(
+                          colorScheme: const ColorScheme.dark(
+                            primary: AppColors.sandGold,
+                            onPrimary: AppColors.burgundyBg,
+                            surface: AppColors.burgundyCard,
+                            onSurface: AppColors.sandLight,
+                          ),
+                          dialogBackgroundColor: AppColors.burgundyCard,
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _selectedDate = picked;
+                    });
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_month, color: AppColors.sandGold, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${_months[_selectedDate.month - 1]} ${_selectedDate.year}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandLight,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, color: AppColors.sandPrimary, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!_isToday(_selectedDate))
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = DateTime.now();
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.burgundySurface,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                        ),
+                        child: Text(
+                          'Today',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandGold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right, color: AppColors.sandGold, size: 24),
+                    tooltip: 'Next 7 Days',
+                    onPressed: () {
+                      setState(() {
+                        _selectedDate = _selectedDate.add(const Duration(days: 7));
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: days.map((date) {
+              final isSelected = _isSameDay(date, _selectedDate);
+              final isCurrentToday = _isToday(date);
+              final dayHours = eco.getTotalSocialHoursForDate(date);
+
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      setState(() {
+                        _selectedDate = date;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.sandGold
+                            : (isCurrentToday
+                                ? AppColors.burgundySurface
+                                : AppColors.burgundySurface.withOpacity(0.4)),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.sandGold
+                              : (isCurrentToday ? AppColors.sandGold.withOpacity(0.6) : AppColors.sandBorder),
+                          width: isSelected ? 1.8 : 1.0,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            _weekdays[date.weekday - 1],
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? AppColors.burgundyBg
+                                  : (isCurrentToday ? AppColors.sandGold : AppColors.textMuted),
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            '${date.day}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected
+                                  ? AppColors.burgundyBg
+                                  : (isCurrentToday ? AppColors.sandLight : AppColors.sandPrimary),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          if (dayHours > 0)
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSelected ? AppColors.burgundyBg : AppColors.ragGreen,
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 5),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
   // 2. FOUR SECTIONS SELECTOR (Top 4 Interactive Modules)
   // =========================================================================
 
   Widget _buildFourSectionSelector(EcosystemProvider eco) {
-    final familyHours = eco.totalFamilyHoursToday;
-    final friendsHours = eco.totalFriendsHoursToday;
-    final totalActivities = eco.familyActivityLogs.length;
+    final familyHours = eco.getFamilyHoursForDate(_selectedDate);
+    final friendsHours = eco.getFriendsHoursForDate(_selectedDate);
+    final totalActivities = eco.getFamilyActivitiesForDate(_selectedDate).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +707,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   // =========================================================================
 
   Widget _buildSection1TotalFamily(BuildContext context, EcosystemProvider eco) {
-    final familyHours = eco.totalFamilyHoursToday;
+    final familyHours = eco.getFamilyHoursForDate(_selectedDate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -499,7 +733,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Quality Family Time',
+                    '${_formatDayLabel(_selectedDate)} • Quality Family Time',
                     style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -537,7 +771,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'TODAY\'S FAMILY TIME',
+                          '${_isToday(_selectedDate) ? "TODAY'S" : _formatDayShort(_selectedDate).toUpperCase()} FAMILY TIME',
                           style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                         ),
                         const SizedBox(height: 6),
@@ -561,7 +795,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           ],
                         ),
                         Text(
-                          familyHours > 0 ? 'Cherished quality time logged today' : 'No forced targets • Spend time at your own pace',
+                          familyHours > 0 ? 'Cherished quality time logged for ${_formatDayShort(_selectedDate)}' : 'No forced targets • Spend time at your own pace',
                           style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold),
                         ),
                       ],
@@ -656,11 +890,12 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                               hoursSpent: h,
                               iconEmoji: '❤️',
                               notes: 'Direct family time increment',
+                              date: _selectedDate,
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 backgroundColor: AppColors.burgundyPrimary,
-                                content: Text('Added +$h hr to family time!'),
+                                content: Text('Added +$h hr to family time for ${_formatDayShort(_selectedDate)}!'),
                               ),
                             );
                           },
@@ -808,7 +1043,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   // =========================================================================
 
   Widget _buildSection2TotalFriends(BuildContext context, EcosystemProvider eco) {
-    final friendsHours = eco.totalFriendsHoursToday;
+    final friendsHours = eco.getFriendsHoursForDate(_selectedDate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -834,7 +1069,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Social Connections',
+                    '${_formatDayLabel(_selectedDate)} • Social Connections',
                     style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -872,7 +1107,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'TODAY\'S SOCIAL & PEER TIME',
+                          '${_isToday(_selectedDate) ? "TODAY'S" : _formatDayShort(_selectedDate).toUpperCase()} SOCIAL & PEER TIME',
                           style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                         ),
                         const SizedBox(height: 6),
@@ -896,7 +1131,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           ],
                         ),
                         Text(
-                          friendsHours > 0 ? 'Peer connection & camaraderie on record' : 'Relaxed team bonding without forced quotas',
+                          friendsHours > 0 ? 'Peer connection & camaraderie on record for ${_formatDayShort(_selectedDate)}' : 'Relaxed team bonding without forced quotas',
                           style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold),
                         ),
                       ],
@@ -991,11 +1226,12 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                               hoursSpent: h,
                               iconEmoji: '☕',
                               notes: 'Direct friends & colleagues time increment',
+                              date: _selectedDate,
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 backgroundColor: AppColors.burgundyPrimary,
-                                content: Text('Added +$h hr to friends & colleagues time!'),
+                                content: Text('Added +$h hr to friends & colleagues time for ${_formatDayShort(_selectedDate)}!'),
                               ),
                             );
                           },
@@ -1124,6 +1360,75 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Entry Date Indicator Banner
+              Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 13, color: AppColors.sandGold),
+                        const SizedBox(width: 7),
+                        Text(
+                          'Entry Date: ${_formatDayLabel(_selectedDate)}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime(2025, 1, 1),
+                          lastDate: DateTime(2027, 12, 31),
+                          builder: (context, child) {
+                            return Theme(
+                              data: ThemeData.dark().copyWith(
+                                colorScheme: const ColorScheme.dark(
+                                  primary: AppColors.sandGold,
+                                  onPrimary: AppColors.burgundyBg,
+                                  surface: AppColors.burgundyCard,
+                                  onSurface: AppColors.sandLight,
+                                ),
+                                dialogBackgroundColor: AppColors.burgundyCard,
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (picked != null) {
+                          setState(() => _selectedDate = picked);
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        child: Text(
+                          'Change',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandGold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Step 1: Who was this with? (Segmented Choice)
               Text(
                 'STEP 1: COMPANION',
@@ -1424,14 +1729,16 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   // =========================================================================
 
   Widget _buildSection4ActivityDiary(BuildContext context, EcosystemProvider eco) {
+    final dateLogs = eco.getFamilyActivitiesForDate(_selectedDate);
     final allLogs = eco.familyActivityLogs;
+    final baseLogs = _showAllHistory ? allLogs : dateLogs;
     final filteredLogs = _diaryFilter == 'All'
-        ? allLogs
-        : allLogs.where((a) => a.category == _diaryFilter).toList();
+        ? baseLogs
+        : baseLogs.where((a) => a.category == _diaryFilter).toList();
 
-    final familyHours = eco.totalFamilyHoursToday;
-    final friendsHours = eco.totalFriendsHoursToday;
-    final totalHours = eco.totalOverallSocialHoursToday;
+    final familyHours = eco.getFamilyHoursForDate(_selectedDate);
+    final friendsHours = eco.getFriendsHoursForDate(_selectedDate);
+    final totalHours = eco.getTotalSocialHoursForDate(_selectedDate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1457,7 +1764,9 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${allLogs.length} logged today',
+                    _showAllHistory
+                        ? '${allLogs.length} total entries across all dates'
+                        : '${dateLogs.length} entries on ${_formatDayLabel(_selectedDate)}',
                     style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1471,6 +1780,68 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               onPressed: () => setState(() => _selectedSectionIndex = 2),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+
+        // Date Scope Mode Switcher
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.burgundySurface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.sandBorder),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(() => _showAllHistory = false),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: !_showAllHistory ? AppColors.sandGold : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${_formatDayShort(_selectedDate)} (${dateLogs.length})',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: !_showAllHistory ? AppColors.burgundyBg : AppColors.sandLight,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(() => _showAllHistory = true),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _showAllHistory ? AppColors.sandGold : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'All History (${allLogs.length})',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: _showAllHistory ? AppColors.burgundyBg : AppColors.sandLight,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
 

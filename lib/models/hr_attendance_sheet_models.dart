@@ -11,7 +11,7 @@ enum HrAttendanceDayType {
   permission, // Green - 38m, 1:58m, 2h... (total 4.0 Hours quota)
   lateAndHalfDay, // Orange - l- & 1/2d (both late and half day leave)
   mnw, // Dark Blue - MNW (Official client/store visit outside)
-  holiday, // Gray - H, O, L, I, D, A, Y (Sunday/Company Holiday)
+  holiday, // Gray - H, O, L, I, D, A, Y (Tuesday/Company Holiday)
   notApplicable, // - (Not joined yet)
   pendingUpdate, // Empty cell - awaiting HR update (sheet updated up to 14th)
 }
@@ -111,13 +111,13 @@ class HrAttendanceDayRecord {
     final clean = raw.trim();
     final lower = clean.toLowerCase();
 
-    // If whole column is a Sunday/Company Holiday across the showroom
+    // If whole column is a Tuesday/Company Holiday across the showroom
     if (isColumnHoliday && (clean.isEmpty || RegExp(r'^[holiday]$', caseSensitive: false).hasMatch(clean))) {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: raw.isEmpty ? 'H' : raw,
         type: HrAttendanceDayType.holiday,
-        displayLabel: 'Holiday (Sunday)',
+        displayLabel: 'Holiday (Tuesday)',
       );
     }
 
@@ -152,6 +152,8 @@ class HrAttendanceDayRecord {
 
     // Holiday check: column holiday, explicit holiday text, or holiday vertical letters
     if (lower == 'holiday' ||
+        lower == 'tuesday' ||
+        lower == 'tue' ||
         lower == 'sunday' ||
         lower == 'sun' ||
         lower == 'weekly off' ||
@@ -162,7 +164,7 @@ class HrAttendanceDayRecord {
         day: day,
         rawValue: raw,
         type: HrAttendanceDayType.holiday,
-        displayLabel: 'Holiday ($clean)',
+        displayLabel: 'Holiday (Tuesday)',
       );
     }
 

@@ -20,8 +20,7 @@ import '../../core/widgets/export_audit_modal.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/cross_dept_blocker_section.dart';
-import '../../core/widgets/emergency_permission_modal.dart';
-import '../../core/widgets/emergency_medical_leave_modal.dart';
+
 import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
@@ -2262,46 +2261,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
 
-              // CEO Quick Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.magentaPrimary,
-                        side: const BorderSide(color: AppColors.magentaBorder),
-                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () => EmergencyPermissionModal.show(context),
-                      icon: const Icon(Icons.access_time_rounded, size: 14, color: AppColors.magentaPrimary),
-                      label: Text(
-                        'Request Permission',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.magentaPrimary),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.magentaPrimary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () => EmergencyMedicalLeaveModal.show(context),
-                      icon: const Icon(Icons.medical_services_outlined, size: 14, color: Colors.white),
-                      label: Text(
-                        'Medical Leave',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -2678,42 +2638,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         ),
         const SizedBox(height: 12),
 
-        // Emergency Quick Action Buttons (Permission & Medical Leave)
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.magentaSubtle,
-                  foregroundColor: AppColors.magentaPrimary,
-                  side: const BorderSide(color: AppColors.magentaBorder),
-                  padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  elevation: 0,
-                ),
-                onPressed: () => EmergencyPermissionModal.show(context),
-                icon: const Icon(Icons.access_time_rounded, size: 14, color: AppColors.magentaPrimary),
-                label: const Text('Permission', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.magentaPrimary)),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.magentaPrimary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  elevation: 2,
-                ),
-                onPressed: () => EmergencyMedicalLeaveModal.show(context),
-                icon: const Icon(Icons.medical_services_outlined, size: 14, color: Colors.white),
-                label: const Text('Medical Leave', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white)),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
 
         // CEO Approvals Pipeline: Emergency Permissions & Medical Leaves
         if (eco.pendingCeoPermissions.isNotEmpty || eco.pendingCeoMedicalLeaves.isNotEmpty) ...[
