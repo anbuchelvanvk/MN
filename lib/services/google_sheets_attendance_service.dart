@@ -50,6 +50,7 @@ class GoogleSheetsAttendanceService {
   static Future<HrMonthlyAttendanceSheet> fetchAttendanceSheetForMonth(
     int month, {
     String? customUrl,
+    bool forceRefresh = false,
   }) async {
     final gid = monthGids[month] ?? '1237865007';
     final monthName = monthNames[month] ?? 'November';
@@ -57,9 +58,22 @@ class GoogleSheetsAttendanceService {
     final cacheKey = 'hr_google_sheet_cached_csv_month_$month';
 
     String? newCsv;
-    final exportUrl = 'https://docs.google.com/spreadsheets/d/$spreadsheetId/gviz/tq?tqx=out:csv&gid=$gid';
+    final baseExportUrl = 'https://docs.google.com/spreadsheets/d/$spreadsheetId/gviz/tq?tqx=out:csv&gid=$gid';
+    final exportUrl = forceRefresh
+        ? '$baseExportUrl&_cb=${DateTime.now().millisecondsSinceEpoch}'
+        : baseExportUrl;
+
     try {
-      final response = await http.get(Uri.parse(exportUrl)).timeout(const Duration(seconds: 12));
+      final response = await http.get(
+        Uri.parse(exportUrl),
+        headers: forceRefresh
+            ? {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+              }
+            : null,
+      ).timeout(const Duration(seconds: 15));
       final body = response.body.trim();
       if (response.statusCode == 200 &&
           body.isNotEmpty &&
@@ -73,7 +87,9 @@ class GoogleSheetsAttendanceService {
     }
 
     final cached = prefs.getString(cacheKey);
-    final csvToParse = newCsv ?? cached ?? (month == 11 ? _embeddedNovemberSeedCsv : '"${monthName.toUpperCase()}",""\n"S.NO","EMP.NO","Name"\n');
+    final csvToParse = (forceRefresh && newCsv != null)
+        ? newCsv
+        : (newCsv ?? cached ?? (month == 11 ? _embeddedNovemberSeedCsv : '"${monthName.toUpperCase()}",""\n"S.NO","EMP.NO","Name"\n'));
     return parseCsvToAttendanceSheet(csvToParse, defaultMonthTitle: monthName.toUpperCase());
   }
 
@@ -105,16 +121,32 @@ class GoogleSheetsAttendanceService {
   static Future<({HrMonthlyAttendanceSheet sheet, List<int> updatedDays})> fetchAttendanceSheet({
     String? customUrl,
     int month = 11,
+    bool forceRefresh = false,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final url = formatToCsvExportUrl(
+    final baseUrl = formatToCsvExportUrl(
       customUrl ?? prefs.getString(_prefCustomUrlKey) ?? defaultSheetUrl,
       month: month,
     );
 
+    final url = forceRefresh
+        ? (baseUrl.contains('?')
+            ? '$baseUrl&_cb=${DateTime.now().millisecondsSinceEpoch}'
+            : '$baseUrl?_cb=${DateTime.now().millisecondsSinceEpoch}')
+        : baseUrl;
+
     String? newCsv;
     try {
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 12));
+      final response = await http.get(
+        Uri.parse(url),
+        headers: forceRefresh
+            ? {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+              }
+            : null,
+      ).timeout(const Duration(seconds: 15));
       final body = response.body.trim();
       // Ensure we received valid CSV and not an HTML captive portal / error page
       if (response.statusCode == 200 &&
@@ -130,7 +162,9 @@ class GoogleSheetsAttendanceService {
     final previousCsv = prefs.getString(_prefCachedCsvKey);
 
     // If network failed, fall back to cached CSV or embedded static CSV
-    final csvToParse = newCsv ?? previousCsv ?? _embeddedNovemberSeedCsv;
+    final csvToParse = (forceRefresh && newCsv != null)
+        ? newCsv
+        : (newCsv ?? previousCsv ?? _embeddedNovemberSeedCsv);
 
     // Detect changed dates if we received a fresh response
     List<int> updatedDays = [];
@@ -169,12 +203,15 @@ class GoogleSheetsAttendanceService {
     return list;
   }
 
-  /// Parses raw CSV text into a structured HrMonthlyAttendanceSheet
+  /// Parses raw CSV text into a structured HrMonthlyAttendanceSheet.
+  /// Resilient to any font, cell styling, bolding, float numbers, or column offsets.
   static HrMonthlyAttendanceSheet parseCsvToAttendanceSheet(
     String rawCsv, {
     String defaultMonthTitle = 'NOVEMBER',
   }) {
-    final lines = const LineSplitter().convert(rawCsv);
+    // Strip BOM and normalize line breaks
+    final cleanCsv = rawCsv.replaceAll('\uFEFF', '').replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+    final lines = const LineSplitter().convert(cleanCsv);
     if (lines.isEmpty) {
       return HrMonthlyAttendanceSheet(
         monthTitle: defaultMonthTitle,
@@ -183,22 +220,54 @@ class GoogleSheetsAttendanceService {
       );
     }
 
-    // Row 0: Month Title (e.g. "NOVEMBER",...)
+    // Row 0 or top lines: Month Title (e.g. "NOVEMBER",...)
     String monthTitle = defaultMonthTitle;
     final firstRowCells = _parseCsvRow(lines.first);
     if (firstRowCells.isNotEmpty && firstRowCells.first.trim().isNotEmpty) {
-      monthTitle = firstRowCells.first.trim().toUpperCase();
+      final possibleTitle = firstRowCells.first.trim().toUpperCase();
+      if (!possibleTitle.contains('S.NO') && !possibleTitle.contains('EMP')) {
+        monthTitle = possibleTitle;
+      }
     }
 
-    final List<HrEmployeeAttendanceRow> rows = [];
+    // Find the header row (contains "Name" or "EMP.NO" or "S.NO")
+    int headerLineIdx = 1;
+    int nameColIdx = 2;
+    int? empColIdx = 1;
+    int? sNoColIdx = 0;
+    int day1ColIdx = 3;
+
+    for (int i = 0; i < lines.length && i < 10; i++) {
+      final cells = _parseCsvRow(lines[i]);
+      for (int c = 0; c < cells.length; c++) {
+        final cellLower = cells[c].toLowerCase().trim();
+        if (cellLower == 'name' || cellLower.contains('staff name') || cellLower.contains('emp name')) {
+          headerLineIdx = i;
+          nameColIdx = c;
+          if (c == 2) {
+            empColIdx = 1;
+            sNoColIdx = 0;
+          } else if (c == 1) {
+            empColIdx = 0;
+            sNoColIdx = null;
+          }
+          // Day 1 starts right after nameColIdx
+          day1ColIdx = nameColIdx + 1;
+          break;
+        }
+      }
+      if (headerLineIdx == i && lines[i].toLowerCase().contains('name')) {
+        break;
+      }
+    }
 
     // Pre-detect Sunday & Company Holiday columns (e.g. days 3, 10, 17, 24 in November)
     final Set<int> holidayDays = {3, 10, 17, 24};
     final Map<int, int> holidayLetterCounts = {};
-    for (final line in lines) {
-      final cells = _parseCsvRow(line);
+    for (int i = headerLineIdx + 1; i < lines.length; i++) {
+      final cells = _parseCsvRow(lines[i]);
       for (int day = 1; day <= 31; day++) {
-        final cellIdx = day + 2;
+        final cellIdx = day1ColIdx + (day - 1);
         if (cellIdx < cells.length) {
           final val = cells[cellIdx].trim().toUpperCase();
           if (val == 'HOLIDAY') {
@@ -213,26 +282,64 @@ class GoogleSheetsAttendanceService {
       }
     }
 
-    // Rows 2+ contain staff records
-    for (int i = 2; i < lines.length; i++) {
+    final List<HrEmployeeAttendanceRow> rows = [];
+
+    // Parse data rows starting after the header line
+    for (int i = headerLineIdx + 1; i < lines.length; i++) {
       final line = lines[i].trim();
       if (line.isEmpty) continue;
 
       final cells = _parseCsvRow(line);
-      if (cells.length < 3) continue;
+      if (cells.length <= nameColIdx) continue;
 
-      final sNoStr = cells[0].trim();
-      final empNoStr = cells[1].trim();
-      final nameStr = cells[2].trim();
+      final rawName = cells[nameColIdx]
+          .replaceAll('\u00A0', ' ')
+          .replaceAll('\u200B', '')
+          .trim();
+      if (rawName.isEmpty ||
+          rawName == '0' ||
+          rawName.toLowerCase() == 'name' ||
+          rawName == '-') {
+        continue;
+      }
 
-      if (nameStr.isEmpty || nameStr == '0' || nameStr.toLowerCase() == 'name') continue;
+      // Extract empNo cleanly
+      String rawEmpNo = '';
+      if (empColIdx != null && empColIdx < cells.length) {
+        rawEmpNo = cells[empColIdx].replaceAll('\u00A0', ' ').trim();
+      }
+      // If empNo was in col 0 and not parsed
+      if (rawEmpNo.isEmpty && sNoColIdx != null && sNoColIdx < cells.length) {
+        final alt = cells[sNoColIdx].replaceAll('\u00A0', ' ').trim();
+        if (alt.isNotEmpty && int.tryParse(alt) != null) {
+          rawEmpNo = alt;
+        }
+      }
 
-      final sNo = int.tryParse(sNoStr) ?? (i - 1);
+      // Clean empNo: strip .0 or .00 (e.g. 75.0 -> 75), remove # or EMP prefix
+      String cleanEmpNo = rawEmpNo;
+      if (cleanEmpNo.endsWith('.0')) {
+        cleanEmpNo = cleanEmpNo.substring(0, cleanEmpNo.length - 2).trim();
+      } else if (cleanEmpNo.endsWith('.00')) {
+        cleanEmpNo = cleanEmpNo.substring(0, cleanEmpNo.length - 3).trim();
+      }
+      cleanEmpNo = cleanEmpNo.replaceAll(RegExp(r'^(EMP|EMP\.|EMP#|#)\s*', caseSensitive: false), '').trim();
+
+      // S.NO calculation
+      int sNo = rows.length + 1;
+      if (sNoColIdx != null && sNoColIdx < cells.length) {
+        final parsedSNo = int.tryParse(cells[sNoColIdx].replaceAll(RegExp(r'[^0-9]'), ''));
+        if (parsedSNo != null) sNo = parsedSNo;
+      }
+
+      // If empNo is still empty, fall back to sNo
+      if (cleanEmpNo.isEmpty && sNo > 0) {
+        cleanEmpNo = sNo.toString();
+      }
+
       final Map<int, HrAttendanceDayRecord> dayMap = {};
-
-      // Day 1 corresponds to cells[3], Day 2 to cells[4]... up to Day 31 cells[33]
       for (int day = 1; day <= 31; day++) {
-        final cellIdx = day + 2;
+        final cellIdx = day1ColIdx + (day - 1);
         final cellVal = cellIdx < cells.length ? cells[cellIdx] : '';
         dayMap[day] = HrAttendanceDayRecord.parse(
           day,
@@ -244,8 +351,8 @@ class GoogleSheetsAttendanceService {
       rows.add(
         HrEmployeeAttendanceRow(
           sNo: sNo,
-          empNo: empNoStr,
-          name: nameStr,
+          empNo: cleanEmpNo,
+          name: rawName,
           days: dayMap,
         ),
       );

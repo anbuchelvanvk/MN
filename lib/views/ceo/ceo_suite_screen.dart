@@ -3831,7 +3831,43 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     DateTime? selectedDob;
     String selectedGender = 'Male';
     String roleHierarchy = 'HR Management'; // 'HR Management', 'Team Lead', 'Employee'
-    String? selectedUnassignedEmpNo;
+
+    // Live search and sync state
+    bool isSyncingSheets = false;
+    String? syncStatusMessage;
+    Employee? alreadyHiredStaff;
+    List<GoogleSheetEmployeeEntry> matchedSheetStaff = [];
+    GoogleSheetEmployeeEntry? selectedSheetStaff;
+
+    void runInstantSearch(String query, StateSetter setModalState) {
+      final clean = query.trim();
+      if (clean.isEmpty) {
+        setModalState(() {
+          alreadyHiredStaff = null;
+          matchedSheetStaff = [];
+          selectedSheetStaff = null;
+        });
+        return;
+      }
+
+      final hired = eco.findHiredEmployeeByIdOrEmpNo(clean);
+      if (hired != null) {
+        setModalState(() {
+          alreadyHiredStaff = hired;
+          matchedSheetStaff = [];
+          selectedSheetStaff = null;
+        });
+      } else {
+        final matches = eco.findGoogleSheetEmployees(clean, unassignedOnly: true);
+        setModalState(() {
+          alreadyHiredStaff = null;
+          matchedSheetStaff = matches;
+          if (selectedSheetStaff != null && !matches.any((m) => m.empNo == selectedSheetStaff!.empNo)) {
+            selectedSheetStaff = null;
+          }
+        });
+      }
+    }
 
     showModalBottomSheet(
       context: context,
@@ -3859,20 +3895,111 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'CEO: Create & Provision Staff',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppColors.sandGold.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.shield_outlined, size: 16, color: AppColors.sandGold),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'CEO: Provision Staff Account',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandLight,
+                              ),
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: AppColors.sandPrimary),
-                          onPressed: () => Navigator.pop(ctx),
+                        Row(
+                          children: [
+                            // Live Google Sheets Refresh Button
+                            InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: isSyncingSheets
+                                  ? null
+                                  : () async {
+                                      setModalState(() {
+                                        isSyncingSheets = true;
+                                        syncStatusMessage = null;
+                                      });
+                                      final success = await eco.refreshGoogleSheetsAttendance();
+                                      setModalState(() {
+                                        isSyncingSheets = false;
+                                        syncStatusMessage = success
+                                            ? '✓ Sheets Synced (${eco.allGoogleSheetEmployees.length} rows)'
+                                            : '⚠️ Sync failed';
+                                      });
+                                      runInstantSearch(empIdController.text, setModalState);
+                                    },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AppColors.burgundyBg,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.sandBorder),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isSyncingSheets)
+                                      const SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.sandGold),
+                                      )
+                                    else
+                                      const Icon(Icons.refresh, size: 14, color: AppColors.sandGold),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isSyncingSheets ? 'Syncing...' : 'Refresh Sheets',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.sandGold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: AppColors.sandPrimary, size: 20),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                    if (syncStatusMessage != null) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: syncStatusMessage!.startsWith('✓') ? const Color(0x2210B981) : const Color(0x22EF4444),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: syncStatusMessage!.startsWith('✓') ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                          ),
+                        ),
+                        child: Text(
+                          syncStatusMessage!,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: syncStatusMessage!.startsWith('✓') ? const Color(0xFF34D399) : const Color(0xFFF87171),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 8),
 
                     // Role Type Selection
@@ -4103,100 +4230,236 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Employee ID Section (Dynamic Unassigned from Google Sheets)
+                    // Employee ID Section (Manual Entry with Instant Search & Auto-Fill)
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: AppColors.cardSurface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.sandBorder),
+                        border: Border.all(
+                          color: alreadyHiredStaff != null
+                              ? const Color(0xFFEF4444)
+                              : (matchedSheetStaff.isNotEmpty ? const Color(0xFF10B981) : AppColors.sandBorder),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(Icons.badge_outlined, size: 15, color: AppColors.sandGold),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Employee ID (from Google Sheets):',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.sandGold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          DropdownButtonFormField<String>(
-                            value: selectedUnassignedEmpNo,
-                            isExpanded: true,
-                            dropdownColor: AppColors.burgundySurface,
-                            decoration: InputDecoration(
-                              hintText: 'Select unassigned Employee ID from Sheets...',
-                              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                              fillColor: AppColors.burgundyBg,
-                              filled: true,
-                            ),
-                            items: [
-                              const DropdownMenuItem<String>(
-                                value: '',
-                                child: Text('-- Select Unassigned Sheet Staff --', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                              ),
-                              ...eco.unassignedGoogleSheetEmployees.map((entry) {
-                                return DropdownMenuItem<String>(
-                                  value: entry.empNo,
-                                  child: Text(
-                                    'EMP #${entry.empNo} — ${entry.name} (Unassigned)',
-                                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                              Row(
+                                children: [
+                                  const Icon(Icons.badge_outlined, size: 15, color: AppColors.sandGold),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Employee ID (Manual Entry):',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.sandGold,
+                                    ),
                                   ),
-                                );
-                              }),
-                              const DropdownMenuItem<String>(
-                                value: 'MANUAL',
-                                child: Text('Custom / Manual Employee ID', style: TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic, color: AppColors.sandPrimary)),
+                                ],
                               ),
+                              if (matchedSheetStaff.isNotEmpty && alreadyHiredStaff == null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x2210B981),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: const Color(0xFF10B981)),
+                                  ),
+                                  child: Text(
+                                    'Sheet Match',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF34D399),
+                                    ),
+                                  ),
+                                ),
                             ],
-                            onChanged: (val) {
-                              setModalState(() {
-                                selectedUnassignedEmpNo = val;
-                                if (val != null && val.isNotEmpty && val != 'MANUAL') {
-                                  final match = eco.unassignedGoogleSheetEmployees.firstWhere(
-                                    (e) => e.empNo == val,
-                                    orElse: () => GoogleSheetEmployeeEntry(sNo: 0, empNo: val, name: ''),
-                                  );
-                                  empIdController.text = match.empNo;
-                                  if (match.name.isNotEmpty) {
-                                    nameController.text = match.name;
-                                    final cleanName = match.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-                                    emailController.text = '$cleanName@mnjewelpark.com';
-                                    passwordController.text = '$cleanName@mnj123';
-                                  }
-                                } else if (val == 'MANUAL') {
-                                  empIdController.clear();
-                                }
-                              });
-                            },
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Type Employee ID manually. Instantly searches database and Google Sheets.',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                          ),
+                          const SizedBox(height: 8),
                           TextField(
                             controller: empIdController,
-                            style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                            keyboardType: TextInputType.text,
+                            style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13, fontWeight: FontWeight.w600),
                             decoration: InputDecoration(
-                              labelText: 'Employee ID / Number',
+                              labelText: 'Enter Employee ID / Number',
                               labelStyle: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 11),
-                              hintText: 'e.g. 10 or MN-1008',
+                              hintText: 'e.g. 75, 10, MN-1011...',
                               hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
                               filled: true,
                               fillColor: AppColors.burgundyBg,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                              suffixIcon: empIdController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, size: 16, color: AppColors.sandPrimary),
+                                      onPressed: () {
+                                        empIdController.clear();
+                                        runInstantSearch('', setModalState);
+                                      },
+                                    )
+                                  : null,
                             ),
+                            onChanged: (val) {
+                              runInstantSearch(val, setModalState);
+                            },
                           ),
+
+                          // Instant Search Feedback 1: ALREADY HIRED in Database
+                          if (alreadyHiredStaff != null) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0x33EF4444),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFEF4444)),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(Icons.cancel, color: Color(0xFFF87171), size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'ALREADY HIRED IN DATABASE',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFFFCA5A5),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Employee ID "${empIdController.text.trim()}" is already registered as ${alreadyHiredStaff!.name} (${alreadyHiredStaff!.role}, ${alreadyHiredStaff!.dept}).',
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Cannot add duplicate Employee ID.',
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFF87171)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ]
+
+                          // Instant Search Feedback 2: MATCHED IN GOOGLE SHEETS
+                          else if (matchedSheetStaff.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0x2210B981),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFF10B981)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.check_circle_outline, color: Color(0xFF34D399), size: 15),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'FOUND IN GOOGLE SHEETS (${matchedSheetStaff.length} match)',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF34D399),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  ...matchedSheetStaff.map((sheetEmp) {
+                                    final isSelected = selectedSheetStaff?.empNo == sheetEmp.empNo;
+                                    return InkWell(
+                                      onTap: () {
+                                        setModalState(() {
+                                          selectedSheetStaff = sheetEmp;
+                                          empIdController.text = sheetEmp.empNo;
+                                          nameController.text = sheetEmp.name;
+                                          final cleanName = sheetEmp.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+                                          emailController.text = '$cleanName@mnjewelpark.com';
+                                          passwordController.text = '$cleanName@mnj123';
+                                        });
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.only(bottom: 4),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? const Color(0x3310B981) : AppColors.burgundyBg,
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: isSelected ? const Color(0xFF10B981) : AppColors.sandBorder),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                'EMP #${sheetEmp.empNo} — ${sheetEmp.name}',
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontSize: 11.5,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.sandLight,
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                              decoration: BoxDecoration(
+                                                color: isSelected ? const Color(0xFF059669) : const Color(0xFF10B981),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                isSelected ? 'Selected' : 'Auto-fill',
+                                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ]
+
+                          // Instant Search Feedback 3: CUSTOM / MANUAL ID
+                          else if (empIdController.text.trim().isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.info_outline, size: 13, color: AppColors.sandPrimary),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    'Custom ID "${empIdController.text.trim()}". Enter candidate details below.',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -4401,10 +4664,41 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     const SizedBox(height: 16),
 
                     LiquidGlassButton(
-                      label: 'Register Staff Account',
-                      icon: Icons.person_add_alt_1_outlined,
+                      label: alreadyHiredStaff != null ? 'Employee ID Already Hired' : 'Register Staff Account',
+                      icon: alreadyHiredStaff != null ? Icons.block : Icons.person_add_alt_1_outlined,
                       onPressed: () {
-                        if (nameController.text.trim().isEmpty) return;
+                        final cleanEmpId = empIdController.text.trim();
+                        if (cleanEmpId.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: Color(0xFFEF4444),
+                              content: Text('Please enter an Employee ID'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final already = eco.findHiredEmployeeByIdOrEmpNo(cleanEmpId);
+                        if (already != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: const Color(0xFFEF4444),
+                              content: Text('Cannot hire: Employee ID "$cleanEmpId" is already hired (${already.name}).'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (nameController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: Color(0xFFEF4444),
+                              content: Text('Please enter Candidate Full Name'),
+                            ),
+                          );
+                          return;
+                        }
+
                         final assignedRoleType = roleHierarchy == 'HR Management'
                             ? 'hr'
                             : (roleHierarchy == 'Team Lead' ? 'team_lead' : 'employee');
@@ -4425,14 +4719,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           experienceYears: '3+ yrs in Corporate',
                           dob: dobController.text.trim().isNotEmpty ? dobController.text.trim() : '01-01-2000',
                           gender: selectedGender,
-                          customEmpId: empIdController.text.trim(),
-                          empNo: empIdController.text.trim(),
+                          customEmpId: cleanEmpId,
+                          empNo: cleanEmpId,
                         );
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: const Color(0xFF10B981),
-                            content: Text('Registered $roleHierarchy: ${nameController.text.trim()} successfully!'),
+                            content: Text('Registered $roleHierarchy: ${nameController.text.trim()} (EMP #$cleanEmpId) successfully!'),
                           ),
                         );
                       },

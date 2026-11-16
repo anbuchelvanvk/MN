@@ -125,5 +125,86 @@ void main() {
       expect(subset.length, 2);
       expect(subset.map((s) => s.empNo).toSet(), {'1', '33'});
     });
+
+    test('Instant search detects already-hired employees and prevents duplicate hiring', () {
+      // 1. Initial active staff (7: Mohankumar, 6: Gokulakrishnan, 33: Mithra, 65: Kaaviya, 67: Nisha)
+      final hiredMohan = eco.findHiredEmployeeByIdOrEmpNo('7');
+      expect(hiredMohan, isNotNull);
+      expect(hiredMohan!.name, 'Mohankumar G');
+
+      final hiredGokul = eco.findHiredEmployeeByIdOrEmpNo('6');
+      expect(hiredGokul, isNotNull);
+      expect(hiredGokul!.name, 'Gokulakrishnan K');
+
+      final hiredMithra = eco.findHiredEmployeeByIdOrEmpNo('33');
+      expect(hiredMithra, isNotNull);
+      expect(hiredMithra!.name, 'Mithra M');
+
+      // 2. Unhired employee ID (e.g. Somu EMP #10) returns null in hired database
+      final notHiredSomu = eco.findHiredEmployeeByIdOrEmpNo('10');
+      expect(notHiredSomu, isNull);
+
+      // But is found in Google Sheets roster
+      final sheetMatches = eco.findGoogleSheetEmployees('10', unassignedOnly: true);
+      expect(sheetMatches.isNotEmpty, isTrue);
+      expect(sheetMatches.first.empNo, '10');
+      expect(sheetMatches.first.name, 'Somu');
+
+      // 3. Hire Somu
+      eco.addNewEmployee(
+        name: 'Somu',
+        role: 'Operations Assistant',
+        phone: '+91 94444 11010',
+        email: 'somu@mnjewelpark.com',
+        experienceCategory: 'standard',
+        experienceYears: '1 yr',
+        customEmpId: '10',
+        empNo: '10',
+      );
+
+      // 4. Somu is now detected as ALREADY HIRED in database
+      final hiredSomuAfter = eco.findHiredEmployeeByIdOrEmpNo('10');
+      expect(hiredSomuAfter, isNotNull);
+      expect(hiredSomuAfter!.name, 'Somu');
+
+      // 5. Duplicate hire attempt is prevented
+      final employeeCountBefore = eco.employees.length;
+      eco.addNewEmployee(
+        name: 'Somu Duplicate',
+        role: 'Operations',
+        phone: '+91 99999 00000',
+        email: 'somu2@mnjewelpark.com',
+        experienceCategory: 'standard',
+        experienceYears: '1 yr',
+        customEmpId: '10',
+        empNo: '10',
+      );
+      expect(eco.employees.length, employeeCountBefore);
+      expect(eco.notificationMessage?.contains('already registered'), isTrue);
+    });
+
+    test('Resilient Google Sheets parsing handles float numbers, prefixes, and formatting variations', () {
+      const messyCsv = '''
+"NOVEMBER ATTENDANCE LEDGER","","","","",""
+"S.NO","EMP.NO","Name","1","2","3"
+"1","75.0","Arun Kumar","nil","nil",""
+"2","#76","Priya Dharshini","nil","l-1",""
+"3","EMP 77","Deepak","nil","nil","nil"
+''';
+      final sheet = GoogleSheetsAttendanceService.parseCsvToAttendanceSheet(messyCsv);
+      expect(sheet.allSheetRows.length, 3);
+
+      final r1 = sheet.allSheetRows[0];
+      expect(r1.empNo, '75', reason: '.0 must be stripped cleanly');
+      expect(r1.name, 'Arun Kumar');
+
+      final r2 = sheet.allSheetRows[1];
+      expect(r2.empNo, '76', reason: '# prefix must be stripped cleanly');
+      expect(r2.name, 'Priya Dharshini');
+
+      final r3 = sheet.allSheetRows[2];
+      expect(r3.empNo, '77', reason: 'EMP prefix must be stripped cleanly');
+      expect(r3.name, 'Deepak');
+    });
   });
 }

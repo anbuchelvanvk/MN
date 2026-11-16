@@ -487,6 +487,13 @@ class EcosystemProvider extends ChangeNotifier {
     );
   }
 
+  /// List of all staff present in Google Sheets
+  List<GoogleSheetEmployeeEntry> get allGoogleSheetEmployees {
+    final sheet = hrAttendanceSheet;
+    if (sheet == null) return [];
+    return sheet.allSheetStaff;
+  }
+
   /// List of unassigned employee entries present in Google Sheets but not yet registered in the active workforce
   List<GoogleSheetEmployeeEntry> get unassignedGoogleSheetEmployees {
     final sheet = hrAttendanceSheet;
@@ -504,6 +511,17 @@ class EcosystemProvider extends ChangeNotifier {
       final nameClean = entry.name.trim().toLowerCase();
       if (empNoClean.isEmpty) return false;
       if (activeEmpNos.contains(empNoClean)) return false;
+
+      // Digits match check
+      final numClean = empNoClean.replaceAll(RegExp(r'[^0-9]'), '');
+      if (numClean.isNotEmpty) {
+        final matchesAnyActive = _employees.any((e) {
+          final eNum = (e.empNo.trim().isNotEmpty ? e.empNo : e.id).replaceAll(RegExp(r'[^0-9]'), '');
+          return eNum.isNotEmpty && eNum == numClean;
+        });
+        if (matchesAnyActive) return false;
+      }
+
       if (activeNames.any((n) => n == nameClean || n.contains(nameClean) || nameClean.contains(n))) {
         return false;
       }
@@ -548,7 +566,11 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   /// Sync live Google Sheets Attendance
-  Future<void> syncGoogleSheetsAttendance({bool notifyIfUpdated = true}) async {
+  Future<void> syncGoogleSheetsAttendance({
+    bool notifyIfUpdated = true,
+    bool forceRefresh = false,
+    int? month,
+  }) async {
     if (!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) {
       _isLoadingAttendanceSheet = false;
       return;
@@ -558,9 +580,13 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final res = await GoogleSheetsAttendanceService.fetchAttendanceSheet();
+      final targetMonth = month ?? _selectedAttendanceMonth;
+      final res = await GoogleSheetsAttendanceService.fetchAttendanceSheet(
+        month: targetMonth,
+        forceRefresh: forceRefresh,
+      );
       _hrAttendanceSheet = res.sheet;
-      _monthlyAttendanceSheets[11] = res.sheet;
+      _monthlyAttendanceSheets[targetMonth] = res.sheet;
       _attendanceSheetLastSynced = DateTime.now();
 
       // If an employee with an assigned empNo was removed from the Google Sheet, relieve them from the active company workforce
@@ -604,6 +630,69 @@ class EcosystemProvider extends ChangeNotifier {
       _isLoadingAttendanceSheet = false;
       notifyListeners();
     }
+  }
+
+  /// On-demand force refresh from live Google Sheets (returns true on success)
+  Future<bool> refreshGoogleSheetsAttendance({int? month}) async {
+    try {
+      await syncGoogleSheetsAttendance(
+        notifyIfUpdated: false,
+        forceRefresh: true,
+        month: month,
+      );
+      return _attendanceSheetError == null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Check whether an employee ID/Number is already registered in the active workforce
+  Employee? findHiredEmployeeByIdOrEmpNo(String query) {
+    final clean = query.trim().toLowerCase();
+    if (clean.isEmpty) return null;
+
+    final cleanDigits = clean.replaceAll(RegExp(r'[^0-9]'), '');
+
+    for (final emp in _employees) {
+      final idLower = emp.id.trim().toLowerCase();
+      final empNoLower = emp.empNo.trim().toLowerCase();
+
+      if (idLower == clean || empNoLower == clean) {
+        return emp;
+      }
+
+      // If digits exist, match normalized numeric portion
+      if (cleanDigits.isNotEmpty) {
+        final idDigits = emp.id.replaceAll(RegExp(r'[^0-9]'), '');
+        final empNoDigits = emp.empNo.replaceAll(RegExp(r'[^0-9]'), '');
+        if (empNoDigits == cleanDigits || (idDigits.isNotEmpty && idDigits == cleanDigits)) {
+          return emp;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Search Google Sheets roster for an employee ID or Name
+  List<GoogleSheetEmployeeEntry> findGoogleSheetEmployees(String query, {bool unassignedOnly = false}) {
+    final clean = query.trim().toLowerCase();
+    if (clean.isEmpty) return [];
+
+    final cleanDigits = clean.replaceAll(RegExp(r'[^0-9]'), '');
+    final sourceList = unassignedOnly ? unassignedGoogleSheetEmployees : allGoogleSheetEmployees;
+
+    return sourceList.where((entry) {
+      final empNoLower = entry.empNo.trim().toLowerCase();
+      final nameLower = entry.name.trim().toLowerCase();
+
+      if (empNoLower == clean) return true;
+      if (cleanDigits.isNotEmpty) {
+        final entryDigits = entry.empNo.replaceAll(RegExp(r'[^0-9]'), '');
+        if (entryDigits == cleanDigits) return true;
+      }
+      if (nameLower.contains(clean)) return true;
+      return false;
+    }).toList();
   }
 
   /// Broadcast notification to all staff that attendance has been updated
@@ -4414,6 +4503,13 @@ class EcosystemProvider extends ChangeNotifier {
     final empNoToUse = (empNo != null && empNo.trim().isNotEmpty)
         ? empNo.trim()
         : ((customEmpId != null && customEmpId.trim().isNotEmpty) ? customEmpId.trim() : '');
+
+    final existing = findHiredEmployeeByIdOrEmpNo(idToUse);
+    if (existing != null) {
+      _notificationMessage = 'Employee ID $idToUse is already registered to ${existing.name}.';
+      notifyListeners();
+      return;
+    }
 
     final newEmp = Employee(
       id: idToUse,
