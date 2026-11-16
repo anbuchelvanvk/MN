@@ -13,9 +13,9 @@ import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
 import '../pillars/attendance_pillar_screen.dart';
+import '../pillars/profile_pillar_screen.dart';
 import '../hr/hr_management_widgets.dart';
 import '../orders/online_orders_handler_screen.dart';
-import '../employee/employee_profile_screen.dart';
 import '../../core/widgets/export_audit_modal.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/assign_tasks_to_others_modal.dart';
@@ -145,7 +145,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                 }
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                  MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
                 );
               },
               borderRadius: BorderRadius.circular(18),

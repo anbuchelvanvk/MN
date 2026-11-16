@@ -136,7 +136,15 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
   // --- 1. LEADERSHIP & OTM EXEMPTION VIEW ---
   Widget _buildLeadershipExemptionSection(BuildContext context, Employee emp) {
     final isCeo = emp.roleType.toLowerCase() == 'ceo' || emp.id.toUpperCase() == 'MN-CEO01';
-    final roleHeader = isCeo ? 'MANAGING DIRECTOR & CEO' : 'ONLINE TEAM MANAGER (OTM)';
+    final isExt = emp.isExternalSupport || emp.dept == 'External Support Staff [Online]';
+    final roleHeader = isCeo
+        ? 'MANAGING DIRECTOR & CEO'
+        : (isExt
+            ? 'EXTERNAL SUPPORT STAFF [ONLINE]'
+            : 'ONLINE TEAM MANAGER (OTM)');
+    final desc = isExt
+        ? 'Exempt from Retail Showroom Attendance & Grooming.\nOff-site contractor governed by Konar deliverables & tasks.'
+        : 'Exempt from Attendance & Showroom Grooming.';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -164,10 +172,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               color: AppColors.sandLight,
               letterSpacing: 0.6,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
           Text(
-            'Exempt from Attendance & Showroom Grooming.',
+            desc,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -175,21 +184,23 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 14),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TlTeamAttendanceScreen()),
+          if (!isExt) ...[
+            const SizedBox(height: 14),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TlTeamAttendanceScreen()),
+              ),
+              icon: const Icon(Icons.people_alt, size: 15),
+              label: const Text('View Online Team Attendance'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.magentaPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
             ),
-            icon: const Icon(Icons.people_alt, size: 15),
-            label: const Text('View Online Team Attendance'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.magentaPrimary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-          ),
+          ],
         ],
       ),
     );

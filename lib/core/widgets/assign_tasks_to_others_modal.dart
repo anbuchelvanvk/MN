@@ -76,6 +76,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
     // Online operations umbrella for Praveenkumaar / Online TL
     if (tlDept.contains('online') || tlDept.contains('design') || tl.id == 'MN-TL1002') {
       return empDept.contains('online') ||
+             empDept.contains('external') ||
              empDept.contains('media') ||
              empDept.contains('creative') ||
              empDept.contains('catalog') ||
@@ -97,6 +98,9 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
 
   List<String> _getDepartments(EcosystemProvider eco, bool isCeoOrHr, Employee activeEmp) {
     if (!isCeoOrHr) {
+      if (activeEmp.dept.contains('Online') || activeEmp.id == 'MN-TL1002') {
+        return ['All', 'Online Department', 'External Support Staff [Online]'];
+      }
       final deptName = activeEmp.dept.contains('Online') ? 'Online Department' : activeEmp.dept;
       return [deptName];
     }
@@ -133,8 +137,8 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
       return _isTeamMemberOf(e, activeEmp);
     }).toList();
 
-    // 2. Department filter (for CEO & HR)
-    if ((isCeo || isHr) && _selectedDeptFilter != 'All') {
+    // 2. Department filter (for CEO, HR, and TL)
+    if (_selectedDeptFilter != 'All') {
       list = list.where((e) => e.dept.toLowerCase() == _selectedDeptFilter.toLowerCase()).toList();
     }
 

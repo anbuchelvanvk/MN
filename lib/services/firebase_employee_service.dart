@@ -51,7 +51,10 @@ class FirebaseEmployeeService {
 
   /// Stream real-time employee list for Online Department (strictly filtered to allowed official workforce)
   Stream<List<Employee>> streamEmployees() {
-    const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
+    const validIds = {
+      'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67',
+      'EXT-VPE', 'EXT-AC', 'EXT-OSS', 'EXT-DVP', 'EXT-CC',
+    };
     return _employeeCollection.snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => Employee.fromMap(doc.data(), doc.id))
@@ -290,6 +293,161 @@ class FirebaseEmployeeService {
             'sopRolesAcknowledged': true,
           },
         },
+        {
+          'id': 'EXT-VPE',
+          'empNo': '',
+          'name': 'Aravinda Samy',
+          'email': 'aravindasamy@mnj.com',
+          'role': 'Chief Photographer, Videographer & Content Video Editor (VPE)',
+          'roleType': 'external_support',
+          'dept': 'External Support Staff [Online]',
+          'phone': '+91 94420 11010',
+          'password': 'aravind@mnj123',
+          'experienceYears': '7 yrs in Videography & Commercial Direction',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'AS',
+          'lastActive': 'Active now',
+          'dob': '1992-06-18',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'EXT-AC',
+          'empNo': '',
+          'name': 'Midhun Kumar',
+          'email': 'midhunkumar@mnj.com',
+          'role': 'Online Analytical Consultant (AC)',
+          'roleType': 'external_support',
+          'dept': 'External Support Staff [Online]',
+          'phone': '+91 94420 11011',
+          'password': 'midhun@mnj123',
+          'experienceYears': '6 yrs in Performance Ads & Analytics',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'MK',
+          'lastActive': 'Active now',
+          'dob': '1994-03-22',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'EXT-OSS',
+          'empNo': '',
+          'name': 'Subash',
+          'email': 'subash@mnj.com',
+          'role': 'Online Support and Strategist (OSS)',
+          'roleType': 'external_support',
+          'dept': 'External Support Staff [Online]',
+          'phone': '+91 94420 11012',
+          'password': 'subash@mnj123',
+          'experienceYears': '5 yrs in Campaign Strategy',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'SB',
+          'lastActive': 'Active now',
+          'dob': '1995-11-09',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'EXT-DVP',
+          'empNo': '',
+          'name': 'K B Eshwar',
+          'email': 'kbeshwar@mnj.com',
+          'role': 'Developer (DVP)',
+          'roleType': 'external_support',
+          'dept': 'External Support Staff [Online]',
+          'phone': '+91 94420 11013',
+          'password': 'eshwar@mnj123',
+          'experienceYears': '6 yrs in Web & Mobile Engineering',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'KE',
+          'lastActive': 'Active now',
+          'dob': '1993-09-30',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
+        {
+          'id': 'EXT-CC',
+          'empNo': '',
+          'name': 'Sam Roy',
+          'email': 'samroy@mnj.com',
+          'role': 'Content Creator (CC)',
+          'roleType': 'external_support',
+          'dept': 'External Support Staff [Online]',
+          'phone': '+91 94420 11014',
+          'password': 'sam@mnj123',
+          'experienceYears': '4 yrs in Content Creation & Creative Scripting',
+          'experienceCategory': 'experienced',
+          'probationWeeks': 0,
+          'probationStatus': 'cleared',
+          'probationEndDate': 'Completed',
+          'status': 'active',
+          'ragStatus': 'green',
+          'initials': 'SR',
+          'lastActive': 'Active now',
+          'dob': '1998-04-14',
+          'relationshipStatus': 'Single',
+          'anniversaryDate': '',
+          'profileCompletion': {
+            'percentage': 100,
+            'isAuthorized': true,
+            'photoVerified': true,
+            'addressVerified': true,
+            'kycVerified': true,
+            'sopRolesAcknowledged': true,
+          },
+        },
       ];
 
       for (final acc in accounts) {
@@ -427,7 +585,10 @@ class FirebaseEmployeeService {
       // Actively purge all obsolete mock employees from Cloud Firestore
       try {
         final allDocs = await _employeeCollection.get();
-        const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
+        const validIds = {
+          'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67',
+          'EXT-VPE', 'EXT-AC', 'EXT-OSS', 'EXT-DVP', 'EXT-CC',
+        };
         for (final doc in allDocs.docs) {
           final id = doc.id;
           final d = doc.data();
@@ -471,7 +632,10 @@ class FirebaseEmployeeService {
       // Actively purge all obsolete mock employees from Cloud Firestore
       try {
         final allDocs = await _employeeCollection.get();
-        const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
+        const validIds = {
+          'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67',
+          'EXT-VPE', 'EXT-AC', 'EXT-OSS', 'EXT-DVP', 'EXT-CC',
+        };
         for (final doc in allDocs.docs) {
           final id = doc.id;
           final d = doc.data();

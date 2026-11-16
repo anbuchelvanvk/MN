@@ -234,8 +234,10 @@ void main() {
       expect(nisha.empNo, equals('67'));
       expect(nisha.displayEmpId, equals('67'));
 
-      // Active employees count is strictly 7 (Naveenraaj, Mohankumar, Praveenkumar, Gokulakrishnan, Mithra, Kaaviya, Nisha)
-      expect(eco.employees.length, equals(7));
+      // In-house corporate staff count is strictly 7 (Naveenraaj, Mohankumar, Praveenkumar, Gokulakrishnan, Mithra, Kaaviya, Nisha)
+      // Plus 5 External Support Staff [Online] (Aravinda Samy, Midhun Kumar, Subash, K B Eshwar, Sam Roy)
+      expect(eco.employees.where((e) => !e.isExternalSupport).length, equals(7));
+      expect(eco.employees.length, equals(12));
     });
 
     test('Total permission quota is 4.0 Hours in EcosystemProvider', () {

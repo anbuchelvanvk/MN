@@ -111,15 +111,15 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             if (_selectedRingIndex == 0) ...[
               if (employee.isCeo)
                 _buildCeoStaffAttendanceSection(context, provider)
-              else if (employee.isOtm)
-                _buildOtmExemptSection('Attendance')
+              else if (employee.isOtm || employee.isExternalSupport)
+                _buildOtmExemptSection('Attendance', employee)
               else
                 _buildMonthlyAttendanceSection(context, provider),
             ] else if (_selectedRingIndex == 1) ...[
               if (employee.isCeo)
                 _buildCeoStaffVaultCustodySection(context, provider)
-              else if (employee.isOtm)
-                _buildOtmExemptSection('Document Verification & Safe Vault Custody')
+              else if (employee.isOtm || employee.isExternalSupport)
+                _buildOtmExemptSection('Document Verification & Safe Vault Custody', employee)
               else ...[
                 // Inside here: Document Submission (Original Document Custody)
                 _buildVaultMetricsBar(provider),
@@ -140,8 +140,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   ),
               ],
             ] else if (_selectedRingIndex == 2) ...[
-              if (employee.isCeo || employee.isOtm)
-                _buildOtmExemptSection('Daily Retail Showroom Grooming & Attire')
+              if (employee.isCeo || employee.isOtm || employee.isExternalSupport)
+                _buildOtmExemptSection('Daily Retail Showroom Grooming & Attire', employee)
               else
                 _buildGroomingSection(context, provider),
             ],
@@ -4003,7 +4003,13 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   }
 
 
-  Widget _buildOtmExemptSection(String subsystemName) {
+  Widget _buildOtmExemptSection(String subsystemName, [dynamic employee]) {
+    final isExt = employee != null && (employee.isExternalSupport == true || employee.dept == 'External Support Staff [Online]');
+    final header = isExt ? 'EXTERNAL SUPPORT STAFF [ONLINE]' : 'ONLINE TEAM MANAGER (OTM)';
+    final desc = isExt
+        ? 'Exempt from retail showroom $subsystemName. Off-site contractor managed via Konar deliverables & tasks.'
+        : 'Exempt from $subsystemName.';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -4023,17 +4029,18 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'ONLINE TEAM MANAGER (OTM)',
+            header,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13.5,
               fontWeight: FontWeight.bold,
               color: AppColors.sandLight,
               letterSpacing: 0.6,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
           Text(
-            'Exempt from $subsystemName.',
+            desc,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -4041,21 +4048,23 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 14),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TlTeamAttendanceScreen()),
+          if (!isExt) ...[
+            const SizedBox(height: 14),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TlTeamAttendanceScreen()),
+              ),
+              icon: const Icon(Icons.people_alt, size: 15),
+              label: const Text('View Online Team Attendance'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.magentaPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
             ),
-            icon: const Icon(Icons.people_alt, size: 15),
-            label: const Text('View Online Team Attendance'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.magentaPrimary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-          ),
+          ],
         ],
       ),
     );

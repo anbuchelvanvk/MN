@@ -7,7 +7,7 @@ import 'logout_confirm_dialog.dart';
 import '../../views/auth/pillars_popup_dialog.dart';
 import '../../views/auth/login_screen.dart';
 import '../../providers/ecosystem_provider.dart';
-import '../../views/employee/employee_profile_screen.dart';
+import '../../views/pillars/profile_pillar_screen.dart';
 
 class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String roleName;
@@ -98,7 +98,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                           : () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                                MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
                               );
                             },
                       child: Row(
@@ -389,7 +389,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                           Navigator.pop(ctx);
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                            MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
                           );
                         },
                         borderRadius: BorderRadius.circular(10),

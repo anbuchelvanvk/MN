@@ -423,8 +423,8 @@ class EcosystemProvider extends ChangeNotifier {
         e.id != emp.id).toList();
     if (deptLeads.isNotEmpty) return deptLeads.first;
 
-    // 2. If employee belongs to Online Team or E-Commerce, Praveenkumar M is designated lead
-    if (empDept.contains('online') || empDept.contains('e-commerce')) {
+    // 2. If employee belongs to Online Team, E-Commerce, or External Support Staff, Praveenkumar M is designated lead
+    if (empDept.contains('online') || empDept.contains('e-commerce') || empDept.contains('external')) {
       final otm = _employees.where((e) => e.id == 'MN-TL1002').toList();
       if (otm.isNotEmpty) return otm.first;
     }
@@ -2218,7 +2218,10 @@ class EcosystemProvider extends ChangeNotifier {
       _employeeSubscription = _firebaseEmployeeService.streamEmployees().listen(
         (remoteEmployees) {
           if (remoteEmployees.isNotEmpty) {
-            const validIds = {'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67'};
+            const validIds = {
+              'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67',
+              'EXT-VPE', 'EXT-AC', 'EXT-OSS', 'EXT-DVP', 'EXT-CC',
+            };
             final updatedList = List<Employee>.from(_employees);
             for (final remote in remoteEmployees) {
               final cleanRemote = (remote.id == 'MN-CEO01' || remote.roleType == 'ceo' || remote.name.toLowerCase().contains('executive ceo'))
@@ -2631,6 +2634,186 @@ class EcosystemProvider extends ChangeNotifier {
         relationshipStatus: 'Single',
         anniversaryDate: '',
         password: 'nisha@mnj123',
+      ),
+
+      // 8. VPE - Video Production Executive / Lead Videographer & Editor
+      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      Employee(
+        id: 'EXT-VPE',
+        empNo: '',
+        name: 'Aravinda Samy',
+        role: 'Chief Photographer, Videographer & Content Video Editor (VPE)',
+        roleType: 'external_support',
+        dept: 'External Support Staff [Online]',
+        phone: '+91 94420 11010',
+        email: 'aravindasamy@mnj.com',
+        avatar: '',
+        initials: 'AS',
+        doj: '2022-03-01',
+        experienceYears: '7 yrs in Videography & Direction',
+        experienceCategory: 'experienced',
+        probationWeeks: 0,
+        probationStatus: 'cleared',
+        probationEndDate: 'Completed',
+        profileCompletion: ProfileCompletion(
+          percentage: 100,
+          isAuthorized: true,
+          photoVerified: true,
+          addressVerified: true,
+          kycVerified: true,
+          sopRolesAcknowledged: true,
+        ),
+        status: 'active',
+        ragStatus: 'green',
+        lastActive: 'Active now',
+        dob: '1992-06-18',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
+        password: 'aravind@mnj123',
+      ),
+
+      // 9. AC - Online Analytical Consultant
+      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      Employee(
+        id: 'EXT-AC',
+        empNo: '',
+        name: 'Midhun Kumar',
+        role: 'Online Analytical Consultant (AC)',
+        roleType: 'external_support',
+        dept: 'External Support Staff [Online]',
+        phone: '+91 94420 11011',
+        email: 'midhunkumar@mnj.com',
+        avatar: '',
+        initials: 'MK',
+        doj: '2022-05-15',
+        experienceYears: '6 yrs in Ads & Search Analytics',
+        experienceCategory: 'experienced',
+        probationWeeks: 0,
+        probationStatus: 'cleared',
+        probationEndDate: 'Completed',
+        profileCompletion: ProfileCompletion(
+          percentage: 100,
+          isAuthorized: true,
+          photoVerified: true,
+          addressVerified: true,
+          kycVerified: true,
+          sopRolesAcknowledged: true,
+        ),
+        status: 'active',
+        ragStatus: 'green',
+        lastActive: 'Active now',
+        dob: '1994-03-22',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
+        password: 'midhun@mnj123',
+      ),
+
+      // 10. OSS - Online Support and Strategist
+      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      Employee(
+        id: 'EXT-OSS',
+        empNo: '',
+        name: 'Subash',
+        role: 'Online Support and Strategist (OSS)',
+        roleType: 'external_support',
+        dept: 'External Support Staff [Online]',
+        phone: '+91 94420 11012',
+        email: 'subash@mnj.com',
+        avatar: '',
+        initials: 'SB',
+        doj: '2022-07-01',
+        experienceYears: '5 yrs in Campaign Strategy',
+        experienceCategory: 'experienced',
+        probationWeeks: 0,
+        probationStatus: 'cleared',
+        probationEndDate: 'Completed',
+        profileCompletion: ProfileCompletion(
+          percentage: 100,
+          isAuthorized: true,
+          photoVerified: true,
+          addressVerified: true,
+          kycVerified: true,
+          sopRolesAcknowledged: true,
+        ),
+        status: 'active',
+        ragStatus: 'green',
+        lastActive: 'Active now',
+        dob: '1995-11-09',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
+        password: 'subash@mnj123',
+      ),
+
+      // 11. DVP - Developer
+      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      Employee(
+        id: 'EXT-DVP',
+        empNo: '',
+        name: 'K B Eshwar',
+        role: 'Developer (DVP)',
+        roleType: 'external_support',
+        dept: 'External Support Staff [Online]',
+        phone: '+91 94420 11013',
+        email: 'kbeshwar@mnj.com',
+        avatar: '',
+        initials: 'KE',
+        doj: '2022-02-10',
+        experienceYears: '6 yrs in Web & Mobile Engineering',
+        experienceCategory: 'experienced',
+        probationWeeks: 0,
+        probationStatus: 'cleared',
+        probationEndDate: 'Completed',
+        profileCompletion: ProfileCompletion(
+          percentage: 100,
+          isAuthorized: true,
+          photoVerified: true,
+          addressVerified: true,
+          kycVerified: true,
+          sopRolesAcknowledged: true,
+        ),
+        status: 'active',
+        ragStatus: 'green',
+        lastActive: 'Active now',
+        dob: '1993-09-30',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
+        password: 'eshwar@mnj123',
+      ),
+
+      // 12. CC - Content Creator
+      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      Employee(
+        id: 'EXT-CC',
+        empNo: '',
+        name: 'Sam Roy',
+        role: 'Content Creator (CC)',
+        roleType: 'external_support',
+        dept: 'External Support Staff [Online]',
+        phone: '+91 94420 11014',
+        email: 'samroy@mnj.com',
+        avatar: '',
+        initials: 'SR',
+        doj: '2022-08-15',
+        experienceYears: '4 yrs in Scripting & Content Creation',
+        experienceCategory: 'experienced',
+        probationWeeks: 0,
+        probationStatus: 'cleared',
+        probationEndDate: 'Completed',
+        profileCompletion: ProfileCompletion(
+          percentage: 100,
+          isAuthorized: true,
+          photoVerified: true,
+          addressVerified: true,
+          kycVerified: true,
+          sopRolesAcknowledged: true,
+        ),
+        status: 'active',
+        ragStatus: 'green',
+        lastActive: 'Active now',
+        dob: '1998-04-14',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
+        password: 'sam@mnj123',
       ),
     ];
 
@@ -3594,6 +3777,31 @@ class EcosystemProvider extends ChangeNotifier {
       'nishaos2@mnj.com': (roleType: 'employee', empId: '67', defaultEmail: 'nishaos2@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
       'nisha@mnj.com': (roleType: 'employee', empId: '67', defaultEmail: 'nishaos2@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
       'mn-1008': (roleType: 'employee', empId: '67', defaultEmail: 'nishaos2@mnj.com', validPasswords: ['nisha@mnj123', 'mnj12345']),
+
+      // 8. VPE Aravinda Samy (External Support Staff [Online])
+      'ext-vpe': (roleType: 'employee', empId: 'EXT-VPE', defaultEmail: 'aravindasamy@mnj.com', validPasswords: ['aravind@mnj123', 'mnj12345']),
+      'aravindasamy@mnj.com': (roleType: 'employee', empId: 'EXT-VPE', defaultEmail: 'aravindasamy@mnj.com', validPasswords: ['aravind@mnj123', 'mnj12345']),
+      'vpe': (roleType: 'employee', empId: 'EXT-VPE', defaultEmail: 'aravindasamy@mnj.com', validPasswords: ['aravind@mnj123', 'mnj12345']),
+
+      // 9. AC Midhun Kumar (External Support Staff [Online])
+      'ext-ac': (roleType: 'employee', empId: 'EXT-AC', defaultEmail: 'midhunkumar@mnj.com', validPasswords: ['midhun@mnj123', 'mnj12345']),
+      'midhunkumar@mnj.com': (roleType: 'employee', empId: 'EXT-AC', defaultEmail: 'midhunkumar@mnj.com', validPasswords: ['midhun@mnj123', 'mnj12345']),
+      'ac': (roleType: 'employee', empId: 'EXT-AC', defaultEmail: 'midhunkumar@mnj.com', validPasswords: ['midhun@mnj123', 'mnj12345']),
+
+      // 10. OSS Subash (External Support Staff [Online])
+      'ext-oss': (roleType: 'employee', empId: 'EXT-OSS', defaultEmail: 'subash@mnj.com', validPasswords: ['subash@mnj123', 'mnj12345']),
+      'subash@mnj.com': (roleType: 'employee', empId: 'EXT-OSS', defaultEmail: 'subash@mnj.com', validPasswords: ['subash@mnj123', 'mnj12345']),
+      'oss': (roleType: 'employee', empId: 'EXT-OSS', defaultEmail: 'subash@mnj.com', validPasswords: ['subash@mnj123', 'mnj12345']),
+
+      // 11. DVP K B Eshwar (External Support Staff [Online])
+      'ext-dvp': (roleType: 'employee', empId: 'EXT-DVP', defaultEmail: 'kbeshwar@mnj.com', validPasswords: ['eshwar@mnj123', 'mnj12345']),
+      'kbeshwar@mnj.com': (roleType: 'employee', empId: 'EXT-DVP', defaultEmail: 'kbeshwar@mnj.com', validPasswords: ['eshwar@mnj123', 'mnj12345']),
+      'dvp': (roleType: 'employee', empId: 'EXT-DVP', defaultEmail: 'kbeshwar@mnj.com', validPasswords: ['eshwar@mnj123', 'mnj12345']),
+
+      // 12. CC Sam Roy (External Support Staff [Online])
+      'ext-cc': (roleType: 'employee', empId: 'EXT-CC', defaultEmail: 'samroy@mnj.com', validPasswords: ['sam@mnj123', 'mnj12345']),
+      'samroy@mnj.com': (roleType: 'employee', empId: 'EXT-CC', defaultEmail: 'samroy@mnj.com', validPasswords: ['sam@mnj123', 'mnj12345']),
+      'cc': (roleType: 'employee', empId: 'EXT-CC', defaultEmail: 'samroy@mnj.com', validPasswords: ['sam@mnj123', 'mnj12345']),
     };
 
     if (corporateRegistry.containsKey(cleanEmail)) {

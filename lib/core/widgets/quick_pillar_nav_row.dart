@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
-import 'package:mn_family_app/views/employee/employee_profile_screen.dart';
+import 'package:mn_family_app/views/pillars/profile_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/health_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/family_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/attendance_pillar_screen.dart';
@@ -55,22 +55,35 @@ class QuickPillarNavRow extends StatelessWidget {
         const SizedBox(width: 6),
         Expanded(
           child: _PillarItem(
-            title: showAttendance ? 'Attendance' : 'Profile',
-            icon: showAttendance ? Icons.fingerprint_rounded : Icons.person_rounded,
+            title: 'Profile',
+            icon: Icons.person_rounded,
             primaryColor: const Color(0xFFD97706),
             bgColor: const Color(0xFFFFFBEB),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => showAttendance
-                      ? const AttendancePillarScreen()
-                      : const EmployeeProfileScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
               );
             },
           ),
         ),
+        if (showAttendance) ...[
+          const SizedBox(width: 6),
+          Expanded(
+            child: _PillarItem(
+              title: 'Attendance',
+              icon: Icons.fingerprint_rounded,
+              primaryColor: const Color(0xFF0284C7),
+              bgColor: const Color(0xFFF0F9FF),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
+                );
+              },
+            ),
+          ),
+        ],
         const SizedBox(width: 6),
         Expanded(
           child: _PillarItem(

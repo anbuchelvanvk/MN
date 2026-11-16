@@ -207,18 +207,28 @@ class Employee {
       id.toUpperCase() == 'MN-TL1002' ||
       email.toLowerCase().contains('praveenkumar');
 
-  /// Regular staff require attendance and grooming; CEO and OTM are completely exempt.
+  /// External Support Staff [Online] are hired by MN Jewel Park to work from outside of the company.
+  /// They have certain tasks/milestones based on Konar Book, but NO attendance or grooming requirements.
+  bool get isExternalSupport =>
+      dept == 'External Support Staff [Online]' ||
+      roleType.toLowerCase() == 'external_support' ||
+      roleType.toLowerCase() == 'external' ||
+      id.toUpperCase().startsWith('EXT-');
+
+  /// Regular staff require attendance and grooming; CEO, OTM, and External Support Staff are completely exempt.
   bool get hasAttendanceAndGrooming =>
       !isOtm &&
+      !isExternalSupport &&
       roleType.toLowerCase() != 'ceo' &&
       id.toUpperCase() != 'MN-CEO01' &&
       id.toUpperCase() != 'MN-TL1002';
 
-  /// Clean display ID: Shows employee number for roster staff, MN-CEO01 for CEO, MN-TL1002 for OTM
+  /// Clean display ID: Shows employee number for roster staff, MN-CEO01 for CEO, MN-TL1002 for OTM, EXT-* for external support
   String get displayEmpId {
     if (empNo.isNotEmpty) return empNo;
     if (roleType.toLowerCase() == 'ceo' || id.toUpperCase() == 'MN-CEO01') return 'MN-CEO01';
     if (isOtm) return 'MN-TL1002';
+    if (isExternalSupport) return id;
     return id;
   }
 
@@ -246,6 +256,14 @@ class Employee {
     if (rt == 'team_lead' || rt == 'dept_head' || id == 'MN-TL1002' || r.contains('lead') || r.contains('manager')) {
       return 'Team Lead';
     }
+    if (isExternalSupport) {
+      if (r.contains('vpe') || r.contains('videographer')) return 'VPE';
+      if (r.contains('ac') || r.contains('analytical')) return 'AC';
+      if (r.contains('oss') || r.contains('strategist')) return 'OSS';
+      if (r.contains('dvp') || r.contains('developer')) return 'DVP';
+      if (r.contains('cc') || r.contains('content creator')) return 'CC';
+      return 'External Support';
+    }
     return role;
   }
 
@@ -256,6 +274,14 @@ class Employee {
     if (rt == 'ceo' || id == 'MN-CEO01' || r.contains('ceo')) return 'Managing Director & CEO';
     if (rt == 'hr' || id == '7' || id == 'MN-HR1001' || r.contains('hr')) return 'HR Manager';
     if (rt == 'team_lead' || rt == 'dept_head' || id == 'MN-TL1002' || r.contains('lead')) return 'Team Lead';
+    if (isExternalSupport) {
+      if (r.contains('vpe') || r.contains('videographer')) return 'Lead Videographer & Editor (VPE)';
+      if (r.contains('ac') || r.contains('analytical')) return 'Online Analytical Consultant (AC)';
+      if (r.contains('oss') || r.contains('strategist')) return 'Online Support & Strategist (OSS)';
+      if (r.contains('dvp') || r.contains('developer')) return 'Developer (DVP)';
+      if (r.contains('cc') || r.contains('content creator')) return 'Content Creator (CC)';
+      return 'External Support Staff [Online]';
+    }
     return role;
   }
 
@@ -368,6 +394,11 @@ class Employee {
     '33': 'mithra@mnj123',
     '65': 'kaaviya@mnj123',
     '67': 'nisha@mnj123',
+    'EXT-VPE': 'aravind@mnj123',
+    'EXT-AC': 'midhun@mnj123',
+    'EXT-OSS': 'subash@mnj123',
+    'EXT-DVP': 'eshwar@mnj123',
+    'EXT-CC': 'sam@mnj123',
   };
 
   factory Employee.fromMap(Map<String, dynamic> map, [String? docId]) {

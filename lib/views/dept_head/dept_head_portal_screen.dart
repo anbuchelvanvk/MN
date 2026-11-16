@@ -10,7 +10,7 @@ import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/role_app_bar.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
-import '../employee/employee_profile_screen.dart';
+import '../pillars/profile_pillar_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import 'dept_head_subpages.dart';
 import 'monthly_scorecard_screen.dart';
@@ -71,7 +71,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                  MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
                 );
               },
               borderRadius: BorderRadius.circular(18),
