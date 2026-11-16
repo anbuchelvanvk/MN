@@ -190,57 +190,16 @@ class EcosystemProvider extends ChangeNotifier {
   List<OriginalDocumentItem> get originalDocuments => _originalDocuments;
   final Map<String, List<OriginalDocumentItem>> _employeeDocuments = {};
 
-  static List<OriginalDocumentItem> standardDefaultDocs(String empId) {
-    return [
-      OriginalDocumentItem(
-        id: 'doc-$empId-001',
-        title: 'Aadhaar Card (UIDAI Verified)',
-        category: 'Identity Proof',
-        certificateNumber: 'XXXX-XXXX-8921',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '1 Nov 2026',
-        vaultLockerRef: 'Safe Vault Locker #A-01',
-        isMandatory: true,
-        iconEmoji: '🪪',
-      ),
-      OriginalDocumentItem(
-        id: 'doc-$empId-002',
-        title: 'Permanent Account Number (PAN)',
-        category: 'Statutory Proof',
-        certificateNumber: 'ABCDE1234F',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '1 Nov 2026',
-        vaultLockerRef: 'Safe Vault Locker #A-02',
-        isMandatory: true,
-        iconEmoji: '💳',
-      ),
-      OriginalDocumentItem(
-        id: 'doc-$empId-003',
-        title: 'Degree & Educational Certificates',
-        category: 'Educational Proof',
-        certificateNumber: 'UNI-2018-9921',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '1 Nov 2026',
-        vaultLockerRef: 'Safe Vault Locker #A-03',
-        isMandatory: true,
-        iconEmoji: '🎓',
-      ),
-    ];
-  }
+  static List<OriginalDocumentItem> standardDefaultDocs(String empId) => const [];
 
   List<OriginalDocumentItem> getEmployeeDocuments(String empId) {
-    if (_employeeDocuments.containsKey(empId) && _employeeDocuments[empId]!.isNotEmpty) {
+    if (_employeeDocuments.containsKey(empId)) {
       return _employeeDocuments[empId]!;
     }
     if (empId == _activeEmpId && _originalDocuments.isNotEmpty) {
       return _originalDocuments;
     }
-    final defaults = standardDefaultDocs(empId);
-    _employeeDocuments[empId] = defaults;
-    if (empId == _activeEmpId) {
-      _originalDocuments = defaults;
-    }
-    return defaults;
+    return [];
   }
 
   Future<List<OriginalDocumentItem>> loadEmployeeDocuments(String empId) async {
@@ -261,13 +220,30 @@ class EcosystemProvider extends ChangeNotifier {
         return list;
       }
     } catch (_) {}
-    final defaults = standardDefaultDocs(empId);
-    _employeeDocuments[empId] = defaults;
-    if (empId == _activeEmpId && _originalDocuments.isEmpty) {
-      _originalDocuments = defaults;
-    }
-    return defaults;
+    return _employeeDocuments[empId] ?? [];
   }
+
+  int get allStaffDocsCount {
+    int count = 0;
+    for (final e in _employees) {
+      if (e.hasAttendanceAndGrooming && e.roleType != 'ceo') {
+        count += getEmployeeDocuments(e.id).length;
+      }
+    }
+    return count;
+  }
+
+  int get allStaffSubmittedCount {
+    int count = 0;
+    for (final e in _employees) {
+      if (e.hasAttendanceAndGrooming && e.roleType != 'ceo') {
+        count += getEmployeeDocuments(e.id).where((d) => d.status == DocumentSubmissionStatus.submitted).length;
+      }
+    }
+    return count;
+  }
+
+  int get allStaffPendingCount => allStaffDocsCount - allStaffSubmittedCount;
 
   int get totalOriginalsCount => _originalDocuments.length;
   int get submittedOriginalsCount => _originalDocuments.where((d) => d.status == DocumentSubmissionStatus.submitted).length;
@@ -1676,6 +1652,10 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   int get pillar3ProfileScore {
+    if (!currentEmployee.hasAttendanceAndGrooming) {
+      return 100; // CEO and OTM leadership governance standing
+    }
+
     double total = 0.0;
     // 1. Documents (40% of Pillar 3)
     final docRatio = _originalDocuments.isEmpty ? 0.0 : documentsSubmissionRatio;
@@ -1693,19 +1673,10 @@ class EcosystemProvider extends ChangeNotifier {
       total += (permRatio * 20.0 + clPenalty * 10.0);
     }
 
-    // 3. Grooming & Role Target (30% of Pillar 3) - OTM & CEO exempt from grooming
-    if (!currentEmployee.hasAttendanceAndGrooming) {
-      total += 30.0; // Executive standing
-    } else {
-      final gScore = (groomingPercentage / 100.0).clamp(0.0, 1.0);
-      total += gScore * 15.0;
-      final isShowroomSales = currentEmployee.dept.toLowerCase().contains('showroom') || currentEmployee.role.toLowerCase().contains('showroom');
-      if (isShowroomSales) {
-        total += (salesAchievementPercentage / 100.0).clamp(0.0, 1.0) * 15.0;
-      } else {
-        total += 15.0; // Non-showroom deliverables / online operations met
-      }
-    }
+    // 3. Grooming & Attire (30% of Pillar 3)
+    final gScore = (groomingPercentage / 100.0).clamp(0.0, 1.0);
+    total += gScore * 30.0;
+
     return total.round().clamp(0, 100);
   }
 
@@ -1922,42 +1893,6 @@ class EcosystemProvider extends ChangeNotifier {
           icon: Icons.content_cut,
         ));
       }
-    }
-
-    // Pillar 3: Sales Target (Role-Aware: only showroom floor executives evaluated against ₹25L target)
-    final isShowroomSales = currentEmployee.dept.toLowerCase().contains('showroom') || currentEmployee.role.toLowerCase().contains('showroom');
-    if (isShowroomSales) {
-      if (salesAchievementPercentage >= 75.0) {
-        lags.add(PillarLagItem(
-          pillarTitle: 'Pillar 3: Sales Target',
-          status: 'Good (${salesAchievementPercentage.toStringAsFixed(1)}%)',
-          description: 'Completed ₹${(totalSalesAchieved / 100000).toStringAsFixed(2)}L out of ₹${(_monthlySalesTarget / 100000).toStringAsFixed(0)}L target.',
-          improvementAction: 'On track to meet and exceed monthly sales goal.',
-          isCompromised: false,
-          indicatorColor: const Color(0xFF10B981),
-          icon: Icons.monetization_on_outlined,
-        ));
-      } else {
-        lags.add(PillarLagItem(
-          pillarTitle: 'Pillar 3: Sales Target',
-          status: 'Behind Target (${salesAchievementPercentage.toStringAsFixed(1)}%)',
-          description: 'Current sales are below 75% of monthly ₹25L target.',
-          improvementAction: 'Follow up with showroom visitors and upcoming customer orders.',
-          isCompromised: true,
-          indicatorColor: const Color(0xFFF59E0B),
-          icon: Icons.trending_down,
-        ));
-      }
-    } else {
-      lags.add(PillarLagItem(
-        pillarTitle: 'Pillar 3: Role Objectives',
-        status: 'On Track (100% • Green)',
-        description: '${currentEmployee.role}: Non-sales designation. Key departmental deliverables on track.',
-        improvementAction: 'Maintain excellence in operational responsibilities.',
-        isCompromised: false,
-        indicatorColor: const Color(0xFF10B981),
-        icon: Icons.verified_outlined,
-      ));
     }
 
     // Pillar 3: Permissions & Leaves (4.0 Hours max limit + 1 CL)
@@ -4020,9 +3955,9 @@ class EcosystemProvider extends ChangeNotifier {
             _originalDocuments = loadedDocs;
           }
         } else {
-          final defDocs = getEmployeeDocuments(empId);
-          if (empId == _activeEmpId && _originalDocuments.isEmpty) {
-            _originalDocuments = defDocs;
+          _employeeDocuments.putIfAbsent(empId, () => []);
+          if (empId == _activeEmpId) {
+            _originalDocuments = _employeeDocuments[empId]!;
           }
         }
 

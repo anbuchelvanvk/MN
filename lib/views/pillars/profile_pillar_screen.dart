@@ -142,18 +142,17 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   ),
               ],
             ] else if (_selectedRingIndex == 2) ...[
-              _buildGroomingSection(context, provider),
+              if (employee.isCeo || employee.isOtm)
+                _buildOtmExemptSection('Daily Retail Showroom Grooming & Attire')
+              else
+                _buildGroomingSection(context, provider),
             ] else if (_selectedRingIndex == 3) ...[
-              _buildSalesSection(context, provider),
-            ] else if (_selectedRingIndex == 4) ...[
               if (employee.isCeo)
                 _buildCeoStaffPermissionsSection(context, provider)
               else if (employee.isOtm)
                 _buildOtmExemptSection('Permissions & Leaves')
               else
                 _buildPermissionSection(context, provider),
-            ] else ...[
-              _buildEthicsConductSection(context, provider),
             ],
             const SizedBox(height: 20),
 
@@ -578,7 +577,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
-  // --- 6-RING SUBSYSTEM MATRIX ---
+  // --- 4-RING SUBSYSTEM MATRIX ---
 
   Widget _buildSixRingsMatrix(BuildContext context, EcosystemProvider provider) {
     return Container(
@@ -650,7 +649,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ),
           const SizedBox(height: 14),
 
-          // 2 Rows of 3 Rings
+          // 2 Rows of 2 Rings (Attendance, Documents, Grooming, Permissions & Leaves)
           Row(
             children: [
               Expanded(
@@ -680,21 +679,33 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   title: provider.currentEmployee.isCeo ? 'Staff Vault' : 'Documents',
                   displayValue: provider.currentEmployee.isOtm
                       ? 'N/A'
-                      : (provider.currentEmployee.isCeo ? '100%' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%'),
+                      : (provider.currentEmployee.isCeo
+                          ? (provider.allStaffDocsCount == 0 ? '0 Docs' : '${provider.allStaffSubmittedCount}/${provider.allStaffDocsCount}')
+                          : (provider.totalOriginalsCount == 0 ? '0 Docs' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%')),
                   subText: provider.currentEmployee.isOtm
                       ? 'Exempt (OTM)'
-                      : (provider.currentEmployee.isCeo ? '15 Lockers' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault'),
+                      : (provider.currentEmployee.isCeo
+                          ? (provider.allStaffDocsCount == 0 ? '0 Lockers' : '${provider.allStaffSubmittedCount} Lockers')
+                          : (provider.totalOriginalsCount == 0 ? '0 Uploaded' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault')),
                   progress: (provider.currentEmployee.isOtm || provider.currentEmployee.isCeo) ? 1.0 : provider.documentsSubmissionRatio,
                   ringColor: provider.currentEmployee.isOtm
                       ? AppColors.sandGold
-                      : (provider.currentEmployee.isCeo ? AppColors.ragGreen : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444)))),
+                      : (provider.currentEmployee.isCeo
+                          ? (provider.allStaffDocsCount == 0 ? const Color(0xFF94A3B8) : (provider.allStaffPendingCount == 0 ? AppColors.ragGreen : const Color(0xFFF59E0B)))
+                          : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444)))),
                   icon: Icons.lock_clock_outlined,
                   statusText: provider.currentEmployee.isOtm
                       ? 'Not Applicable'
-                      : (provider.currentEmployee.isCeo ? 'Custody Safe' : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending'))),
+                      : (provider.currentEmployee.isCeo
+                          ? (provider.allStaffDocsCount == 0 ? '0 Lockers' : (provider.allStaffPendingCount == 0 ? 'Custody Safe' : '${provider.allStaffPendingCount} Pending'))
+                          : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending'))),
                 ),
               ),
-              const SizedBox(width: 8),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
               Builder(
                 builder: (context) {
                   final emp = provider.currentEmployee;
@@ -736,31 +747,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   );
                 },
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildRingCard(
-                  index: 3,
-                  title: 'Sales Target',
-                  displayValue: '${provider.salesAchievementPercentage.toStringAsFixed(0)}%',
-                  subText: '₹${(provider.totalSalesAchieved / 100000).toStringAsFixed(1)}L / ₹25L',
-                  progress: (provider.salesAchievementPercentage / 100.0).clamp(0.0, 1.0),
-                  ringColor: provider.totalSalesAchieved <= 0
-                      ? const Color(0xFF94A3B8)
-                      : (provider.salesAchievementPercentage >= 85.0 ? AppColors.magentaPrimary : const Color(0xFFF59E0B)),
-                  icon: Icons.monetization_on_outlined,
-                  statusText: provider.totalSalesAchieved <= 0
-                      ? '₹0.0 Achieved'
-                      : '${provider.salesAchievementPercentage.toStringAsFixed(0)}% Target',
-                ),
-              ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildRingCard(
-                  index: 4,
+                  index: 3,
                   title: provider.currentEmployee.isCeo ? 'Staff Leaves' : 'Permissions',
                   displayValue: provider.currentEmployee.isOtm
                       ? 'N/A'
@@ -776,19 +766,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   statusText: provider.currentEmployee.isOtm
                       ? 'Not Applicable'
                       : (provider.currentEmployee.isCeo ? 'Staff Ledger' : (provider.isPermissionExcessHalfDay ? 'Half Day' : '${provider.permissionHoursRemaining.toStringAsFixed(1)}h Left')),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildRingCard(
-                  index: 5,
-                  title: 'Ethics & Assay',
-                  displayValue: provider.conductScore > 0 ? '${provider.conductScore}' : '0.0',
-                  subText: provider.conductScore > 0 ? 'Zero Hallmark Lag' : 'No Audits',
-                  progress: provider.conductScore > 0 ? (provider.conductScore / 5.0).clamp(0.0, 1.0) : 0.0,
-                  ringColor: provider.conductScore > 0 ? AppColors.ragGreen : const Color(0xFF94A3B8),
-                  icon: Icons.verified_user_outlined,
-                  statusText: provider.conductScore > 0 ? '${provider.conductScore} / 5.0' : 'Need to be added',
                 ),
               ),
             ],
@@ -927,27 +904,24 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     if (employee.isOtm) {
       // Document verification, attendance, and permissions are NOT applicable to Praveenkumar (OTM)
       tabs = [
-        {'index': 2, 'label': '1. Grooming Cadence', 'icon': Icons.face_retouching_natural},
-        {'index': 3, 'label': '2. Online Catalog & Deliverables', 'icon': Icons.video_collection_outlined},
-        {'index': 5, 'label': '3. Ethics & Conduct', 'icon': Icons.verified_user_outlined},
+        {'index': 0, 'label': '1. Attendance (Exempt)', 'icon': Icons.fact_check_outlined},
+        {'index': 1, 'label': '2. Vault Custody (Exempt)', 'icon': Icons.lock_clock_outlined},
+        {'index': 2, 'label': '3. Grooming Cadence', 'icon': Icons.face_retouching_natural},
+        {'index': 3, 'label': '4. Permissions (Exempt)', 'icon': Icons.timer_outlined},
       ];
     } else if (employee.isCeo) {
       // CEO inspects others' inputs, submissions, and records
       tabs = [
         {'index': 0, 'label': '1. Staff Attendance Overview', 'icon': Icons.fact_check_outlined},
         {'index': 1, 'label': '2. Staff Document Vault Ledger', 'icon': Icons.lock_clock_outlined},
-        {'index': 4, 'label': '3. Staff Permissions & Leaves', 'icon': Icons.timer_outlined},
-        {'index': 3, 'label': '4. Showroom Sales & Revenue', 'icon': Icons.monetization_on_outlined},
-        {'index': 5, 'label': '5. Corporate Ethics & Hallmark', 'icon': Icons.verified_user_outlined},
+        {'index': 3, 'label': '3. Staff Permissions & Leaves', 'icon': Icons.timer_outlined},
       ];
     } else {
       tabs = [
         {'index': 0, 'label': '1. Calendar Attendance', 'icon': Icons.fact_check_outlined},
         {'index': 1, 'label': '2. Vault Custody', 'icon': Icons.lock_clock_outlined},
         {'index': 2, 'label': '3. Grooming & Attire', 'icon': Icons.face_retouching_natural},
-        {'index': 3, 'label': '4. Showroom Sales', 'icon': Icons.monetization_on_outlined},
-        {'index': 4, 'label': '5. Permission & Leave', 'icon': Icons.timer_outlined},
-        {'index': 5, 'label': '6. Ethics & Hallmark', 'icon': Icons.verified_user_outlined},
+        {'index': 3, 'label': '4. Permission & Leave', 'icon': Icons.timer_outlined},
       ];
     }
 
@@ -1782,360 +1756,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
-  // --- SUBSYSTEM 3: ACTUAL SALES PERFORMANCE ---
-
-  Widget _buildSalesSection(BuildContext context, EcosystemProvider provider) {
-    final achievedLakhs = (provider.totalSalesAchieved / 100000).toStringAsFixed(2);
-    final targetLakhs = (provider.monthlySalesTarget / 100000).toStringAsFixed(0);
-    final remainingLakhs = ((provider.monthlySalesTarget - provider.totalSalesAchieved).clamp(0, double.infinity) / 100000).toStringAsFixed(2);
-    final pct = (provider.salesAchievementPercentage * 100).toStringAsFixed(1);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Sales Target & Achieved Card
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'SALES TARGET',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandGold,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Sales Performance',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  LiquidGlassButton(
-                    label: 'Log Sale',
-                    icon: Icons.add,
-                    height: 32,
-                    onPressed: () => _openRecordSaleDialog(context, provider),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Progress bar
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: provider.salesAchievementPercentage.clamp(0.0, 1.0),
-                  minHeight: 9,
-                  backgroundColor: AppColors.burgundySurface,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.sandGold),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Target',
-                      value: '₹${targetLakhs}L',
-                      color: AppColors.sandLight,
-                      icon: Icons.flag_outlined,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Achieved',
-                      value: '₹${achievedLakhs}L',
-                      color: AppColors.sandGold,
-                      icon: Icons.monetization_on_outlined,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Target %',
-                      value: '$pct%',
-                      color: AppColors.ragGreen,
-                      icon: Icons.trending_up,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Remaining',
-                      value: '₹${remainingLakhs}L',
-                      color: AppColors.sandPrimary,
-                      icon: Icons.hourglass_bottom,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Sales Invoices Ledger
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.burgundySurface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'SHOWROOM TRANSACTIONS & BILLS LOG',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.sandLight,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              if (provider.salesRecords.isEmpty)
-                Text(
-                  'No sales transactions logged yet.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: provider.salesRecords.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (ctx, idx) {
-                    final sale = provider.salesRecords[idx];
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.burgundyCard,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.sandBorder),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: AppColors.burgundySurface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-                            ),
-                            child: const Center(
-                              child: Icon(Icons.diamond_outlined, size: 18, color: AppColors.sandGold),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      sale.itemCategory,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.sandLight,
-                                      ),
-                                    ),
-                                    Text(
-                                      '₹${(sale.amountInInr / 100000).toStringAsFixed(2)} Lakhs',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.sandGold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 3),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Bill #${sale.billNumber} • ${sale.customerName}',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10,
-                                        color: AppColors.textMuted,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${sale.weightGrams}g Gold/Diamond',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10,
-                                        color: AppColors.sandPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _openRecordSaleDialog(BuildContext context, EcosystemProvider provider) {
-    final billCtrl = TextEditingController(text: 'MN-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}');
-    final custCtrl = TextEditingController();
-    final weightCtrl = TextEditingController();
-    final amtCtrl = TextEditingController();
-    String category = '22K Antique Temple Choker';
-
-    final categories = [
-      '22K Antique Temple Choker',
-      'VVS Solitaire Bridal Ring',
-      '22K Temple Kasu Mala',
-      'Polki Kundan Bridal Set',
-      'Rose Gold Diamond Bangle',
-      'Traditional Navaratna Necklace',
-    ];
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlgState) => AlertDialog(
-          backgroundColor: AppColors.burgundyCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: AppColors.sandGold),
-          ),
-          title: Text(
-            'Record Showroom Customer Sale',
-            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _dialogTextField(controller: billCtrl, label: 'Invoice / Bill Number', hint: 'e.g. MN-2026-9041', icon: Icons.receipt),
-                const SizedBox(height: 10),
-                _dialogTextField(controller: custCtrl, label: 'Customer Name', hint: 'e.g. Smt. Rajeshwari K.', icon: Icons.person_outline),
-                const SizedBox(height: 10),
-                Text('Jewellery Category', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.burgundySurface,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.sandBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      dropdownColor: AppColors.burgundySurface,
-                      value: category,
-                      items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, color: AppColors.sandLight)))).toList(),
-                      onChanged: (val) {
-                        if (val != null) setDlgState(() => category = val);
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _dialogTextField(controller: weightCtrl, label: 'Gross Weight (Grams)', hint: 'e.g. 45.5', icon: Icons.scale),
-                const SizedBox(height: 10),
-                _dialogTextField(controller: amtCtrl, label: 'Total Invoice Amount (INR)', hint: 'e.g. 350000', icon: Icons.currency_rupee),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onPressed: () {
-                final amt = double.tryParse(amtCtrl.text.trim());
-                final weight = double.tryParse(weightCtrl.text.trim()) ?? 0.0;
-                final cust = custCtrl.text.trim().isEmpty ? 'Showroom Customer' : custCtrl.text.trim();
-                final bill = billCtrl.text.trim();
-
-                if (bill.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter an invoice or bill number')),
-                  );
-                  return;
-                }
-
-                if (amt == null || amt <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter a valid invoice amount greater than ₹0')),
-                  );
-                  return;
-                }
-
-                provider.addSalesRecord(
-                  empId: provider.currentEmployee.id,
-                  billNumber: bill,
-                  category: category,
-                  amount: amt,
-                  weightGrams: weight,
-                  customerName: cust,
-                );
-
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFF10B981),
-                    content: Text('Sale of ₹${(amt / 100000).toStringAsFixed(2)} Lakhs recorded!'),
-                  ),
-                );
-              },
-              child: Text('Log Sale', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: AppColors.burgundyBg)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // --- SUBSYSTEM 4: PERMISSION & LATE ARRIVALS ---
+  // --- SUBSYSTEM 3: PERMISSION & LATE ARRIVALS ---
 
   Widget _buildPermissionSection(BuildContext context, EcosystemProvider provider) {
     return Column(
@@ -2402,108 +2023,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
-  // --- SUBSYSTEM 5: ETHICS & CONDUCT ---
-
-  Widget _buildEthicsConductSection(BuildContext context, EcosystemProvider provider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ETHICS & ASSAY',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandGold,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Integrity Standards',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.ragGreen.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.ragGreen),
-                    ),
-                    child: Text(
-                      '${provider.conductScore} / 5.0',
-                      maxLines: 1,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.ragGreen,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Variance',
-                      value: '0.00%',
-                      color: AppColors.ragGreen,
-                      icon: Icons.verified,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Rating',
-                      value: '4.9 ★',
-                      color: AppColors.sandGold,
-                      icon: Icons.star,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Safe Key',
-                      value: 'Passed',
-                      color: AppColors.sandLight,
-                      icon: Icons.vpn_key_outlined,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildVaultMetricsBar(EcosystemProvider provider) {
     final total = provider.totalOriginalsCount;
     final submitted = provider.submittedOriginalsCount;
@@ -2539,22 +2058,30 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: pending == 0
-                      ? const Color(0xFF10B981).withOpacity(0.2)
-                      : const Color(0xFFEF4444).withOpacity(0.2),
+                  color: total == 0
+                      ? const Color(0xFF94A3B8).withOpacity(0.15)
+                      : (pending == 0
+                          ? const Color(0xFF10B981).withOpacity(0.2)
+                          : const Color(0xFFEF4444).withOpacity(0.2)),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: pending == 0
-                        ? const Color(0xFF10B981).withOpacity(0.5)
-                        : const Color(0xFFEF4444).withOpacity(0.5),
+                    color: total == 0
+                        ? const Color(0xFF94A3B8).withOpacity(0.4)
+                        : (pending == 0
+                            ? const Color(0xFF10B981).withOpacity(0.5)
+                            : const Color(0xFFEF4444).withOpacity(0.5)),
                   ),
                 ),
                 child: Text(
-                  pending == 0 ? '$compliancePct% SECURED' : '$pending ACTION REQUIRED',
+                  total == 0
+                      ? '0 DOCUMENTS'
+                      : (pending == 0 ? '$compliancePct% SECURED' : '$pending ACTION REQUIRED'),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: pending == 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                    color: total == 0
+                        ? const Color(0xFF94A3B8)
+                        : (pending == 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
                   ),
                 ),
               ),
@@ -4340,7 +3867,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Expanded(
                     child: _miniKpiBox(
                       label: 'SAFE LOCKERS',
-                      value: '${corporateStaff.length * 3} Lockers',
+                      value: totalCount == 0 ? '0 Lockers' : '$submittedCount Lockers',
                       color: AppColors.sandGold,
                     ),
                   ),
@@ -4348,7 +3875,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Expanded(
                     child: _miniKpiBox(
                       label: 'VERIFIED RATIO',
-                      value: totalCount > 0 ? '${((submittedCount / totalCount) * 100).toInt()}%' : '100%',
+                      value: totalCount > 0 ? '${((submittedCount / totalCount) * 100).toInt()}%' : '0%',
                       color: const Color(0xFF10B981),
                     ),
                   ),
@@ -4365,7 +3892,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           child: Row(
             children: [
               _staffFilterChip(
-                label: 'All Staff (${allStaffDocs.length})',
+                label: 'All Staff (${corporateStaff.length})',
                 isSelected: _ceoSelectedStaffId == 'all',
                 onTap: () => setState(() => _ceoSelectedStaffId = 'all'),
               ),
@@ -4390,7 +3917,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           physics: const BouncingScrollPhysics(),
           child: Row(
             children: [
-              _statusFilterChip('All (${allStaffDocs.length})', 'All'),
+              _statusFilterChip('All ($totalCount)', 'All'),
               const SizedBox(width: 8),
               _statusFilterChip('Submitted ($submittedCount)', 'Submitted'),
               const SizedBox(width: 8),
@@ -4401,7 +3928,35 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         const SizedBox(height: 12),
 
         if (filtered.isEmpty)
-          _buildEmptyState()
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.folder_off_outlined, color: AppColors.magentaPrimary, size: 36),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No documents found in safe vault',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Staff documents will appear here once submitted and verified.',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          )
         else
           ListView.separated(
             shrinkWrap: true,

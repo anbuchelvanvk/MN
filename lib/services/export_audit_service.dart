@@ -185,9 +185,9 @@ class ExportAuditService {
           ? '${eco.totalFamilyHoursToday.toStringAsFixed(1)} hrs Family, ${eco.totalFriendsHoursToday.toStringAsFixed(1)} hrs Social'
           : '1.5 hrs Family Quality Time Logged';
 
-      // Pillar 3: Profile & KYC 6-Rings
+      // Pillar 3: Profile & KYC Rings
       final p3 = isSelf
-          ? '${(eco.documentsSubmissionRatio * 100).toStringAsFixed(0)}% Docs, ${eco.groomingScore}% Grooming, ${eco.salesAchievementPercentage.toStringAsFixed(0)}% Sales'
+          ? '${(eco.documentsSubmissionRatio * 100).toStringAsFixed(0)}% Docs, ${eco.groomingScore}% Grooming'
           : '${emp.profileCompletion.percentage}% Complete (KYC Verified)';
 
       // Pillar 4: Biometric Attendance
