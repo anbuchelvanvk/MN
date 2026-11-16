@@ -56,7 +56,7 @@ void main() {
       expect(find.text('Social Causes'), findsOneWidget);
       expect(find.text('Staff Tasks'), findsOneWidget);
       expect(find.text('Blocker Tickets'), findsOneWidget);
-      expect(find.text('Attendance'), findsOneWidget);
+      expect(find.text('Attendance'), findsWidgets);
       expect(find.text('Leaves & Permissions'), findsOneWidget);
       expect(find.text('Grooming Audit'), findsOneWidget);
 
@@ -109,8 +109,8 @@ void main() {
       await tester.pumpAndSettle();
       await dismissPillarsPopupIfPresent(tester);
 
-      // Tap Attendance tile
-      final attendanceTile = find.text('Attendance').first;
+      // Tap Attendance Direct Access tile
+      final attendanceTile = find.text('Attendance').last;
       await tester.tap(attendanceTile);
       await tester.pumpAndSettle();
 

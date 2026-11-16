@@ -9,12 +9,17 @@ import 'package:mn_family_app/views/pillars/attendance_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/social_cause_pillar_screen.dart';
 
 class QuickPillarNavRow extends StatelessWidget {
-  const QuickPillarNavRow({super.key});
+  final bool forceAttendance;
+
+  const QuickPillarNavRow({
+    super.key,
+    this.forceAttendance = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final showAttendance = eco.currentEmployee.hasAttendanceAndGrooming;
+    final showAttendance = forceAttendance || eco.currentEmployee.hasAttendanceAndGrooming;
 
     return Row(
       children: [

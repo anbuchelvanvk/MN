@@ -281,5 +281,29 @@ void main() {
       expect(eco.findHiredEmployeeByIdOrEmpNo('7'), isNotNull);
       expect(eco.findHiredEmployeeByIdOrEmpNo('7')!.name, equals('Mohankumar G'));
     });
+
+    test('Clean attendance update message formatting and notification dispatch', () {
+      final eco = EcosystemProvider();
+
+      // Test date range label cleaner
+      const rawMultiDays = '1 NOVEMBER, 2 NOVEMBER, 4 NOVEMBER, 5 NOVEMBER, 6 NOVEMBER, 7 NOVEMBER, 8 NOVEMBER, 13 NOVEMBER, 14 NOVEMBER, 15 NOVEMBER';
+      final cleanMulti = EcosystemProvider.formatAttendanceDateLabel(rawMultiDays);
+      expect(cleanMulti, equals('November 1–15'));
+
+      final cleanSingle = EcosystemProvider.formatAttendanceDateLabel('15 Nov');
+      expect(cleanSingle, equals('November 15'));
+
+      // Test broadcasting notification
+      eco.broadcastAttendanceUpdateNotification('15 Nov');
+      final notif = eco.activeCompanyNotifications.first;
+
+      expect(notif.actionTag, equals('ATTENDANCE'));
+      expect(notif.categoryLabel, equals('Attendance Update'));
+      expect(notif.title, equals('📋 November 15 Attendance Update'));
+      expect(
+        notif.content,
+        equals('November 15 Attendance update has been made by HR. Please head to your attendance section and check yours.'),
+      );
+    });
   });
 }

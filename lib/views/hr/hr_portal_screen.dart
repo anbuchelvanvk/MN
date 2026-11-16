@@ -8,6 +8,7 @@ import '../../core/widgets/export_audit_modal.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/role_app_bar.dart';
+import '../../core/widgets/quick_pillar_nav_row.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
 import '../employee/employee_profile_screen.dart';
@@ -152,6 +153,10 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                 ),
               ),
               const SizedBox(height: 12),
+
+              // Four Pillars Quick Nav Row (Health, Family, Attendance, Social Cause)
+              const QuickPillarNavRow(forceAttendance: true),
+              const SizedBox(height: 14),
 
               // HR Management Portals [Direct Access] - Moved right below Profile section
               Container(

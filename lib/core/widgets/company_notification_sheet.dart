@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../models/company_notification_models.dart';
 import '../../views/orders/online_orders_handler_screen.dart';
+import '../../views/pillars/attendance_pillar_screen.dart';
 import 'social_cause_detail_dialog.dart';
 
 class CompanyNotificationSheet extends StatefulWidget {
@@ -620,6 +621,46 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                       ],
                     ),
                   ],
+                  if (notif.actionTag == 'ATTENDANCE' || notif.actionTag == 'ATTENDANCE_UPDATE' || notif.title.toLowerCase().contains('attendance')) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD97706).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFD97706).withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.fingerprint_rounded, size: 13, color: Color(0xFFD97706)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Open Attendance',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFB45309),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -642,6 +683,10 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
     final formattedDate = DateFormat('dd MMMM yyyy, hh:mm a').format(notif.timestamp);
 
     final isOrderRelated = title.toLowerCase().contains('order') || content.toLowerCase().contains('order');
+    final isAttendanceRelated = notif.actionTag == 'ATTENDANCE' ||
+        notif.actionTag == 'ATTENDANCE_UPDATE' ||
+        title.toLowerCase().contains('attendance') ||
+        content.toLowerCase().contains('attendance');
 
     showDialog(
       context: context,
@@ -779,6 +824,27 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    if (isAttendanceRelated) ...[
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.pop(context); // close sheet
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.fingerprint_rounded, size: 15, color: Colors.white),
+                        label: const Text('Attendance', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.magentaPrimary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     if (isOrderRelated) ...[
                       ElevatedButton.icon(
                         onPressed: () {
