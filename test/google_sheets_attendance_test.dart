@@ -243,5 +243,43 @@ void main() {
       expect(eco.monthlyPermissionHoursLimit, equals(4.0));
       expect(eco.permissionHoursRemaining, equals(4.0));
     });
+
+    test('Parses EMP #77 Anbu from sheet and matches in findGoogleSheetEmployees', () {
+      final eco = EcosystemProvider();
+      final sheet = GoogleSheetsAttendanceService.parseCsvToAttendanceSheet(
+        GoogleSheetsAttendanceService.embeddedNovemberSeedCsv,
+      );
+      eco.setAttendanceSheetForTesting(sheet);
+
+      // Verify row 35 (EMP.NO 77, Anbu) is present
+      final anbu = sheet.findForEmployee(name: 'Anbu', empNo: '77');
+      expect(anbu, isNotNull);
+      expect(anbu!.sNo, equals(35));
+      expect(anbu.empNo, equals('77'));
+      expect(anbu.name, equals('Anbu'));
+
+      // Test searching with '77'
+      final matchesByEmpNo = eco.findGoogleSheetEmployees('77', unassignedOnly: true);
+      expect(matchesByEmpNo.isNotEmpty, isTrue);
+      expect(matchesByEmpNo.first.name, equals('Anbu'));
+      expect(matchesByEmpNo.first.empNo, equals('77'));
+
+      // Test searching with S.NO '35'
+      final matchesBySNo = eco.findGoogleSheetEmployees('35', unassignedOnly: true);
+      expect(matchesBySNo.isNotEmpty, isTrue);
+      expect(matchesBySNo.any((e) => e.name == 'Anbu'), isTrue);
+
+      // Test searching with Name 'anbu'
+      final matchesByName = eco.findGoogleSheetEmployees('anbu', unassignedOnly: true);
+      expect(matchesByName.isNotEmpty, isTrue);
+      expect(matchesByName.first.empNo, equals('77'));
+
+      // Anbu is unassigned, not yet in active hired workforce
+      expect(eco.findHiredEmployeeByIdOrEmpNo('77'), isNull);
+
+      // Mohankumar (EMP NO: 7) is already hired
+      expect(eco.findHiredEmployeeByIdOrEmpNo('7'), isNotNull);
+      expect(eco.findHiredEmployeeByIdOrEmpNo('7')!.name, equals('Mohankumar G'));
+    });
   });
 }

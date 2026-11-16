@@ -66,13 +66,6 @@ class GoogleSheetsAttendanceService {
     try {
       final response = await http.get(
         Uri.parse(exportUrl),
-        headers: forceRefresh
-            ? {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-              }
-            : null,
       ).timeout(const Duration(seconds: 15));
       final body = response.body.trim();
       if (response.statusCode == 200 &&
@@ -84,6 +77,22 @@ class GoogleSheetsAttendanceService {
       }
     } catch (e) {
       debugPrint('GoogleSheetsAttendanceService fetch month $month error: $e');
+      // Fallback to export endpoint if gviz was blocked or failed
+      try {
+        final fallbackUrl = 'https://docs.google.com/spreadsheets/d/$spreadsheetId/export?format=csv&gid=$gid'
+            '${forceRefresh ? '&_cb=${DateTime.now().millisecondsSinceEpoch}' : ''}';
+        final fallbackRes = await http.get(Uri.parse(fallbackUrl)).timeout(const Duration(seconds: 12));
+        final fBody = fallbackRes.body.trim();
+        if (fallbackRes.statusCode == 200 &&
+            fBody.isNotEmpty &&
+            !fBody.toLowerCase().startsWith('<!doctype') &&
+            !fBody.toLowerCase().startsWith('<html')) {
+          newCsv = fallbackRes.body;
+          await prefs.setString(cacheKey, newCsv);
+        }
+      } catch (fallbackErr) {
+        debugPrint('GoogleSheetsAttendanceService month $month fallback error: $fallbackErr');
+      }
     }
 
     final cached = prefs.getString(cacheKey);
@@ -139,13 +148,6 @@ class GoogleSheetsAttendanceService {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: forceRefresh
-            ? {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-              }
-            : null,
       ).timeout(const Duration(seconds: 15));
       final body = response.body.trim();
       // Ensure we received valid CSV and not an HTML captive portal / error page
@@ -157,6 +159,22 @@ class GoogleSheetsAttendanceService {
       }
     } catch (e) {
       debugPrint('GoogleSheetsAttendanceService fetch error: $e');
+      // Secondary fallback to Google Sheets /export endpoint without custom headers
+      try {
+        final targetGid = monthGids[month] ?? '1237865007';
+        final fallbackExportUrl = 'https://docs.google.com/spreadsheets/d/$spreadsheetId/export?format=csv&gid=$targetGid'
+            '${forceRefresh ? '&_cb=${DateTime.now().millisecondsSinceEpoch}' : ''}';
+        final fallbackRes = await http.get(Uri.parse(fallbackExportUrl)).timeout(const Duration(seconds: 12));
+        final fBody = fallbackRes.body.trim();
+        if (fallbackRes.statusCode == 200 &&
+            fBody.isNotEmpty &&
+            !fBody.toLowerCase().startsWith('<!doctype') &&
+            !fBody.toLowerCase().startsWith('<html')) {
+          newCsv = fallbackRes.body;
+        }
+      } catch (fallbackErr) {
+        debugPrint('GoogleSheetsAttendanceService fallback export error: $fallbackErr');
+      }
     }
 
     final previousCsv = prefs.getString(_prefCachedCsvKey);
@@ -430,5 +448,6 @@ class GoogleSheetsAttendanceService {
 "32","73","Bernet asha","nil","nil","","cl","l-1","l-2","nil","nil","nil","","nil","nil","1:58 m","21 m","","","","","","","","","","","","","","","","","","","","",""
 "33","74","Karthika","nil","nil","","nil","nil","nil","1:42 m","l-1","47 m","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
 "34","","Gunasekaran","-","-","","-","-","-","-","nil","nil","","nil","nil","nil","nil","","","","","","","","","","","","","","","","","","","","",""
+"35","77","Anbu","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""
 ''';
 }

@@ -462,6 +462,13 @@ class EcosystemProvider extends ChangeNotifier {
   HrMonthlyAttendanceSheet? _hrAttendanceSheet;
   HrMonthlyAttendanceSheet? get hrAttendanceSheet => _monthlyAttendanceSheets[_selectedAttendanceMonth] ?? _hrAttendanceSheet;
 
+  @visibleForTesting
+  void setAttendanceSheetForTesting(HrMonthlyAttendanceSheet sheet) {
+    _hrAttendanceSheet = sheet;
+    _monthlyAttendanceSheets[_selectedAttendanceMonth] = sheet;
+    notifyListeners();
+  }
+
   int _selectedAttendanceMonth = 11; // Defaults to November (11)
   int get selectedAttendanceMonth => _selectedAttendanceMonth;
 
@@ -688,7 +695,8 @@ class EcosystemProvider extends ChangeNotifier {
       if (empNoLower == clean) return true;
       if (cleanDigits.isNotEmpty) {
         final entryDigits = entry.empNo.replaceAll(RegExp(r'[^0-9]'), '');
-        if (entryDigits == cleanDigits) return true;
+        if (entryDigits.isNotEmpty && entryDigits == cleanDigits) return true;
+        if (entry.sNo.toString() == cleanDigits) return true;
       }
       if (nameLower.contains(clean)) return true;
       return false;

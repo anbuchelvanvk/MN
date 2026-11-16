@@ -747,6 +747,15 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
           if (selectedSheetStaff != null && !matches.any((m) => m.empNo == selectedSheetStaff!.empNo)) {
             selectedSheetStaff = null;
           }
+          // If exact match on empNo and name field is empty, automatically pre-fill name and credentials
+          if (matches.length == 1 && matches.first.empNo.toLowerCase() == clean.toLowerCase() && nameController.text.trim().isEmpty) {
+            final match = matches.first;
+            selectedSheetStaff = match;
+            nameController.text = match.name;
+            final cleanName = match.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+            emailController.text = '$cleanName@mnjewelpark.com';
+            passwordController.text = '$cleanName@mnj123';
+          }
         });
       }
     }
