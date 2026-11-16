@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
-import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../../models/employee_model.dart';
 import '../../models/profile_document_models.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -48,32 +47,28 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
     final totalDocsCount = docs.length;
     final submissionPercent = totalDocsCount == 0 ? 0 : ((submittedDocsCount / totalDocsCount) * 100).toInt();
 
-    final empPermissions = eco.permissionRecords.where((p) => p.empId == emp.id).toList();
-    final empMedicalLeaves = eco.medicalLeaveRecords.where((m) => m.empId == emp.id).toList();
     final empPassword = emp.password;
     final isTargetCeo = emp.roleType.toLowerCase() == 'ceo' || emp.id.toUpperCase() == 'MN-CEO01';
 
     // Real Attendance Calculations from Past 1-Week Ledger (Full Calendar Days)
     final weekRecords = eco.getPast7DaysAttendanceForEmployee(emp.id);
     int daysPresent = 0;
-    int totalMinutes = 0;
     int tuesdayOvertimeCount = 0;
     for (final r in weekRecords) {
-      if (r.isOvertime || (r.date.weekday == DateTime.tuesday && r.loginTime != '--:-- --')) {
+      if (r.isOvertime || (r.date.weekday == DateTime.tuesday && !r.status.contains('Absent') && !r.status.contains('Week-off'))) {
         tuesdayOvertimeCount++;
       }
-      if (r.loginTime != '--:-- --') {
+      final isAttended = !r.isWeekoff &&
+          !r.status.contains('Leave') &&
+          !r.status.contains('Absent') &&
+          !r.status.contains('Pending') &&
+          !r.status.contains('Week-off') &&
+          (r.status.contains('Present') || r.status.contains('Late') || r.status.contains('Permission') || r.status.contains('MNW'));
+      if (isAttended) {
         daysPresent++;
-        final match = RegExp(r'(\d+)h\s*(\d+)m').firstMatch(r.netHours);
-        if (match != null) {
-          final h = int.tryParse(match.group(1) ?? '0') ?? 0;
-          final m = int.tryParse(match.group(2) ?? '0') ?? 0;
-          totalMinutes += (h * 60 + m);
-        }
       }
     }
     final standardDutyDays = weekRecords.where((r) => r.date.weekday != DateTime.tuesday).length;
-    final realTotalHoursFormatted = '${totalMinutes ~/ 60}h ${totalMinutes % 60}m';
     final realAttendancePercent = standardDutyDays > 0 ? (((daysPresent) / standardDutyDays) * 100).round().clamp(0, 100) : 100;
 
     return Scaffold(
@@ -648,9 +643,9 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: _attendanceMetricTile(
-                          'Total Hours',
-                          realTotalHoursFormatted,
-                          AppColors.magentaPrimary,
+                          'Days Present',
+                          '$daysPresent/$standardDutyDays Days',
+                          const Color(0xFF2563EB),
                         ),
                       ),
                     ],
@@ -664,113 +659,6 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
             // 5. Gender-Based Staff Attire & Grooming Audit (Exempt for OTM Praveenkumar)
             if (emp.hasAttendanceAndGrooming) ...[
               _buildGroomingAuditCard(context, eco, emp),
-              const SizedBox(height: 14),
-            ],
-
-            // 5. Active Requests & Leaves History
-            if (empPermissions.isNotEmpty || empMedicalLeaves.isNotEmpty) ...[
-              LiquidGlassCard(
-                padding: const EdgeInsets.all(16),
-                borderRadius: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.history_toggle_off, size: 18, color: AppColors.magentaPrimary),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Permissions & Medical Leaves',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(color: Color(0xFFF1F5F9), height: 20),
-                    ...empPermissions.map((p) {
-                      final isOrange = p.isOrangeFlagged || p.requestedHours > 2.0;
-                      final durText = p.actualHoursUsed < 1.0 ? '${(p.actualHoursUsed * 60).round()}m' : '${p.actualHoursUsed}h';
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: isOrange ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isOrange ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.timer_outlined, size: 15, color: isOrange ? const Color(0xFFD97706) : AppColors.magentaPrimary),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Emergency Permission ($durText)',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: isOrange ? const Color(0xFFD97706) : AppColors.textDark,
-                                    ),
-                                  ),
-                                  Text(p.reason, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              p.status,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                                color: p.status == 'Approved' ? const Color(0xFF059669) : AppColors.magentaPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    ...empMedicalLeaves.map((m) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.medical_services_outlined, size: 15, color: Color(0xFFEF4444)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Medical Leave (${m.days} Days)',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                                  ),
-                                  Text(m.reason, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
-                                ],
-                              ),
-                            ),
-                            TextButton.icon(
-                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                              icon: const Icon(Icons.image, size: 12, color: AppColors.magentaPrimary),
-                              label: Text('Prescription', style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.magentaPrimary)),
-                              onPressed: () => PrescriptionViewerDialog.show(context, leave: m),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
               const SizedBox(height: 14),
             ],
           ],

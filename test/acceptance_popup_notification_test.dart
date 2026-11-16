@@ -158,7 +158,7 @@ void main() {
       expect(popup.isTargetedFor(empId: otherEmp.id, roleType: 'employee'), isFalse);
     });
 
-    test('Acknowledging/dismissing popup removes it for that specific user', () {
+    test('Floating acceptance pop-up banners are permanently deactivated per company policy', () {
       final employee = provider.employees.firstWhere((e) => e.name.contains('Gokulakrishnan'));
       provider.dispatchAcceptanceNotification(
         requestType: AcceptanceRequestType.permission,
@@ -169,73 +169,9 @@ void main() {
         approvedBy: 'HR (Mohankumar G)',
       );
 
-      final popup = provider.acceptancePopups.first;
-
-      // Active user is CEO by default in provider
-      expect(provider.currentAcceptancePopupForActiveUser, isNotNull);
-
-      // CEO acknowledges
-      provider.acknowledgeAcceptancePopup(popup.id);
-
-      // Now CEO no longer sees it
+      // Verify that popups are stored in ledger but active popup banner getter is disabled
+      expect(provider.acceptancePopups.isNotEmpty, isTrue);
       expect(provider.currentAcceptancePopupForActiveUser, isNull);
-
-      // But if we check for HR, HR still hasn't acknowledged yet
-      expect(popup.isTargetedFor(empId: 'MN-HR1001', roleType: 'hr'), isTrue);
-    });
-
-    testWidgets('AppNotificationHost renders AcceptancePopupBanner and handles tap detail modal', (tester) async {
-      final employee = provider.employees.firstWhere((e) => e.name.contains('Gokulakrishnan'));
-      provider.dispatchAcceptanceNotification(
-        requestType: AcceptanceRequestType.permission,
-        employeeId: employee.id,
-        employeeName: employee.name,
-        durationOrDays: '2.0 Hours',
-        reason: 'Exam Registration',
-        approvedBy: 'CEO (M N Naveenraaj)',
-      );
-
-      await tester.binding.setSurfaceSize(const Size(800, 1000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      // Provider in tree
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: provider,
-          child: MaterialApp(
-            home: Scaffold(
-              body: AppNotificationHost(
-                child: const Center(child: Text('Dashboard Screen')),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Verify banner appears
-      expect(find.text('PERMISSION ACCEPTED'), findsOneWidget);
-      expect(find.textContaining('Gokulakrishnan K'), findsOneWidget);
-      expect(find.textContaining('CEO (M N Naveenraaj)'), findsOneWidget);
-      expect(find.textContaining('Notified to: HR'), findsOneWidget);
-
-      // Tap on banner to open detail modal
-      await tester.tap(find.text('PERMISSION ACCEPTED'));
-      await tester.pumpAndSettle();
-
-      // Verify detail modal opened with all recipients
-      expect(find.text('Official Executive Endorsement'), findsOneWidget);
-      expect(find.text('HR Department (Mohankumar G)'), findsOneWidget);
-      expect(find.text('Executive CEO (M N Naveenraaj)'), findsOneWidget);
-      expect(find.text('Team Lead (Praveenkumar M)'), findsOneWidget);
-
-      // Close modal
-      await tester.tap(find.text('Acknowledge & Close'));
-      await tester.pumpAndSettle();
-
-      // Verify banner dismissed
-      expect(find.text('PERMISSION ACCEPTED'), findsNothing);
     });
   });
 }

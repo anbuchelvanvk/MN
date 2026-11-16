@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
-import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../../models/attendance_models.dart';
 import '../../models/employee_model.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -51,19 +50,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
         : 100;
     final onTimeRatePercent = (daysPresent > 0 && onTimeCount > 0) ? ((onTimeCount / daysPresent) * 100).round() : 0;
 
-    // 2. Permission Records
-    final empPermissions = eco.permissionRecords.where((p) => p.empId == emp.id).toList();
-    final approvedPermissions = empPermissions.where((p) => p.status == 'Approved').toList();
-    final totalPermHoursUsed = approvedPermissions.fold<double>(0.0, (sum, p) => sum + p.requestedHours);
-    final remainingPermHours = (2.0 - totalPermHoursUsed).clamp(0.0, 2.0);
-
-    // 3. Leave Records (Casual Delegations + Medical Leaves)
-    final empCasualLeaves = eco.delegations.where((d) => d.absentEmpId == emp.id).toList();
-    final empMedicalLeaves = eco.medicalLeaveRecords.where((m) => m.empId == emp.id).toList();
-    final approvedMedicalLeaves = empMedicalLeaves.where((m) => m.status == 'Approved').toList();
-    final totalLeavesTakenCount = empCasualLeaves.length + approvedMedicalLeaves.length;
-
-    // 4. Today's Live Attendance Punch Summary
+    // 2. Today's Live Attendance Status Summary
     final summaries = eco.allEmployeesTodayAttendance;
     final todaySummary = summaries.firstWhere(
       (s) => s.employeeId == emp.id,
@@ -235,7 +222,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // High-Level Attendance & Leaves KPI Grid
+            // High-Level Attendance KPI Grid
             Row(
               children: [
                 Expanded(
@@ -245,30 +232,6 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                     subtext: '$daysPresent / $totalTrackedDays Days${tuesdayOvertimeCount > 0 ? " (+$tuesdayOvertimeCount Tuesday OT)" : ""}',
                     icon: Icons.checklist_rtl_rounded,
                     color: attendanceRatioPercent >= 85 ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _kpiCard(
-                    title: 'Leaves Taken',
-                    value: '$totalLeavesTakenCount Days',
-                    subtext: 'Casual: ${empCasualLeaves.length} • Medical: ${approvedMedicalLeaves.length}',
-                    icon: Icons.beach_access_rounded,
-                    color: totalLeavesTakenCount > 2 ? const Color(0xFFF59E0B) : const Color(0xFF3B82F6),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _kpiCard(
-                    title: 'Permissions Taken',
-                    value: '${approvedPermissions.length} Taken',
-                    subtext: '${totalPermHoursUsed.toStringAsFixed(1)}h Used (${remainingPermHours.toStringAsFixed(1)}h Quota Left)',
-                    icon: Icons.timer_outlined,
-                    color: remainingPermHours < 0.5 ? const Color(0xFFEF4444) : const Color(0xFF8B5CF6),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -308,44 +271,20 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Total: ${todaySummary.workHoursFormatted}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.magentaPrimary,
-                        ),
-                      ),
                     ],
                   ),
-                  const Divider(color: Color(0xFFF1F5F9), height: 20),
+                  const Divider(color: Color(0xFFF1F5F9), height: 16),
                   Row(
                     children: [
+                      const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.sandGold),
+                      const SizedBox(width: 6),
                       Expanded(
-                        child: _punchBox(
-                          label: 'IN TIME',
-                          time: todaySummary.inTimeString,
-                          icon: Icons.login_rounded,
-                          color: const Color(0xFF10B981),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _punchBox(
-                          label: 'LUNCH BREAK',
-                          time: todaySummary.lunchSummary,
-                          icon: Icons.restaurant_rounded,
-                          color: const Color(0xFFF59E0B),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _punchBox(
-                          label: 'OUT TIME',
-                          time: todaySummary.outTimeString,
-                          icon: Icons.logout_rounded,
-                          color: const Color(0xFF64748B),
+                        child: Text(
+                          'Official duty attendance and records are maintained directly by HR in the Master Ledger.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            color: AppColors.textMuted,
+                          ),
                         ),
                       ),
                     ],
@@ -416,37 +355,9 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Wrap(
-                                    spacing: 6,
-                                    runSpacing: 2,
-                                    children: [
-                                      Text(
-                                        'In: ${day.loginTime}',
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF334155), fontWeight: FontWeight.w600),
-                                      ),
-                                      Text(
-                                        'Out: ${day.logoutTime}',
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF334155), fontWeight: FontWeight.w600),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Net Hours: ${day.netHours}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
                                 color: day.statusColor.withOpacity(0.12),
                                 borderRadius: BorderRadius.circular(6),
@@ -465,240 +376,6 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                         ),
                       );
                     }),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Permissions History
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              borderRadius: 18,
-              borderColor: const Color(0xFFE2E8F0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.timer_outlined, color: AppColors.magentaPrimary, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Total Permissions Taken (${empPermissions.length})',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Quota: ${remainingPermHours.toStringAsFixed(1)}h Left',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.magentaPrimary),
-                      ),
-                    ],
-                  ),
-                  const Divider(color: Color(0xFFF1F5F9), height: 20),
-                  if (empPermissions.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('No emergency permissions recorded for this employee.', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5)),
-                    )
-                  else
-                    ...empPermissions.map((perm) {
-                      final isApproved = perm.status == 'Approved';
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: (isApproved ? const Color(0xFF10B981) : const Color(0xFFF59E0B)).withOpacity(0.12),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.timer, size: 14, color: isApproved ? const Color(0xFF10B981) : const Color(0xFFF59E0B)),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${perm.requestedHours} Hour(s) Permission • ${perm.date}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Reason: ${perm.reason}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: (isApproved ? const Color(0xFF10B981) : const Color(0xFFF59E0B)).withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                perm.status,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: isApproved ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Leaves & Medical Slips History
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(16),
-              borderRadius: 18,
-              borderColor: const Color(0xFFE2E8F0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.local_hospital_outlined, color: AppColors.magentaPrimary, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Total Leaves Taken (${empCasualLeaves.length + empMedicalLeaves.length})',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Divider(color: Color(0xFFF1F5F9), height: 20),
-                  if (empCasualLeaves.isEmpty && empMedicalLeaves.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('No casual or medical leaves recorded.', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5)),
-                    )
-                  else ...[
-                    // Medical Leaves
-                    ...empMedicalLeaves.map((m) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.local_hospital_rounded, size: 16, color: Color(0xFFEF4444)),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Emergency Medical Leave • ${m.date}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text('Reason: ${m.reason}', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted)),
-                                ],
-                              ),
-                            ),
-                            if (m.prescriptionBase64.isNotEmpty)
-                              IconButton(
-                                icon: const Icon(Icons.remove_red_eye_outlined, size: 18, color: AppColors.magentaPrimary),
-                                tooltip: 'View Prescription',
-                                onPressed: () => PrescriptionViewerDialog.show(context, leave: m, isHr: true),
-                              ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: (m.status == 'Approved' ? const Color(0xFF10B981) : const Color(0xFFF59E0B)).withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                m.status,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: m.status == 'Approved' ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    // Casual Leaves
-                    ...empCasualLeaves.map((c) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.beach_access_rounded, size: 16, color: Color(0xFF3B82F6)),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Casual Leave • ${c.date}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text('Substitute: ${c.coveringEmpName}', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted)),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                'Approved',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF10B981),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
                 ],
               ),
             ),
@@ -835,44 +512,5 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
     );
   }
 
-  Widget _punchBox({
-    required String label,
-    required String time,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 12, color: color),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  label,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: color),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            time,
-            style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textDark),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
+
 }

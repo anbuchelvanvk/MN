@@ -50,20 +50,18 @@ void main() {
       expect(find.text('HR MANAGEMENT PORTALS'), findsOneWidget);
       expect(find.text('Direct Access'), findsOneWidget);
 
-      // Verify all 8 Direct Access tiles exist
+      // Verify all Direct Access tiles exist
       expect(find.text('Staff Directory'), findsWidgets);
       expect(find.text('Personal To-Dos'), findsOneWidget);
       expect(find.text('Social Causes'), findsOneWidget);
       expect(find.text('Staff Tasks'), findsOneWidget);
       expect(find.text('Blocker Tickets'), findsOneWidget);
       expect(find.text('Attendance'), findsWidgets);
-      expect(find.text('Leaves & Permissions'), findsOneWidget);
       expect(find.text('Grooming Audit'), findsOneWidget);
 
       // Verify inline subpage content is NOT rendered on the home page
       expect(find.byType(HrStaffDirectoryScreen), findsNothing);
       expect(find.byType(HrAttendanceScreen), findsNothing);
-      expect(find.byType(HrLeavesPermissionsScreen), findsNothing);
       expect(find.byType(HrGroomingAuditScreen), findsNothing);
     });
 
@@ -134,8 +132,6 @@ void main() {
       expect(find.byType(HrBiometricPunchAuditScreen), findsOneWidget);
       expect(find.text('Biometric Punch Audit'), findsOneWidget);
       expect(find.text('Attendance Rate'), findsOneWidget);
-      expect(find.text('Leaves Taken'), findsOneWidget);
-      expect(find.text('Permissions Taken'), findsOneWidget);
       expect(find.text('On-Time Punctuality'), findsOneWidget);
 
       // Verify back button pops back to HrAttendanceScreen
@@ -163,8 +159,6 @@ void main() {
       expect(find.text(emp.name), findsWidgets);
       expect(find.text("Today's Biometric Log"), findsOneWidget);
       expect(find.text("Recent Attendance Activity (Past 7 Days)"), findsOneWidget);
-      expect(find.textContaining("Total Permissions Taken"), findsOneWidget);
-      expect(find.textContaining("Total Leaves Taken"), findsOneWidget);
       expect(find.textContaining("Raw Biometric Punch Stream"), findsOneWidget);
     });
   });

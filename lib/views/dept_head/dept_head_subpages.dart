@@ -511,7 +511,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
                               ),
                               Text(
-                                '${emp.straightCutDesignation} • ${summary.workHoursFormatted}',
+                                emp.straightCutDesignation,
                                 style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                               ),
                             ],
@@ -745,12 +745,11 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
 
     final weekRecords = eco.getPast7DaysAttendanceForEmployee(selectedEmp.id);
     int daysPresent = 0;
-    int totalMinutes = 0;
     int onTimeCount = 0;
     int tuesdayOvertimeCount = 0;
 
     for (final r in weekRecords) {
-      if (r.isOvertime || (r.date.weekday == DateTime.tuesday && r.loginTime != '--:-- --')) {
+      if (r.isOvertime || (r.date.weekday == DateTime.tuesday && !r.status.contains('Absent') && !r.status.contains('Week-off'))) {
         tuesdayOvertimeCount++;
       }
       final isAttended = !r.isWeekoff &&
@@ -761,12 +760,6 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
           (r.status.contains('Present') || r.status.contains('Late') || r.status.contains('Permission') || r.status.contains('MNW'));
       if (isAttended) {
         daysPresent++;
-        final match = RegExp(r'(\d+)h\s*(\d+)m').firstMatch(r.netHours);
-        if (match != null) {
-          final h = int.tryParse(match.group(1) ?? '0') ?? 0;
-          final m = int.tryParse(match.group(2) ?? '0') ?? 0;
-          totalMinutes += (h * 60 + m);
-        }
         if (r.status.contains('Present') || r.status.contains('MNW') || r.status.contains('Nil')) {
           onTimeCount++;
         }
@@ -774,7 +767,6 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
     }
 
     final totalDaysCount = weekRecords.length;
-    final totalHoursStr = '${totalMinutes ~/ 60}h ${totalMinutes % 60}m';
     final onTimeRateStr = daysPresent > 0 ? '${((onTimeCount / daysPresent) * 100).round()}%' : '0%';
 
     return LiquidGlassCard(
@@ -850,63 +842,55 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _metricTile('Total Hours', totalHoursStr, AppColors.magentaPrimary),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _metricTile('On-Time', onTimeRateStr, const Color(0xFF2563EB)),
+                child: _metricTile('On-Time Ratio', onTimeRateStr, const Color(0xFF2563EB)),
               ),
             ],
           ),
           const SizedBox(height: 14),
 
-          // 1-Week Table Headers & Content with Horizontal Scroll
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: SizedBox(
-              width: 520,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      children: const [
-                        Expanded(flex: 3, child: Text('Date', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                        Expanded(flex: 3, child: Text('Login Time', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                        Expanded(flex: 2, child: Text('Lunch Out', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                        Expanded(flex: 2, child: Text('Lunch In', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                        Expanded(flex: 3, child: Text('Logout Time', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                        Expanded(flex: 2, child: Text('Net Hours', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                        Expanded(flex: 2, child: Text('Shift Status', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  ...weekRecords.map((r) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 3, child: Text(r.dateLabel, style: const TextStyle(fontSize: 10, color: AppColors.textDark, fontWeight: FontWeight.w600))),
-                          Expanded(flex: 3, child: Text(r.loginTime, style: const TextStyle(fontSize: 10, color: AppColors.textDark))),
-                          Expanded(flex: 2, child: Text(r.lunchOutTime, style: const TextStyle(fontSize: 10, color: AppColors.textMuted))),
-                          Expanded(flex: 2, child: Text(r.lunchInTime, style: const TextStyle(fontSize: 10, color: AppColors.textMuted))),
-                          Expanded(flex: 3, child: Text(r.logoutTime, style: const TextStyle(fontSize: 10, color: AppColors.textDark))),
-                          Expanded(flex: 2, child: Text(r.netHours, style: const TextStyle(fontSize: 10, color: AppColors.textDark))),
-                          Expanded(flex: 2, child: Text(r.status, style: const TextStyle(fontSize: 10, color: AppColors.textDark))),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
+          // 1-Week Table: Date and Shift Status (Clean, no offline timings)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: const [
+                Expanded(flex: 3, child: Text('Date', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
+                Expanded(flex: 2, child: Text('Shift Status', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary), textAlign: TextAlign.end)),
+              ],
             ),
           ),
+          const SizedBox(height: 6),
+          ...weekRecords.map((r) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(flex: 3, child: Text(r.dateLabel, style: const TextStyle(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600))),
+                  Expanded(
+                    flex: 2,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: r.statusColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: r.statusColor.withOpacity(0.4)),
+                        ),
+                        child: Text(
+                          r.status,
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: r.statusColor),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

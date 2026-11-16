@@ -21,7 +21,6 @@ import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/cross_dept_blocker_section.dart';
 
-import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'ceo_subpages.dart';
@@ -1247,7 +1246,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               ...[
                 'Can Assign Works to Others',
                 'Can Approve Negotiation Discounts (Up to 3%)',
-                'Can Approve Staff Permission & Leave Slips',
                 'Vault Key Custodian Clearance (Physical Locker)',
                 'Priority Showroom Shift Scheduling',
                 'Direct Hotline Clearance to CEO Office',
@@ -1961,14 +1959,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           ),
                         );
 
-                        String timeInfo = '';
-                        if (isAbsent) {
-                          timeInfo = ' • Absent';
-                        } else if (summary.logoutPunch != null) {
-                          timeInfo = ' • In: ${summary.inTimeString} • Out: ${summary.outTimeString}';
-                        } else if (summary.loginPunch != null) {
-                          timeInfo = ' • In: ${summary.inTimeString} • Working: ${summary.workHoursFormatted}';
-                        }
+                        String timeInfo = isAbsent ? ' • Absent' : '';
 
                         String badgeText;
                         Color badgeColor;
@@ -1977,10 +1968,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           badgeColor = const Color(0xFFEF4444);
                         } else if (summary.logoutPunch != null) {
                           if (summary.netWorkHours < 8.0) {
-                            badgeText = 'Left Early (${summary.workHoursFormatted})';
+                            badgeText = 'Left Early';
                             badgeColor = const Color(0xFFF59E0B);
                           } else {
-                            badgeText = 'Shift Over (${summary.workHoursFormatted})';
+                            badgeText = 'Shift Over';
                             badgeColor = const Color(0xFF8B5CF6);
                           }
                         } else if (summary.isCurrentlyOnLunch) {
@@ -2182,367 +2173,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  // ignore: unused_element
-  Widget _buildCeoLeavesAndPermissionsTab(BuildContext context, EcosystemProvider eco) {
-    final pendingPerms = eco.pendingCeoPermissions;
-    final pendingMedLeaves = eco.pendingCeoMedicalLeaves;
-    final totalPending = pendingPerms.length + pendingMedLeaves.length;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Executive Header Card
-        LiquidGlassCard(
-          padding: const EdgeInsets.all(16),
-          borderRadius: 18,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFDF2F8),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFFBCFE8)),
-                    ),
-                    child: const Icon(Icons.verified_user_outlined, size: 20, color: AppColors.magentaPrimary),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'CEO APPROVALS & LEAVE DESK',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        Text(
-                          'Direct CEO authority for emergency permissions & medical leaves',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: totalPending > 0 ? const Color(0xFFFEF3C7) : const Color(0xFFECFDF5),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: totalPending > 0 ? const Color(0xFFF59E0B) : const Color(0xFFA7F3D0),
-                      ),
-                    ),
-                    child: Text(
-                      totalPending > 0 ? '$totalPending PENDING' : 'ALL APPROVED',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.bold,
-                        color: totalPending > 0 ? const Color(0xFFD97706) : const Color(0xFF059669),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Section 1: Pending Permissions Awaiting CEO Action
-        LiquidGlassCard(
-          padding: const EdgeInsets.all(16),
-          borderRadius: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Pending Permissions (${pendingPerms.length})',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                  ),
-                  if (pendingPerms.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'Action Needed',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
-                      ),
-                    ),
-                ],
-              ),
-              const Divider(color: Color(0xFFF1F5F9), height: 18),
-              if (pendingPerms.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Text(
-                    'No pending emergency permission requests awaiting CEO review.',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              else
-                ...pendingPerms.map((p) {
-                  final isOrange = p.isOrangeFlagged || p.requestedHours > 2.0;
-                  final durText = p.actualHoursUsed < 1.0 ? '${(p.actualHoursUsed * 60).round()}m' : '${p.actualHoursUsed}h';
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isOrange ? const Color(0xFFFFFBEB) : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isOrange ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
-                        width: isOrange ? 1.0 : 0.8,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 14,
-                              backgroundColor: AppColors.magentaSubtle,
-                              child: Text(
-                                (p.employeeName?.substring(0, 1) ?? 'E'),
-                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 10, color: AppColors.magentaPrimary),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '${p.employeeName ?? p.empId} (${p.requesterRole ?? "Staff"})',
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                                      ),
-                                      if (isOrange) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFFEF3C7),
-                                            borderRadius: BorderRadius.circular(4),
-                                            border: Border.all(color: const Color(0xFFF59E0B), width: 0.6),
-                                          ),
-                                          child: Text(
-                                            '>2h Orange Mark',
-                                            style: GoogleFonts.plusJakartaSans(fontSize: 8.5, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  Text(
-                                    '${p.department ?? "General"} • Permission: $durText • Reason: "${p.reason}"',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFFEF4444)),
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () => eco.rejectPermission(p.id, rejectedBy: 'CEO'),
-                              icon: const Icon(Icons.close, size: 12, color: Color(0xFFEF4444)),
-                              label: Text('Reject', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFEF4444))),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF10B981),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () {
-                                eco.ceoApprovePermission(p.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Permission of $durText approved by CEO!')),
-                                );
-                              },
-                              icon: const Icon(Icons.check, size: 12, color: Colors.white),
-                              label: Text('Accept & Approve', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Section 2: Pending Medical Leaves Awaiting CEO Action
-        LiquidGlassCard(
-          padding: const EdgeInsets.all(16),
-          borderRadius: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Pending Medical Leaves (${pendingMedLeaves.length})',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                  ),
-                  if (pendingMedLeaves.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF1F2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'Prescription Verification',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFE11D48)),
-                      ),
-                    ),
-                ],
-              ),
-              const Divider(color: Color(0xFFF1F5F9), height: 18),
-              if (pendingMedLeaves.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Text(
-                    'No emergency medical leaves awaiting CEO review.',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                    textAlign: TextAlign.center,
-                  ),
-                )
-              else
-                ...pendingMedLeaves.map((m) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 14,
-                              backgroundColor: const Color(0xFFFFF1F2),
-                              child: const Icon(Icons.local_hospital_outlined, size: 14, color: Color(0xFFE11D48)),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${m.empName} • ${m.days} Day(s) Medical Leave',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                                  ),
-                                  Text(
-                                    'Reason: "${m.reason}" • Endorsed by HR: ${m.hrEndorsed ? "Yes" : "Pending"}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            TextButton.icon(
-                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
-                              onPressed: () => PrescriptionViewerDialog.show(context, leave: m),
-                              icon: const Icon(Icons.image, size: 13, color: AppColors.magentaPrimary),
-                              label: Text('Prescription', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.magentaPrimary)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFFEF4444)),
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () => eco.rejectMedicalLeave(m.id, rejectedBy: 'CEO'),
-                              icon: const Icon(Icons.close, size: 12, color: Color(0xFFEF4444)),
-                              label: Text('Reject', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFEF4444))),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF10B981),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              onPressed: () {
-                                eco.ceoApproveMedicalLeave(m.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Emergency medical leave approved for ${m.empName}!')),
-                                );
-                              },
-                              icon: const Icon(Icons.check, size: 12, color: Colors.white),
-                              label: Text('Accept Medical Leave', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -2859,9 +2489,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           border: Border.all(color: item.statusBadgeColor.withOpacity(0.6)),
                         ),
                         child: Text(
-                          item.logoutPunch != null
-                              ? '${item.statusBadgeText.toUpperCase()} (${item.workHoursFormatted})'
-                              : item.statusBadgeText.toUpperCase(),
+                          item.statusBadgeText.toUpperCase(),
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
@@ -2871,162 +2499,30 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
 
-                  // 3 Timestamps: In-Time, Lunch Break, Out-Time
+                  // Footer: Open Ledger Button
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // IN TIME
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.burgundySurface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: const [
-                                  Icon(Icons.login, size: 12, color: Color(0xFF10B981)),
-                                  SizedBox(width: 4),
-                                  Text('In Time', style: TextStyle(fontSize: 9.5, color: AppColors.textMuted)),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                item.inTimeString,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: item.isPresent ? AppColors.sandLight : AppColors.textMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-
-                      // LUNCH BREAK
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.burgundySurface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: item.isCurrentlyOnLunch 
-                                  ? const Color(0xFFF59E0B) 
-                                  : AppColors.sandBorder.withOpacity(0.5),
+                      InkWell(
+                        onTap: () {
+                          final emp = eco.employees.firstWhere(
+                            (e) => e.id == item.employeeId,
+                            orElse: () => eco.employees.first,
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => HrEmployeeInspectionScreen(employee: emp),
                             ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.restaurant_outlined, 
-                                    size: 12, 
-                                    color: item.isCurrentlyOnLunch ? const Color(0xFFF59E0B) : const Color(0xFF60A5FA),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Text('Lunch Break', style: TextStyle(fontSize: 9.5, color: AppColors.textMuted)),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                item.lunchSummary,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: item.lunchOutPunch != null ? AppColors.sandGold : AppColors.textMuted,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-
-                      // OUT TIME
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.burgundySurface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: const [
-                                  Icon(Icons.logout, size: 12, color: Color(0xFFEF4444)),
-                                  SizedBox(width: 4),
-                                  Text('Out Time', style: TextStyle(fontSize: 9.5, color: AppColors.textMuted)),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                item.outTimeString,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: item.logoutPunch != null ? AppColors.sandLight : (item.isCurrentlyOnDuty ? const Color(0xFFF59E0B) : AppColors.textMuted),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Footer: Net Hours + Open Ledger Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.isLeftEarly
-                              ? 'Net Working: ${item.workHoursFormatted} (Left Early)'
-                              : 'Net Working: ${item.workHoursFormatted}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.bold,
-                            color: item.isLeftEarly ? const Color(0xFFF59E0B) : AppColors.sandGold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Row(
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              final emp = eco.employees.firstWhere(
-                                (e) => e.id == item.employeeId,
-                                orElse: () => eco.employees.first,
-                              );
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => HrEmployeeInspectionScreen(employee: emp),
-                                ),
-                              );
-                            },
-                            child: Row(
-                              children: const [
-                                Icon(Icons.assignment_ind_outlined, size: 12, color: AppColors.sandGold),
-                                SizedBox(width: 3),
-                                Text(
+                          );
+                        },
+                        child: Row(
+                          children: const [
+                            Icon(Icons.assignment_ind_outlined, size: 12, color: AppColors.sandGold),
+                            SizedBox(width: 3),
+                            Text(
                                   'Dossier',
                                   style: TextStyle(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.bold),
                                 ),
@@ -3057,12 +2553,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+                ),
+              ],
+            );
+          },
         ),
       ],
     );

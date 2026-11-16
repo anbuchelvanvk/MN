@@ -599,6 +599,11 @@ class FirebaseEmployeeService {
         }
       } catch (_) {}
 
+      // Actively purge dead/blank notifications from Cloud Firestore
+      try {
+        await purgeDeadNotifications();
+      } catch (_) {}
+
       // Ensure HR document has official identity
       try {
         final hrDocs = ['7', 'MN-HR1001'];
@@ -644,6 +649,11 @@ class FirebaseEmployeeService {
             await doc.reference.delete();
           }
         }
+      } catch (_) {}
+
+      // Actively purge dead/blank notifications from Cloud Firestore
+      try {
+        await purgeDeadNotifications();
       } catch (_) {}
 
       // Sanitize legacy notifications in Cloud Firestore
@@ -1059,15 +1069,18 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Stream real-time company universal notifications
+  /// Stream real-time company universal notifications (filtering out dead/empty documents)
   Stream<List<CompanyNotification>> streamCompanyNotifications() {
     if (!isFirebaseAvailable) return const Stream.empty();
     return _notificationsCollection.snapshots().map((snapshot) {
-      final list = snapshot.docs.map((doc) {
-        final data = Map<String, dynamic>.from(doc.data());
-        data['id'] = doc.id;
-        return CompanyNotification.fromJson(data);
-      }).toList();
+      final list = snapshot.docs
+          .map((doc) {
+            final data = Map<String, dynamic>.from(doc.data());
+            data['id'] = doc.id;
+            return CompanyNotification.fromJson(data);
+          })
+          .where((n) => n.isValid)
+          .toList();
       list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return list;
     });
@@ -1075,7 +1088,7 @@ class FirebaseEmployeeService {
 
   /// Save a new notification to Cloud Firestore
   Future<void> saveCompanyNotification(CompanyNotification notif) async {
-    if (!isFirebaseAvailable) return;
+    if (!isFirebaseAvailable || !notif.isValid) return;
     try {
       await _notificationsCollection.doc(notif.id).set(notif.toJson(), SetOptions(merge: true));
     } catch (e) {
@@ -1083,16 +1096,22 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Mark notification as read in Cloud Firestore (Per-user tracking when empId provided)
+  /// Mark notification as read in Cloud Firestore (Guards against creating empty stub documents)
   Future<void> markNotificationRead(String notifId, [String? empId]) async {
     if (!isFirebaseAvailable) return;
     try {
+      final docRef = _notificationsCollection.doc(notifId);
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) {
+        // Document does not exist in Firestore - do not create a blank stub
+        return;
+      }
       if (empId != null && empId.isNotEmpty) {
-        await _notificationsCollection.doc(notifId).set({
+        await docRef.set({
           'readByStaffIds': FieldValue.arrayUnion([empId]),
         }, SetOptions(merge: true));
       } else {
-        await _notificationsCollection.doc(notifId).set({
+        await docRef.set({
           'isRead': true,
         }, SetOptions(merge: true));
       }
@@ -1105,11 +1124,34 @@ class FirebaseEmployeeService {
   Future<void> markNotificationDismissed(String notifId, String empId) async {
     if (!isFirebaseAvailable || empId.isEmpty) return;
     try {
-      await _notificationsCollection.doc(notifId).set({
+      final docRef = _notificationsCollection.doc(notifId);
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) {
+        return;
+      }
+      await docRef.set({
         'dismissedByStaffIds': FieldValue.arrayUnion([empId]),
       }, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore markNotificationDismissed error: $e');
+    }
+  }
+
+  /// Purges corrupted/blank dead notifications from Cloud Firestore
+  Future<void> purgeDeadNotifications() async {
+    if (!isFirebaseAvailable) return;
+    try {
+      final snapshot = await _notificationsCollection.get();
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final title = data['title']?.toString().trim() ?? '';
+        final content = data['content']?.toString().trim() ?? '';
+        if (title.isEmpty && content.isEmpty) {
+          await doc.reference.delete();
+        }
+      }
+    } catch (e) {
+      debugPrint('Firestore purgeDeadNotifications note: $e');
     }
   }
 

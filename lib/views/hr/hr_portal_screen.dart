@@ -38,12 +38,9 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final allEmployees = eco.employees;
-    final delegations = eco.delegations;
-
     final totalStaff = allEmployees.length;
     final absentStaffCount = allEmployees.where((e) => eco.isEmployeeAbsent(e.id)).length;
     final presentStaffCount = totalStaff - absentStaffCount;
-    final leaveReqCount = eco.allPendingPermissions.length + eco.allPendingMedicalLeaves.length;
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
@@ -256,14 +253,6 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         const SizedBox(height: 8),
                         _portalDirectAccessTile(
                           context: context,
-                          label: 'Leaves & Permissions',
-                          icon: Icons.beach_access_outlined,
-                          badge: delegations.isNotEmpty ? '${delegations.length}' : '',
-                          destination: const HrLeavesPermissionsScreen(),
-                        ),
-                        const SizedBox(height: 8),
-                        _portalDirectAccessTile(
-                          context: context,
                           label: 'Grooming Audit',
                           icon: Icons.dry_cleaning_outlined,
                           badge: '',
@@ -339,7 +328,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                       MaterialPageRoute(builder: (_) => const HrStaffDirectoryScreen()),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   LiquidMetricCard(
                     label: 'Present',
                     value: '$presentStaffCount',
@@ -351,19 +340,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                       MaterialPageRoute(builder: (_) => const HrAttendanceScreen()),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  LiquidMetricCard(
-                    label: 'Leave Req',
-                    value: '$leaveReqCount',
-                    subtitle: 'Pending Review',
-                    icon: Icons.time_to_leave_outlined,
-                    color: AppColors.sandLight,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HrLeavesPermissionsScreen()),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   LiquidMetricCard(
                     label: 'Absent Staff',
                     value: '$absentStaffCount',

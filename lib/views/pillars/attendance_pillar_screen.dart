@@ -729,52 +729,6 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 6,
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.login_rounded, size: 12, color: Color(0xFF10B981)),
-                            const SizedBox(width: 4),
-                            Text(
-                              'In: ${rec.loginTime}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.logout_rounded, size: 12, color: Color(0xFFEF4444)),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Out: ${rec.logoutTime}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.schedule_rounded, size: 12, color: AppColors.sandGold),
-                            const SizedBox(width: 4),
-                            Text(
-                              rec.netHours,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandGold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               );

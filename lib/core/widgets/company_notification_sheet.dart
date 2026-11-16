@@ -34,7 +34,9 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
     final notifications = eco.activeCompanyNotifications;
     final unreadCount = eco.unreadNotificationCount;
 
-    final filtered = notifications.where((n) {
+    final validNotifs = notifications.where((n) => n.isValid).toList();
+
+    final filtered = validNotifs.where((n) {
       if (_selectedFilter == 'all') return true;
       if (_selectedFilter == 'teamAlerts') {
         final title = n.title.toLowerCase();
@@ -58,9 +60,6 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
       }
       if (_selectedFilter == 'broadcastNotice') {
         return n.type == CompanyNotificationType.broadcastNotice;
-      }
-      if (_selectedFilter == 'acceptances') {
-        return n.actionTag == 'PERM_ACCEPTED' || n.actionTag == 'LEAVE_ACCEPTED';
       }
       if (_selectedFilter == 'todoReminder') {
         return n.type == CompanyNotificationType.todoReminder;
@@ -237,13 +236,11 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               children: [
-                _filterChip('all', 'All (${notifications.length})', Icons.layers_outlined),
+                _filterChip('all', 'All (${validNotifs.length})', Icons.layers_outlined),
                 const SizedBox(width: 6),
                 _filterChip('teamAlerts', 'Team & Orders', Icons.notifications_none_rounded),
                 const SizedBox(width: 6),
                 _filterChip('broadcastNotice', 'Notices', Icons.campaign_outlined),
-                const SizedBox(width: 6),
-                _filterChip('acceptances', 'Acceptances', Icons.verified_outlined),
                 const SizedBox(width: 6),
                 _filterChip('todoReminder', 'To-Do Reminders', Icons.history_rounded),
                 const SizedBox(width: 6),
@@ -473,31 +470,10 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                               ),
                             )
                           else
-                            InkWell(
-                              onTap: () {
-                                eco.dismissNotification(notif.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Notification removed for your account'),
-                                    duration: Duration(seconds: 1),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.all(3.5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                                ),
-                                child: const Icon(
-                                  Icons.close_rounded,
-                                  size: 13,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
+                            const Icon(
+                              Icons.done_all_rounded,
+                              size: 15,
+                              color: Color(0xFF94A3B8),
                             ),
                         ],
                       ),

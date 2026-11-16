@@ -45,6 +45,9 @@ class CompanyNotification {
     return dismissedByStaffIds.contains(empId);
   }
 
+  /// Only notifications with real non-empty title or content are valid (prevents blank/dead stubs)
+  bool get isValid => title.trim().isNotEmpty && content.trim().isNotEmpty;
+
   bool isLikedBy(String empId) => likedStaffIds.contains(empId);
   int get likesCount => likedStaffIds.length;
   bool get isCeoReacted => likedStaffIds.any((id) => id == 'MN-CEO01' || id.toLowerCase().contains('ceo'));

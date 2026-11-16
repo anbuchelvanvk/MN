@@ -49,16 +49,10 @@ void main() {
 
       // Verify KPI summary chips exist
       expect(find.text('Present'), findsWidgets);
-      expect(find.text('Total Hours'), findsWidgets);
-      expect(find.text('On-Time'), findsWidgets);
+      expect(find.text('On-Time Ratio'), findsWidgets);
 
       // Verify 1-Week Table exists with column headers
       expect(find.text('Date'), findsWidgets);
-      expect(find.text('Login Time'), findsWidgets);
-      expect(find.text('Lunch Out'), findsWidgets);
-      expect(find.text('Lunch In'), findsWidgets);
-      expect(find.text('Logout Time'), findsWidgets);
-      expect(find.text('Net Hours'), findsWidgets);
       expect(find.text('Shift Status'), findsWidgets);
     });
 

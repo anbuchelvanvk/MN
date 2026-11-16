@@ -386,15 +386,8 @@ class EcosystemProvider extends ChangeNotifier {
   List<AcceptancePopupNotification> get acceptancePopups => _acceptancePopups;
 
   /// Returns the latest active unacknowledged acceptance popup for the active session user
-  AcceptancePopupNotification? get currentAcceptancePopupForActiveUser {
-    final emp = currentEmployee;
-    for (final popup in _acceptancePopups) {
-      if (popup.isTargetedFor(empId: emp.id, roleType: emp.roleType)) {
-        return popup;
-      }
-    }
-    return null;
-  }
+  /// (Permanently disabled as emergency leave & permission acceptance portals are eliminated)
+  AcceptancePopupNotification? get currentAcceptancePopupForActiveUser => null;
 
   void acknowledgeAcceptancePopup(String popupId) {
     final idx = _acceptancePopups.indexWhere((p) => p.id == popupId);
@@ -861,20 +854,21 @@ class EcosystemProvider extends ChangeNotifier {
       payload: 'attendance_sheet_updated',
     );
 
-    // Add in-app notification to company broadcast list
-    _companyNotifications.insert(
-      0,
-      CompanyNotification(
-        id: 'NOTIF-ATT-${DateTime.now().millisecondsSinceEpoch}',
-        title: title,
-        content: body,
-        type: CompanyNotificationType.broadcastNotice,
-        actionTag: 'ATTENDANCE',
-        timestamp: DateTime.now(),
-        senderName: 'HR Department (Mohankumar G)',
-        senderRole: 'HR Manager',
-      ),
+    final notif = CompanyNotification(
+      id: 'NOTIF-ATT-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      content: body,
+      type: CompanyNotificationType.broadcastNotice,
+      actionTag: 'ATTENDANCE',
+      timestamp: DateTime.now(),
+      senderName: 'HR Department (Mohankumar G)',
+      senderRole: 'HR Manager',
     );
+    _companyNotifications.insert(0, notif);
+    _notifiedCompanyNotifIds.add(notif.id);
+    _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+      debugPrint('Firestore save attendance notification note: $err');
+    });
     notifyListeners();
   }
 
@@ -884,24 +878,26 @@ class EcosystemProvider extends ChangeNotifier {
     required String message,
     String category = 'hr',
   }) {
-    PushNotificationService().showNotification(
+    final notif = CompanyNotification(
       id: 'NOTIF-NOTICE-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      content: message,
+      type: CompanyNotificationType.broadcastNotice,
+      timestamp: DateTime.now(),
+      senderName: category == 'ceo' ? 'M N Naveenraaj' : 'HR Department (Mohankumar G)',
+      senderRole: category == 'ceo' ? 'Managing Director & CEO' : 'HR Manager',
+    );
+    PushNotificationService().showNotification(
+      id: notif.id,
       title: title,
       body: message,
       payload: 'workforce_notice',
     );
-    _companyNotifications.insert(
-      0,
-      CompanyNotification(
-        id: 'NOTIF-NOTICE-${DateTime.now().millisecondsSinceEpoch}',
-        title: title,
-        content: message,
-        type: CompanyNotificationType.broadcastNotice,
-        timestamp: DateTime.now(),
-        senderName: category == 'ceo' ? 'Executive CEO' : 'HR Department (Mohankumar G)',
-        senderRole: category == 'ceo' ? 'CEO' : 'HR Manager',
-      ),
-    );
+    _companyNotifications.insert(0, notif);
+    _notifiedCompanyNotifIds.add(notif.id);
+    _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+      debugPrint('Firestore save universal notice note: $err');
+    });
     notifyListeners();
   }
 
@@ -976,9 +972,9 @@ class EcosystemProvider extends ChangeNotifier {
   List<CompanyNotification> _companyNotifications = [];
   List<CompanyNotification> get companyNotifications => _companyNotifications;
   List<CompanyNotification> get activeCompanyNotifications =>
-      _companyNotifications.where((n) => !n.isDismissedBy(_activeEmpId)).toList();
+      _companyNotifications.where((n) => n.isValid && !n.isDismissedBy(_activeEmpId)).toList();
   int get unreadNotificationCount =>
-      _companyNotifications.where((n) => !n.isDismissedBy(_activeEmpId) && !n.isReadBy(_activeEmpId)).length;
+      _companyNotifications.where((n) => n.isValid && !n.isDismissedBy(_activeEmpId) && !n.isReadBy(_activeEmpId)).length;
   final Set<String> _notifiedCompanyNotifIds = {};
   int _notifSequence = 0;
 
@@ -2297,7 +2293,13 @@ class EcosystemProvider extends ChangeNotifier {
             if (dismissedRaw != null && dismissedRaw.isNotEmpty) {
               dismissedMap = jsonDecode(dismissedRaw) as Map<String, dynamic>?;
             }
-            _companyNotifications = remoteNotifs.map((n) {
+            final validRemote = remoteNotifs.where((n) => n.isValid).toList();
+            final remoteIds = validRemote.map((n) => n.id).toSet();
+            final localOnly = _companyNotifications.where((n) => n.isValid && !remoteIds.contains(n.id)).toList();
+            final combined = [...validRemote, ...localOnly];
+            combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+            _companyNotifications = combined.map((n) {
               if (dismissedMap != null && dismissedMap.containsKey(n.id)) {
                 final localDismissed = List<String>.from(dismissedMap[n.id] as List? ?? []);
                 final merged = {...n.dismissedByStaffIds, ...localDismissed}.toList();
@@ -2306,7 +2308,11 @@ class EcosystemProvider extends ChangeNotifier {
               return n;
             }).toList();
           } catch (_) {
-            _companyNotifications = remoteNotifs;
+            final validRemote = remoteNotifs.where((n) => n.isValid).toList();
+            final remoteIds = validRemote.map((n) => n.id).toSet();
+            final localOnly = _companyNotifications.where((n) => n.isValid && !remoteIds.contains(n.id)).toList();
+            _companyNotifications = [...validRemote, ...localOnly];
+            _companyNotifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
           }
           notifyListeners();
         },
@@ -4055,6 +4061,9 @@ class EcosystemProvider extends ChangeNotifier {
       );
       _companyNotifications.insert(0, notif);
       _notifiedCompanyNotifIds.add(notif.id);
+      _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+        debugPrint('Firestore save reassign notif note: $err');
+      });
       PushNotificationService().showNotification(
         id: notif.id,
         title: notif.title,
@@ -4104,6 +4113,9 @@ class EcosystemProvider extends ChangeNotifier {
       );
       _companyNotifications.insert(0, notif);
       _notifiedCompanyNotifIds.add(notif.id);
+      _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+        debugPrint('Firestore save reassign notif note: $err');
+      });
       PushNotificationService().showNotification(
         id: notif.id,
         title: notif.title,
@@ -4784,6 +4796,9 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _companyNotifications.insert(0, notif);
     _notifiedCompanyNotifIds.add(notif.id);
+    _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+      debugPrint('Firestore save task notif note: $err');
+    });
     PushNotificationService().showNotification(
       id: notif.id,
       title: notif.title,
@@ -5298,6 +5313,9 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _companyNotifications.insert(0, notif);
     _notifiedCompanyNotifIds.add(notif.id);
+    _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+      debugPrint('Firestore save task notif note: $err');
+    });
     PushNotificationService().showNotification(
       id: notif.id,
       title: notif.title,
@@ -5328,6 +5346,9 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _companyNotifications.insert(0, notif);
     _notifiedCompanyNotifIds.add(notif.id);
+    _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+      debugPrint('Firestore save task notif note: $err');
+    });
     PushNotificationService().showNotification(
       id: notif.id,
       title: notif.title,
