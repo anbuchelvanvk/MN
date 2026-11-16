@@ -915,7 +915,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
   Widget _buildDailyStepTrackerCard(BuildContext context, EcosystemProvider eco) {
     final recordedSteps = eco.getStepsForDate(_selectedDate);
-    const int stepGoal = 6000;
+    final int stepGoal = eco.dailyStepGoal;
     final pct = (recordedSteps / stepGoal).clamp(0.0, 1.0);
 
     return Container(
@@ -1028,48 +1028,273 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-          // Device Sensor Permission banner if not yet connected
-          if (!eco.stepPermissionGranted)
-            InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () => _showPedometerSensorPermissionDialog(context, eco),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.sensors, size: 16, color: AppColors.sandGold),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Sync with phone hardware step counter sensor',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
-                      ),
-                    ),
-                    const Icon(Icons.arrow_forward_ios, size: 11, color: AppColors.sandGold),
-                  ],
-                ),
-              ),
-            )
-          else
-            Row(
+          // SEPARATE DEDICATED SECTION TO ADD / EDIT GOAL STEPS
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.burgundySurface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.check_circle, size: 14, color: Color(0xFF10B981)),
-                const SizedBox(width: 6),
-                Text(
-                  'Phone motion pedometer sensor linked & syncing',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF10B981), fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppColors.sandGold.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.flag_rounded, size: 16, color: AppColors.sandGold),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'DAILY STEP TARGET GOAL',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandGold,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              '$stepGoal steps / day',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.sandLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _openSetStepGoalDialog(context, eco),
+                  icon: const Icon(Icons.tune, size: 13, color: AppColors.burgundyBg),
+                  label: Text(
+                    'Set Goal',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.burgundyBg,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.sandGold,
+                    foregroundColor: AppColors.burgundyBg,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
                 ),
               ],
             ),
+          ),
         ],
       ),
+    );
+  }
+
+  void _openSetStepGoalDialog(BuildContext context, EcosystemProvider eco) {
+    int targetGoal = eco.dailyStepGoal;
+    final controller = TextEditingController(text: targetGoal.toString());
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            final presets = [4000, 5000, 6000, 8000, 10000, 12000];
+
+            return AlertDialog(
+              backgroundColor: AppColors.burgundyCard,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+                side: const BorderSide(color: AppColors.sandGold),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.sandGold.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.flag_rounded, color: AppColors.sandGold, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Daily Step Target Goal',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandLight,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Set your daily walking step goal. A higher goal increases endurance and daily metabolic balance.',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Quick Preset Chips
+                    Text(
+                      'QUICK PRESETS',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: presets.map((preset) {
+                        final isSel = targetGoal == preset;
+                        return ChoiceChip(
+                          label: Text(
+                            '$preset steps',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+                              color: isSel ? AppColors.burgundyBg : AppColors.sandLight,
+                            ),
+                          ),
+                          selected: isSel,
+                          selectedColor: AppColors.sandGold,
+                          backgroundColor: AppColors.burgundySurface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: isSel ? AppColors.sandGold : AppColors.sandBorder,
+                            ),
+                          ),
+                          onSelected: (selected) {
+                            if (selected) {
+                              setDialogState(() {
+                                targetGoal = preset;
+                                controller.text = preset.toString();
+                              });
+                            }
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Custom input field
+                    Text(
+                      'CUSTOM STEP TARGET',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 14, fontWeight: FontWeight.bold),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: AppColors.burgundySurface,
+                        hintText: 'e.g. 7500',
+                        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary.withOpacity(0.5)),
+                        suffixText: 'steps / day',
+                        suffixStyle: GoogleFonts.plusJakartaSans(color: AppColors.sandGold, fontSize: 11),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandGold, width: 1.5)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      onChanged: (v) {
+                        final parsed = int.tryParse(v);
+                        if (parsed != null && parsed > 0) {
+                          setDialogState(() {
+                            targetGoal = parsed;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 12),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.sandGold,
+                    foregroundColor: AppColors.burgundyBg,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    final entered = int.tryParse(controller.text) ?? targetGoal;
+                    if (entered > 0) {
+                      eco.setDailyStepGoal(entered);
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Daily step goal updated to $entered steps!',
+                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                          ),
+                          backgroundColor: const Color(0xFF10B981),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    'Save Goal',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.burgundyBg,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1077,7 +1302,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     final dayConsumed = eco.getCaloriesConsumedForDate(_selectedDate);
     final dayFoodLogs = eco.getFoodLogsForDate(_selectedDate);
     final dayWorkoutMins = eco.getWorkoutMinutesForDate(_selectedDate);
-    final daySteps = eco.getStepsForDate(_selectedDate);
+    final dayWorkoutLogs = eco.getWorkoutLogsForDate(_selectedDate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1112,7 +1337,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               index: 1,
               title: 'Workout',
               value: '$dayWorkoutMins mins',
-              subtitle: '$daySteps steps • ${_formatDayShort(_selectedDate)}',
+              subtitle: '${dayWorkoutLogs.length} sessions • ${_formatDayShort(_selectedDate)}',
               icon: Icons.fitness_center,
               iconColor: const Color(0xFF10B981),
             ),
@@ -1933,56 +2158,67 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '3. Quantity / Count',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.sandGold,
-                                  letterSpacing: 0.4,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '3. Quantity / Count',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.sandGold,
+                                    letterSpacing: 0.4,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$portionLabel x $quantity = ${totalGrams.toInt()}g total',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10.5,
-                                  color: AppColors.sandPrimary,
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$portionLabel x $quantity = ${totalGrams.toInt()}g total',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    color: AppColors.sandPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             decoration: BoxDecoration(
                               color: AppColors.burgundySurface,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.remove, size: 18, color: AppColors.sandGold),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(4),
+                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                  icon: const Icon(Icons.remove, size: 16, color: AppColors.sandGold),
                                   onPressed: quantity > 1
                                       ? () => setDialogState(() => quantity--)
                                       : null,
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   child: Text(
                                     quantity.toString(),
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 16,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.sandLight,
                                     ),
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.add, size: 18, color: AppColors.sandGold),
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.all(4),
+                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                  icon: const Icon(Icons.add, size: 16, color: AppColors.sandGold),
                                   onPressed: () => setDialogState(() => quantity++),
                                 ),
                               ],
@@ -2299,20 +2535,21 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
         ),
         const SizedBox(height: 8),
         SizedBox(
-          height: 80,
+          height: 85,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: WorkoutDatabase.activities.length,
             itemBuilder: (ctx, idx) {
               final act = WorkoutDatabase.activities[idx];
+              final displayName = act.name.replaceAll(' / Jogging', '');
               return InkWell(
                 borderRadius: BorderRadius.circular(14),
                 onTap: () => _openRecordWorkoutDialog(context, eco, presetActivity: act),
                 child: Container(
-                  width: 110,
+                  width: 125,
                   margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.burgundyCard,
                     borderRadius: BorderRadius.circular(14),
@@ -2324,14 +2561,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       Icon(act.icon, color: AppColors.sandGold, size: 22),
                       const SizedBox(height: 6),
                       Text(
-                        act.name,
+                        displayName,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -2629,16 +2866,25 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       DropdownButtonFormField<String>(
                         value: timeAllocation,
                         isExpanded: true,
+                        isDense: true,
                         dropdownColor: AppColors.pureWhite,
                         style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12.5),
                         icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                         ),
+                        selectedItemBuilder: (context) {
+                          return [
+                            'Morning Routine (06:00 - 08:30)',
+                            'Mid-day Break',
+                            'Evening Routine (18:00 - 20:30)',
+                            'Night Routine (Post-Dinner)',
+                          ].map((e) => Text(e, overflow: TextOverflow.ellipsis, maxLines: 1)).toList();
+                        },
                         items: const [
                           DropdownMenuItem(value: 'Morning Routine', child: Text('Morning Routine (06:00 - 08:30)')),
                           DropdownMenuItem(value: 'Mid-day Break', child: Text('Mid-day Break')),
@@ -3093,28 +3339,32 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 ],
                               ),
                             ),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  calculatedKcal.toStringAsFixed(0),
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xFFC2410C),
+                            Flexible(
+                              flex: 0,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    calculatedKcal.toStringAsFixed(0),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFFC2410C),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'kcal',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFFEA580C),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'kcal',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFFEA580C),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -3968,76 +4218,6 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _showPedometerSensorPermissionDialog(BuildContext context, EcosystemProvider eco) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: AppColors.burgundyCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.sandGold, width: 1.2),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.sandGold),
-                ),
-                child: const Icon(Icons.sensors, color: AppColors.sandGold, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Share Step Count Data with MN Family?',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandLight,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: Text(
-            'MN Family requests permission to read your device\'s built-in step counter and motion sensors to seamlessly track your daily walking habits and stamina in Pillar 1.\n\nYour data remains private to your personal profile.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary, height: 1.45),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Not Now', style: TextStyle(color: AppColors.sandPrimary)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
-                foregroundColor: AppColors.burgundyBg,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () {
-                eco.setStepPermissionGranted(true);
-                if (eco.getStepsForDate(_selectedDate) == 0) {
-                  eco.recordDailySteps(date: _selectedDate, steps: 3500);
-                }
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: AppColors.burgundyPrimary,
-                    content: Text('Device pedometer sensors connected successfully!'),
-                  ),
-                );
-              },
-              child: const Text('Allow & Connect Sensors'),
-            ),
-          ],
-        );
-      },
     );
   }
 

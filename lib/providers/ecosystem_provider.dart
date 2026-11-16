@@ -61,6 +61,7 @@ class EcosystemProvider extends ChangeNotifier {
   double? _dailyCalorieTarget;
   bool _stepPermissionGranted = false;
   Map<String, int> _dailyStepsMap = {};
+  int _dailyStepGoal = 6000;
   List<FoodLogItem> _dailyFoodLogs = [];
   List<WorkoutLogItem> _dailyWorkoutLogs = [];
   List<WeightHeightRecord> _weightHistory = [];
@@ -70,11 +71,29 @@ class EcosystemProvider extends ChangeNotifier {
   double get userWeightKg => _userWeightKg;
   double get dailyCalorieTarget => _dailyCalorieTarget ?? 2000.0;
   bool get hasSetDailyCalorieTarget => _dailyCalorieTarget != null && _dailyCalorieTarget! > 0;
+  int get dailyStepGoal => _dailyStepGoal;
   bool get stepPermissionGranted => _stepPermissionGranted;
   Map<String, int> get dailyStepsMap => _dailyStepsMap;
   List<FoodLogItem> get dailyFoodLogs => _dailyFoodLogs;
   List<WorkoutLogItem> get dailyWorkoutLogs => _dailyWorkoutLogs;
   List<WeightHeightRecord> get weightHistory => _weightHistory;
+
+  void setDailyStepGoal(int goal) {
+    _dailyStepGoal = goal.clamp(500, 50000);
+    notifyListeners();
+    try {
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setInt('health_step_goal_$_activeEmpId', _dailyStepGoal);
+      }).catchError((_) {});
+    } catch (_) {}
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'health',
+      data: {
+        'dailyStepGoal': _dailyStepGoal,
+      },
+    );
+  }
 
   double get suggestedDailyCalories {
     if (_userWeightKg > 0 && _userHeightCm > 0) {
@@ -2155,14 +2174,43 @@ class EcosystemProvider extends ChangeNotifier {
       orElse: () => currentEmployee,
     );
     if (!emp.hasAttendanceAndGrooming) return false; // CEO and OTM Praveenkumar are exempt from attendance
-    if (_manuallyPresentEmployeeIds.contains(empId)) return false;
-    if (_absentEmployeeIds.contains(empId)) return true;
+    if (_manuallyPresentEmployeeIds.contains(emp.id) || _manuallyPresentEmployeeIds.contains(emp.empNo)) return false;
+    if (_absentEmployeeIds.contains(emp.id) || _absentEmployeeIds.contains(emp.empNo)) return true;
+
+    // 1. Check official HR Google Sheets Master Ledger
+    final sheet = hrAttendanceSheet;
+    if (sheet != null) {
+      final row = sheet.findForEmployee(name: emp.name, empNo: emp.empNo);
+      if (row != null) {
+        final now = DateTime.now();
+        // Check today's record in current month
+        final todayRec = row.days[now.day];
+        if (todayRec != null && todayRec.type != HrAttendanceDayType.pendingUpdate) {
+          final isLeaveOrAbsent = todayRec.type == HrAttendanceDayType.leaveCl ||
+              todayRec.type == HrAttendanceDayType.leaveLop;
+          return isLeaveOrAbsent;
+        }
+
+        // Check latest recorded day up to today
+        final latestDay = sheet.latestRecordedDay;
+        final latestRec = row.days[latestDay];
+        if (latestRec != null && latestRec.type != HrAttendanceDayType.pendingUpdate) {
+          final isLeaveOrAbsent = latestRec.type == HrAttendanceDayType.leaveCl ||
+              latestRec.type == HrAttendanceDayType.leaveLop;
+          return isLeaveOrAbsent;
+        }
+
+        // Active staff recorded on Google Sheets are on-duty by default
+        return false;
+      }
+    }
+
     final summaries = allEmployeesTodayAttendance;
-    final sIdx = summaries.indexWhere((s) => s.employeeId == empId);
+    final sIdx = summaries.indexWhere((s) => s.employeeId == empId || s.employeeId == emp.id || s.employeeId == emp.empNo);
     if (sIdx != -1) {
       return !summaries[sIdx].isPresent;
     }
-    return true; // No punch record for today = absent
+    return false; // Active corporate staff are on-duty unless marked absent in ledger or manually toggled
   }
 
   /// Returns true if employee is logged in / clocked in and currently on duty (has not marked shift over)
@@ -3937,6 +3985,9 @@ class EcosystemProvider extends ChangeNotifier {
           if (h['dailyCalorieTarget'] != null) {
             _dailyCalorieTarget = (h['dailyCalorieTarget'] as num?)?.toDouble();
           }
+          if (h['dailyStepGoal'] != null) {
+            _dailyStepGoal = (h['dailyStepGoal'] as num).toInt();
+          }
           if (h['dailySteps'] is Map) {
             _dailyStepsMap = (h['dailySteps'] as Map).map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
           }
@@ -4059,6 +4110,10 @@ class EcosystemProvider extends ChangeNotifier {
           final savedH = prefs.getDouble('health_height_$empId');
           final savedW = prefs.getDouble('health_weight_$empId');
           final savedOnb = prefs.getBool('health_onboarded_$empId');
+          final savedGoal = prefs.getInt('health_step_goal_$empId');
+          if (savedGoal != null && savedGoal > 0) {
+            _dailyStepGoal = savedGoal;
+          }
           if (savedH != null && savedW != null && savedH > 0 && savedW > 0) {
             _userHeightCm = savedH;
             _userWeightKg = savedW;
