@@ -2020,6 +2020,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
             return Dialog(
               backgroundColor: AppColors.burgundyCard,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: const BorderSide(color: AppColors.sandGold, width: 1.2),
@@ -2155,76 +2156,83 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       const SizedBox(height: 16),
 
                       // 3. Quantity Stepper
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '3. Quantity / Count',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.sandGold,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '$portionLabel x $quantity = ${totalGrams.toInt()}g total',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
-                                    color: AppColors.sandPrimary,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.burgundySurface,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  icon: const Icon(Icons.remove, size: 16, color: AppColors.sandGold),
-                                  onPressed: quantity > 1
-                                      ? () => setDialogState(() => quantity--)
-                                      : null,
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  child: Text(
-                                    quantity.toString(),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.burgundySurface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '3. Quantity / Count',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.sandLight,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.sandGold,
+                                      letterSpacing: 0.4,
                                     ),
                                   ),
-                                ),
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.all(4),
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  icon: const Icon(Icons.add, size: 16, color: AppColors.sandGold),
-                                  onPressed: () => setDialogState(() => quantity++),
-                                ),
-                              ],
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '$portionLabel x $quantity = ${totalGrams.toInt()}g total',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      color: AppColors.sandPrimary,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.burgundyCard,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                    icon: const Icon(Icons.remove, size: 16, color: AppColors.sandGold),
+                                    onPressed: quantity > 1
+                                        ? () => setDialogState(() => quantity--)
+                                        : null,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                                    child: Text(
+                                      quantity.toString(),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.sandLight,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                    icon: const Icon(Icons.add, size: 16, color: AppColors.sandGold),
+                                    onPressed: () => setDialogState(() => quantity++),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 18),
 

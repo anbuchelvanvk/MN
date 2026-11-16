@@ -5,10 +5,8 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
-import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../../models/employee_model.dart';
 import '../../models/profile_document_models.dart';
-import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../ceo/ceo_subpages.dart';
 import '../dept_head/dept_head_subpages.dart';
@@ -79,7 +77,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             padding: const EdgeInsets.only(right: 14),
             child: Center(
               child: LiquidGlassPill(
-                label: 'OCCASIONAL',
+                label: employee.dept.toUpperCase(),
                 color: AppColors.sandGold,
                 icon: Icons.badge_outlined,
               ),
@@ -146,13 +144,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 _buildOtmExemptSection('Daily Retail Showroom Grooming & Attire')
               else
                 _buildGroomingSection(context, provider),
-            ] else if (_selectedRingIndex == 3) ...[
-              if (employee.isCeo)
-                _buildCeoStaffPermissionsSection(context, provider)
-              else if (employee.isOtm)
-                _buildOtmExemptSection('Permissions & Leaves')
-              else
-                _buildPermissionSection(context, provider),
             ],
             const SizedBox(height: 20),
 
@@ -580,6 +571,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   // --- 4-RING SUBSYSTEM MATRIX ---
 
   Widget _buildSixRingsMatrix(BuildContext context, EcosystemProvider provider) {
+    final employee = provider.currentEmployee;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
@@ -649,127 +642,106 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ),
           const SizedBox(height: 14),
 
-          // 2 Rows of 2 Rings (Attendance, Documents, Grooming, Permissions & Leaves)
-          Row(
-            children: [
-              Expanded(
-                child: _buildRingCard(
-                  index: 0,
-                  title: provider.currentEmployee.isCeo ? 'Staff Attend' : 'Attendance',
-                  displayValue: provider.currentEmployee.isOtm
-                      ? 'N/A'
-                      : (provider.currentEmployee.isCeo ? '100%' : '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%'),
-                  subText: provider.currentEmployee.isOtm
-                      ? 'Exempt (OTM)'
-                      : (provider.currentEmployee.isCeo ? 'All On-Duty' : '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days'),
-                  progress: (provider.currentEmployee.isOtm || provider.currentEmployee.isCeo) ? 1.0 : (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
-                  ringColor: provider.currentEmployee.isOtm
-                      ? AppColors.sandGold
-                      : (provider.currentEmployee.isCeo ? AppColors.ragGreen : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B)))),
-                  icon: Icons.fact_check_outlined,
-                  statusText: provider.currentEmployee.isOtm
-                      ? 'Not Applicable'
-                      : (provider.currentEmployee.isCeo ? 'Company Duty' : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio')),
+          // CEO has 2 governance rings: Staff Attendance & Staff Vault Custody
+          if (employee.isCeo) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _buildRingCard(
+                    index: 0,
+                    title: 'Staff Attend',
+                    displayValue: '100%',
+                    subText: 'All On-Duty',
+                    progress: 1.0,
+                    ringColor: AppColors.ragGreen,
+                    icon: Icons.fact_check_outlined,
+                    statusText: 'Company Duty',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildRingCard(
-                  index: 1,
-                  title: provider.currentEmployee.isCeo ? 'Staff Vault' : 'Documents',
-                  displayValue: provider.currentEmployee.isOtm
-                      ? 'N/A'
-                      : (provider.currentEmployee.isCeo
-                          ? (provider.allStaffDocsCount == 0 ? '0 Docs' : '${provider.allStaffSubmittedCount}/${provider.allStaffDocsCount}')
-                          : (provider.totalOriginalsCount == 0 ? '0 Docs' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%')),
-                  subText: provider.currentEmployee.isOtm
-                      ? 'Exempt (OTM)'
-                      : (provider.currentEmployee.isCeo
-                          ? (provider.allStaffDocsCount == 0 ? '0 Lockers' : '${provider.allStaffSubmittedCount} Lockers')
-                          : (provider.totalOriginalsCount == 0 ? '0 Uploaded' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault')),
-                  progress: (provider.currentEmployee.isOtm || provider.currentEmployee.isCeo) ? 1.0 : provider.documentsSubmissionRatio,
-                  ringColor: provider.currentEmployee.isOtm
-                      ? AppColors.sandGold
-                      : (provider.currentEmployee.isCeo
-                          ? (provider.allStaffDocsCount == 0 ? const Color(0xFF94A3B8) : (provider.allStaffPendingCount == 0 ? AppColors.ragGreen : const Color(0xFFF59E0B)))
-                          : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444)))),
-                  icon: Icons.lock_clock_outlined,
-                  statusText: provider.currentEmployee.isOtm
-                      ? 'Not Applicable'
-                      : (provider.currentEmployee.isCeo
-                          ? (provider.allStaffDocsCount == 0 ? '0 Lockers' : (provider.allStaffPendingCount == 0 ? 'Custody Safe' : '${provider.allStaffPendingCount} Pending'))
-                          : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending'))),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildRingCard(
+                    index: 1,
+                    title: 'Staff Vault',
+                    displayValue: provider.allStaffDocsCount == 0 ? '0 Docs' : '${provider.allStaffSubmittedCount}/${provider.allStaffDocsCount}',
+                    subText: provider.allStaffDocsCount == 0 ? '0 Lockers' : '${provider.allStaffSubmittedCount} Lockers',
+                    progress: 1.0,
+                    ringColor: provider.allStaffPendingCount == 0 ? AppColors.ragGreen : const Color(0xFFF59E0B),
+                    icon: Icons.lock_clock_outlined,
+                    statusText: provider.allStaffPendingCount == 0 ? 'Custody Safe' : '${provider.allStaffPendingCount} Pending',
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Builder(
-                builder: (context) {
-                  final emp = provider.currentEmployee;
-                  if (emp.isOtm || emp.isCeo) {
-                    return Expanded(
-                      child: _buildRingCard(
-                        index: 2,
-                        title: emp.isCeo ? 'Governance' : 'Grooming',
-                        displayValue: 'N/A',
-                        subText: emp.isCeo ? 'Exempt (CEO)' : 'Exempt (OTM)',
-                        progress: 1.0,
-                        ringColor: AppColors.sandGold,
-                        icon: Icons.face_retouching_natural,
-                        statusText: 'Not Applicable',
-                      ),
-                    );
-                  }
-                  final hasAudit = provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty;
-                  final groomingPercent = provider.getEmployeeGroomingPercentage(provider.activeEmpId);
-                  final groomingPoints = provider.getEmployeeGroomingDailyPoints(provider.activeEmpId);
-
-                  return Expanded(
-                    child: _buildRingCard(
-                      index: 2,
-                      title: 'Grooming',
-                      displayValue: hasAudit ? '${groomingPercent.toStringAsFixed(0)}%' : '0%',
-                      subText: hasAudit ? '$groomingPoints/50 Pts' : 'Pending Audit',
-                      progress: hasAudit ? (groomingPercent / 100.0).clamp(0.0, 1.0) : 0.0,
-                      ringColor: !hasAudit
-                          ? const Color(0xFF94A3B8)
-                          : (groomingPercent >= 80
-                              ? AppColors.magentaPrimary
-                              : (groomingPercent >= 60
-                                  ? const Color(0xFFF59E0B)
-                                  : const Color(0xFFEF4444))),
-                      icon: Icons.face_retouching_natural,
-                      statusText: hasAudit ? '$groomingPoints/50 Pts' : 'Pending Audit',
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildRingCard(
-                  index: 3,
-                  title: provider.currentEmployee.isCeo ? 'Staff Leaves' : 'Permissions',
-                  displayValue: provider.currentEmployee.isOtm
-                      ? 'N/A'
-                      : (provider.currentEmployee.isCeo ? '${provider.allPendingPermissions.length + provider.allPendingMedicalLeaves.length} Req' : '${provider.permissionHoursRemaining.toStringAsFixed(1)}h'),
-                  subText: provider.currentEmployee.isOtm
-                      ? 'Exempt (OTM)'
-                      : (provider.currentEmployee.isCeo ? 'Pending Slips' : '${provider.totalPermissionHoursUsed.toStringAsFixed(1)}h Used | 1 CL'),
-                  progress: (provider.currentEmployee.isOtm || provider.currentEmployee.isCeo) ? 1.0 : (provider.permissionHoursRemaining / provider.monthlyPermissionHoursLimit).clamp(0.0, 1.0),
-                  ringColor: provider.currentEmployee.isOtm
-                      ? AppColors.sandGold
-                      : (provider.currentEmployee.isCeo ? (provider.allPendingPermissions.isNotEmpty || provider.allPendingMedicalLeaves.isNotEmpty ? const Color(0xFFF59E0B) : AppColors.ragGreen) : (provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.magentaPrimary)),
-                  icon: Icons.timer_outlined,
-                  statusText: provider.currentEmployee.isOtm
-                      ? 'Not Applicable'
-                      : (provider.currentEmployee.isCeo ? 'Staff Ledger' : (provider.isPermissionExcessHalfDay ? 'Half Day' : '${provider.permissionHoursRemaining.toStringAsFixed(1)}h Left')),
+              ],
+            ),
+          ] else ...[
+            // Staff & OTM have 3 rings: Attendance, Documents, Grooming
+            Row(
+              children: [
+                Expanded(
+                  child: _buildRingCard(
+                    index: 0,
+                    title: 'Attendance',
+                    displayValue: employee.isOtm
+                        ? 'N/A'
+                        : '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%',
+                    subText: employee.isOtm
+                        ? 'Exempt (OTM)'
+                        : '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days',
+                    progress: employee.isOtm ? 1.0 : (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
+                    ringColor: employee.isOtm
+                        ? AppColors.sandGold
+                        : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B))),
+                    icon: Icons.fact_check_outlined,
+                    statusText: employee.isOtm
+                        ? 'Not Applicable'
+                        : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio'),
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildRingCard(
+                    index: 1,
+                    title: 'Documents',
+                    displayValue: employee.isOtm
+                        ? 'N/A'
+                        : (provider.totalOriginalsCount == 0 ? '0 Docs' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%'),
+                    subText: employee.isOtm
+                        ? 'Exempt (OTM)'
+                        : (provider.totalOriginalsCount == 0 ? '0 Uploaded' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault'),
+                    progress: employee.isOtm ? 1.0 : provider.documentsSubmissionRatio,
+                    ringColor: employee.isOtm
+                        ? AppColors.sandGold
+                        : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444))),
+                    icon: Icons.lock_clock_outlined,
+                    statusText: employee.isOtm
+                        ? 'Not Applicable'
+                        : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending')),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildRingCard(
+                    index: 2,
+                    title: 'Grooming',
+                    displayValue: employee.isOtm
+                        ? 'N/A'
+                        : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingPercentage(provider.activeEmpId).toStringAsFixed(0)}%' : '0%'),
+                    subText: employee.isOtm
+                        ? 'Exempt (OTM)'
+                        : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingDailyPoints(provider.activeEmpId)}/50 Pts' : 'Pending Audit'),
+                    progress: employee.isOtm ? 1.0 : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) / 100.0).clamp(0.0, 1.0),
+                    ringColor: employee.isOtm
+                        ? AppColors.sandGold
+                        : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isEmpty
+                            ? const Color(0xFF94A3B8)
+                            : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) >= 80 ? AppColors.magentaPrimary : const Color(0xFFF59E0B))),
+                    icon: Icons.face_retouching_natural,
+                    statusText: employee.isOtm ? 'Not Applicable' : 'Showroom Attire',
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -902,26 +874,23 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     final List<Map<String, dynamic>> tabs;
 
     if (employee.isOtm) {
-      // Document verification, attendance, and permissions are NOT applicable to Praveenkumar (OTM)
+      // Document verification, attendance, and showroom grooming are NOT applicable to Praveenkumar (OTM)
       tabs = [
         {'index': 0, 'label': '1. Attendance (Exempt)', 'icon': Icons.fact_check_outlined},
         {'index': 1, 'label': '2. Vault Custody (Exempt)', 'icon': Icons.lock_clock_outlined},
-        {'index': 2, 'label': '3. Grooming Cadence', 'icon': Icons.face_retouching_natural},
-        {'index': 3, 'label': '4. Permissions (Exempt)', 'icon': Icons.timer_outlined},
+        {'index': 2, 'label': '3. Grooming (Exempt)', 'icon': Icons.face_retouching_natural},
       ];
     } else if (employee.isCeo) {
-      // CEO inspects others' inputs, submissions, and records
+      // CEO inspects staff attendance and document vault custody
       tabs = [
         {'index': 0, 'label': '1. Staff Attendance Overview', 'icon': Icons.fact_check_outlined},
         {'index': 1, 'label': '2. Staff Document Vault Ledger', 'icon': Icons.lock_clock_outlined},
-        {'index': 3, 'label': '3. Staff Permissions & Leaves', 'icon': Icons.timer_outlined},
       ];
     } else {
       tabs = [
         {'index': 0, 'label': '1. Calendar Attendance', 'icon': Icons.fact_check_outlined},
         {'index': 1, 'label': '2. Vault Custody', 'icon': Icons.lock_clock_outlined},
         {'index': 2, 'label': '3. Grooming & Attire', 'icon': Icons.face_retouching_natural},
-        {'index': 3, 'label': '4. Permission & Leave', 'icon': Icons.timer_outlined},
       ];
     }
 
@@ -1218,44 +1187,61 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     textColor = const Color(0xFF94A3B8);
                     statusTag = 'OFF';
                     icon = Icons.beach_access;
+                  } else if (r.status.contains('Pending') ||
+                      r.status.contains('Upcoming') ||
+                      (r.status == 'No Punch' && dayNumber > 14)) {
+                    boxColor = AppColors.burgundyCard;
+                    borderColor = AppColors.sandBorder.withOpacity(0.35);
+                    textColor = AppColors.textMuted;
+                    statusTag = '--';
+                    icon = Icons.more_horiz;
+                  } else if (r.status.contains('Late')) {
+                    boxColor = const Color(0xFFFEF9C3).withOpacity(0.18);
+                    borderColor = const Color(0xFFFACC15);
+                    textColor = const Color(0xFFFACC15);
+                    final lMatch = RegExp(r'L-\d+').firstMatch(r.status);
+                    statusTag = lMatch != null ? lMatch.group(0)! : 'L';
+                    icon = Icons.access_time;
+                  } else if (r.status.contains('Permission')) {
+                    boxColor = const Color(0xFFDCFCE7).withOpacity(0.18);
+                    borderColor = const Color(0xFF4ADE80);
+                    textColor = const Color(0xFF4ADE80);
+                    statusTag = 'PM';
+                    icon = Icons.timer;
+                  } else if (r.status.contains('Loss of Pay') || r.status.contains('LOP')) {
+                    boxColor = const Color(0xFFDC2626).withOpacity(0.18);
+                    borderColor = const Color(0xFFDC2626);
+                    textColor = const Color(0xFFF87171);
+                    statusTag = 'LOP';
+                    icon = Icons.event_busy;
+                  } else if (r.status.contains('Casual Leave') || r.status.contains('CL') || r.status.contains('Leave')) {
+                    boxColor = const Color(0xFFEF4444).withOpacity(0.18);
+                    borderColor = const Color(0xFFEF4444);
+                    textColor = const Color(0xFFF87171);
+                    statusTag = 'CL';
+                    icon = Icons.event_busy;
+                  } else if (r.status.contains('Half Day') || r.status.contains('1/2 D')) {
+                    boxColor = const Color(0xFFF97316).withOpacity(0.18);
+                    borderColor = const Color(0xFFF97316);
+                    textColor = const Color(0xFFFB923C);
+                    statusTag = '½D';
+                    icon = Icons.hourglass_bottom;
+                  } else if (r.status.contains('MN Work') || r.status.contains('MNW')) {
+                    boxColor = const Color(0xFF2563EB).withOpacity(0.18);
+                    borderColor = const Color(0xFF3B82F6);
+                    textColor = const Color(0xFF60A5FA);
+                    statusTag = 'MNW';
+                    icon = Icons.storefront;
                   } else if (r.status.contains('Present') ||
+                      r.status.contains('On Duty') ||
+                      r.status.contains('Shift Over') ||
                       (r.loginTime != '--:-- --' && r.loginTime != '--' && !r.status.contains('Absent') && !r.status.contains('Leave'))) {
                     boxColor = AppColors.ragGreen.withOpacity(0.18);
                     borderColor = AppColors.ragGreen.withOpacity(0.6);
                     textColor = AppColors.ragGreen;
                     statusTag = 'P';
                     icon = Icons.check;
-                  } else if (r.status.contains('Late')) {
-                    boxColor = const Color(0xFFF59E0B).withOpacity(0.18);
-                    borderColor = const Color(0xFFF59E0B).withOpacity(0.6);
-                    textColor = const Color(0xFFF59E0B);
-                    statusTag = 'L';
-                    icon = Icons.access_time;
-                  } else if (r.status.contains('Permission')) {
-                    boxColor = const Color(0xFF10B981).withOpacity(0.18);
-                    borderColor = const Color(0xFF10B981).withOpacity(0.6);
-                    textColor = const Color(0xFF10B981);
-                    statusTag = 'PM';
-                    icon = Icons.timer;
-                  } else if (r.status.contains('Leave') || r.status.contains('CL') || r.status.contains('LOP')) {
-                    boxColor = const Color(0xFFEF4444).withOpacity(0.18);
-                    borderColor = const Color(0xFFEF4444).withOpacity(0.5);
-                    textColor = const Color(0xFFEF4444);
-                    statusTag = 'CL';
-                    icon = Icons.event_busy;
-                  } else if (r.status.contains('Half Day')) {
-                    boxColor = const Color(0xFFF97316).withOpacity(0.18);
-                    borderColor = const Color(0xFFF97316).withOpacity(0.5);
-                    textColor = const Color(0xFFF97316);
-                    statusTag = '½D';
-                    icon = Icons.hourglass_bottom;
-                  } else if (r.status.contains('MN Work')) {
-                    boxColor = const Color(0xFF2563EB).withOpacity(0.18);
-                    borderColor = const Color(0xFF2563EB).withOpacity(0.5);
-                    textColor = const Color(0xFF60A5FA);
-                    statusTag = 'MNW';
-                    icon = Icons.storefront;
-                  } else if (r.status == 'Absent') {
+                  } else if (r.status.contains('Absent')) {
                     boxColor = const Color(0xFFEF4444).withOpacity(0.18);
                     borderColor = const Color(0xFFEF4444).withOpacity(0.5);
                     textColor = const Color(0xFFEF4444);
@@ -1263,7 +1249,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     icon = Icons.close;
                   } else {
                     boxColor = AppColors.burgundyCard;
-                    borderColor = AppColors.sandBorder.withOpacity(0.3);
+                    borderColor = AppColors.sandBorder.withOpacity(0.35);
                     textColor = AppColors.textMuted;
                     statusTag = '--';
                     icon = Icons.more_horiz;
@@ -1758,270 +1744,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   // --- SUBSYSTEM 3: PERMISSION & LATE ARRIVALS ---
 
-  Widget _buildPermissionSection(BuildContext context, EcosystemProvider provider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Permission Policy & Account Ledger Card
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'PERMISSION & LEAVES',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandGold,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'HR Master Ledger Audited',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.sandGold.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.assignment_turned_in, size: 13, color: AppColors.sandGold),
-                        SizedBox(width: 4),
-                        Text(
-                          'Ledger Linked',
-                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Account Status Bar
-              Row(
-                children: [
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Quota',
-                      value: '4.0h',
-                      color: AppColors.sandLight,
-                      icon: Icons.hourglass_top,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Used',
-                      value: '${provider.totalPermissionHoursUsed.toStringAsFixed(1)}h',
-                      color: AppColors.sandGold,
-                      icon: Icons.history,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Balance',
-                      value: '${provider.permissionHoursRemaining.toStringAsFixed(1)}h',
-                      color: provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.ragGreen,
-                      icon: Icons.account_balance_wallet_outlined,
-                    ),
-                  ),
-                  Container(width: 1, height: 30, color: AppColors.sandBorder),
-                  Expanded(
-                    child: _metricColumn(
-                      title: 'Casual Leave',
-                      value: '${provider.casualLeavesUsed}/1',
-                      color: AppColors.sandPrimary,
-                      icon: Icons.event_busy_outlined,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Half Day & Salary Deduction Status Indicators
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: provider.isPermissionExcessHalfDay
-                        ? const Color(0xFFEF4444)
-                        : AppColors.ragGreen.withOpacity(0.5),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      provider.isPermissionExcessHalfDay ? Icons.warning : Icons.shield_outlined,
-                      size: 18,
-                      color: provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.ragGreen,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            provider.isPermissionExcessHalfDay
-                                ? 'Half-Day Leave Triggered'
-                                : 'Permission Safe Standing',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.sandLight,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Early arrival automatically credits back to balance.',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Permission Request History List
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.burgundySurface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'LOGGED PERMISSION & ARRIVAL REQUESTS',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.sandLight,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              if (provider.permissionRecords.isEmpty)
-                Text(
-                  'No permission requests recorded this month.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: provider.permissionRecords.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (ctx, idx) {
-                    final rec = provider.permissionRecords[idx];
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.burgundyCard,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.sandBorder),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.alarm_on, size: 14, color: AppColors.sandGold),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    rec.reason,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.sandLight,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.ragGreen.withOpacity(0.18),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'Credited: +${rec.creditedBackHours.toStringAsFixed(1)}h',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.ragGreen,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Requested: ${rec.requestedHours.toStringAsFixed(1)}h  •  Actual Used: ${rec.actualHoursUsed.toStringAsFixed(1)}h',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
-                              ),
-                              Text(
-                                rec.dateFormatted,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildVaultMetricsBar(EcosystemProvider provider) {
     final total = provider.totalOriginalsCount;
@@ -3713,7 +3435,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             ),
             itemBuilder: (ctx, idx) {
               final rec = monthlyRecords[idx];
-              final isPresent = !rec.isWeekoff && !rec.isOvertime && (rec.status.contains('Present') || rec.status.contains('Late') || rec.status.contains('Permission') || rec.status.contains('MN Work'));
               final isOt = rec.isOvertime;
               final isOff = rec.isWeekoff;
 
@@ -3732,16 +3453,62 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 borderColor = const Color(0xFF8B5CF6).withOpacity(0.6);
                 textColor = const Color(0xFFA78BFA);
                 badgeText = 'OT';
-              } else if (isPresent) {
+              } else if (rec.status.contains('Pending') ||
+                  rec.status.contains('Upcoming') ||
+                  (rec.status == 'No Punch' && rec.date.day > 14)) {
+                bgColor = AppColors.burgundyCard;
+                borderColor = AppColors.sandBorder.withOpacity(0.35);
+                textColor = AppColors.textMuted;
+                badgeText = '--';
+              } else if (rec.status.contains('Late')) {
+                bgColor = const Color(0xFFFEF9C3).withOpacity(0.18);
+                borderColor = const Color(0xFFFACC15);
+                textColor = const Color(0xFFFACC15);
+                final lMatch = RegExp(r'L-\d+').firstMatch(rec.status);
+                badgeText = lMatch != null ? lMatch.group(0)! : 'L';
+              } else if (rec.status.contains('Permission')) {
+                bgColor = const Color(0xFFDCFCE7).withOpacity(0.18);
+                borderColor = const Color(0xFF4ADE80);
+                textColor = const Color(0xFF4ADE80);
+                badgeText = 'PM';
+              } else if (rec.status.contains('Loss of Pay') || rec.status.contains('LOP')) {
+                bgColor = const Color(0xFFDC2626).withOpacity(0.18);
+                borderColor = const Color(0xFFDC2626);
+                textColor = const Color(0xFFF87171);
+                badgeText = 'LOP';
+              } else if (rec.status.contains('Casual Leave') || rec.status.contains('CL') || rec.status.contains('Leave')) {
+                bgColor = const Color(0xFFEF4444).withOpacity(0.18);
+                borderColor = const Color(0xFFEF4444);
+                textColor = const Color(0xFFF87171);
+                badgeText = 'CL';
+              } else if (rec.status.contains('Half Day') || rec.status.contains('1/2 D')) {
+                bgColor = const Color(0xFFF97316).withOpacity(0.18);
+                borderColor = const Color(0xFFF97316);
+                textColor = const Color(0xFFFB923C);
+                badgeText = '½D';
+              } else if (rec.status.contains('MN Work') || rec.status.contains('MNW')) {
+                bgColor = const Color(0xFF2563EB).withOpacity(0.18);
+                borderColor = const Color(0xFF3B82F6);
+                textColor = const Color(0xFF60A5FA);
+                badgeText = 'MNW';
+              } else if (rec.status.contains('Present') ||
+                  rec.status.contains('On Duty') ||
+                  rec.status.contains('Shift Over') ||
+                  (rec.loginTime != '--:-- --' && rec.loginTime != '--' && !rec.status.contains('Absent') && !rec.status.contains('Leave'))) {
                 bgColor = const Color(0xFF10B981).withOpacity(0.18);
                 borderColor = const Color(0xFF10B981).withOpacity(0.5);
                 textColor = const Color(0xFF34D399);
                 badgeText = 'P';
-              } else {
+              } else if (rec.status.contains('Absent')) {
                 bgColor = const Color(0xFFEF4444).withOpacity(0.12);
                 borderColor = const Color(0xFFEF4444).withOpacity(0.35);
                 textColor = const Color(0xFFF87171);
                 badgeText = 'A';
+              } else {
+                bgColor = AppColors.burgundyCard;
+                borderColor = AppColors.sandBorder.withOpacity(0.35);
+                textColor = AppColors.textMuted;
+                badgeText = '--';
               }
 
               return Container(
@@ -4235,318 +4002,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
-  Widget _buildCeoStaffPermissionsSection(BuildContext context, EcosystemProvider provider) {
-    final perms = provider.permissionRecords;
-    final meds = provider.medicalLeaveRecords;
-    final pendingCount = provider.allPendingPermissions.length + provider.allPendingMedicalLeaves.length;
-    final totalRequests = perms.length + meds.length;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.timer_outlined, color: Color(0xFFF59E0B), size: 18),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'STAFF PERMISSION & LEAVE APPLICATIONS',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Text(
-                          'Executive approval portal for staff emergency step-outs and medical leaves',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _miniKpiBox(
-                      label: 'PENDING APPROVAL',
-                      value: '$pendingCount',
-                      color: pendingCount > 0 ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _miniKpiBox(
-                      label: 'TOTAL REQUESTS',
-                      value: '$totalRequests',
-                      color: AppColors.sandGold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _miniKpiBox(
-                      label: 'APPROVAL CADENCE',
-                      value: 'Real-time',
-                      color: const Color(0xFF3B82F6),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        if (perms.isEmpty && meds.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.burgundyCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.sandBorder),
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.task_alt, size: 36, color: Color(0xFF10B981)),
-                const SizedBox(height: 10),
-                Text(
-                  'All Staff Requests Up To Date',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'No pending emergency permissions or medical leave applications from employees.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          )
-        else ...[
-          ...meds.map((med) => _buildCeoMedicalLeaveCard(context, provider, med)),
-          const SizedBox(height: 8),
-          ...perms.map((perm) => _buildCeoPermissionCard(context, provider, perm)),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildCeoMedicalLeaveCard(BuildContext context, EcosystemProvider provider, MedicalLeaveRecord med) {
-    final isApproved = med.status == 'Approved';
-    final isPending = med.isPendingCeo || med.isPendingHr;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isPending ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const Icon(Icons.medical_services_outlined, size: 16, color: Color(0xFFE11D48)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'EMP #${med.empId} • ${med.empName}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isApproved ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  med.status,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.bold,
-                    color: isApproved ? const Color(0xFF059669) : const Color(0xFFD97706),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Medical Leave: ${med.days} Days • From ${med.date.day}/${med.date.month}/${med.date.year}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textDark),
-          ),
-          Text(
-            'Diagnosis: ${med.reason}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              InkWell(
-                onTap: () => PrescriptionViewerDialog.show(context, leave: med),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.attachment, size: 13, color: AppColors.magentaPrimary),
-                    const SizedBox(width: 4),
-                    Text(
-                      'View Prescription Document',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
-                    ),
-                  ],
-                ),
-              ),
-              if (isPending) ...[
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextButton(
-                      onPressed: () => provider.rejectMedicalLeave(med.id),
-                      child: const Text('Reject', style: TextStyle(color: Color(0xFFEF4444), fontSize: 11)),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: () => provider.ceoApproveMedicalLeave(med.id),
-                      child: const Text('Approve', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCeoPermissionCard(BuildContext context, EcosystemProvider provider, PermissionRecord perm) {
-    final isApproved = perm.status == 'Approved';
-    final isPending = perm.isPendingCeo || perm.isPendingHr;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isPending ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    const Icon(Icons.timer_outlined, size: 16, color: Color(0xFF3B82F6)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'EMP #${perm.empId} • 4-Hour Quota Slip',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isApproved ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  perm.status,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.bold,
-                    color: isApproved ? const Color(0xFF059669) : const Color(0xFFD97706),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Requested: ${perm.requestedHours} Hours • ${perm.reason}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textDark),
-          ),
-          if (isPending) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => provider.rejectPermission(perm.id),
-                  child: const Text('Reject', style: TextStyle(color: Color(0xFFEF4444), fontSize: 11)),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () => provider.ceoApprovePermission(perm.id),
-                  child: const Text('Approve', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 
   Widget _buildOtmExemptSection(String subsystemName) {
     return Container(
@@ -4568,7 +4023,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'ONLINE TEAM MANAGER EXEMPTION',
+            'ONLINE TEAM MANAGER (OTM)',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13.5,
               fontWeight: FontWeight.bold,
@@ -4578,11 +4033,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '$subsystemName is Not Applicable to Online Team Manager (OTM).\n\nMr. Praveen Kumar operates under autonomous project deliverable milestones, creative video turnarounds, and digital catalog SLA metrics.',
+            'Exempt from $subsystemName.',
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 11.5,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
               color: AppColors.sandPrimary,
-              height: 1.45,
             ),
             textAlign: TextAlign.center,
           ),

@@ -541,24 +541,88 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Reassign Staff Tasks',
+            'Reassign and Reallocate Staff Tasks to Team Members',
             style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
           ),
           const SizedBox(height: 10),
 
+          // Reallocate Member Tasks action card (Always available to Team Lead)
+          Builder(
+            builder: (ctx) {
+              final effectiveEmpId = _selectedAttendanceMemberId ?? (teamMembers.isNotEmpty ? teamMembers.first.id : '');
+              final selectedEmp = teamMembers.firstWhere(
+                (e) => e.id == effectiveEmpId,
+                orElse: () => teamMembers.isNotEmpty ? teamMembers.first : eco.currentEmployee,
+              );
+              return Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundyCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.swap_horiz_rounded, color: AppColors.sandGold, size: 22),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Reallocate Tasks (${selectedEmp.name})',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                            ),
+                          ),
+                          Text(
+                            'Shift pending tasks to any active team member',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        AssignTasksToOthersModal.show(
+                          context,
+                          defaultAbsentEmpId: selectedEmp.id,
+                        );
+                      },
+                      icon: const Icon(Icons.assignment_ind_outlined, size: 14),
+                      label: const Text('Reassign'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.magentaPrimary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+
           if (teamAbsentees.isEmpty) ...[
             LiquidGlassCard(
               borderRadius: 14,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: const Center(
                 child: Column(
                   children: [
-                    Icon(Icons.verified, color: AppColors.ragGreen, size: 36),
-                    SizedBox(height: 8),
-                    Text('All Team Present', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                    SizedBox(height: 4),
+                    Icon(Icons.verified, color: AppColors.ragGreen, size: 30),
+                    SizedBox(height: 6),
+                    Text('All Team Present on Duty', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                    SizedBox(height: 3),
                     Text(
-                      'No Absentee Tasks',
+                      'All online team members checked in. Use the button above to reallocate tasks for any staff member.',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
@@ -689,7 +753,13 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
       if (r.isOvertime || (r.date.weekday == DateTime.tuesday && r.loginTime != '--:-- --')) {
         tuesdayOvertimeCount++;
       }
-      if (r.loginTime != '--:-- --') {
+      final isAttended = !r.isWeekoff &&
+          !r.status.contains('Leave') &&
+          !r.status.contains('Absent') &&
+          !r.status.contains('Pending') &&
+          !r.status.contains('Week-off') &&
+          (r.status.contains('Present') || r.status.contains('Late') || r.status.contains('Permission') || r.status.contains('MNW'));
+      if (isAttended) {
         daysPresent++;
         final match = RegExp(r'(\d+)h\s*(\d+)m').firstMatch(r.netHours);
         if (match != null) {
@@ -697,7 +767,9 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
           final m = int.tryParse(match.group(2) ?? '0') ?? 0;
           totalMinutes += (h * 60 + m);
         }
-        if (r.loginTime != '--:-- --') onTimeCount++;
+        if (r.status.contains('Present') || r.status.contains('MNW') || r.status.contains('Nil')) {
+          onTimeCount++;
+        }
       }
     }
 

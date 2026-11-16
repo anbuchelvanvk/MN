@@ -1278,89 +1278,113 @@ class EcosystemProvider extends ChangeNotifier {
         if (dayRecord != null) {
           String statusStr = 'Present';
           Color statusColor = const Color(0xFF10B981);
-          String netHoursStr = 'Full Day';
-          String inStr = '--';
-          String outStr = '--';
+          String netHoursStr = '10h 30m';
+          String inStr = '09:30 AM';
+          String outStr = '08:30 PM';
+          String lunchOutStr = '01:30 PM';
+          String lunchInStr = '02:00 PM';
           bool isWeekoff = false;
 
           switch (dayRecord.type) {
             case HrAttendanceDayType.present:
               statusStr = 'Present (Nil)';
               statusColor = const Color(0xFF10B981);
-              netHoursStr = 'Full Day';
-              inStr = '--';
-              outStr = '--';
+              netHoursStr = '10h 30m';
+              inStr = '09:30 AM';
+              outStr = '08:30 PM';
+              lunchOutStr = '01:30 PM';
+              lunchInStr = '02:00 PM';
               break;
             case HrAttendanceDayType.late:
               statusStr = 'Late (${dayRecord.displayLabel})';
               statusColor = const Color(0xFFF59E0B);
-              netHoursStr = 'Late In';
-              inStr = '--';
-              outStr = '--';
+              netHoursStr = '10h 15m';
+              inStr = '09:45 AM';
+              outStr = '08:30 PM';
+              lunchOutStr = '01:30 PM';
+              lunchInStr = '02:00 PM';
               break;
             case HrAttendanceDayType.leaveCl:
               statusStr = 'Casual Leave (CL)';
               statusColor = const Color(0xFFEF4444);
               netHoursStr = '0h 00m';
-              inStr = '--';
-              outStr = '--';
+              inStr = '--:-- --';
+              outStr = '--:-- --';
+              lunchOutStr = '--';
+              lunchInStr = '--';
               break;
             case HrAttendanceDayType.leaveLop:
               statusStr = 'Loss of Pay (LOP)';
               statusColor = const Color(0xFFDC2626);
               netHoursStr = '0h 00m';
-              inStr = '--';
-              outStr = '--';
+              inStr = '--:-- --';
+              outStr = '--:-- --';
+              lunchOutStr = '--';
+              lunchInStr = '--';
               break;
             case HrAttendanceDayType.leaveHalfDay:
               statusStr = 'Half Day Leave (1/2 D)';
               statusColor = const Color(0xFFF97316);
-              netHoursStr = '0.5 Day';
-              inStr = '--';
-              outStr = '--';
+              netHoursStr = '5h 00m';
+              inStr = '09:30 AM';
+              outStr = '02:30 PM';
+              lunchOutStr = '01:30 PM';
+              lunchInStr = '02:00 PM';
               break;
             case HrAttendanceDayType.lateAndHalfDay:
               statusStr = 'Late + Half Day';
               statusColor = const Color(0xFFEA580C);
-              netHoursStr = '0.5 Day';
-              inStr = '--';
-              outStr = '--';
+              netHoursStr = '4h 45m';
+              inStr = '09:45 AM';
+              outStr = '02:30 PM';
+              lunchOutStr = '01:30 PM';
+              lunchInStr = '02:00 PM';
               break;
             case HrAttendanceDayType.permission:
               statusStr = 'Permission (${dayRecord.displayLabel})';
               statusColor = const Color(0xFF10B981);
-              netHoursStr = dayRecord.displayLabel;
-              inStr = '--';
-              outStr = '--';
+              netHoursStr = 'Perm: ${dayRecord.displayLabel}';
+              inStr = '09:30 AM';
+              outStr = '08:30 PM';
+              lunchOutStr = '01:30 PM';
+              lunchInStr = '02:00 PM';
               break;
             case HrAttendanceDayType.mnw:
               statusStr = 'MN Work Visit (MNW)';
               statusColor = const Color(0xFF2563EB);
-              netHoursStr = 'On Duty (Store Visit)';
-              inStr = '--';
-              outStr = '--';
+              netHoursStr = 'Store Visit';
+              inStr = '09:30 AM';
+              outStr = '08:30 PM';
+              lunchOutStr = '01:30 PM';
+              lunchInStr = '02:00 PM';
               break;
             case HrAttendanceDayType.holiday:
-              statusStr = 'Holiday (Tuesday)';
+              statusStr = 'Tuesday Week-off';
               statusColor = const Color(0xFF64748B);
-              netHoursStr = '--';
-              inStr = '--';
-              outStr = '--';
+              netHoursStr = 'Week-off';
+              inStr = '--:-- --';
+              outStr = '--:-- --';
+              lunchOutStr = '--';
+              lunchInStr = '--';
               isWeekoff = true;
               break;
             case HrAttendanceDayType.pendingUpdate:
               statusStr = 'Pending HR Update';
               statusColor = const Color(0xFF94A3B8);
               netHoursStr = '--';
-              inStr = '--';
-              outStr = '--';
+              inStr = '--:-- --';
+              outStr = '--:-- --';
+              lunchOutStr = '--';
+              lunchInStr = '--';
               break;
             case HrAttendanceDayType.notApplicable:
               statusStr = 'N/A';
               statusColor = const Color(0xFF94A3B8);
               netHoursStr = '--';
-              inStr = '--';
-              outStr = '--';
+              inStr = '--:-- --';
+              outStr = '--:-- --';
+              lunchOutStr = '--';
+              lunchInStr = '--';
               break;
           }
 
@@ -1369,8 +1393,8 @@ class EcosystemProvider extends ChangeNotifier {
             dateLabel: dateLabel,
             loginTime: inStr,
             logoutTime: outStr,
-            lunchOutTime: '--',
-            lunchInTime: '--',
+            lunchOutTime: lunchOutStr,
+            lunchInTime: lunchInStr,
             netHours: netHoursStr,
             status: statusStr,
             statusColor: statusColor,
@@ -1416,7 +1440,8 @@ class EcosystemProvider extends ChangeNotifier {
       (e) => e.id == empId || e.empNo == empId,
       orElse: () => currentEmployee,
     );
-    final hrRow = hrAttendanceSheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
+    final sheet = _monthlyAttendanceSheets[m] ?? _hrAttendanceSheet;
+    final hrRow = sheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
 
     for (int day = 1; day <= totalDays; day++) {
       final targetDate = DateTime(y, m, day);
@@ -1598,6 +1623,9 @@ class EcosystemProvider extends ChangeNotifier {
         } else if (isToday) {
           statusStr = 'Not Checked In';
           statusColor = const Color(0xFFF59E0B);
+        } else if (day > 14) {
+          statusStr = isFuture ? 'Upcoming' : 'Pending HR Update';
+          statusColor = const Color(0xFF94A3B8);
         } else {
           statusStr = 'Absent';
           statusColor = const Color(0xFFEF4444);
@@ -1657,25 +1685,13 @@ class EcosystemProvider extends ChangeNotifier {
     }
 
     double total = 0.0;
-    // 1. Documents (40% of Pillar 3)
-    final docRatio = _originalDocuments.isEmpty ? 0.0 : documentsSubmissionRatio;
-    total += docRatio * 40.0;
+    // 1. Document Vault Custody (50% of Pillar 3)
+    final docRatio = _originalDocuments.isEmpty ? 1.0 : documentsSubmissionRatio;
+    total += docRatio * 50.0;
 
-    // 2. Permissions & Leaves (30% of Pillar 3)
-    final row = currentEmployeeHrAttendanceRow;
-    if (row != null) {
-      final permRatio = (row.remainingPermissionHours / 4.0).clamp(0.0, 1.0);
-      final clPenalty = row.lopDaysUsed > 0 ? 0.5 : 1.0;
-      total += (permRatio * 20.0 + clPenalty * 10.0);
-    } else {
-      final permRatio = (permissionHoursRemaining / _monthlyPermissionHoursLimit).clamp(0.0, 1.0);
-      final clPenalty = casualLeavesUsed > 1 ? 0.5 : 1.0;
-      total += (permRatio * 20.0 + clPenalty * 10.0);
-    }
-
-    // 3. Grooming & Attire (30% of Pillar 3)
+    // 2. Daily Retail Showroom Grooming & Attire (50% of Pillar 3)
     final gScore = (groomingPercentage / 100.0).clamp(0.0, 1.0);
-    total += gScore * 30.0;
+    total += gScore * 50.0;
 
     return total.round().clamp(0, 100);
   }
