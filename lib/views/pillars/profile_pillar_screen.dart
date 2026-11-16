@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
+import '../../core/widgets/prescription_viewer_dialog.dart';
+import '../../models/employee_model.dart';
 import '../../models/profile_document_models.dart';
+import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../ceo/ceo_subpages.dart';
+import '../dept_head/dept_head_subpages.dart';
 import 'tier_pillar_screen.dart';
 
 class ProfilePillarScreen extends StatefulWidget {
@@ -22,6 +28,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   bool _isPasswordRevealed = false;
   int _selectedCalendarMonth = DateTime.now().month;
   final int _selectedCalendarYear = DateTime.now().year;
+  String _ceoSelectedStaffId = 'all';
+  String _ceoStaffDocFilter = 'All';
 
   @override
   void initState() {
@@ -103,31 +111,47 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
             // 4. Dynamic Subsystem Views based on selected ring
             if (_selectedRingIndex == 0) ...[
-              _buildMonthlyAttendanceSection(context, provider),
-            ] else if (_selectedRingIndex == 1) ...[
-              // Inside here: Document Submission (Original Document Custody)
-              _buildVaultMetricsBar(provider),
-              const SizedBox(height: 16),
-              _buildDropdownAndAddSection(context, provider),
-              const SizedBox(height: 16),
-              _buildLedgerHeaderWithFilter(docs),
-              const SizedBox(height: 10),
-              if (filteredDocs.isEmpty)
-                _buildEmptyState()
+              if (employee.isCeo)
+                _buildCeoStaffAttendanceSection(context, provider)
+              else if (employee.isOtm)
+                _buildOtmExemptSection('Attendance')
               else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredDocs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (ctx, idx) => _buildDocumentCard(ctx, provider, filteredDocs[idx]),
-                ),
+                _buildMonthlyAttendanceSection(context, provider),
+            ] else if (_selectedRingIndex == 1) ...[
+              if (employee.isCeo)
+                _buildCeoStaffVaultCustodySection(context, provider)
+              else if (employee.isOtm)
+                _buildOtmExemptSection('Document Verification & Safe Vault Custody')
+              else ...[
+                // Inside here: Document Submission (Original Document Custody)
+                _buildVaultMetricsBar(provider),
+                const SizedBox(height: 16),
+                _buildDropdownAndAddSection(context, provider),
+                const SizedBox(height: 16),
+                _buildLedgerHeaderWithFilter(docs),
+                const SizedBox(height: 10),
+                if (filteredDocs.isEmpty)
+                  _buildEmptyState()
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredDocs.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (ctx, idx) => _buildDocumentCard(ctx, provider, filteredDocs[idx]),
+                  ),
+              ],
             ] else if (_selectedRingIndex == 2) ...[
               _buildGroomingSection(context, provider),
             ] else if (_selectedRingIndex == 3) ...[
               _buildSalesSection(context, provider),
             ] else if (_selectedRingIndex == 4) ...[
-              _buildPermissionSection(context, provider),
+              if (employee.isCeo)
+                _buildCeoStaffPermissionsSection(context, provider)
+              else if (employee.isOtm)
+                _buildOtmExemptSection('Permissions & Leaves')
+              else
+                _buildPermissionSection(context, provider),
             ] else ...[
               _buildEthicsConductSection(context, provider),
             ],
@@ -632,47 +656,55 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Expanded(
                 child: _buildRingCard(
                   index: 0,
-                  title: 'Attendance',
-                  displayValue: '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%',
-                  subText: '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days',
-                  progress: (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
-                  ringColor: provider.workingDaysAttended == 0
-                      ? const Color(0xFF94A3B8)
-                      : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B)),
+                  title: provider.currentEmployee.isCeo ? 'Staff Attend' : 'Attendance',
+                  displayValue: provider.currentEmployee.isOtm
+                      ? 'N/A'
+                      : (provider.currentEmployee.isCeo ? '100%' : '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%'),
+                  subText: provider.currentEmployee.isOtm
+                      ? 'Exempt (OTM)'
+                      : (provider.currentEmployee.isCeo ? 'All On-Duty' : '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days'),
+                  progress: (provider.currentEmployee.isOtm || provider.currentEmployee.isCeo) ? 1.0 : (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
+                  ringColor: provider.currentEmployee.isOtm
+                      ? AppColors.sandGold
+                      : (provider.currentEmployee.isCeo ? AppColors.ragGreen : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B)))),
                   icon: Icons.fact_check_outlined,
-                  statusText: provider.workingDaysAttended == 0
-                      ? 'No Punches'
-                      : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio',
+                  statusText: provider.currentEmployee.isOtm
+                      ? 'Not Applicable'
+                      : (provider.currentEmployee.isCeo ? 'Company Duty' : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio')),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildRingCard(
                   index: 1,
-                  title: 'Documents',
-                  displayValue: '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%',
-                  subText: '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault',
-                  progress: provider.documentsSubmissionRatio,
-                  ringColor: provider.totalOriginalsCount == 0
-                      ? const Color(0xFF94A3B8)
-                      : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444)),
+                  title: provider.currentEmployee.isCeo ? 'Staff Vault' : 'Documents',
+                  displayValue: provider.currentEmployee.isOtm
+                      ? 'N/A'
+                      : (provider.currentEmployee.isCeo ? '100%' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%'),
+                  subText: provider.currentEmployee.isOtm
+                      ? 'Exempt (OTM)'
+                      : (provider.currentEmployee.isCeo ? '15 Lockers' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault'),
+                  progress: (provider.currentEmployee.isOtm || provider.currentEmployee.isCeo) ? 1.0 : provider.documentsSubmissionRatio,
+                  ringColor: provider.currentEmployee.isOtm
+                      ? AppColors.sandGold
+                      : (provider.currentEmployee.isCeo ? AppColors.ragGreen : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444)))),
                   icon: Icons.lock_clock_outlined,
-                  statusText: provider.totalOriginalsCount == 0
-                      ? 'Need to be added'
-                      : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending'),
+                  statusText: provider.currentEmployee.isOtm
+                      ? 'Not Applicable'
+                      : (provider.currentEmployee.isCeo ? 'Custody Safe' : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending'))),
                 ),
               ),
               const SizedBox(width: 8),
               Builder(
                 builder: (context) {
                   final emp = provider.currentEmployee;
-                  if (emp.isOtm) {
+                  if (emp.isOtm || emp.isCeo) {
                     return Expanded(
                       child: _buildRingCard(
                         index: 2,
-                        title: 'Grooming',
+                        title: emp.isCeo ? 'Governance' : 'Grooming',
                         displayValue: 'N/A',
-                        subText: 'Exempt (OTM)',
+                        subText: emp.isCeo ? 'Exempt (CEO)' : 'Exempt (OTM)',
                         progress: 1.0,
                         ringColor: AppColors.sandGold,
                         icon: Icons.face_retouching_natural,
@@ -729,15 +761,21 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Expanded(
                 child: _buildRingCard(
                   index: 4,
-                  title: 'Permissions',
-                  displayValue: '${provider.permissionHoursRemaining.toStringAsFixed(1)}h',
-                  subText: '${provider.totalPermissionHoursUsed.toStringAsFixed(1)}h Used | 1 CL',
-                  progress: (provider.permissionHoursRemaining / provider.monthlyPermissionHoursLimit).clamp(0.0, 1.0),
-                  ringColor: provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.magentaPrimary,
+                  title: provider.currentEmployee.isCeo ? 'Staff Leaves' : 'Permissions',
+                  displayValue: provider.currentEmployee.isOtm
+                      ? 'N/A'
+                      : (provider.currentEmployee.isCeo ? '${provider.allPendingPermissions.length + provider.allPendingMedicalLeaves.length} Req' : '${provider.permissionHoursRemaining.toStringAsFixed(1)}h'),
+                  subText: provider.currentEmployee.isOtm
+                      ? 'Exempt (OTM)'
+                      : (provider.currentEmployee.isCeo ? 'Pending Slips' : '${provider.totalPermissionHoursUsed.toStringAsFixed(1)}h Used | 1 CL'),
+                  progress: (provider.currentEmployee.isOtm || provider.currentEmployee.isCeo) ? 1.0 : (provider.permissionHoursRemaining / provider.monthlyPermissionHoursLimit).clamp(0.0, 1.0),
+                  ringColor: provider.currentEmployee.isOtm
+                      ? AppColors.sandGold
+                      : (provider.currentEmployee.isCeo ? (provider.allPendingPermissions.isNotEmpty || provider.allPendingMedicalLeaves.isNotEmpty ? const Color(0xFFF59E0B) : AppColors.ragGreen) : (provider.isPermissionExcessHalfDay ? const Color(0xFFEF4444) : AppColors.magentaPrimary)),
                   icon: Icons.timer_outlined,
-                  statusText: provider.isPermissionExcessHalfDay
-                      ? 'Half Day'
-                      : '${provider.permissionHoursRemaining.toStringAsFixed(1)}h Left',
+                  statusText: provider.currentEmployee.isOtm
+                      ? 'Not Applicable'
+                      : (provider.currentEmployee.isCeo ? 'Staff Ledger' : (provider.isPermissionExcessHalfDay ? 'Half Day' : '${provider.permissionHoursRemaining.toStringAsFixed(1)}h Left')),
                 ),
               ),
               const SizedBox(width: 8),
@@ -883,26 +921,47 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   }
 
   Widget _buildSubsystemTabs() {
-    final tabs = [
-      {'label': '1. Calendar Attendance', 'icon': Icons.fact_check_outlined},
-      {'label': '2. Vault Custody', 'icon': Icons.lock_clock_outlined},
-      {'label': '3. Grooming & Attire', 'icon': Icons.face_retouching_natural},
-      {'label': '4. Showroom Sales', 'icon': Icons.monetization_on_outlined},
-      {'label': '5. Permission & Leave', 'icon': Icons.timer_outlined},
-      {'label': '6. Ethics & Hallmark', 'icon': Icons.verified_user_outlined},
-    ];
+    final employee = context.watch<EcosystemProvider>().currentEmployee;
+    final List<Map<String, dynamic>> tabs;
+
+    if (employee.isOtm) {
+      // Document verification, attendance, and permissions are NOT applicable to Praveenkumar (OTM)
+      tabs = [
+        {'index': 2, 'label': '1. Grooming Cadence', 'icon': Icons.face_retouching_natural},
+        {'index': 3, 'label': '2. Online Catalog & Deliverables', 'icon': Icons.video_collection_outlined},
+        {'index': 5, 'label': '3. Ethics & Conduct', 'icon': Icons.verified_user_outlined},
+      ];
+    } else if (employee.isCeo) {
+      // CEO inspects others' inputs, submissions, and records
+      tabs = [
+        {'index': 0, 'label': '1. Staff Attendance Overview', 'icon': Icons.fact_check_outlined},
+        {'index': 1, 'label': '2. Staff Document Vault Ledger', 'icon': Icons.lock_clock_outlined},
+        {'index': 4, 'label': '3. Staff Permissions & Leaves', 'icon': Icons.timer_outlined},
+        {'index': 3, 'label': '4. Showroom Sales & Revenue', 'icon': Icons.monetization_on_outlined},
+        {'index': 5, 'label': '5. Corporate Ethics & Hallmark', 'icon': Icons.verified_user_outlined},
+      ];
+    } else {
+      tabs = [
+        {'index': 0, 'label': '1. Calendar Attendance', 'icon': Icons.fact_check_outlined},
+        {'index': 1, 'label': '2. Vault Custody', 'icon': Icons.lock_clock_outlined},
+        {'index': 2, 'label': '3. Grooming & Attire', 'icon': Icons.face_retouching_natural},
+        {'index': 3, 'label': '4. Showroom Sales', 'icon': Icons.monetization_on_outlined},
+        {'index': 4, 'label': '5. Permission & Leave', 'icon': Icons.timer_outlined},
+        {'index': 5, 'label': '6. Ethics & Hallmark', 'icon': Icons.verified_user_outlined},
+      ];
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       child: Row(
-        children: List.generate(tabs.length, (idx) {
-          final isSelected = _selectedRingIndex == idx;
-          final tab = tabs[idx];
+        children: tabs.map((tab) {
+          final ringIdx = tab['index'] as int;
+          final isSelected = _selectedRingIndex == ringIdx;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: InkWell(
-              onTap: () => setState(() => _selectedRingIndex = idx),
+              onTap: () => setState(() => _selectedRingIndex = ringIdx),
               borderRadius: BorderRadius.circular(10),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
@@ -935,7 +994,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               ),
             ),
           );
-        }),
+        }).toList(),
       ),
     );
   }
@@ -3760,4 +3819,1344 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
       ),
     );
   }
+
+  // =========================================================================
+  // CEO EXECUTIVE VIEWS: STAFF ATTENDANCE, VAULT CUSTODY & PERMISSIONS
+  // =========================================================================
+
+  Widget _buildCeoStaffAttendanceSection(BuildContext context, EcosystemProvider provider) {
+    final corporateStaff = provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
+    final sheet = provider.hrAttendanceSheet;
+    final lastSynced = provider.attendanceSheetLastSynced;
+    final timeStr = lastSynced != null ? DateFormat('hh:mm a').format(lastSynced) : 'Live';
+
+    Employee? selectedEmployee;
+    if (_ceoSelectedStaffId != 'all') {
+      try {
+        selectedEmployee = corporateStaff.firstWhere((e) => e.id == _ceoSelectedStaffId || e.empNo == _ceoSelectedStaffId);
+      } catch (_) {
+        selectedEmployee = corporateStaff.isNotEmpty ? corporateStaff.first : null;
+      }
+    }
+
+    final presentTotal = corporateStaff.where((e) => !provider.isEmployeeAbsent(e.id)).length;
+    final absentTotal = corporateStaff.where((e) => provider.isEmployeeAbsent(e.id)).length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.fact_check_rounded, color: Color(0xFF10B981), size: 18),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'STAFF ATTENDANCE OVERVIEW',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.sandLight,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              Text(
+                                '${sheet?.monthTitle ?? "November 2026"} • Google Sheet ($timeStr)',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CeoAttendanceScreen()),
+                    ),
+                    icon: const Icon(Icons.open_in_new, size: 12, color: AppColors.sandGold),
+                    label: Text(
+                      'Full Console',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: AppColors.sandGold.withOpacity(0.5)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'TOTAL ACTIVE',
+                      value: '${corporateStaff.length}',
+                      color: AppColors.sandGold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'ON DUTY',
+                      value: '$presentTotal',
+                      color: const Color(0xFF10B981),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'ON LEAVE / ABSENT',
+                      value: '$absentTotal',
+                      color: absentTotal > 0 ? const Color(0xFFEF4444) : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _staffFilterChip(
+                label: 'All Staff (${corporateStaff.length})',
+                isSelected: _ceoSelectedStaffId == 'all',
+                onTap: () => setState(() => _ceoSelectedStaffId = 'all'),
+              ),
+              ...corporateStaff.map((emp) {
+                final isSel = _ceoSelectedStaffId == emp.id || _ceoSelectedStaffId == emp.empNo;
+                return Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: _staffFilterChip(
+                    label: 'EMP #${emp.empNo} • ${emp.name}',
+                    isSelected: isSel,
+                    onTap: () => setState(() => _ceoSelectedStaffId = emp.id),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        if (selectedEmployee != null) ...[
+          _buildCeoEmployeePunchCard(context, provider, selectedEmployee),
+        ] else ...[
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: corporateStaff.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (ctx, idx) {
+              final emp = corporateStaff[idx];
+              final isAbsent = provider.isEmployeeAbsent(emp.id);
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundyCard,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.burgundySurface,
+                        border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          emp.initials,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.sandLight,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                emp.name,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppColors.sandLight,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: AppColors.sandGold.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'EMP #${emp.empNo}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandGold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            emp.dept,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              color: AppColors.sandPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: isAbsent
+                            ? const Color(0xFFEF4444).withOpacity(0.15)
+                            : const Color(0xFF10B981).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isAbsent
+                              ? const Color(0xFFEF4444).withOpacity(0.4)
+                              : const Color(0xFF10B981).withOpacity(0.4),
+                        ),
+                      ),
+                      child: Text(
+                        isAbsent ? 'ABSENT' : 'ON DUTY',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          color: isAbsent ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.calendar_month, size: 18, color: AppColors.sandGold),
+                      tooltip: 'View Punch Calendar',
+                      onPressed: () => setState(() => _ceoSelectedStaffId = emp.id),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCeoEmployeePunchCard(BuildContext context, EcosystemProvider provider, Employee emp) {
+    final monthlyRecords = provider.getMonthlyAttendanceForEmployee(
+      emp.id,
+      year: _selectedCalendarYear,
+      month: _selectedCalendarMonth,
+    );
+
+    final totalMonthDays = monthlyRecords.length;
+    final presentCount = monthlyRecords.where((r) =>
+        !r.isWeekoff &&
+        !r.isOvertime &&
+        (r.status.contains('Present') ||
+            r.status.contains('Late') ||
+            r.status.contains('Permission') ||
+            r.status.contains('MN Work') ||
+            (r.loginTime != '--:-- --' && r.loginTime != '--' && !r.status.contains('Absent') && !r.status.contains('Leave')))).length;
+    final tuesdayOtCount = monthlyRecords.where((r) => r.isOvertime).length;
+    final weekoffCount = monthlyRecords.where((r) => r.isWeekoff).length;
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    final currentMonthName = monthNames[_selectedCalendarMonth - 1];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'EMP #${emp.empNo} • ${emp.name.toUpperCase()}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandLight,
+                      ),
+                    ),
+                    Text(
+                      '${emp.dept} • $currentMonthName $_selectedCalendarYear',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () => setState(() => _ceoSelectedStaffId = 'all'),
+                icon: const Icon(Icons.arrow_back, size: 12, color: AppColors.sandPrimary),
+                label: Text(
+                  'All Staff',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _kpiPill('$totalMonthDays Days', 'Month Total', AppColors.sandLight),
+              const SizedBox(width: 6),
+              _kpiPill('$presentCount Days', 'Present', const Color(0xFF10B981)),
+              const SizedBox(width: 6),
+              _kpiPill('$tuesdayOtCount OT', 'Tuesday OT', const Color(0xFF8B5CF6)),
+              const SizedBox(width: 6),
+              _kpiPill('$weekoffCount Days', 'Week-offs', const Color(0xFFE11D48)),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: monthlyRecords.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
+              childAspectRatio: 0.95,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+            ),
+            itemBuilder: (ctx, idx) {
+              final rec = monthlyRecords[idx];
+              final isPresent = !rec.isWeekoff && !rec.isOvertime && (rec.status.contains('Present') || rec.status.contains('Late') || rec.status.contains('Permission') || rec.status.contains('MN Work'));
+              final isOt = rec.isOvertime;
+              final isOff = rec.isWeekoff;
+
+              final Color bgColor;
+              final Color borderColor;
+              final Color textColor;
+              final String badgeText;
+
+              if (isOff) {
+                bgColor = const Color(0xFF334155).withOpacity(0.6);
+                borderColor = const Color(0xFF475569);
+                textColor = const Color(0xFF94A3B8);
+                badgeText = 'OFF';
+              } else if (isOt) {
+                bgColor = const Color(0xFF8B5CF6).withOpacity(0.2);
+                borderColor = const Color(0xFF8B5CF6).withOpacity(0.6);
+                textColor = const Color(0xFFA78BFA);
+                badgeText = 'OT';
+              } else if (isPresent) {
+                bgColor = const Color(0xFF10B981).withOpacity(0.18);
+                borderColor = const Color(0xFF10B981).withOpacity(0.5);
+                textColor = const Color(0xFF34D399);
+                badgeText = 'P';
+              } else {
+                bgColor = const Color(0xFFEF4444).withOpacity(0.12);
+                borderColor = const Color(0xFFEF4444).withOpacity(0.35);
+                textColor = const Color(0xFFF87171);
+                badgeText = 'A';
+              }
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: borderColor),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${rec.date.day} ${DateFormat('E').format(rec.date)}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      badgeText,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCeoStaffVaultCustodySection(BuildContext context, EcosystemProvider provider) {
+    final corporateStaff = provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
+
+    final List<_StaffDocEntry> allStaffDocs = [];
+    for (final emp in corporateStaff) {
+      final empDocs = provider.getEmployeeDocuments(emp.id);
+      for (final doc in empDocs) {
+        allStaffDocs.add(_StaffDocEntry(employee: emp, doc: doc));
+      }
+    }
+
+    final filtered = allStaffDocs.where((entry) {
+      if (_ceoSelectedStaffId != 'all' && entry.employee.id != _ceoSelectedStaffId && entry.employee.empNo != _ceoSelectedStaffId) {
+        return false;
+      }
+      if (_ceoStaffDocFilter == 'Submitted') {
+        return entry.doc.status == DocumentSubmissionStatus.submitted;
+      } else if (_ceoStaffDocFilter == 'Pending') {
+        return entry.doc.status == DocumentSubmissionStatus.pending;
+      }
+      return true;
+    }).toList();
+
+    final submittedCount = allStaffDocs.where((e) => e.doc.status == DocumentSubmissionStatus.submitted).length;
+    final totalCount = allStaffDocs.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.sandGold.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.shield_outlined, color: AppColors.sandGold, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'STAFF VAULT CUSTODY & VERIFICATION',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          'Official academic marksheets, KYC, and ID proofs locked in safe custody',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'TOTAL DEPOSITED',
+                      value: '$submittedCount / $totalCount',
+                      color: const Color(0xFF10B981),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'SAFE LOCKERS',
+                      value: '${corporateStaff.length * 3} Lockers',
+                      color: AppColors.sandGold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'VERIFIED RATIO',
+                      value: totalCount > 0 ? '${((submittedCount / totalCount) * 100).toInt()}%' : '100%',
+                      color: const Color(0xFF10B981),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _staffFilterChip(
+                label: 'All Staff (${allStaffDocs.length})',
+                isSelected: _ceoSelectedStaffId == 'all',
+                onTap: () => setState(() => _ceoSelectedStaffId = 'all'),
+              ),
+              ...corporateStaff.map((emp) {
+                final isSel = _ceoSelectedStaffId == emp.id || _ceoSelectedStaffId == emp.empNo;
+                return Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: _staffFilterChip(
+                    label: 'EMP #${emp.empNo} • ${emp.name}',
+                    isSelected: isSel,
+                    onTap: () => setState(() => _ceoSelectedStaffId = emp.id),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _statusFilterChip('All (${allStaffDocs.length})', 'All'),
+              const SizedBox(width: 8),
+              _statusFilterChip('Submitted ($submittedCount)', 'Submitted'),
+              const SizedBox(width: 8),
+              _statusFilterChip('Pending (${totalCount - submittedCount})', 'Pending'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        if (filtered.isEmpty)
+          _buildEmptyState()
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: filtered.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (ctx, idx) {
+              final entry = filtered[idx];
+              return _buildCeoDocumentCard(ctx, provider, entry);
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCeoDocumentCard(BuildContext context, EcosystemProvider provider, _StaffDocEntry entry) {
+    final doc = entry.doc;
+    final emp = entry.employee;
+    final isSubmitted = doc.status == DocumentSubmissionStatus.submitted;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.pureWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x080F172A),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person_pin, size: 14, color: AppColors.magentaPrimary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'EMP #${emp.empNo} • ${emp.name}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  emp.dept,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      doc.iconEmoji.isNotEmpty ? doc.iconEmoji : '📜',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              doc.title,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (doc.isMandatory) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF1F2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'MANDATORY',
+                                style: TextStyle(
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFE11D48),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            doc.category,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Cert #: ${doc.certificateNumber}',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textSecondary),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.lock_outline, size: 11, color: AppColors.textMuted),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    doc.vaultLockerRef,
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textDark, fontWeight: FontWeight.w600),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.access_time, size: 11, color: AppColors.textMuted),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    'Date: ${doc.submissionDate}',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSubmitted ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSubmitted ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  size: 8,
+                                  color: isSubmitted ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                ),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    doc.statusLabel,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSubmitted ? const Color(0xFF059669) : const Color(0xFFD97706),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.verified, size: 11, color: Color(0xFF10B981)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'HR Verified',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF059669),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCeoStaffPermissionsSection(BuildContext context, EcosystemProvider provider) {
+    final perms = provider.permissionRecords;
+    final meds = provider.medicalLeaveRecords;
+    final pendingCount = provider.allPendingPermissions.length + provider.allPendingMedicalLeaves.length;
+    final totalRequests = perms.length + meds.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.timer_outlined, color: Color(0xFFF59E0B), size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'STAFF PERMISSION & LEAVE APPLICATIONS',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          'Executive approval portal for staff emergency step-outs and medical leaves',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'PENDING APPROVAL',
+                      value: '$pendingCount',
+                      color: pendingCount > 0 ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'TOTAL REQUESTS',
+                      value: '$totalRequests',
+                      color: AppColors.sandGold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _miniKpiBox(
+                      label: 'APPROVAL CADENCE',
+                      value: 'Real-time',
+                      color: const Color(0xFF3B82F6),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        if (perms.isEmpty && meds.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.sandBorder),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.task_alt, size: 36, color: Color(0xFF10B981)),
+                const SizedBox(height: 10),
+                Text(
+                  'All Staff Requests Up To Date',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'No pending emergency permissions or medical leave applications from employees.',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else ...[
+          ...meds.map((med) => _buildCeoMedicalLeaveCard(context, provider, med)),
+          const SizedBox(height: 8),
+          ...perms.map((perm) => _buildCeoPermissionCard(context, provider, perm)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCeoMedicalLeaveCard(BuildContext context, EcosystemProvider provider, MedicalLeaveRecord med) {
+    final isApproved = med.status == 'Approved';
+    final isPending = med.isPendingCeo || med.isPendingHr;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.pureWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isPending ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.medical_services_outlined, size: 16, color: Color(0xFFE11D48)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'EMP #${med.empId} • ${med.empName}',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isApproved ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  med.status,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: isApproved ? const Color(0xFF059669) : const Color(0xFFD97706),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Medical Leave: ${med.days} Days • From ${med.date.day}/${med.date.month}/${med.date.year}',
+            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textDark),
+          ),
+          Text(
+            'Diagnosis: ${med.reason}',
+            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              InkWell(
+                onTap: () => PrescriptionViewerDialog.show(context, leave: med),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.attachment, size: 13, color: AppColors.magentaPrimary),
+                    const SizedBox(width: 4),
+                    Text(
+                      'View Prescription Document',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                    ),
+                  ],
+                ),
+              ),
+              if (isPending) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () => provider.rejectMedicalLeave(med.id),
+                      child: const Text('Reject', style: TextStyle(color: Color(0xFFEF4444), fontSize: 11)),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => provider.ceoApproveMedicalLeave(med.id),
+                      child: const Text('Approve', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCeoPermissionCard(BuildContext context, EcosystemProvider provider, PermissionRecord perm) {
+    final isApproved = perm.status == 'Approved';
+    final isPending = perm.isPendingCeo || perm.isPendingHr;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.pureWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isPending ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, size: 16, color: Color(0xFF3B82F6)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'EMP #${perm.empId} • 4-Hour Quota Slip',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isApproved ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  perm.status,
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: isApproved ? const Color(0xFF059669) : const Color(0xFFD97706),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Requested: ${perm.requestedHours} Hours • ${perm.reason}',
+            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textDark),
+          ),
+          if (isPending) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => provider.rejectPermission(perm.id),
+                  child: const Text('Reject', style: TextStyle(color: Color(0xFFEF4444), fontSize: 11)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () => provider.ceoApprovePermission(perm.id),
+                  child: const Text('Approve', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtmExemptSection(String subsystemName) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF10B981).withOpacity(0.12),
+            ),
+            child: const Icon(Icons.verified, color: Color(0xFF10B981), size: 28),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'ONLINE TEAM MANAGER EXEMPTION',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.sandLight,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$subsystemName is Not Applicable to Online Team Manager (OTM).\n\nMr. Praveen Kumar operates under autonomous project deliverable milestones, creative video turnarounds, and digital catalog SLA metrics.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5,
+              color: AppColors.sandPrimary,
+              height: 1.45,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 14),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TlTeamAttendanceScreen()),
+            ),
+            icon: const Icon(Icons.people_alt, size: 15),
+            label: const Text('View Online Team Attendance'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.magentaPrimary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniKpiBox({required String label, required String value, required Color color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.burgundySurface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 8.5,
+              fontWeight: FontWeight.bold,
+              color: color,
+              letterSpacing: 0.4,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.sandLight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _staffFilterChip({required String label, required bool isSelected, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.magentaPrimary : AppColors.burgundySurface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10.5,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.white : AppColors.sandLight,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusFilterChip(String label, String value) {
+    final isSel = _ceoStaffDocFilter == value;
+    return InkWell(
+      onTap: () => setState(() => _ceoStaffDocFilter = value),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSel ? AppColors.sandGold : AppColors.burgundySurface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isSel ? AppColors.sandGold : AppColors.sandBorder),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10.5,
+            fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
+            color: isSel ? AppColors.burgundyBg : AppColors.sandPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _kpiPill(String value, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.burgundySurface,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Column(
+          children: [
+            Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: color)),
+            Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 8, color: AppColors.textMuted)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StaffDocEntry {
+  final Employee employee;
+  final OriginalDocumentItem doc;
+  _StaffDocEntry({required this.employee, required this.doc});
 }

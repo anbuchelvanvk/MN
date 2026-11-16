@@ -8,6 +8,8 @@ import '../../core/widgets/prescription_viewer_dialog.dart';
 import '../../models/employee_model.dart';
 import '../../models/hr_attendance_sheet_models.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../ceo/ceo_subpages.dart';
+import '../dept_head/dept_head_subpages.dart';
 import 'tier_pillar_screen.dart';
 
 class AttendancePillarScreen extends StatefulWidget {
@@ -24,6 +26,13 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<EcosystemProvider>();
     final currentEmp = provider.currentEmployee;
+
+    // For CEO: Directly open Executive Company-Wide Attendance Dashboard
+    // where CEO inspects all employees' attendance, monthly records, and Google Sheets ledger
+    if (currentEmp.isCeo) {
+      return const CeoAttendanceScreen();
+    }
+
     final bool isExempt = !currentEmp.hasAttendanceAndGrooming;
     final row = provider.currentEmployeeHrAttendanceRow;
     final sheet = provider.hrAttendanceSheet;
@@ -235,10 +244,73 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Emergency Step-Out Pass for OTM
-        _buildEmergencyPermissionsAndLeavesSection(
-          context,
-          context.watch<EcosystemProvider>(),
+        // Team Lead action: view online team attendance (NOT personal emergency permissions/leaves)
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.burgundyCard,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.people_alt_rounded, color: Color(0xFF3B82F6), size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ONLINE DEPARTMENT TEAM',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                          ),
+                        ),
+                        Text(
+                          'Attendance, leave, and permissions are not applicable to OTM. Inspect team member duty and punch logs below.',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TlTeamAttendanceScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.fact_check_rounded, size: 16),
+                  label: const Text('View Online Team Attendance'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.magentaPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
