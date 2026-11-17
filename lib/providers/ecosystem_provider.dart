@@ -151,12 +151,14 @@ class EcosystemProvider extends ChangeNotifier {
 
   bool _isToday(DateTime dt) {
     final now = DateTime.now();
-    return dt.year == now.year && dt.month == now.month && dt.day == now.day;
+    final localDt = dt.toLocal();
+    return localDt.year == now.year && localDt.month == now.month && localDt.day == now.day;
   }
 
   bool _isCurrentMonth(DateTime dt) {
     final now = DateTime.now();
-    return dt.year == now.year && dt.month == now.month;
+    final localDt = dt.toLocal();
+    return localDt.year == now.year && localDt.month == now.month;
   }
 
   double get totalFamilyHoursToday => _familyActivityLogs
@@ -170,7 +172,9 @@ class EcosystemProvider extends ChangeNotifier {
   double get totalOverallSocialHoursToday => totalFamilyHoursToday + totalFriendsHoursToday;
 
   bool _isSameDayDate(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
+    final localA = a.toLocal();
+    final localB = b.toLocal();
+    return localA.year == localB.year && localA.month == localB.month && localA.day == localB.day;
   }
 
   double getFamilyHoursForDate(DateTime date) => _familyActivityLogs
@@ -4630,7 +4634,7 @@ class EcosystemProvider extends ChangeNotifier {
     _familyActivityLogs.insert(
       0,
       FamilyActivityItem(
-        id: 'FAM-${DateTime.now().millisecondsSinceEpoch}',
+        id: 'FAM-${DateTime.now().microsecondsSinceEpoch}',
         activityName: activityName,
         category: category,
         subCategory: subCategory,
@@ -4651,7 +4655,35 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   void deleteFamilyActivity(String id) {
-    _familyActivityLogs.removeWhere((a) => a.id == id);
+    final cleanId = id.trim();
+    _familyActivityLogs.removeWhere((a) => a.id.trim() == cleanId);
+    notifyListeners();
+
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'family',
+      data: _familyActivityLogs.map((e) => e.toMap()).toList(),
+    );
+  }
+
+  void deleteFamilyActivityItem(FamilyActivityItem item) {
+    final cleanId = item.id.trim();
+    _familyActivityLogs.removeWhere((a) =>
+        (cleanId.isNotEmpty && a.id.trim() == cleanId) ||
+        (a.activityName == item.activityName &&
+            (a.hoursSpent - item.hoursSpent).abs() < 0.01 &&
+            _isSameDayDate(a.timestamp, item.timestamp)));
+    notifyListeners();
+
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'family',
+      data: _familyActivityLogs.map((e) => e.toMap()).toList(),
+    );
+  }
+
+  void resetFamilyHoursForDate(DateTime date) {
+    _familyActivityLogs.removeWhere((a) => _isSameDayDate(a.timestamp, date));
     notifyListeners();
 
     _firebaseEmployeeService.saveEmployeePillar(

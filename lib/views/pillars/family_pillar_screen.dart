@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/family_models.dart';
@@ -900,52 +901,206 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     ),
                   ),
                   Row(
-                    children: [0.5, 1.0, 2.0].map((h) {
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 6),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () {
-                            eco.addFamilyActivity(
-                              activityName: 'Quality Family Time',
-                              category: 'Family',
-                              subCategory: 'General Bonding',
-                              hoursSpent: h,
-                              iconEmoji: '❤️',
-                              notes: 'Direct family time increment',
-                              date: _selectedDate,
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: AppColors.burgundyPrimary,
-                                content: Text('Added +$h hr to family time for ${_formatDayShort(_selectedDate)}!'),
+                    children: [
+                      ...[0.5, 1.0, 2.0].map((h) {
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              eco.addFamilyActivity(
+                                activityName: 'Quality Family Time',
+                                category: 'Family',
+                                subCategory: 'General Bonding',
+                                hoursSpent: h,
+                                iconEmoji: '❤️',
+                                notes: 'Direct family time increment',
+                                date: _selectedDate,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: AppColors.burgundyPrimary,
+                                  content: Text('Added +$h hr to family time for ${_formatDayShort(_selectedDate)}!'),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.burgundySurface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.sandBorder),
                               ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: AppColors.burgundySurface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.sandBorder),
+                              child: Text(
+                                '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.sandGold,
+                                ),
+                              ),
                             ),
-                            child: Text(
-                              '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandGold,
+                          ),
+                        );
+                      }),
+                      if (familyHours > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              eco.resetFamilyHoursForDate(_selectedDate);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: AppColors.burgundyPrimary,
+                                  content: Text('Family time cleared back to 0.0 hours.'),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444).withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                'Reset (0h)',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEF4444),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      );
-                    }).toList(),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
+        ),
+
+        // Today's Logged Activities for Selected Date (with individual delete and reset)
+        Builder(
+          builder: (context) {
+            final dateActivities = eco.getFamilyActivitiesForDate(_selectedDate);
+            if (dateActivities.isEmpty) return const SizedBox.shrink();
+
+            return Container(
+              margin: const EdgeInsets.only(top: 14),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.burgundyCard,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.sandBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.list_alt_rounded, size: 16, color: AppColors.sandGold),
+                          const SizedBox(width: 6),
+                          Text(
+                            'LOGGED TODAY (${dateActivities.length})',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        icon: const Icon(Icons.restart_alt_rounded, size: 14, color: AppColors.ragRed),
+                        label: Text(
+                          'Reset Today (0.0h)',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.ragRed,
+                          ),
+                        ),
+                        onPressed: () {
+                          eco.resetFamilyHoursForDate(_selectedDate);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: AppColors.burgundyPrimary,
+                              content: Text('Today\'s family time reset to 0.0 hours.'),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...dateActivities.map((a) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.burgundySurface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.sandBorder.withOpacity(0.6)),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(a.iconEmoji, style: const TextStyle(fontSize: 16)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  a.activityName,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                ),
+                                Text(
+                                  '${a.category} • ${a.hoursSpent.toStringAsFixed(1)} hrs',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.ragRed),
+                            tooltip: 'Delete Activity',
+                            onPressed: () {
+                              eco.deleteFamilyActivityItem(a);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: AppColors.burgundyPrimary,
+                                  content: Text('Removed "${a.activityName}".'),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
         ),
         const SizedBox(height: 16),
 
@@ -2011,139 +2166,208 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               ),
             ),
           )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: filteredLogs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (ctx, idx) {
-              final log = filteredLogs[idx];
-              final isFam = log.category == 'Family';
+        else ...() {
+          if (!_showAllHistory) {
+            return [
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredLogs.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (ctx, idx) => _buildDiaryCard(filteredLogs[idx], eco),
+              ),
+            ];
+          }
 
-              return Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundyCard,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.sandBorder),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Icon
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: AppColors.burgundySurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isFam ? const Color(0xFFA855F7).withOpacity(0.5) : AppColors.sandGold.withOpacity(0.5),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(log.iconEmoji, style: const TextStyle(fontSize: 20)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
+          final Map<DateTime, List<FamilyActivityItem>> groupedHistory = {};
+          for (final log in filteredLogs) {
+            final d = DateTime(log.timestamp.year, log.timestamp.month, log.timestamp.day);
+            groupedHistory.putIfAbsent(d, () => []).add(log);
+          }
+          final sortedDates = groupedHistory.keys.toList()..sort((a, b) => b.compareTo(a));
 
-                    // Title & Subtitle
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          return sortedDates.map((d) {
+            final dayLogs = groupedHistory[d]!;
+            final isToday = d.year == DateTime.now().year && d.month == DateTime.now().month && d.day == DateTime.now().day;
+            final dateHeader = isToday ? 'Today (${DateFormat('dd MMM yyyy').format(d)})' : DateFormat('EEE, dd MMM yyyy').format(d);
+            final dayHours = dayLogs.fold<double>(0.0, (sum, item) => sum + item.hoursSpent);
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 8, bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.sandGold.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: isFam
-                                      ? const Color(0xFFA855F7).withOpacity(0.18)
-                                      : AppColors.sandGold.withOpacity(0.18),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  log.category,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                    color: isFam ? const Color(0xFFA855F7) : AppColors.sandGold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                log.timeString,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 3),
+                          const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.sandGold),
+                          const SizedBox(width: 6),
                           Text(
-                            log.activityName,
+                            dateHeader,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
                             ),
                           ),
-                          if (log.notes != null && log.notes!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                log.notes!,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
                         ],
                       ),
-                    ),
+                      Text(
+                        '${dayLogs.length} entries • ${dayHours.toStringAsFixed(1)} hrs',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandGold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: dayLogs.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (ctx, idx) => _buildDiaryCard(dayLogs[idx], eco),
+                ),
+              ],
+            );
+          }).toList();
+        }(),
+      ],
+    );
+  }
 
-                    // Hours Badge & Delete
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.burgundySurface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-                          ),
-                          child: Text(
-                            '+${log.hoursSpent.toStringAsFixed(1)} hrs',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandGold,
-                            ),
-                          ),
+  Widget _buildDiaryCard(FamilyActivityItem log, EcosystemProvider eco) {
+    final isFam = log.category == 'Family';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Icon
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.burgundySurface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isFam ? const Color(0xFFA855F7).withOpacity(0.5) : AppColors.sandGold.withOpacity(0.5),
+              ),
+            ),
+            child: Center(
+              child: Text(log.iconEmoji, style: const TextStyle(fontSize: 20)),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Title & Subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: isFam
+                            ? const Color(0xFFA855F7).withOpacity(0.18)
+                            : AppColors.sandGold.withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        log.category,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: isFam ? const Color(0xFFA855F7) : AppColors.sandGold,
                         ),
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.ragRed),
-                          onPressed: () {
-                            eco.deleteFamilyActivity(log.id);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                backgroundColor: AppColors.burgundyPrimary,
-                                content: Text('Activity removed.'),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      log.timeString,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
                     ),
                   ],
                 ),
-              );
-            },
+                const SizedBox(height: 3),
+                Text(
+                  log.activityName,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.sandLight,
+                  ),
+                ),
+                if (log.notes != null && log.notes!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      log.notes!,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+            ),
           ),
-      ],
+
+          // Hours Badge & Delete
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                ),
+                child: Text(
+                  '+${log.hoursSpent.toStringAsFixed(1)} hrs',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandGold,
+                  ),
+                ),
+              ),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.ragRed),
+                onPressed: () {
+                  eco.deleteFamilyActivityItem(log);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: AppColors.burgundyPrimary,
+                      content: Text('Activity removed.'),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -2469,7 +2693,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           ),
                         ),
                         Text(
-                          '${selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept} • EMP #${selectedStaff.empNo}',
+                          '${selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept} • EMP #${selectedStaff.empNo.isNotEmpty ? selectedStaff.empNo : selectedStaff.id}',
                           style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
                         ),
                       ],
@@ -2580,101 +2804,157 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   ],
                 ),
               )
-            else
-              ...activities.map((a) => Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.burgundySurface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.sandBorder.withOpacity(0.7)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(a.iconEmoji.isNotEmpty ? a.iconEmoji : '❤️', style: const TextStyle(fontSize: 18)),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    a.activityName,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.sandLight,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${a.category} • ${a.subCategory}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
-                              ),
-                              child: Text(
-                                '${a.hoursSpent.toStringAsFixed(1)} hrs',
+            else ...() {
+              final Map<DateTime, List<FamilyActivityItem>> groupedActivities = {};
+              for (final a in activities) {
+                final d = DateTime(a.timestamp.year, a.timestamp.month, a.timestamp.day);
+                groupedActivities.putIfAbsent(d, () => []).add(a);
+              }
+              final sortedDates = groupedActivities.keys.toList()..sort((a, b) => b.compareTo(a));
+
+              return sortedDates.map((d) {
+                final dayActs = groupedActivities[d]!;
+                final isToday = d.year == DateTime.now().year && d.month == DateTime.now().month && d.day == DateTime.now().day;
+                final dateHeader = isToday ? 'Today (${DateFormat('dd MMM yyyy').format(d)})' : DateFormat('EEE, dd MMM yyyy').format(d);
+                final dayHours = dayActs.fold<double>(0.0, (sum, item) => sum + item.hoursSpent);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 6, bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.sandGold.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.sandGold),
+                              const SizedBox(width: 6),
+                              Text(
+                                dateHeader,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF10B981),
+                                  color: AppColors.sandLight,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        if (a.notes != null && a.notes!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.burgundyCard.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.notes_rounded, size: 12, color: AppColors.sandGold),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    a.notes!,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10.5,
-                                      color: AppColors.sandPrimary,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            ],
+                          ),
+                          Text(
+                            '${dayActs.length} activit${dayActs.length > 1 ? "ies" : "y"} • ${dayHours.toStringAsFixed(1)} hrs',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandGold,
                             ),
                           ),
                         ],
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            const Icon(Icons.access_time_rounded, size: 11, color: AppColors.sandPrimary),
-                            const SizedBox(width: 4),
-                            Text(
-                              a.timeString,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  )),
+                    ...dayActs.map((a) => Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.burgundySurface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.sandBorder.withOpacity(0.7)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(a.iconEmoji.isNotEmpty ? a.iconEmoji : '❤️', style: const TextStyle(fontSize: 18)),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          a.activityName,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.sandLight,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${a.category} • ${a.subCategory}',
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF10B981).withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                                    ),
+                                    child: Text(
+                                      '${a.hoursSpent.toStringAsFixed(1)} hrs',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF10B981),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (a.notes != null && a.notes!.trim().isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.burgundyCard.withOpacity(0.6),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.notes_rounded, size: 12, color: AppColors.sandGold),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          a.notes!,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 10.5,
+                                            color: AppColors.sandPrimary,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  const Icon(Icons.access_time_rounded, size: 11, color: AppColors.sandPrimary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    a.timeString,
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                );
+              });
+            }(),
           ],
         ],
       ),

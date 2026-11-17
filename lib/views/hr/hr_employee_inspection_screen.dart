@@ -415,42 +415,39 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.folder_shared_outlined, size: 18, color: AppColors.magentaPrimary),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Document Vault Custody',
+                      Row(
+                        children: [
+                          const Icon(Icons.folder_shared_outlined, size: 18, color: AppColors.magentaPrimary),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Document Vault',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: submissionPercent >= 80 ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: submissionPercent >= 80 ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: submissionPercent >= 80 ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: submissionPercent >= 80 ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A),
+                              ),
+                            ),
+                            child: Text(
+                              '$submissionPercent% Submitted ($submittedDocsCount/$totalDocsCount)',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: submissionPercent >= 80 ? const Color(0xFF059669) : const Color(0xFFD97706),
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          '$submissionPercent% Submitted ($submittedDocsCount/$totalDocsCount)',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: submissionPercent >= 80 ? const Color(0xFF059669) : const Color(0xFFD97706),
-                          ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
                   const SizedBox(height: 4),
                   Text(
                     'HR Custody of employee certificates & original ID verifications.',
@@ -625,8 +622,8 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       Expanded(
                         child: _attendanceMetricTile(
                           'Today Status',
-                          isAbsent ? 'Absent' : 'Present',
-                          isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
+                          weekRecords.isNotEmpty ? weekRecords.first.status : (isAbsent ? 'Absent' : 'Present'),
+                          weekRecords.isNotEmpty ? weekRecords.first.statusColor : (isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669)),
                         ),
                       ),
                       const SizedBox(width: 8),

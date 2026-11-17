@@ -3084,8 +3084,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
       }
     }
 
-    final presentTotal = corporateStaff.where((e) => !provider.isEmployeeAbsent(e.id)).length;
+    final isTuesday = DateTime.now().weekday == DateTime.tuesday;
+    final presentTotal = isTuesday ? 0 : corporateStaff.where((e) => !provider.isEmployeeAbsent(e.id)).length;
     final absentTotal = corporateStaff.where((e) => provider.isEmployeeAbsent(e.id)).length;
+    final weekOffTotal = isTuesday ? corporateStaff.length : 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -3171,9 +3173,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _miniKpiBox(
-                      label: 'ON DUTY',
-                      value: '$presentTotal',
-                      color: const Color(0xFF10B981),
+                      label: isTuesday ? 'WEEK OFF' : 'ON DUTY',
+                      value: isTuesday ? '$weekOffTotal' : '$presentTotal',
+                      color: isTuesday ? const Color(0xFF94A3B8) : const Color(0xFF10B981),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -3206,7 +3208,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(left: 6),
                   child: _staffFilterChip(
-                    label: 'EMP #${emp.empNo} • ${emp.name}',
+                    label: 'EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id} • ${emp.name}',
                     isSelected: isSel,
                     onTap: () => setState(() => _ceoSelectedStaffId = emp.id),
                   ),
@@ -3228,6 +3230,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             itemBuilder: (ctx, idx) {
               final emp = corporateStaff[idx];
               final isAbsent = provider.isEmployeeAbsent(emp.id);
+              final isEmpWeekOff = isTuesday && !emp.isExternalSupport && !emp.isCeo;
+              final statusText = isAbsent ? 'ABSENT' : (isEmpWeekOff ? 'WEEK OFF' : 'ON DUTY');
+              final statusColor = isAbsent ? const Color(0xFFEF4444) : (isEmpWeekOff ? const Color(0xFF94A3B8) : const Color(0xFF10B981));
+
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -3263,12 +3269,15 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                emp.name,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                  color: AppColors.sandLight,
+                              Flexible(
+                                child: Text(
+                                  emp.name,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: AppColors.sandLight,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -3279,7 +3288,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  'EMP #${emp.empNo}',
+                                  'EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id}',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.bold,
@@ -3303,22 +3312,18 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                       decoration: BoxDecoration(
-                        color: isAbsent
-                            ? const Color(0xFFEF4444).withOpacity(0.15)
-                            : const Color(0xFF10B981).withOpacity(0.15),
+                        color: statusColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: isAbsent
-                              ? const Color(0xFFEF4444).withOpacity(0.4)
-                              : const Color(0xFF10B981).withOpacity(0.4),
+                          color: statusColor.withOpacity(0.4),
                         ),
                       ),
                       child: Text(
-                        isAbsent ? 'ABSENT' : 'ON DUTY',
+                        statusText,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9.5,
                           fontWeight: FontWeight.bold,
-                          color: isAbsent ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                          color: statusColor,
                         ),
                       ),
                     ),
@@ -3679,7 +3684,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(left: 6),
                   child: _staffFilterChip(
-                    label: 'EMP #${emp.empNo} • ${emp.name}',
+                    label: 'EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id} • ${emp.name}',
                     isSelected: isSel,
                     onTap: () => setState(() => _ceoSelectedStaffId = emp.id),
                   ),
@@ -4257,32 +4262,41 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 14,
-                          backgroundColor: AppColors.sandGold.withOpacity(0.2),
-                          child: Text(
-                            emp.initials,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: AppColors.sandGold.withOpacity(0.2),
+                            child: Text(
+                              emp.initials,
+                              style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              emp.name,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  emp.name,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${emp.id} • ${emp.straightCutDesignation}',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                            Text(
-                              '${emp.id} • ${emp.role}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                       decoration: BoxDecoration(

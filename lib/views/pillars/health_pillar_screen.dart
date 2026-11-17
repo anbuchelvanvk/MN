@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
@@ -4717,7 +4718,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           ),
                         ),
                         Text(
-                          '${selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept} • EMP #${selectedStaff.empNo}',
+                          '${selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept} • EMP #${selectedStaff.empNo.isNotEmpty ? selectedStaff.empNo : selectedStaff.id}',
                           style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
                         ),
                       ],
@@ -4842,45 +4843,102 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ],
                 ),
               )
-            else
-              ...workouts.map((w) => Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.burgundySurface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.sandBorder.withOpacity(0.6)),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(_getWorkoutEmoji(w.activityName), style: const TextStyle(fontSize: 18)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+            else ...() {
+              final Map<DateTime, List<WorkoutLogItem>> groupedWorkouts = {};
+              for (final w in workouts) {
+                final d = DateTime(w.timestamp.year, w.timestamp.month, w.timestamp.day);
+                groupedWorkouts.putIfAbsent(d, () => []).add(w);
+              }
+              final sortedWorkoutDates = groupedWorkouts.keys.toList()..sort((a, b) => b.compareTo(a));
+
+              return sortedWorkoutDates.map((d) {
+                final dayWorkouts = groupedWorkouts[d]!;
+                final isToday = d.year == DateTime.now().year && d.month == DateTime.now().month && d.day == DateTime.now().day;
+                final dateHeader = isToday ? 'Today (${DateFormat('dd MMM yyyy').format(d)})' : DateFormat('EEE, dd MMM yyyy').format(d);
+                final dayMins = dayWorkouts.fold<int>(0, (sum, item) => sum + item.durationMinutes);
+                final dayCalories = dayWorkouts.fold<double>(0.0, (sum, item) => sum + item.caloriesBurned);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 6, bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.sandGold.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
                             children: [
+                              const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.sandGold),
+                              const SizedBox(width: 6),
                               Text(
-                                w.activityName,
+                                dateHeader,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
                                 ),
                               ),
-                              Text(
-                                '${w.durationMinutes} mins • ${w.intensity} • ${w.caloriesBurned.toStringAsFixed(0)} kcal',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
-                              ),
                             ],
                           ),
-                        ),
-                        Text(
-                          w.timeString,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
-                        ),
-                      ],
+                          Text(
+                            '${dayWorkouts.length} session${dayWorkouts.length > 1 ? 's' : ''} • $dayMins mins • ${dayCalories.toStringAsFixed(0)} kcal',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandGold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  )),
+                    ...dayWorkouts.map((w) => Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.burgundySurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.sandBorder.withOpacity(0.6)),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(_getWorkoutEmoji(w.activityName), style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  w.activityName,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                ),
+                                Text(
+                                  '${w.durationMinutes} mins • ${w.intensity} • ${w.caloriesBurned.toStringAsFixed(0)} kcal',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            w.timeString,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                );
+              });
+            }(),
             const SizedBox(height: 16),
 
             // Section 2: Nutrition & Meals
@@ -4931,57 +4989,113 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ],
                 ),
               )
-            else
-              ...meals.map((m) => Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.burgundySurface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.sandBorder.withOpacity(0.6)),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(_getMealEmoji(m.mealType), style: const TextStyle(fontSize: 18)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+            else ...() {
+              final Map<DateTime, List<FoodLogItem>> groupedMeals = {};
+              for (final m in meals) {
+                final d = DateTime(m.timestamp.year, m.timestamp.month, m.timestamp.day);
+                groupedMeals.putIfAbsent(d, () => []).add(m);
+              }
+              final sortedMealDates = groupedMeals.keys.toList()..sort((a, b) => b.compareTo(a));
+
+              return sortedMealDates.map((d) {
+                final dayMeals = groupedMeals[d]!;
+                final isToday = d.year == DateTime.now().year && d.month == DateTime.now().month && d.day == DateTime.now().day;
+                final dateHeader = isToday ? 'Today (${DateFormat('dd MMM yyyy').format(d)})' : DateFormat('EEE, dd MMM yyyy').format(d);
+                final dayKcal = dayMeals.fold<double>(0.0, (sum, item) => sum + item.calories);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 6, bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF59E0B).withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
                             children: [
+                              const Icon(Icons.calendar_month_outlined, size: 12, color: Color(0xFFF59E0B)),
+                              const SizedBox(width: 6),
                               Text(
-                                m.foodName,
+                                dateHeader,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
                                 ),
                               ),
-                              Text(
-                                '${m.mealType} • ${m.portionSize} (${m.grams.toStringAsFixed(0)}g)',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
-                              ),
                             ],
                           ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.3)),
-                          ),
-                          child: Text(
-                            '${m.calories.toStringAsFixed(0)} kcal',
+                          Text(
+                            '${dayMeals.length} item${dayMeals.length > 1 ? 's' : ''} • ${dayKcal.toStringAsFixed(0)} kcal',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
+                              fontSize: 9.5,
                               fontWeight: FontWeight.bold,
                               color: const Color(0xFFF59E0B),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  )),
+                    ...dayMeals.map((m) => Container(
+                      margin: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.burgundySurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.sandBorder.withOpacity(0.6)),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(_getMealEmoji(m.mealType), style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  m.foodName,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                ),
+                                Text(
+                                  '${m.mealType} • ${m.portionSize} (${m.grams.toStringAsFixed(0)}g)',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              '${m.calories.toStringAsFixed(0)} kcal',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFF59E0B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                );
+              });
+            }(),
           ],
         ],
       ),
