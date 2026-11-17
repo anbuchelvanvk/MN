@@ -784,24 +784,31 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: AppColors.magentaPrimary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.magentaPrimary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.person_add_alt_1, size: 18, color: AppColors.magentaPrimary),
                               ),
-                              child: const Icon(Icons.person_add_alt_1, size: 18, color: AppColors.magentaPrimary),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Add New Staff & Credentials',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Add New Staff',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             // Live Google Sheets Refresh Button
                             InkWell(
@@ -817,7 +824,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                       setModalState(() {
                                         isSyncingSheets = false;
                                         syncStatusMessage = success
-                                            ? '✓ Sheets Synced (${eco.allGoogleSheetEmployees.length} rows)'
+                                            ? '✓ Synced (${eco.allGoogleSheetEmployees.length})'
                                             : '⚠️ Sync failed';
                                       });
                                       runInstantSearch(empIdController.text, setModalState);
@@ -842,7 +849,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                       const Icon(Icons.refresh, size: 14, color: AppColors.magentaPrimary),
                                     const SizedBox(width: 4),
                                     Text(
-                                      isSyncingSheets ? 'Syncing...' : 'Refresh Sheets',
+                                      isSyncingSheets ? 'Syncing...' : 'Sync Sheets',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.bold,
@@ -1260,20 +1267,11 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      roleHierarchy == 'Team Lead' ? 'New Dept (Custom):' : 'Team Dept:',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    if (roleHierarchy == 'Team Lead')
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                        decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(4)),
-                                        child: Text('Custom Entry', style: GoogleFonts.plusJakartaSans(fontSize: 8.5, fontWeight: FontWeight.bold, color: const Color(0xFFB45309))),
-                                      ),
-                                  ],
+                                Text(
+                                  roleHierarchy == 'Team Lead' ? 'New Department:' : 'Team Department:',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
                                 if (roleHierarchy == 'Team Lead')
@@ -1281,7 +1279,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                     controller: customDeptController,
                                     style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
                                     decoration: InputDecoration(
-                                      hintText: 'e.g. Online Department, Logistics...',
+                                      hintText: 'e.g. Online Dept, Logistics...',
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                     ),
@@ -1289,11 +1287,22 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                 else
                                   DropdownButtonFormField<String>(
                                     value: appointedTlDepts.contains(selectedDept) ? selectedDept : appointedTlDepts.first,
+                                    isExpanded: true,
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                     ),
-                                    items: appointedTlDepts.map((d) => DropdownMenuItem(value: d, child: Text(d, style: const TextStyle(fontSize: 12)))).toList(),
+                                    items: appointedTlDepts
+                                        .map((d) => DropdownMenuItem(
+                                              value: d,
+                                              child: Text(
+                                                d,
+                                                style: const TextStyle(fontSize: 12),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                            ))
+                                        .toList(),
                                     onChanged: (v) => setModalState(() => selectedDept = v ?? appointedTlDepts.first),
                                   ),
                               ],
@@ -2538,6 +2547,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
                   value: selectedEmp.id,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.person_outline, size: 18, color: AppColors.magentaPrimary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -2546,7 +2556,12 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                   items: employees.map((e) {
                     return DropdownMenuItem(
                       value: e.id,
-                      child: Text('${e.name} (${e.dept}) • ${e.gender.isNotEmpty ? e.gender : 'Male'}', style: const TextStyle(fontSize: 12.5)),
+                      child: Text(
+                        '${e.name} (${e.dept})',
+                        style: const TextStyle(fontSize: 12.5),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     );
                   }).toList(),
                   onChanged: (val) {

@@ -775,23 +775,22 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.stars_rounded, color: AppColors.sandGold, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'GROOMING POINTS & COMPLIANCE',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandLight,
-                      letterSpacing: 0.5,
-                    ),
+              const Icon(Icons.stars_rounded, color: AppColors.sandGold, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'GROOMING COMPLIANCE',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandLight,
+                    letterSpacing: 0.5,
                   ),
-                ],
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -802,7 +801,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                   ),
                 ),
                 child: Text(
-                  isStar ? '★ Star Groomed' : 'Standard Grooming',
+                  isStar ? '★ Star' : 'Standard',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

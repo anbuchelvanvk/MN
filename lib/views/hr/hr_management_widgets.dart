@@ -122,14 +122,16 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: const [
                         Icon(Icons.send_time_extension, size: 16, color: Colors.white),
                         SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            "Notify All to Complete Today's To-Do Lists Pending Works",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                            "Nudge Pending Tasks",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
                       ],
