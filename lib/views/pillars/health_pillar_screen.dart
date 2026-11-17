@@ -2157,7 +2157,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
                       // 3. Quantity Stepper
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
                           color: AppColors.burgundySurface,
                           borderRadius: BorderRadius.circular(12),
@@ -2191,7 +2191,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Container(
                               decoration: BoxDecoration(
                                 color: AppColors.burgundyCard,
@@ -2204,18 +2204,18 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   IconButton(
                                     visualDensity: VisualDensity.compact,
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    icon: const Icon(Icons.remove, size: 16, color: AppColors.sandGold),
+                                    constraints: const BoxConstraints(minWidth: 26, minHeight: 28),
+                                    icon: const Icon(Icons.remove, size: 15, color: AppColors.sandGold),
                                     onPressed: quantity > 1
                                         ? () => setDialogState(() => quantity--)
                                         : null,
                                   ),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
                                     child: Text(
                                       quantity.toString(),
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.sandLight,
                                       ),
@@ -2224,8 +2224,8 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   IconButton(
                                     visualDensity: VisualDensity.compact,
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    icon: const Icon(Icons.add, size: 16, color: AppColors.sandGold),
+                                    constraints: const BoxConstraints(minWidth: 26, minHeight: 28),
+                                    icon: const Icon(Icons.add, size: 15, color: AppColors.sandGold),
                                     onPressed: () => setDialogState(() => quantity++),
                                   ),
                                 ],

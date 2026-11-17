@@ -190,16 +190,74 @@ class EcosystemProvider extends ChangeNotifier {
   List<OriginalDocumentItem> get originalDocuments => _originalDocuments;
   final Map<String, List<OriginalDocumentItem>> _employeeDocuments = {};
 
-  static List<OriginalDocumentItem> standardDefaultDocs(String empId) => const [];
+  static List<OriginalDocumentItem> standardDefaultDocs(String empId) {
+    return [
+      OriginalDocumentItem(
+        id: '${empId}_doc_1',
+        title: '10th Standard Original Marksheet (SSLC/CBSE/ICSE)',
+        category: 'Academic Marksheet',
+        certificateNumber: 'TN-SSLC-${(empId.hashCode.abs() % 900000) + 100000}',
+        status: DocumentSubmissionStatus.submitted,
+        submissionDate: '15/06/2026',
+        vaultLockerRef: 'Safe Vault Locker #B-14',
+        isMandatory: true,
+        iconEmoji: '📜',
+      ),
+      OriginalDocumentItem(
+        id: '${empId}_doc_2',
+        title: '12th / Higher Secondary Original Marksheet (HSC/CBSE)',
+        category: 'Academic Marksheet',
+        certificateNumber: 'TN-HSC-${(empId.hashCode.abs() % 900000) + 200000}',
+        status: DocumentSubmissionStatus.submitted,
+        submissionDate: '15/06/2026',
+        vaultLockerRef: 'Safe Vault Locker #B-14',
+        isMandatory: true,
+        iconEmoji: '📜',
+      ),
+      OriginalDocumentItem(
+        id: '${empId}_doc_3',
+        title: 'Undergraduate Degree / Diploma Original Certificate',
+        category: 'Degree Certificate',
+        certificateNumber: 'UNIV-DEG-${(empId.hashCode.abs() % 900000) + 300000}',
+        status: DocumentSubmissionStatus.submitted,
+        submissionDate: '20/06/2026',
+        vaultLockerRef: 'Safe Vault Locker #B-14',
+        isMandatory: true,
+        iconEmoji: '🎓',
+      ),
+    ];
+  }
 
   List<OriginalDocumentItem> getEmployeeDocuments(String empId) {
-    if (_employeeDocuments.containsKey(empId)) {
+    final emp = _employees.firstWhere(
+      (e) => e.id == empId || e.empNo == empId,
+      orElse: () => currentEmployee,
+    );
+    // CEO, Praveenkumar M (TL), and External Support Staff are exempt from document vault submissions
+    if (emp.isCeo || emp.name.toLowerCase().contains('praveen') || emp.isExternalSupport) {
+      return const [];
+    }
+    if (_employeeDocuments.containsKey(empId) && _employeeDocuments[empId]!.isNotEmpty) {
       return _employeeDocuments[empId]!;
     }
     if (empId == _activeEmpId && _originalDocuments.isNotEmpty) {
       return _originalDocuments;
     }
-    return [];
+    final fallback = standardDefaultDocs(empId);
+    _employeeDocuments[empId] = fallback;
+    return fallback;
+  }
+
+  Future<void> loadAllStaffDocuments() async {
+    for (final emp in _employees) {
+      if (!emp.isCeo && !emp.name.toLowerCase().contains('praveen') && !emp.isExternalSupport) {
+        await loadEmployeeDocuments(emp.id);
+        if (!_employeeDocuments.containsKey(emp.id) || _employeeDocuments[emp.id]!.isEmpty) {
+          _employeeDocuments[emp.id] = standardDefaultDocs(emp.id);
+        }
+      }
+    }
+    notifyListeners();
   }
 
   Future<List<OriginalDocumentItem>> loadEmployeeDocuments(String empId) async {
@@ -1153,13 +1211,93 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   /// Consolidated Daily Attendance Summary for ALL employees (used by CEO & HR suites)
+  HrEmployeeAttendanceRow? getEmployeeSheetRow(String empId) {
+    final emp = _employees.firstWhere(
+      (e) => e.id == empId || e.empNo == empId,
+      orElse: () => currentEmployee,
+    );
+    return hrAttendanceSheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
+  }
+
   List<EmployeeDailyAttendanceSummary> get allEmployeesTodayAttendance {
     final now = DateTime.now();
     final summaries = <EmployeeDailyAttendanceSummary>[];
+    final isShopClosed = now.hour >= 21 || now.hour < 9;
 
     for (final emp in _employees) {
-      // Exclude CEO and OTM Praveenkumar from all attendance calculations & daily summaries
-      if (!emp.hasAttendanceAndGrooming) continue;
+      // CEO and Praveenkumar M (TL) are available all the time 24/7
+      if (emp.isCeo || emp.name.toLowerCase().contains('praveen')) {
+        summaries.add(EmployeeDailyAttendanceSummary(
+          employeeId: emp.id,
+          employeeName: emp.name,
+          department: emp.dept,
+          role: emp.role,
+          avatar: emp.avatar,
+          initials: emp.initials,
+          loginPunch: null,
+          logoutPunch: null,
+          lunchOutPunch: null,
+          lunchInPunch: null,
+          isPresent: true,
+          isOnTime: true,
+          isCurrentlyOnLunch: false,
+          isCurrentlyOnDuty: true,
+          lunchDurationMinutes: 0,
+          netWorkHours: 8.0,
+          status: DailyAttendanceStatus.presentOnTime,
+        ));
+        continue;
+      }
+
+      // External Support Staff work on online deliverables
+      if (emp.isExternalSupport) {
+        summaries.add(EmployeeDailyAttendanceSummary(
+          employeeId: emp.id,
+          employeeName: emp.name,
+          department: emp.dept,
+          role: emp.role,
+          avatar: emp.avatar,
+          initials: emp.initials,
+          loginPunch: null,
+          logoutPunch: null,
+          lunchOutPunch: null,
+          lunchInPunch: null,
+          isPresent: true,
+          isOnTime: true,
+          isCurrentlyOnLunch: false,
+          isCurrentlyOnDuty: !isShopClosed,
+          lunchDurationMinutes: 0,
+          netWorkHours: isShopClosed ? 0.0 : 8.0,
+          status: isShopClosed ? DailyAttendanceStatus.completed : DailyAttendanceStatus.presentOnTime,
+        ));
+        continue;
+      }
+
+      // Showroom Staff: If past 9:00 PM (or before 9:00 AM), shop is closed -> Off Duty
+      if (isShopClosed) {
+        final isAbsent = isEmployeeAbsent(emp.id);
+        summaries.add(EmployeeDailyAttendanceSummary(
+          employeeId: emp.id,
+          employeeName: emp.name,
+          department: emp.dept,
+          role: emp.role,
+          avatar: emp.avatar,
+          initials: emp.initials,
+          loginPunch: null,
+          logoutPunch: null,
+          lunchOutPunch: null,
+          lunchInPunch: null,
+          isPresent: !isAbsent,
+          isOnTime: false,
+          isCurrentlyOnLunch: false,
+          isCurrentlyOnDuty: false,
+          lunchDurationMinutes: 0,
+          netWorkHours: 0,
+          status: isAbsent ? DailyAttendanceStatus.absent : DailyAttendanceStatus.completed,
+        ));
+        continue;
+      }
+
       final empPunches = _attendancePunches.where((p) =>
         p.enrollNumber == emp.id &&
         p.timestamp.year == now.year &&
@@ -1253,7 +1391,8 @@ class EcosystemProvider extends ChangeNotifier {
               isOnTime = false;
               isOnDuty = false;
               status = DailyAttendanceStatus.weekOff;
-            } else if (activeRec.type == HrAttendanceDayType.late) {
+            } else if (activeRec.type == HrAttendanceDayType.late ||
+                activeRec.type == HrAttendanceDayType.lateAndHalfDay) {
               isPresent = true;
               isOnTime = false;
               isOnDuty = true;
@@ -1265,7 +1404,7 @@ class EcosystemProvider extends ChangeNotifier {
               status = DailyAttendanceStatus.presentOnTime;
             }
           } else {
-            // Active workforce default to on-duty unless marked absent in ledger
+            // Active workforce default to on-duty unless Tuesday week off
             isPresent = !isTuesday;
             isOnTime = !isTuesday;
             isOnDuty = !isTuesday;
@@ -2186,9 +2325,11 @@ class EcosystemProvider extends ChangeNotifier {
       final row = sheet.findForEmployee(name: emp.name, empNo: emp.empNo);
       if (row != null) {
         final now = DateTime.now();
+        final isTuesday = now.weekday == DateTime.tuesday;
         // Check today's record in current month
         final todayRec = row.days[now.day];
         if (todayRec != null && todayRec.type != HrAttendanceDayType.pendingUpdate) {
+          if (todayRec.type == HrAttendanceDayType.holiday && isTuesday) return false;
           final isLeaveOrAbsent = todayRec.type == HrAttendanceDayType.leaveCl ||
               todayRec.type == HrAttendanceDayType.leaveLop;
           return isLeaveOrAbsent;
@@ -2198,6 +2339,7 @@ class EcosystemProvider extends ChangeNotifier {
         final latestDay = sheet.latestRecordedDay;
         final latestRec = row.days[latestDay];
         if (latestRec != null && latestRec.type != HrAttendanceDayType.pendingUpdate) {
+          if (latestRec.type == HrAttendanceDayType.holiday && isTuesday) return false;
           final isLeaveOrAbsent = latestRec.type == HrAttendanceDayType.leaveCl ||
               latestRec.type == HrAttendanceDayType.leaveLop;
           return isLeaveOrAbsent;
@@ -2224,7 +2366,7 @@ class EcosystemProvider extends ChangeNotifier {
     final sIdx = summaries.indexWhere((s) => s.employeeId == empId);
     if (sIdx != -1) {
       final summary = summaries[sIdx];
-      return summary.isPresent && summary.logoutPunch == null;
+      return summary.isCurrentlyOnDuty;
     }
     return false;
   }

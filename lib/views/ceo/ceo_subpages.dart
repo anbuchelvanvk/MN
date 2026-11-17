@@ -842,7 +842,6 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
   }
 
   Widget _buildCeoStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
-    final isAbsent = eco.isEmployeeAbsent(emp.id);
     final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
     final empPassword = emp.password.isNotEmpty ? emp.password : 'password123';
 
@@ -852,7 +851,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
         color: AppColors.burgundyCard,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isAbsent ? const Color(0xFFFECDD3).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.6),
+          color: AppColors.sandBorder.withOpacity(0.6),
         ),
       ),
       child: Column(
@@ -870,11 +869,11 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: isAbsent ? AppColors.ragRed : AppColors.sandGold.withOpacity(0.2),
+                    backgroundColor: AppColors.sandGold.withOpacity(0.2),
                     child: Text(
                       emp.initials,
-                      style: TextStyle(
-                        color: isAbsent ? Colors.white : AppColors.sandGold,
+                      style: const TextStyle(
+                        color: AppColors.sandGold,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -912,13 +911,8 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  LiquidGlassPill(
-                    label: isAbsent ? 'ABSENT' : 'PRESENT',
-                    color: isAbsent ? AppColors.ragRed : AppColors.ragGreen,
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.sandGold),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.sandGold),
                 ],
               ),
             ),
@@ -2230,8 +2224,8 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
     return CeoSubpageScaffold(
       title: 'DATA VAULT & RESET',
       subtitle: 'Multi-Sheet Excel Backups & Database Maintenance',
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Section 1: Executive Download Backup Card
           Container(

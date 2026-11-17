@@ -52,6 +52,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   bool _isAttendanceExpanded = false;
   String _attendanceFilter = 'all'; // 'all', 'present', 'absent'
   String _attendanceTabFilter = 'all'; // 'all', 'present', 'absent', 'ontime', 'late', 'lunch'
+  String? _selectedAttendanceInspectorEmpId;
   final Map<String, bool> _revealedPasswords = {};
 
   @override
@@ -1607,14 +1608,13 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     final onDutyEmps = eco.employees.where((e) {
       final matches = allSummaries.where((x) => x.employeeId == e.id);
       if (matches.isEmpty) return false;
-      final s = matches.first;
-      return s.isPresent && s.logoutPunch == null;
+      return matches.first.isCurrentlyOnDuty;
     }).toList();
     final shiftOverEmps = eco.employees.where((e) {
       final matches = allSummaries.where((x) => x.employeeId == e.id);
       if (matches.isEmpty) return false;
       final s = matches.first;
-      return s.isPresent && s.logoutPunch != null;
+      return !s.isCurrentlyOnDuty && s.isPresent;
     }).toList();
     final absentEmps = eco.employees.where((e) => eco.isEmployeeAbsent(e.id)).toList();
     final totalStaff = eco.employees.length;
@@ -1972,11 +1972,20 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
 
                         String badgeText;
                         Color badgeColor;
-                        if (isAbsent) {
+                        if (emp.isCeo || emp.name.toLowerCase().contains('praveen')) {
+                          badgeText = 'Available (24/7)';
+                          badgeColor = const Color(0xFF10B981);
+                        } else if (emp.isExternalSupport) {
+                          badgeText = 'Online Tasks';
+                          badgeColor = const Color(0xFF3B82F6);
+                        } else if (isAbsent) {
                           badgeText = 'Absent';
                           badgeColor = const Color(0xFFEF4444);
-                        } else if (summary.logoutPunch != null) {
-                          if (summary.netWorkHours < 8.0) {
+                        } else if (now.hour >= 21 || now.hour < 9) {
+                          badgeText = 'Off Duty (9 PM)';
+                          badgeColor = const Color(0xFF8B5CF6);
+                        } else if (summary.logoutPunch != null || summary.status == DailyAttendanceStatus.completed) {
+                          if (summary.netWorkHours > 0 && summary.netWorkHours < 8.0) {
                             badgeText = 'Left Early';
                             badgeColor = const Color(0xFFF59E0B);
                           } else {
@@ -1986,6 +1995,9 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         } else if (summary.isCurrentlyOnLunch) {
                           badgeText = 'On Lunch';
                           badgeColor = const Color(0xFF3B82F6);
+                        } else if (summary.status == DailyAttendanceStatus.lateLogin) {
+                          badgeText = 'Late In';
+                          badgeColor = const Color(0xFFF59E0B);
                         } else {
                           badgeText = 'On Duty';
                           badgeColor = const Color(0xFF10B981);
@@ -2143,6 +2155,422 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               ),
             ),
           ],
+
+          // Comprehensive Staff Activity & Audit Dossier Inspector
+          _buildStaffActivityDossierInspector(context, eco),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStaffActivityDossierInspector(BuildContext context, EcosystemProvider eco) {
+    final staffList = eco.employees.where((e) => !e.isCeo).toList();
+    if (staffList.isEmpty) return const SizedBox.shrink();
+
+    final selectedId = _selectedAttendanceInspectorEmpId ?? staffList.first.id;
+    final selectedEmp = staffList.firstWhere(
+      (e) => e.id == selectedId,
+      orElse: () => staffList.first,
+    );
+
+    final sheetRow = eco.getEmployeeSheetRow(selectedEmp.id);
+    final groomingPts = eco.getEmployeeGroomingDailyPoints(selectedEmp.id);
+    final isGroomingStar = groomingPts >= 40;
+    final deeds = eco.socialCauses.where((c) => c.empId == selectedEmp.id || c.employeeName == selectedEmp.name).toList();
+    final todaySteps = eco.getStepsForDate(DateTime.now());
+    final stepGoal = eco.dailyStepGoal;
+    final todayCalories = eco.getCaloriesConsumedForDate(DateTime.now());
+
+    // Google Sheets attendance metrics
+    final lates = sheetRow?.lateCount ?? 0;
+    final clUsed = sheetRow?.clDaysUsed ?? 0.0;
+    final lopUsed = sheetRow?.lopDaysUsed ?? 0.0;
+    final permissionHoursUsed = sheetRow?.totalPermissionHours ?? 0.0;
+    final presentCount = sheetRow?.presentDaysCount ?? (eco.isEmployeeAbsent(selectedEmp.id) ? 0 : 1);
+
+    // Recent 5 days from sheet
+    final recentDayRecords = <HrAttendanceDayRecord>[];
+    if (sheetRow != null) {
+      final now = DateTime.now();
+      for (int i = 0; i < 5; i++) {
+        final d = now.day - i;
+        if (d >= 1 && sheetRow.days.containsKey(d)) {
+          recentDayRecords.add(sheetRow.days[d]!);
+        }
+      }
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.badge_outlined, size: 16, color: AppColors.magentaPrimary),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'STAFF ACTIVITY & AUDIT DOSSIER',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.magentaSubtle,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'Deep Inspection',
+                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Dropdown selector of employee names
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedId,
+                isExpanded: true,
+                icon: const Icon(Icons.arrow_drop_down, color: AppColors.magentaPrimary),
+                items: staffList.map((emp) {
+                  return DropdownMenuItem<String>(
+                    value: emp.id,
+                    child: Text(
+                      '${emp.name} • ${emp.dept} (${emp.role})',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _selectedAttendanceInspectorEmpId = val);
+                  }
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Dossier details for selected employee
+          // 1. Google Sheets Live Attendance
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.schedule, size: 14, color: AppColors.sandGold),
+                    const SizedBox(width: 6),
+                    const Expanded(
+                      child: Text(
+                        'Google Sheets Attendance',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$presentCount Days Present',
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _dossierMiniKpi('Lates', '$lates / 3 Max', lates > 3 ? AppColors.ragRed : const Color(0xFFF59E0B)),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _dossierMiniKpi('Casual Leave', '${clUsed.toStringAsFixed(clUsed.truncateToDouble() == clUsed ? 0 : 1)} / 1 CL', clUsed > 1 ? AppColors.ragRed : const Color(0xFF3B82F6)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _dossierMiniKpi('Loss of Pay', '${lopUsed.toStringAsFixed(lopUsed.truncateToDouble() == lopUsed ? 0 : 1)} LOP', lopUsed > 0 ? AppColors.ragRed : const Color(0xFF64748B)),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _dossierMiniKpi('Permission', '${permissionHoursUsed.toStringAsFixed(1)}h / 4.0h', permissionHoursUsed > 4 ? AppColors.ragRed : const Color(0xFF10B981)),
+                    ),
+                  ],
+                ),
+                if (recentDayRecords.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: recentDayRecords.map((r) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: r.backgroundColor,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: r.borderColor, width: 0.8),
+                        ),
+                        child: Text(
+                          'Day ${r.day}: ${r.displayLabel}',
+                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: r.textColor),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 2. Grooming Activity & Compliance
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.dry_cleaning_outlined, size: 16, color: AppColors.sandGold),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Daily Grooming & Attire Audit',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      ),
+                      Text(
+                        selectedEmp.hasAttendanceAndGrooming
+                            ? 'Score: $groomingPts/50 Pts • ${isGroomingStar ? "★ Star Groomed" : "Standard Grooming"}'
+                            : 'Exempt from showroom grooming audits',
+                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: !selectedEmp.hasAttendanceAndGrooming
+                        ? const Color(0xFFF1F5F9)
+                        : (isGroomingStar ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    !selectedEmp.hasAttendanceAndGrooming ? 'Exempt' : '$groomingPts / 50',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: !selectedEmp.hasAttendanceAndGrooming
+                          ? const Color(0xFF64748B)
+                          : (isGroomingStar ? const Color(0xFF166534) : const Color(0xFF92400E)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 3. Social Causes & Deeds
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.volunteer_activism_outlined, size: 16, color: Color(0xFFEC4899)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Social Cause & CSR Deeds',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      ),
+                      Text(
+                        deeds.isNotEmpty
+                            ? '${deeds.length} deeds registered • Latest: "${deeds.first.title}"'
+                            : 'No community deeds submitted yet',
+                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: deeds.isNotEmpty ? const Color(0xFFFCE7F3) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${deeds.length} Deeds',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: deeds.isNotEmpty ? const Color(0xFFBE185D) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 4. Personal Achievement & Health
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.favorite_outline, size: 16, color: Color(0xFFEF4444)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Health & Personal Milestone',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      ),
+                      Text(
+                        'Steps: $todaySteps / $stepGoal • Calories: ${todayCalories.toStringAsFixed(0)} kcal',
+                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${todaySteps > 0 ? ((todaySteps / stepGoal) * 100).round() : 0}% Goal',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1D4ED8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 5. Special Dates & Life Milestones
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.cake_outlined, size: 16, color: Color(0xFF8B5CF6)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Special Dates & Milestones',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      ),
+                      Text(
+                        'DOB: ${selectedEmp.dob.isNotEmpty ? selectedEmp.dob : "Not recorded"} • Status: ${selectedEmp.relationshipStatus}${selectedEmp.anniversaryDate.isNotEmpty ? " • Anniversary: ${selectedEmp.anniversaryDate}" : ""}',
+                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3E8FF),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    selectedEmp.relationshipStatus,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF7C3AED),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dossierMiniKpi(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 8.5, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 1),
+          Text(value, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color), overflow: TextOverflow.ellipsis),
         ],
       ),
     );

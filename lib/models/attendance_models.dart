@@ -282,6 +282,11 @@ class EmployeeDailyAttendanceSummary {
     if (logoutPunch != null) {
       return isLeftEarly ? 'Left Early' : 'Shift Over';
     }
+    if (!isCurrentlyOnDuty || status == DailyAttendanceStatus.completed) {
+      final now = DateTime.now();
+      if (now.hour >= 21 || now.hour < 9) return 'Off Duty (9 PM)';
+      return 'Shift Over';
+    }
     if (isOnTime) return 'On Duty';
     return 'Late In';
   }
@@ -291,6 +296,9 @@ class EmployeeDailyAttendanceSummary {
     if (isCurrentlyOnLunch) return const Color(0xFF3B82F6);
     if (logoutPunch != null) {
       return isLeftEarly ? const Color(0xFFF59E0B) : const Color(0xFF8B5CF6);
+    }
+    if (!isCurrentlyOnDuty || status == DailyAttendanceStatus.completed) {
+      return const Color(0xFF8B5CF6);
     }
     if (isOnTime) return const Color(0xFF10B981);
     return const Color(0xFFEAB308);
