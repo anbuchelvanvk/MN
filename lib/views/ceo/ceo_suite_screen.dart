@@ -1616,7 +1616,20 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
       final s = matches.first;
       return !s.isCurrentlyOnDuty && s.isPresent;
     }).toList();
-    final absentEmps = eco.employees.where((e) => eco.isEmployeeAbsent(e.id)).toList();
+    final absentEmps = eco.employees.where((e) {
+      final isManuallyAbsent = eco.isEmployeeAbsent(e.id);
+      final matches = allSummaries.where((x) => x.employeeId == e.id);
+      final isAbsentStatus = matches.isNotEmpty && matches.first.status == DailyAttendanceStatus.absent;
+      return isManuallyAbsent || isAbsentStatus;
+    }).toList();
+    final weekOffEmps = eco.employees.where((e) {
+      final matches = allSummaries.where((x) => x.employeeId == e.id);
+      return matches.isNotEmpty && matches.first.status == DailyAttendanceStatus.weekOff;
+    }).toList();
+    final yetToUpdateEmps = eco.employees.where((e) {
+      final matches = allSummaries.where((x) => x.employeeId == e.id);
+      return matches.isNotEmpty && matches.first.status == DailyAttendanceStatus.yetToUpdate;
+    }).toList();
     final totalStaff = eco.employees.length;
 
     List<Employee> displayedList;
@@ -1624,6 +1637,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
       displayedList = eco.employees.where((e) => !eco.isEmployeeAbsent(e.id)).toList();
     } else if (_attendanceFilter == 'on_duty') {
       displayedList = onDutyEmps;
+    } else if (_attendanceFilter == 'week_off') {
+      displayedList = weekOffEmps;
+    } else if (_attendanceFilter == 'yet_to_update') {
+      displayedList = yetToUpdateEmps;
     } else if (_attendanceFilter == 'shift_over') {
       displayedList = shiftOverEmps;
     } else if (_attendanceFilter == 'absent') {
@@ -1750,16 +1767,26 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               Container(
                                 width: 7,
                                 height: 7,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Color(0xFF10B981),
+                                  color: (now.weekday == DateTime.tuesday || weekOffEmps.length >= 5)
+                                      ? const Color(0xFF94A3B8)
+                                      : (yetToUpdateEmps.length >= 5 ? const Color(0xFFF59E0B) : const Color(0xFF10B981)),
                                 ),
                               ),
                               const SizedBox(width: 5),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'On Duty',
-                                  style: TextStyle(fontSize: 10, color: Color(0xFF047857), fontWeight: FontWeight.w600),
+                                  (now.weekday == DateTime.tuesday || weekOffEmps.length >= 5)
+                                      ? 'Week off'
+                                      : (yetToUpdateEmps.length >= 5 ? 'Yet to update' : 'On Duty'),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: (now.weekday == DateTime.tuesday || weekOffEmps.length >= 5)
+                                        ? const Color(0xFF64748B)
+                                        : (yetToUpdateEmps.length >= 5 ? const Color(0xFFB45309) : const Color(0xFF047857)),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -1767,13 +1794,19 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               Icon(
                                 isPresentActive ? Icons.check_circle : Icons.check_circle_outline,
                                 size: 14,
-                                color: const Color(0xFF10B981),
+                                color: (now.weekday == DateTime.tuesday || weekOffEmps.length >= 5)
+                                    ? const Color(0xFF94A3B8)
+                                    : (yetToUpdateEmps.length >= 5 ? const Color(0xFFF59E0B) : const Color(0xFF10B981)),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${onDutyEmps.length} On Duty',
+                            (now.weekday == DateTime.tuesday || weekOffEmps.length >= 5)
+                                ? '${weekOffEmps.length} Week off'
+                                : (yetToUpdateEmps.length >= 5
+                                    ? '${yetToUpdateEmps.length} Yet to update'
+                                    : '${onDutyEmps.length} On Duty'),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -1783,9 +1816,11 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            shiftOverEmps.isNotEmpty
-                                ? '${shiftOverEmps.length} Shift Over'
-                                : (isPresentActive ? 'Viewing on duty ▼' : 'Tap to view'),
+                            (now.weekday == DateTime.tuesday || weekOffEmps.length >= 5)
+                                ? (onDutyEmps.isNotEmpty ? '${onDutyEmps.length} 24/7 Available' : 'Showroom Closed')
+                                : (shiftOverEmps.isNotEmpty
+                                    ? '${shiftOverEmps.length} Shift Over'
+                                    : (isPresentActive ? 'Viewing on duty ▼' : 'Tap to view')),
                             style: TextStyle(
                               fontSize: 9.5,
                               color: isPresentActive ? const Color(0xFF047857) : AppColors.textSecondary,
@@ -1799,7 +1834,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               ),
               const SizedBox(width: 8),
 
-              // Absent Counter Tile
+              // Absent / Pending Counter Tile
               Expanded(
                 child: Material(
                   color: Colors.transparent,
@@ -1841,16 +1876,24 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               Container(
                                 width: 7,
                                 height: 7,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Color(0xFFEF4444),
+                                  color: (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty)
+                                      ? const Color(0xFFF59E0B)
+                                      : const Color(0xFFEF4444),
                                 ),
                               ),
                               const SizedBox(width: 5),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'Off Duty',
-                                  style: TextStyle(fontSize: 10, color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                                  (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty) ? 'Yet to update' : 'Off Duty',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty)
+                                        ? const Color(0xFFB45309)
+                                        : const Color(0xFFB91C1C),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -1858,23 +1901,31 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               Icon(
                                 isAbsentActive ? Icons.error : Icons.error_outline,
                                 size: 14,
-                                color: const Color(0xFFEF4444),
+                                color: (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty)
+                                    ? const Color(0xFFF59E0B)
+                                    : const Color(0xFFEF4444),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${absentEmps.length} Absent',
-                            style: const TextStyle(
+                            (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty)
+                                ? '${yetToUpdateEmps.length} Yet to update'
+                                : '${absentEmps.length} Absent',
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.ragRed,
+                              color: (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty)
+                                  ? const Color(0xFFB45309)
+                                  : AppColors.ragRed,
                               letterSpacing: 0.2,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isAbsentActive ? 'Viewing absent ▼' : 'Tap to view',
+                            isAbsentActive
+                                ? 'Viewing absent ▼'
+                                : ((absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty) ? 'Pending HR Sheet' : 'Tap to view'),
                             style: TextStyle(
                               fontSize: 9.5,
                               color: isAbsentActive ? const Color(0xFFB91C1C) : AppColors.textSecondary,
@@ -1911,6 +1962,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         _attendanceFilterChip('all', 'All ($totalStaff)'),
                         const SizedBox(width: 6),
                         _attendanceFilterChip('on_duty', 'On Duty (${onDutyEmps.length})'),
+                        if (yetToUpdateEmps.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          _attendanceFilterChip('yet_to_update', 'Yet to update (${yetToUpdateEmps.length})'),
+                        ],
+                        if (weekOffEmps.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          _attendanceFilterChip('week_off', 'Week off (${weekOffEmps.length})'),
+                        ],
                         const SizedBox(width: 6),
                         _attendanceFilterChip('shift_over', 'Shift Over (${shiftOverEmps.length})'),
                         const SizedBox(width: 6),
@@ -1927,10 +1986,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       child: Center(
                         child: Text(
                           _attendanceFilter == 'absent'
-                              ? 'No staff are absent today. Full team is on duty.'
-                              : (_attendanceFilter == 'shift_over'
-                                  ? 'No staff have completed their shift yet today.'
-                                  : 'No staff members found.'),
+                              ? 'No staff are absent today.'
+                              : (_attendanceFilter == 'yet_to_update'
+                                  ? 'All staff attendance has been updated.'
+                                  : (_attendanceFilter == 'week_off'
+                                      ? 'No staff scheduled for week-off.'
+                                      : (_attendanceFilter == 'shift_over'
+                                          ? 'No staff have completed their shift yet today.'
+                                          : 'No staff members found.'))),
                           style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
                           textAlign: TextAlign.center,
                         ),
@@ -1978,9 +2041,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         } else if (emp.isExternalSupport) {
                           badgeText = 'Online Tasks';
                           badgeColor = const Color(0xFF3B82F6);
-                        } else if (isAbsent) {
+                        } else if (isAbsent || summary.status == DailyAttendanceStatus.absent) {
                           badgeText = 'Absent';
                           badgeColor = const Color(0xFFEF4444);
+                        } else if (summary.status == DailyAttendanceStatus.weekOff || (now.weekday == DateTime.tuesday && !emp.isExternalSupport)) {
+                          badgeText = 'Week off';
+                          badgeColor = const Color(0xFF94A3B8);
+                        } else if (summary.status == DailyAttendanceStatus.yetToUpdate) {
+                          badgeText = 'Yet to update';
+                          badgeColor = const Color(0xFFF59E0B);
                         } else if (now.hour >= 21 || now.hour < 9) {
                           badgeText = 'Off Duty (9 PM)';
                           badgeColor = const Color(0xFF8B5CF6);
@@ -1998,9 +2067,12 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         } else if (summary.status == DailyAttendanceStatus.lateLogin) {
                           badgeText = 'Late In';
                           badgeColor = const Color(0xFFF59E0B);
-                        } else {
+                        } else if (summary.isCurrentlyOnDuty) {
                           badgeText = 'On Duty';
                           badgeColor = const Color(0xFF10B981);
+                        } else {
+                          badgeText = 'Yet to update';
+                          badgeColor = const Color(0xFFF59E0B);
                         }
 
                         return Container(

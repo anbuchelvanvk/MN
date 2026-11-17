@@ -1188,14 +1188,15 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     textColor = const Color(0xFF94A3B8);
                     statusTag = 'OFF';
                     icon = Icons.beach_access;
-                  } else if (r.status.contains('Pending') ||
+                  } else if (r.status.contains('Yet to update') ||
+                      r.status.contains('Pending') ||
                       r.status.contains('Upcoming') ||
-                      (r.status == 'No Punch' && dayNumber > 14)) {
-                    boxColor = AppColors.burgundyCard;
-                    borderColor = AppColors.sandBorder.withOpacity(0.35);
-                    textColor = AppColors.textMuted;
-                    statusTag = '--';
-                    icon = Icons.more_horiz;
+                      r.status == 'No Punch') {
+                    boxColor = const Color(0xFFFEF9C3).withOpacity(0.18);
+                    borderColor = const Color(0xFFFACC15).withOpacity(0.6);
+                    textColor = const Color(0xFFFACC15);
+                    statusTag = 'YTD';
+                    icon = Icons.hourglass_top;
                   } else if (r.status.contains('Late')) {
                     boxColor = const Color(0xFFFEF9C3).withOpacity(0.18);
                     borderColor = const Color(0xFFFACC15);
@@ -3448,13 +3449,14 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 borderColor = const Color(0xFF8B5CF6).withOpacity(0.6);
                 textColor = const Color(0xFFA78BFA);
                 badgeText = 'OT';
-              } else if (rec.status.contains('Pending') ||
+              } else if (rec.status.contains('Yet to update') ||
+                  rec.status.contains('Pending') ||
                   rec.status.contains('Upcoming') ||
-                  (rec.status == 'No Punch' && rec.date.day > 14)) {
-                bgColor = AppColors.burgundyCard;
-                borderColor = AppColors.sandBorder.withOpacity(0.35);
-                textColor = AppColors.textMuted;
-                badgeText = '--';
+                  rec.status == 'No Punch') {
+                bgColor = const Color(0xFFFEF9C3).withOpacity(0.18);
+                borderColor = const Color(0xFFFACC15).withOpacity(0.6);
+                textColor = const Color(0xFFFACC15);
+                badgeText = 'Yet to update';
               } else if (rec.status.contains('Late')) {
                 bgColor = const Color(0xFFFEF9C3).withOpacity(0.18);
                 borderColor = const Color(0xFFFACC15);
@@ -3525,14 +3527,25 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      badgeText,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                        color: textColor,
-                      ),
-                    ),
+                    badgeText == 'Yet to update'
+                        ? Text(
+                            'Yet to\nupdate',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 7.8,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                              height: 1.05,
+                            ),
+                          )
+                        : Text(
+                            badgeText,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w900,
+                              color: textColor,
+                            ),
+                          ),
                   ],
                 ),
               );

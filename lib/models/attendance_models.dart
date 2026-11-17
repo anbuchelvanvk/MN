@@ -169,6 +169,7 @@ enum DailyAttendanceStatus {
   onDuty,        // Currently working shift
   completed,     // Completed full shift and logged out
   weekOff,       // Scheduled weekly day off / Holiday
+  yetToUpdate,   // Attendance for the day is not yet updated in HR sheet (Yellow)
 }
 
 /// eSSL Hardware Device Live Configuration & State
@@ -277,6 +278,8 @@ class EmployeeDailyAttendanceSummary {
   bool get isLeftEarly => logoutPunch != null && netWorkHours < 8.0;
 
   String get statusBadgeText {
+    if (status == DailyAttendanceStatus.weekOff) return 'Week off';
+    if (status == DailyAttendanceStatus.yetToUpdate) return 'Yet to update';
     if (!isPresent) return 'Absent';
     if (isCurrentlyOnLunch) return 'On Lunch';
     if (logoutPunch != null) {
@@ -292,6 +295,8 @@ class EmployeeDailyAttendanceSummary {
   }
 
   Color get statusBadgeColor {
+    if (status == DailyAttendanceStatus.weekOff) return const Color(0xFF94A3B8); // Slate
+    if (status == DailyAttendanceStatus.yetToUpdate) return const Color(0xFFF59E0B); // Yellow
     if (!isPresent) return const Color(0xFFEF4444);
     if (isCurrentlyOnLunch) return const Color(0xFF3B82F6);
     if (logoutPunch != null) {

@@ -869,10 +869,10 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 ),
                 const SizedBox(width: 6),
                 _legendItem(
-                  'Pending (—)',
-                  const Color(0xFFF8FAFC),
-                  const Color(0xFFE2E8F0),
-                  const Color(0xFF94A3B8),
+                  'Yet to update',
+                  const Color(0xFFFEF9C3),
+                  const Color(0xFFFACC15),
+                  const Color(0xFFB45309),
                 ),
               ],
             ),
@@ -934,7 +934,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                           day: day,
                           rawValue: '',
                           type: HrAttendanceDayType.pendingUpdate,
-                          displayLabel: 'Not in Showroom Roster',
+                          displayLabel: 'Yet to update',
                         ));
 
               final isSelected = _selectedDay == day;

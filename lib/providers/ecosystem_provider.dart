@@ -1225,7 +1225,7 @@ class EcosystemProvider extends ChangeNotifier {
           isPresent: true,
           isOnTime: true,
           isCurrentlyOnLunch: false,
-          isCurrentlyOnDuty: !isShopClosed,
+          isCurrentlyOnDuty: false, // External support staff work on online tasks, NOT retail showroom floor
           lunchDurationMinutes: 0,
           netWorkHours: isShopClosed ? 0.0 : 8.0,
           status: isShopClosed ? DailyAttendanceStatus.completed : DailyAttendanceStatus.presentOnTime,
@@ -1333,42 +1333,42 @@ class EcosystemProvider extends ChangeNotifier {
           final sheet = hrAttendanceSheet;
           final hrRow = sheet?.findForEmployee(name: emp.name, empNo: emp.empNo);
           final todayRec = hrRow?.days[now.day];
-          final latestDay = sheet?.latestRecordedDay ?? now.day;
-          final latestRec = hrRow?.days[latestDay];
-          final activeRec = todayRec ?? latestRec;
-
           final isTuesday = now.weekday == DateTime.tuesday;
 
-          if (activeRec != null && activeRec.type != HrAttendanceDayType.pendingUpdate) {
-            if (activeRec.type == HrAttendanceDayType.leaveCl ||
-                activeRec.type == HrAttendanceDayType.leaveLop) {
+          if (isTuesday || todayRec?.type == HrAttendanceDayType.holiday) {
+            // Tuesday showroom week-off or company holiday
+            isPresent = false;
+            isOnTime = false;
+            isOnDuty = false;
+            status = DailyAttendanceStatus.weekOff;
+          } else if (todayRec != null && todayRec.type != HrAttendanceDayType.pendingUpdate) {
+            // Authoritative entry exists for today in HR Sheet
+            if (todayRec.type == HrAttendanceDayType.leaveCl ||
+                todayRec.type == HrAttendanceDayType.leaveLop ||
+                todayRec.type == HrAttendanceDayType.leaveHalfDay) {
               isPresent = false;
               isOnTime = false;
               isOnDuty = false;
               status = DailyAttendanceStatus.absent;
-            } else if (isTuesday && activeRec.type == HrAttendanceDayType.holiday) {
-              isPresent = false;
-              isOnTime = false;
-              isOnDuty = false;
-              status = DailyAttendanceStatus.weekOff;
-            } else if (activeRec.type == HrAttendanceDayType.late ||
-                activeRec.type == HrAttendanceDayType.lateAndHalfDay) {
+            } else if (todayRec.type == HrAttendanceDayType.late ||
+                todayRec.type == HrAttendanceDayType.lateAndHalfDay) {
               isPresent = true;
               isOnTime = false;
-              isOnDuty = true;
+              isOnDuty = !isShopClosed;
               status = DailyAttendanceStatus.lateLogin;
             } else {
+              // Present on duty
               isPresent = true;
               isOnTime = true;
-              isOnDuty = true;
-              status = DailyAttendanceStatus.presentOnTime;
+              isOnDuty = !isShopClosed;
+              status = isShopClosed ? DailyAttendanceStatus.completed : DailyAttendanceStatus.presentOnTime;
             }
           } else {
-            // Active workforce default to on-duty unless Tuesday week off
-            isPresent = !isTuesday;
-            isOnTime = !isTuesday;
-            isOnDuty = !isTuesday;
-            status = isTuesday ? DailyAttendanceStatus.weekOff : DailyAttendanceStatus.presentOnTime;
+            // Attendance for the day is not yet updated in the sheet!
+            isPresent = false;
+            isOnTime = false;
+            isOnDuty = false;
+            status = DailyAttendanceStatus.yetToUpdate;
           }
         }
       }
@@ -1520,8 +1520,8 @@ class EcosystemProvider extends ChangeNotifier {
               isWeekoff = true;
               break;
             case HrAttendanceDayType.pendingUpdate:
-              statusStr = 'Pending HR Update';
-              statusColor = const Color(0xFF94A3B8);
+              statusStr = 'Yet to update';
+              statusColor = const Color(0xFFF59E0B); // Yellow
               netHoursStr = '--';
               inStr = '--:-- --';
               outStr = '--:-- --';
@@ -1565,8 +1565,8 @@ class EcosystemProvider extends ChangeNotifier {
         lunchOutTime: '--',
         lunchInTime: '--',
         netHours: '--',
-        status: 'Pending HR Update',
-        statusColor: const Color(0xFF94A3B8),
+        status: targetDate.weekday == DateTime.tuesday ? 'Tuesday Week-off' : 'Yet to update',
+        statusColor: targetDate.weekday == DateTime.tuesday ? const Color(0xFF94A3B8) : const Color(0xFFF59E0B),
         isOvertime: false,
         isWeekoff: targetDate.weekday == DateTime.tuesday,
       ));
@@ -1675,7 +1675,7 @@ class EcosystemProvider extends ChangeNotifier {
         if (isTuesday) {
           if (hrDay.type == HrAttendanceDayType.holiday) {
             isWeekoff = true;
-            statusStr = isFuture ? 'Upcoming (Tuesday Week-off)' : 'Tuesday (Week-off)';
+            statusStr = 'Tuesday (Week-off)';
             statusColor = const Color(0xFF94A3B8);
           } else if (hrDay.type == HrAttendanceDayType.present ||
               hrDay.type == HrAttendanceDayType.late ||
@@ -1693,7 +1693,7 @@ class EcosystemProvider extends ChangeNotifier {
             statusColor = const Color(0xFFEF4444);
           } else {
             isWeekoff = true;
-            statusStr = isFuture ? 'Upcoming (Tuesday Week-off)' : 'Tuesday (Week-off)';
+            statusStr = 'Tuesday (Week-off)';
             statusColor = const Color(0xFF94A3B8);
           }
         } else {
@@ -1754,8 +1754,8 @@ class EcosystemProvider extends ChangeNotifier {
               statusColor = const Color(0xFF94A3B8);
               break;
             case HrAttendanceDayType.pendingUpdate:
-              statusStr = isFuture ? 'Upcoming' : 'Pending HR Update';
-              statusColor = const Color(0xFF94A3B8);
+              statusStr = 'Yet to update';
+              statusColor = const Color(0xFFF59E0B);
               break;
             case HrAttendanceDayType.notApplicable:
               statusStr = 'N/A';
@@ -1766,20 +1766,11 @@ class EcosystemProvider extends ChangeNotifier {
       } else {
         if (isTuesday) {
           isWeekoff = true;
-          statusStr = isFuture ? 'Upcoming (Tuesday Week-off)' : 'Tuesday (Week-off)';
-          statusColor = const Color(0xFF94A3B8);
-        } else if (isFuture) {
-          statusStr = 'Upcoming';
-          statusColor = const Color(0xFF64748B);
-        } else if (isToday) {
-          statusStr = 'Not Checked In';
-          statusColor = const Color(0xFFF59E0B);
-        } else if (day > 14) {
-          statusStr = isFuture ? 'Upcoming' : 'Pending HR Update';
+          statusStr = 'Tuesday (Week-off)';
           statusColor = const Color(0xFF94A3B8);
         } else {
-          statusStr = 'Absent';
-          statusColor = const Color(0xFFEF4444);
+          statusStr = 'Yet to update';
+          statusColor = const Color(0xFFF59E0B);
         }
       }
 

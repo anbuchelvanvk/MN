@@ -581,10 +581,10 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                     ),
                   );
 
-                  final reallyAbsent = isAbsent;
+                  final reallyAbsent = isAbsent || summary.status == DailyAttendanceStatus.absent;
                   final statusColor = reallyAbsent
                       ? AppColors.ragRed
-                      : (summary.status == DailyAttendanceStatus.lateLogin ? AppColors.ragYellow : AppColors.ragGreen);
+                      : summary.statusBadgeColor;
                   final statusText = reallyAbsent ? 'Absent' : summary.statusBadgeText;
 
                   return Container(

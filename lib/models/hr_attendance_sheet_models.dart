@@ -51,7 +51,7 @@ class HrAttendanceDayRecord {
       case HrAttendanceDayType.notApplicable:
         return const Color(0xFFF8FAFC);
       case HrAttendanceDayType.pendingUpdate:
-        return const Color(0xFFF8FAFC); // Neutral soft slate
+        return const Color(0xFFFEF9C3); // Soft Yellow
       case HrAttendanceDayType.present:
         return Colors.white;
     }
@@ -76,7 +76,7 @@ class HrAttendanceDayRecord {
       case HrAttendanceDayType.notApplicable:
         return const Color(0xFFE2E8F0);
       case HrAttendanceDayType.pendingUpdate:
-        return const Color(0xFFE2E8F0); // Faint border
+        return const Color(0xFFFACC15); // Yellow border
       case HrAttendanceDayType.present:
         return const Color(0xFFE2E8F0);
     }
@@ -101,7 +101,7 @@ class HrAttendanceDayRecord {
       case HrAttendanceDayType.notApplicable:
         return const Color(0xFF94A3B8);
       case HrAttendanceDayType.pendingUpdate:
-        return const Color(0xFF94A3B8); // Muted slate 400
+        return const Color(0xFFB45309); // Deep amber / yellow
       case HrAttendanceDayType.present:
         return const Color(0xFF0F172A);
     }
@@ -121,13 +121,13 @@ class HrAttendanceDayRecord {
       );
     }
 
-    // Unrecorded / Empty cell (HR has only updated up to the 14th)
+    // Unrecorded / Empty cell (Attendance for the day not yet updated)
     if (clean.isEmpty) {
       return HrAttendanceDayRecord(
         day: day,
         rawValue: '',
         type: HrAttendanceDayType.pendingUpdate,
-        displayLabel: 'Pending HR Update',
+        displayLabel: 'Yet to update',
       );
     }
 

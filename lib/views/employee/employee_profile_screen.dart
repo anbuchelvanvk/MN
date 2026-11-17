@@ -918,11 +918,11 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
           ? 'Today (${DateFormat('MMM d').format(date)})'
           : DateFormat('EEE, MMM d').format(date);
 
-      String statusLabel = 'On Duty (Present)';
-      Color statusColor = const Color(0xFF10B981);
-      Color statusBg = const Color(0xFF10B981).withOpacity(0.12);
+      String statusLabel;
+      Color statusColor;
+      Color statusBg;
 
-      if (isTuesday) {
+      if (isTuesday || (dayRec != null && dayRec.type == HrAttendanceDayType.holiday)) {
         statusLabel = 'Tuesday Week-off';
         statusColor = const Color(0xFF94A3B8);
         statusBg = const Color(0xFF94A3B8).withOpacity(0.12);
@@ -952,8 +952,14 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
             statusBg = const Color(0xFFEF4444).withOpacity(0.12);
             break;
           default:
+            statusColor = dayRec.textColor;
+            statusBg = dayRec.backgroundColor.withOpacity(0.12);
             break;
         }
+      } else {
+        statusLabel = 'Yet to update';
+        statusColor = const Color(0xFFF59E0B);
+        statusBg = const Color(0xFFF59E0B).withOpacity(0.12);
       }
 
       dayItems.add(

@@ -18,16 +18,17 @@ void main() {
       expect(mohan!.sNo, equals(5));
       expect(mohan.empNo, equals('7'));
 
-      // Verify that sheet is updated up to the 14th only
-      expect(sheet.latestRecordedDay, equals(14));
+      // Verify that sheet is updated up to the 16th (Day 15 & 16 synced)
+      expect(sheet.latestRecordedDay, equals(16));
 
-      // Day 1..14 are recorded (Day 3 & 10 are holidays, Day 1..2 & 4..9 & 11..14 are present)
+      // Day 1..16 are recorded (Day 3 & 10 are holidays, Day 1..2 & 4..9 & 11..16 are present)
       expect(mohan.days[1]!.type, equals(HrAttendanceDayType.present));
       expect(mohan.days[3]!.type, equals(HrAttendanceDayType.holiday));
       expect(mohan.days[14]!.type, equals(HrAttendanceDayType.present));
+      expect(mohan.days[15]!.type, equals(HrAttendanceDayType.present));
+      expect(mohan.days[16]!.type, equals(HrAttendanceDayType.present));
 
-      // Day 15, 16, 18.. are pending HR updates (NOT present!)
-      expect(mohan.days[15]!.type, equals(HrAttendanceDayType.pendingUpdate));
+      // Day 18.. are pending HR updates (NOT present!)
       expect(mohan.days[18]!.type, equals(HrAttendanceDayType.pendingUpdate));
       expect(mohan.days[31]!.type, equals(HrAttendanceDayType.pendingUpdate));
 
@@ -35,8 +36,8 @@ void main() {
       expect(mohan.days[17]!.type, equals(HrAttendanceDayType.holiday));
       expect(mohan.days[24]!.type, equals(HrAttendanceDayType.holiday));
 
-      // Present days count should only count actual 'nil' days up to 14th (12 days for Mohankumar)
-      expect(mohan.presentDaysCount, equals(12));
+      // Present days count should count actual 'nil' days up to 16th (14 days for Mohankumar)
+      expect(mohan.presentDaysCount, equals(14));
       expect(mohan.pendingDaysCount, greaterThan(0));
 
       // Check Gokulakrishnan K (EMP NO: 6)
@@ -69,7 +70,7 @@ void main() {
       // Empty cell should be pendingUpdate (awaiting HR entry)
       final pEmpty = HrAttendanceDayRecord.parse(18, '');
       expect(pEmpty.type, equals(HrAttendanceDayType.pendingUpdate));
-      expect(pEmpty.displayLabel, equals('Pending HR Update'));
+      expect(pEmpty.displayLabel, equals('Yet to update'));
 
       // 2. Late coming (Yellow: l-1, l-2)
       final l1 = HrAttendanceDayRecord.parse(2, 'l-1');
