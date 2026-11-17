@@ -1672,9 +1672,11 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
       return matchesDept && matchesSearch;
     }).toList();
 
-    final onTimeCount = allSummaries.where((s) => s.status == DailyAttendanceStatus.presentOnTime).length;
-    final lateCount = allSummaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
-    final activeDutyCount = allSummaries.where((s) => s.isCurrentlyOnDuty).length;
+    final isTuesday = DateTime.now().weekday == DateTime.tuesday;
+    final onTimeCount = isTuesday ? 0 : allSummaries.where((s) => s.status == DailyAttendanceStatus.presentOnTime).length;
+    final lateCount = isTuesday ? 0 : allSummaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
+    final activeDutyCount = isTuesday ? 0 : allSummaries.where((s) => s.isCurrentlyOnDuty).length;
+    final weekOffCount = isTuesday ? allSummaries.where((s) => s.status == DailyAttendanceStatus.weekOff).length : 0;
 
     // Filter Google Sheet rows (matching active workforce)
     final allSheetRows = eco.activeAttendanceSheetRows;
@@ -2055,11 +2057,11 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    '$activeDutyCount ON DUTY',
+                    isTuesday ? '$weekOffCount WEEK OFF' : '$activeDutyCount ON DUTY',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF10B981),
+                      color: isTuesday ? const Color(0xFF64748B) : const Color(0xFF10B981),
                     ),
                   ),
                 ),
@@ -2071,7 +2073,14 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
           // 3 Attendance KPI Pills
           Row(
             children: [
-              Expanded(child: _kpiPill('On-Time', '$onTimeCount Staff', const Color(0xFF10B981), Icons.check_circle_outline)),
+              Expanded(
+                child: _kpiPill(
+                  isTuesday ? 'Week-off' : 'On-Time',
+                  isTuesday ? '$weekOffCount Staff' : '$onTimeCount Staff',
+                  isTuesday ? const Color(0xFF94A3B8) : const Color(0xFF10B981),
+                  isTuesday ? Icons.weekend_outlined : Icons.check_circle_outline,
+                ),
+              ),
               const SizedBox(width: 8),
               Expanded(child: _kpiPill('Late In', '$lateCount Staff', const Color(0xFFF59E0B), Icons.alarm)),
               const SizedBox(width: 8),

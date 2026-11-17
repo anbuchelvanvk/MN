@@ -1237,6 +1237,32 @@ class EcosystemProvider extends ChangeNotifier {
         continue;
       }
 
+      // Showroom Staff: If Tuesday (store weekly off), marked as week-off unless absent
+      final isTuesday = now.weekday == DateTime.tuesday;
+      if (isTuesday) {
+        final isAbsent = isEmployeeAbsent(emp.id);
+        summaries.add(EmployeeDailyAttendanceSummary(
+          employeeId: emp.id,
+          employeeName: emp.name,
+          department: emp.dept,
+          role: emp.role,
+          avatar: emp.avatar,
+          initials: emp.initials,
+          loginPunch: null,
+          logoutPunch: null,
+          lunchOutPunch: null,
+          lunchInPunch: null,
+          isPresent: false,
+          isOnTime: false,
+          isCurrentlyOnLunch: false,
+          isCurrentlyOnDuty: false,
+          lunchDurationMinutes: 0,
+          netWorkHours: 0,
+          status: isAbsent ? DailyAttendanceStatus.absent : DailyAttendanceStatus.weekOff,
+        ));
+        continue;
+      }
+
       // Showroom Staff: If past 9:00 PM (or before 9:00 AM), shop is closed -> Off Duty
       if (isShopClosed) {
         final isAbsent = isEmployeeAbsent(emp.id);

@@ -39,8 +39,12 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
     final eco = context.watch<EcosystemProvider>();
     final allEmployees = eco.employees;
     final totalStaff = allEmployees.length;
+    final isTuesday = DateTime.now().weekday == DateTime.tuesday;
     final absentStaffCount = allEmployees.where((e) => eco.isEmployeeAbsent(e.id)).length;
-    final presentStaffCount = totalStaff - absentStaffCount;
+    final weekOffStaffCount = isTuesday
+        ? allEmployees.where((e) => !e.isExternalSupport && !e.isCeo && !eco.isEmployeeAbsent(e.id)).length
+        : 0;
+    final presentStaffCount = isTuesday ? 0 : (totalStaff - absentStaffCount);
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
@@ -330,11 +334,11 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                   ),
                   const SizedBox(width: 8),
                   LiquidMetricCard(
-                    label: 'Present',
-                    value: '$presentStaffCount',
-                    subtitle: 'Active Today',
-                    icon: Icons.badge_outlined,
-                    color: AppColors.sandPrimary,
+                    label: isTuesday ? 'Week-off' : 'Present',
+                    value: isTuesday ? '$weekOffStaffCount' : '$presentStaffCount',
+                    subtitle: isTuesday ? 'Tuesday Week-off' : 'Active Today',
+                    icon: isTuesday ? Icons.weekend_outlined : Icons.badge_outlined,
+                    color: isTuesday ? const Color(0xFF94A3B8) : AppColors.sandPrimary,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const HrAttendanceScreen()),
@@ -344,7 +348,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                   LiquidMetricCard(
                     label: 'Absent Staff',
                     value: '$absentStaffCount',
-                    subtitle: 'Absent Today',
+                    subtitle: isTuesday ? 'Leave / Absent' : 'Absent Today',
                     icon: Icons.person_off_outlined,
                     color: absentStaffCount == 0 ? AppColors.ragGreen : AppColors.ragRed,
                     onTap: () => AssignTasksToOthersModal.show(context),
@@ -355,7 +359,9 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
 
               // Assign Tasks to Others Primary Action Button
               LiquidGlassButton(
-                label: 'Assign Tasks to Others ($absentStaffCount Absent)',
+                label: isTuesday
+                    ? 'Assign Tasks to Others (Tuesday Week-off)'
+                    : 'Assign Tasks to Others ($absentStaffCount Absent)',
                 icon: Icons.assignment_ind_outlined,
                 height: 40,
                 onPressed: () => AssignTasksToOthersModal.show(context),

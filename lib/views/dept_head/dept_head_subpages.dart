@@ -510,14 +510,24 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
+    final isTuesday = DateTime.now().weekday == DateTime.tuesday;
     final teamMembers = eco.employees
         .where((e) => e.hasAttendanceAndGrooming && (e.dept == 'Online Department' || e.dept == 'Operations'))
         .toList();
     final teamAbsentees = teamMembers.where((e) => eco.isEmployeeAbsent(e.id)).toList();
+    final subtitleText = isTuesday
+        ? 'Tuesday Week-off • ${teamMembers.length} Total Team'
+        : '${teamAbsentees.length} Absent Today • ${teamMembers.length} Total Team';
+    final pillLabel = isTuesday
+        ? '${teamMembers.length} Week-off'
+        : '${teamMembers.length - teamAbsentees.length}/${teamMembers.length} Present';
+    final pillColor = isTuesday
+        ? const Color(0xFF94A3B8)
+        : (teamAbsentees.isEmpty ? AppColors.ragGreen : AppColors.ragYellow);
 
     return TlSubpageScaffold(
       title: 'Absentees & Shift Hub',
-      subtitle: '${teamAbsentees.length} Absent Today • ${teamMembers.length} Total Team',
+      subtitle: subtitleText,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -547,9 +557,11 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    LiquidGlassPill(
-                      label: '${teamMembers.length - teamAbsentees.length}/${teamMembers.length} Present',
-                      color: teamAbsentees.isEmpty ? AppColors.ragGreen : AppColors.ragYellow,
+                    Flexible(
+                      child: LiquidGlassPill(
+                        label: pillLabel,
+                        color: pillColor,
+                      ),
                     ),
                   ],
                 ),
@@ -581,11 +593,14 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                     ),
                   );
 
+                  final isEmpWeekOff = isTuesday && !emp.isExternalSupport && !emp.isCeo;
                   final reallyAbsent = isAbsent || summary.status == DailyAttendanceStatus.absent;
                   final statusColor = reallyAbsent
                       ? AppColors.ragRed
-                      : summary.statusBadgeColor;
-                  final statusText = reallyAbsent ? 'Absent' : summary.statusBadgeText;
+                      : (isEmpWeekOff ? const Color(0xFF94A3B8) : summary.statusBadgeColor);
+                  final statusText = reallyAbsent
+                      ? 'Absent'
+                      : (isEmpWeekOff ? 'Week-off' : summary.statusBadgeText);
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
@@ -624,9 +639,12 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                             ],
                           ),
                         ),
-                        LiquidGlassPill(
-                          label: statusText,
-                          color: statusColor,
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: LiquidGlassPill(
+                            label: statusText,
+                            color: statusColor,
+                          ),
                         ),
                       ],
                     ),
@@ -963,9 +981,10 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
-                Expanded(flex: 3, child: Text('Date', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary))),
-                Expanded(flex: 2, child: Text('Shift Status', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary), textAlign: TextAlign.end)),
+                Text('Date', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                Text('Shift Status', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -974,23 +993,27 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(flex: 3, child: Text(r.dateLabel, style: const TextStyle(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600))),
-                  Expanded(
-                    flex: 2,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: r.statusColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: r.statusColor.withOpacity(0.4)),
-                        ),
-                        child: Text(
-                          r.status,
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: r.statusColor),
-                        ),
+                  Text(
+                    r.dateLabel,
+                    style: const TextStyle(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: r.statusColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: r.statusColor.withOpacity(0.4)),
+                      ),
+                      child: Text(
+                        r.status,
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: r.statusColor),
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),

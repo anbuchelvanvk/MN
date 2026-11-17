@@ -664,9 +664,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ] else ...[
             // Staff & OTM have 3 rings: Attendance, Documents, Grooming
             Builder(builder: (_) {
+              final isTuesday = DateTime.now().weekday == DateTime.tuesday;
               final onlineTeam = provider.employees.where((e) => e.dept.toLowerCase().contains('online') && e.id != employee.id).toList();
               final onlineTeamTotal = onlineTeam.length;
-              final onlineTeamPresent = onlineTeam.where((e) => !provider.isEmployeeAbsent(e.id)).length;
+              final onlineTeamPresent = isTuesday ? 0 : onlineTeam.where((e) => !provider.isEmployeeAbsent(e.id)).length;
               final onlineTeamDocs = onlineTeam.expand((e) => provider.getEmployeeDocuments(e.id)).toList();
               final onlineTeamSubmittedDocs = onlineTeamDocs.where((d) => d.status == DocumentSubmissionStatus.submitted).length;
               final onlineTeamTotalDocs = onlineTeamDocs.length;
@@ -678,20 +679,22 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       index: 0,
                       title: employee.isOtm ? 'Team Attend' : 'Attendance',
                       displayValue: employee.isOtm
-                          ? (onlineTeamTotal > 0 ? '$onlineTeamPresent/$onlineTeamTotal' : 'All Set')
+                          ? (isTuesday
+                              ? 'Week-off'
+                              : (onlineTeamTotal > 0 ? '$onlineTeamPresent/$onlineTeamTotal' : 'All Set'))
                           : '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%',
                       subText: employee.isOtm
-                          ? 'Online Team'
+                          ? (isTuesday ? 'Tuesday Week-off' : 'Online Team')
                           : '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days',
                       progress: employee.isOtm
-                          ? (onlineTeamTotal > 0 ? (onlineTeamPresent / onlineTeamTotal) : 1.0)
+                          ? (isTuesday ? 1.0 : (onlineTeamTotal > 0 ? (onlineTeamPresent / onlineTeamTotal) : 1.0))
                           : (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
                       ringColor: employee.isOtm
-                          ? const Color(0xFF10B981)
+                          ? (isTuesday ? const Color(0xFF94A3B8) : const Color(0xFF10B981))
                           : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B))),
                       icon: Icons.fact_check_outlined,
                       statusText: employee.isOtm
-                          ? '$onlineTeamPresent Present'
+                          ? (isTuesday ? 'Tuesday Week-off' : '$onlineTeamPresent Present')
                           : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio'),
                     ),
                   ),
