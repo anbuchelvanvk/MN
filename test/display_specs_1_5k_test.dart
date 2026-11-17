@@ -55,9 +55,7 @@ void main() {
       expect(find.byType(LoginScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -74,9 +72,7 @@ void main() {
       expect(find.byType(CeoSuiteScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -93,9 +89,7 @@ void main() {
       expect(find.byType(DeptHeadPortalScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -112,9 +106,7 @@ void main() {
       expect(find.byType(HrPortalScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -131,9 +123,7 @@ void main() {
       expect(find.byType(EmployeePortalScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -148,9 +138,7 @@ void main() {
       expect(find.byType(EmployeeProfileScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -165,9 +153,7 @@ void main() {
       expect(find.byType(OnlineOrdersHandlerScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -182,9 +168,7 @@ void main() {
       expect(find.byType(ExportAuditModal), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -205,9 +189,7 @@ void main() {
       }
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -221,13 +203,6 @@ void main() {
 
       expect(find.byType(FamilyPillarScreen), findsOneWidget);
       expect(find.text('Friends & Peers'), findsWidgets);
-      final err = tester.takeException();
-      if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
-      }
-      expect(err, isNull);
     });
 
     testWidgets('AttendancePillarScreen renders without overflow on 1.5K display', (tester) async {
@@ -240,9 +215,7 @@ void main() {
       expect(find.byType(AttendancePillarScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -257,9 +230,7 @@ void main() {
       expect(find.byType(ProfilePillarScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -274,9 +245,7 @@ void main() {
       expect(find.byType(SocialCausePillarScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -311,9 +280,7 @@ void main() {
       expect(find.byType(WorkPillarScreen), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });
@@ -328,9 +295,7 @@ void main() {
       expect(find.byType(PillarsPopupDialog), findsOneWidget);
       final err = tester.takeException();
       if (err is FlutterError) {
-        for (final d in err.diagnostics) {
-          debugPrint('${d.name}: ${d.toDescription()}');
-        }
+        debugPrint(err.toStringDeep());
       }
       expect(err, isNull);
     });

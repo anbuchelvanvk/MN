@@ -33,6 +33,8 @@ class EcosystemProvider extends ChangeNotifier {
   String get activeRole => _activeRole;
   String get activeEmpId => _activeEmpId;
   String? get notificationMessage => _notificationMessage;
+  bool get isCeo => _activeRole.toLowerCase() == 'ceo' || _activeEmpId == 'MN-CEO01' || currentEmployee.isCeo;
+  bool get isHr => _activeRole.toLowerCase() == 'hr' || _activeEmpId == 'MN-HR1001' || currentEmployee.isHr;
 
   late List<Employee> _employees;
   late List<TaskItem> _tasks;
@@ -190,44 +192,6 @@ class EcosystemProvider extends ChangeNotifier {
   List<OriginalDocumentItem> get originalDocuments => _originalDocuments;
   final Map<String, List<OriginalDocumentItem>> _employeeDocuments = {};
 
-  static List<OriginalDocumentItem> standardDefaultDocs(String empId) {
-    return [
-      OriginalDocumentItem(
-        id: '${empId}_doc_1',
-        title: '10th Standard Original Marksheet (SSLC/CBSE/ICSE)',
-        category: 'Academic Marksheet',
-        certificateNumber: 'TN-SSLC-${(empId.hashCode.abs() % 900000) + 100000}',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '15/06/2026',
-        vaultLockerRef: 'Safe Vault Locker #B-14',
-        isMandatory: true,
-        iconEmoji: '📜',
-      ),
-      OriginalDocumentItem(
-        id: '${empId}_doc_2',
-        title: '12th / Higher Secondary Original Marksheet (HSC/CBSE)',
-        category: 'Academic Marksheet',
-        certificateNumber: 'TN-HSC-${(empId.hashCode.abs() % 900000) + 200000}',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '15/06/2026',
-        vaultLockerRef: 'Safe Vault Locker #B-14',
-        isMandatory: true,
-        iconEmoji: '📜',
-      ),
-      OriginalDocumentItem(
-        id: '${empId}_doc_3',
-        title: 'Undergraduate Degree / Diploma Original Certificate',
-        category: 'Degree Certificate',
-        certificateNumber: 'UNIV-DEG-${(empId.hashCode.abs() % 900000) + 300000}',
-        status: DocumentSubmissionStatus.submitted,
-        submissionDate: '20/06/2026',
-        vaultLockerRef: 'Safe Vault Locker #B-14',
-        isMandatory: true,
-        iconEmoji: '🎓',
-      ),
-    ];
-  }
-
   List<OriginalDocumentItem> getEmployeeDocuments(String empId) {
     final emp = _employees.firstWhere(
       (e) => e.id == empId || e.empNo == empId,
@@ -237,24 +201,19 @@ class EcosystemProvider extends ChangeNotifier {
     if (emp.isCeo || emp.name.toLowerCase().contains('praveen') || emp.isExternalSupport) {
       return const [];
     }
-    if (_employeeDocuments.containsKey(empId) && _employeeDocuments[empId]!.isNotEmpty) {
+    if (_employeeDocuments.containsKey(empId)) {
       return _employeeDocuments[empId]!;
     }
     if (empId == _activeEmpId && _originalDocuments.isNotEmpty) {
       return _originalDocuments;
     }
-    final fallback = standardDefaultDocs(empId);
-    _employeeDocuments[empId] = fallback;
-    return fallback;
+    return const [];
   }
 
   Future<void> loadAllStaffDocuments() async {
     for (final emp in _employees) {
       if (!emp.isCeo && !emp.name.toLowerCase().contains('praveen') && !emp.isExternalSupport) {
         await loadEmployeeDocuments(emp.id);
-        if (!_employeeDocuments.containsKey(emp.id) || _employeeDocuments[emp.id]!.isEmpty) {
-          _employeeDocuments[emp.id] = standardDefaultDocs(emp.id);
-        }
       }
     }
     notifyListeners();
@@ -278,7 +237,8 @@ class EcosystemProvider extends ChangeNotifier {
         return list;
       }
     } catch (_) {}
-    return _employeeDocuments[empId] ?? [];
+    _employeeDocuments[empId] = _employeeDocuments[empId] ?? [];
+    return _employeeDocuments[empId]!;
   }
 
   int get allStaffDocsCount {
@@ -4502,7 +4462,7 @@ class EcosystemProvider extends ChangeNotifier {
 
       // Ensure fallback defaults if Firestore had no record or missing fields
       if (_originalDocuments.isEmpty) {
-        _originalDocuments = getEmployeeDocuments(empId);
+        _originalDocuments = _employeeDocuments[empId] ?? [];
       }
       if (_userHeightCm <= 0 || _userWeightKg <= 0) {
         try {
@@ -4518,21 +4478,146 @@ class EcosystemProvider extends ChangeNotifier {
             _userHeightCm = savedH;
             _userWeightKg = savedW;
             _healthOnboarded = savedOnb ?? true;
-          } else {
-            // Standard healthy baseline calibrated (68.0 kg body weight matching Image 2 workout calibration)
-            _userHeightCm = 170.0;
-            _userWeightKg = 68.0;
-            _healthOnboarded = true;
           }
-        } catch (_) {
-          _userHeightCm = 170.0;
-          _userWeightKg = 68.0;
-          _healthOnboarded = true;
-        }
+        } catch (_) {}
       }
       notifyListeners();
     } catch (e) {
       debugPrint('Firestore loadEmployeeFourPillars note: $e');
+    }
+  }
+
+  /// Leadership Inspection (CEO & HR): Load live 4-Pillars input data for any employee
+  Future<Map<String, dynamic>> loadEmployeePillarsForInspection(String empId) async {
+    final now = DateTime.now();
+    // If the active user is the inspected employee, return live data from provider
+    if (empId == _activeEmpId) {
+      return {
+        'health': {
+          'heightCm': _userHeightCm,
+          'weightKg': _userWeightKg,
+          'bmi': currentBmi,
+          'bmiCategory': bmiCategory,
+          'dailyCalorieTarget': _dailyCalorieTarget,
+          'todayCalories': getCaloriesConsumedForDate(now),
+          'dailyStepGoal': _dailyStepGoal,
+          'todaySteps': getStepsForDate(now),
+          'waterIntakeMl': 0,
+          'meals': List<FoodLogItem>.from(_dailyFoodLogs),
+          'workouts': List<WorkoutLogItem>.from(_dailyWorkoutLogs),
+          'workoutMinutesToday': totalWorkoutMinutes,
+        },
+        'family': {
+          'activities': List<FamilyActivityItem>.from(_familyActivityLogs),
+          'totalFamilyHoursToday': totalFamilyHoursToday,
+          'totalFriendsHoursToday': totalFriendsHoursToday,
+          'totalSocialHoursToday': totalFamilyHoursToday + totalFriendsHoursToday,
+        },
+      };
+    }
+
+    // Otherwise, fetch from Firestore for that specific employee
+    try {
+      final pillars = await _firebaseEmployeeService.loadEmployeePillars(empId);
+      final healthMap = (pillars != null && pillars['health'] is Map)
+          ? Map<String, dynamic>.from(pillars['health'] as Map)
+          : <String, dynamic>{};
+
+      final double hCm = (healthMap['heightCm'] as num?)?.toDouble() ?? 0.0;
+      final double wKg = (healthMap['weightKg'] as num?)?.toDouble() ?? 0.0;
+      final double bmi = (hCm > 0 && wKg > 0) ? (wKg / ((hCm / 100.0) * (hCm / 100.0))) : 0.0;
+      final String bCategory = bmi <= 0
+          ? 'Not Calibrated'
+          : (bmi < 18.5
+              ? 'Underweight'
+              : (bmi < 25.0 ? 'Healthy (Ideal)' : (bmi < 30.0 ? 'Overweight' : 'Obese')));
+
+      final mealsList = (pillars != null && pillars['meals'] is List)
+          ? (pillars['meals'] as List)
+              .map((m) => FoodLogItem.fromMap(Map<String, dynamic>.from(m as Map)))
+              .toList()
+          : <FoodLogItem>[];
+
+      final workoutsList = (pillars != null && pillars['workouts'] is List)
+          ? (pillars['workouts'] as List)
+              .map((w) => WorkoutLogItem.fromMap(Map<String, dynamic>.from(w as Map)))
+              .toList()
+          : <WorkoutLogItem>[];
+
+      final familyList = (pillars != null && pillars['family'] is List)
+          ? (pillars['family'] as List)
+              .map((f) => FamilyActivityItem.fromMap(Map<String, dynamic>.from(f as Map)))
+              .toList()
+          : <FamilyActivityItem>[];
+
+      final now = DateTime.now();
+      bool isToday(DateTime d) => d.year == now.year && d.month == now.month && d.day == now.day;
+
+      final todayMeals = mealsList.where((m) => isToday(m.timestamp)).toList();
+      final double todayCalories = todayMeals.fold(0.0, (sum, m) => sum + m.calories);
+
+      final todayWorkouts = workoutsList.where((w) => isToday(w.timestamp)).toList();
+      final int workoutMins = todayWorkouts.fold(0, (sum, w) => sum + w.durationMinutes);
+
+      final todayFamily = familyList.where((f) => isToday(f.timestamp) && f.category == 'Family').toList();
+      final double familyHoursToday = todayFamily.fold(0.0, (sum, f) => sum + f.hoursSpent);
+
+      final todayFriends = familyList.where((f) => isToday(f.timestamp) && f.category != 'Family').toList();
+      final double friendsHoursToday = todayFriends.fold(0.0, (sum, f) => sum + f.hoursSpent);
+
+      final todayKey = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      int todaySteps = 0;
+      if (healthMap['dailySteps'] is Map) {
+        final stepsMap = Map<String, dynamic>.from(healthMap['dailySteps'] as Map);
+        todaySteps = (stepsMap[todayKey] as num?)?.toInt() ?? 0;
+      }
+
+      return {
+        'health': {
+          'heightCm': hCm,
+          'weightKg': wKg,
+          'bmi': bmi,
+          'bmiCategory': bCategory,
+          'dailyCalorieTarget': (healthMap['dailyCalorieTarget'] as num?)?.toDouble(),
+          'todayCalories': todayCalories,
+          'dailyStepGoal': (healthMap['dailyStepGoal'] as num?)?.toInt() ?? 10000,
+          'todaySteps': todaySteps,
+          'waterIntakeMl': (healthMap['waterIntakeMl'] as num?)?.toInt() ?? 0,
+          'meals': mealsList,
+          'workouts': workoutsList,
+          'workoutMinutesToday': workoutMins,
+        },
+        'family': {
+          'activities': familyList,
+          'totalFamilyHoursToday': familyHoursToday,
+          'totalFriendsHoursToday': friendsHoursToday,
+          'totalSocialHoursToday': familyHoursToday + friendsHoursToday,
+        },
+      };
+    } catch (e) {
+      debugPrint('loadEmployeePillarsForInspection error: $e');
+      return {
+        'health': {
+          'heightCm': 0.0,
+          'weightKg': 0.0,
+          'bmi': 0.0,
+          'bmiCategory': 'Not Calibrated',
+          'dailyCalorieTarget': null,
+          'todayCalories': 0.0,
+          'dailyStepGoal': 10000,
+          'todaySteps': 0,
+          'waterIntakeMl': 0,
+          'meals': <FoodLogItem>[],
+          'workouts': <WorkoutLogItem>[],
+          'workoutMinutesToday': 0,
+        },
+        'family': {
+          'activities': <FamilyActivityItem>[],
+          'totalFamilyHoursToday': 0.0,
+          'totalFriendsHoursToday': 0.0,
+          'totalSocialHoursToday': 0.0,
+        },
+      };
     }
   }
 
@@ -4825,7 +4910,7 @@ class EcosystemProvider extends ChangeNotifier {
     String certificateNumber = 'N/A',
     DocumentSubmissionStatus status = DocumentSubmissionStatus.submitted,
     String? submissionDate,
-    String vaultLockerRef = 'Company Safe Vault Locker #B-14',
+    String vaultLockerRef = '',
     bool isMandatory = true,
     String iconEmoji = '📜',
     String? remarks,

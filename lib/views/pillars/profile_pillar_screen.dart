@@ -2215,7 +2215,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 category: selectedTemplate['category'] ?? 'Academic Record',
                 certificateNumber: 'CERT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
                 status: DocumentSubmissionStatus.submitted,
-                vaultLockerRef: 'Safe Vault Locker #B-14',
+                vaultLockerRef: 'Safe Custody',
                 isMandatory: selectedTemplate['mandatory'] == 'true',
                 iconEmoji: selectedTemplate['emoji'] ?? '📜',
               );
@@ -2454,22 +2454,23 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               spacing: 12,
               runSpacing: 4,
               children: [
-                // Safe Vault Locker reference
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.lock_outline, size: 13, color: AppColors.textMuted),
-                    const SizedBox(width: 5),
-                    Text(
-                      doc.vaultLockerRef.isNotEmpty ? doc.vaultLockerRef : 'Safe Vault Locker #B-14',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                // Safe Vault Custody reference
+                if (doc.vaultLockerRef.isNotEmpty)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.shield_outlined, size: 13, color: AppColors.textMuted),
+                      const SizedBox(width: 5),
+                      Text(
+                        doc.vaultLockerRef,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 // Submission Date & Time
                 Row(
                   mainAxisSize: MainAxisSize.min,

@@ -146,7 +146,7 @@ void main() {
         title: 'Degree Certificate',
         category: 'Education',
         certificateNumber: 'DEG-12345',
-        vaultLockerRef: 'Safe Vault Locker #B-14',
+        vaultLockerRef: 'Safe Custody',
       );
       final doc = provider.originalDocuments.firstWhere((d) => d.title == 'Degree Certificate');
       expect(doc.submissionDate, isNotEmpty);

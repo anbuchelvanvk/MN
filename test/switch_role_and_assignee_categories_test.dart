@@ -117,8 +117,10 @@ void main() {
       final eco = EcosystemProvider();
       eco.setActiveEmpId('MN-TL1002'); // Team Lead Praveenkumaar
 
-      // Mark Gokulakrishnan absent (has tasks to reassign)
-      eco.toggleEmployeeAbsentStatus('6', isAbsent: true);
+      // Mark all potential assignees absent to verify "No Active Recipients" state
+      for (final e in eco.employees) {
+        eco.toggleEmployeeAbsentStatus(e.id, isAbsent: true);
+      }
 
       await tester.pumpWidget(
         MaterialApp(

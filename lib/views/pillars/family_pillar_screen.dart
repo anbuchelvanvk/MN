@@ -57,6 +57,25 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   final TextEditingController _familyMembersController = TextEditingController();
   bool _dinnerTogetherToday = false;
 
+  // Leadership Staff Family Inspector State (CEO & HR only)
+  String? _inspectedStaffId;
+  Map<String, dynamic>? _inspectedFamilyData;
+  bool _isLoadingInspectedFamily = false;
+
+  Future<void> _fetchInspectedStaffFamily(String empId, EcosystemProvider eco) async {
+    setState(() {
+      _inspectedStaffId = empId;
+      _isLoadingInspectedFamily = true;
+    });
+    final res = await eco.loadEmployeePillarsForInspection(empId);
+    if (mounted) {
+      setState(() {
+        _inspectedFamilyData = res['family'] as Map<String, dynamic>?;
+        _isLoadingInspectedFamily = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _customActivityController.dispose();
@@ -214,6 +233,10 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
 
               // Active Section Content
               _buildActiveSectionContent(context, eco),
+              if (eco.isCeo || eco.activeRole.toLowerCase() == 'ceo' || eco.activeRole.toLowerCase() == 'hr') ...[
+                const SizedBox(height: 24),
+                _buildStaffFamilyActivitiesInspector(context, eco),
+              ],
               const SizedBox(height: 85),
             ],
           ),
@@ -2206,6 +2229,513 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStaffFamilyActivitiesInspector(BuildContext context, EcosystemProvider eco) {
+    // List corporate team members (exclude CEO account)
+    final teamMembers = eco.employees.where((e) => !e.isCeo).toList();
+    if (teamMembers.isEmpty) return const SizedBox.shrink();
+
+    // Auto-select first employee if not yet selected
+    if (_inspectedStaffId == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _inspectedStaffId == null && teamMembers.isNotEmpty) {
+          _fetchInspectedStaffFamily(teamMembers.first.id, eco);
+        }
+      });
+    }
+
+    final selectedStaff = teamMembers.firstWhere(
+      (e) => e.id == _inspectedStaffId,
+      orElse: () => teamMembers.first,
+    );
+
+    final family = _inspectedFamilyData ?? {};
+    final activities = (family['activities'] as List?)?.cast<FamilyActivityItem>() ?? <FamilyActivityItem>[];
+    final double familyHoursToday = (family['totalFamilyHoursToday'] as num?)?.toDouble() ?? 0.0;
+    final double friendsHoursToday = (family['totalFriendsHoursToday'] as num?)?.toDouble() ?? 0.0;
+    final double totalSocialHours = (family['totalSocialHoursToday'] as num?)?.toDouble() ?? 0.0;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.sandBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A0F172A),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Leadership Badge & Title
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.sandGold, width: 1.2),
+                ),
+                child: const Icon(Icons.family_restroom, color: AppColors.sandGold, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            "VIEW EMPLOYEE FAMILY ACTIVITIES",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                              letterSpacing: 0.6,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
+                          ),
+                          child: Text(
+                            'LEADERSHIP',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF10B981),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Live employee family time, activities, reflections & social quality time',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Horizontal Employee Selector
+          Text(
+            'SELECT EMPLOYEE',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.sandGold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: teamMembers.map((emp) {
+                final isSelected = emp.id == selectedStaff.id;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => _fetchInspectedStaffFamily(emp.id, eco),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.magentaPrimary : AppColors.burgundySurface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+                          width: isSelected ? 1.5 : 1.0,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.magentaPrimary.withOpacity(0.35),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                )
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundColor: isSelected ? Colors.white : AppColors.burgundyCard,
+                            child: Text(
+                              emp.initials,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? AppColors.magentaPrimary : AppColors.sandLight,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            emp.name,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected ? Colors.white : AppColors.sandLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Employee Activity Dossier
+          if (_isLoadingInspectedFamily)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 36),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.sandGold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Loading ${selectedStaff.name}\'s family activities...',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                  ),
+                ],
+              ),
+            )
+          else ...[
+            // Staff Hero Banner
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.burgundySurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.sandBorder),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppColors.magentaPrimary,
+                    child: Text(
+                      selectedStaff.initials,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          selectedStaff.name,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.sandLight,
+                          ),
+                        ),
+                        Text(
+                          '${selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept} • EMP #${selectedStaff.empNo}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.magentaPrimary.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      '${totalSocialHours.toStringAsFixed(1)}h Total Time',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // 3 Mini KPIs
+            Row(
+              children: [
+                Expanded(
+                  child: _staffFamilyMetricBox(
+                    title: 'FAMILY TIME TODAY',
+                    value: '${familyHoursToday.toStringAsFixed(1)}h',
+                    subText: 'Quality Time with Family',
+                    icon: Icons.family_restroom,
+                    accentColor: const Color(0xFF10B981),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _staffFamilyMetricBox(
+                    title: 'SOCIAL / FRIENDS',
+                    value: '${friendsHoursToday.toStringAsFixed(1)}h',
+                    subText: 'Colleagues & Friends',
+                    icon: Icons.people_outline,
+                    accentColor: const Color(0xFF38BDF8),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _staffFamilyMetricBox(
+                    title: 'ACTIVITIES LOGGED',
+                    value: '${activities.length}',
+                    subText: 'Total diary logs',
+                    icon: Icons.event_note_outlined,
+                    accentColor: AppColors.sandGold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Section: Family & Social Activities List
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'LOGGED FAMILY & SOCIAL ACTIVITIES (${activities.length})',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.sandLight,
+                      letterSpacing: 0.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (activities.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '${totalSocialHours.toStringAsFixed(1)}h logged',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (activities.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.family_restroom_outlined, size: 18, color: AppColors.sandPrimary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'No family activities logged yet by ${selectedStaff.name}.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ...activities.map((a) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundySurface,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.sandBorder.withOpacity(0.7)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(a.iconEmoji.isNotEmpty ? a.iconEmoji : '❤️', style: const TextStyle(fontSize: 18)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    a.activityName,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.sandLight,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${a.category} • ${a.subCategory}',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                '${a.hoursSpent.toStringAsFixed(1)} hrs',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF10B981),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (a.notes != null && a.notes!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.burgundyCard.withOpacity(0.6),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.notes_rounded, size: 12, color: AppColors.sandGold),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    a.notes!,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10.5,
+                                      color: AppColors.sandPrimary,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            const Icon(Icons.access_time_rounded, size: 11, color: AppColors.sandPrimary),
+                            const SizedBox(width: 4),
+                            Text(
+                              a.timeString,
+                              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _staffFamilyMetricBox({
+    required String title,
+    required String value,
+    required String subText,
+    required IconData icon,
+    required Color accentColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.burgundySurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.sandBorder.withOpacity(0.8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 13, color: accentColor),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.sandPrimary,
+                    letterSpacing: 0.4,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.sandLight,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subText,
+            style: GoogleFonts.plusJakartaSans(fontSize: 8.5, color: accentColor),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }
