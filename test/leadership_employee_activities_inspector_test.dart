@@ -12,7 +12,7 @@ void main() {
     testWidgets('Health Pillar shows staff inspector for CEO and HR, but hidden for employee', (tester) async {
       final provider = EcosystemProvider();
 
-      // 1. CEO Login: Should see "VIEW EMPLOYEE HEALTH ACTIVITIES"
+      // 1. CEO Login: Should see "EMPLOYEE HEALTH ACTIVITIES" gateway button
       provider.setActiveRole('ceo');
       provider.setActiveEmpId('MN-CEO01');
 
@@ -26,13 +26,23 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('VIEW EMPLOYEE HEALTH ACTIVITIES'), findsOneWidget);
-      expect(find.text('SELECT EMPLOYEE'), findsOneWidget);
+      expect(find.text('EMPLOYEE HEALTH ACTIVITIES'), findsOneWidget);
+      expect(find.text('Inspect'), findsOneWidget);
 
-      // Verify that team members are listed (e.g. Mohankumar G, Gokulakrishnan K)
+      // Dedicated EmployeeHealthActivitiesScreen displays employee selector
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<EcosystemProvider>.value(
+            value: provider,
+            child: const EmployeeHealthActivitiesScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('SELECT EMPLOYEE'), findsOneWidget);
       expect(find.text('Mohankumar G'), findsWidgets);
 
-      // 2. HR Login: Should see "VIEW EMPLOYEE HEALTH ACTIVITIES"
+      // 2. HR Login: Should see "EMPLOYEE HEALTH ACTIVITIES"
       provider.setActiveRole('hr');
       provider.setActiveEmpId('MN-HR1001');
       await tester.pumpWidget(
@@ -44,7 +54,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('VIEW EMPLOYEE HEALTH ACTIVITIES'), findsOneWidget);
+      expect(find.text('EMPLOYEE HEALTH ACTIVITIES'), findsOneWidget);
 
       // 3. Regular Employee Login: Inspector section must be HIDDEN
       provider.setActiveRole('employee');
@@ -58,13 +68,13 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('VIEW EMPLOYEE HEALTH ACTIVITIES'), findsNothing);
+      expect(find.text('EMPLOYEE HEALTH ACTIVITIES'), findsNothing);
     });
 
     testWidgets('Family Pillar shows staff inspector for CEO and HR, but hidden for employee', (tester) async {
       final provider = EcosystemProvider();
 
-      // 1. CEO Login: Should see "VIEW EMPLOYEE FAMILY ACTIVITIES"
+      // 1. CEO Login: Should see "EMPLOYEE FAMILY ACTIVITIES" gateway button
       provider.setActiveRole('ceo');
       provider.setActiveEmpId('MN-CEO01');
 
@@ -78,10 +88,23 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('VIEW EMPLOYEE FAMILY ACTIVITIES'), findsOneWidget);
-      expect(find.text('SELECT EMPLOYEE'), findsOneWidget);
+      expect(find.text('EMPLOYEE FAMILY ACTIVITIES'), findsOneWidget);
+      expect(find.text('Inspect'), findsOneWidget);
 
-      // 2. HR Login: Should see "VIEW EMPLOYEE FAMILY ACTIVITIES"
+      // Dedicated EmployeeFamilyActivitiesScreen displays employee selector
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider<EcosystemProvider>.value(
+            value: provider,
+            child: const EmployeeFamilyActivitiesScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('SELECT EMPLOYEE'), findsOneWidget);
+      expect(find.text('Mohankumar G'), findsWidgets);
+
+      // 2. HR Login: Should see "EMPLOYEE FAMILY ACTIVITIES"
       provider.setActiveRole('hr');
       provider.setActiveEmpId('MN-HR1001');
       await tester.pumpWidget(
@@ -93,7 +116,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('VIEW EMPLOYEE FAMILY ACTIVITIES'), findsOneWidget);
+      expect(find.text('EMPLOYEE FAMILY ACTIVITIES'), findsOneWidget);
 
       // 3. Regular Employee Login: Inspector section must be HIDDEN
       provider.setActiveRole('employee');
@@ -107,7 +130,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('VIEW EMPLOYEE FAMILY ACTIVITIES'), findsNothing);
+      expect(find.text('EMPLOYEE FAMILY ACTIVITIES'), findsNothing);
     });
 
     test('Document Vault has NO fake standardDefaultDocs and returns empty when unsubmitted', () {

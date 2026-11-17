@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'package:mn_family_app/providers/ecosystem_provider.dart';
 import 'package:mn_family_app/views/pillars/profile_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/health_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/family_pillar_screen.dart';
-import 'package:mn_family_app/views/pillars/attendance_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/social_cause_pillar_screen.dart';
 
 class QuickPillarNavRow extends StatelessWidget {
@@ -18,86 +15,77 @@ class QuickPillarNavRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final eco = context.watch<EcosystemProvider>();
-    final showAttendance = forceAttendance || eco.currentEmployee.hasAttendanceAndGrooming;
-
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _PillarItem(
-            title: 'Health',
-            icon: Icons.favorite_rounded,
-            primaryColor: const Color(0xFFE11D48),
-            bgColor: const Color(0xFFFFF1F2),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const HealthPillarScreen()),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _PillarItem(
-            title: 'Family',
-            icon: Icons.family_restroom_rounded,
-            primaryColor: const Color(0xFF7C3AED),
-            bgColor: const Color(0xFFF5F3FF),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const FamilyPillarScreen()),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: _PillarItem(
-            title: 'Profile',
-            icon: Icons.person_rounded,
-            primaryColor: const Color(0xFFD97706),
-            bgColor: const Color(0xFFFFFBEB),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
-              );
-            },
-          ),
-        ),
-        if (showAttendance) ...[
-          const SizedBox(width: 6),
-          Expanded(
-            child: _PillarItem(
-              title: 'Attendance',
-              icon: Icons.fingerprint_rounded,
-              primaryColor: const Color(0xFF0284C7),
-              bgColor: const Color(0xFFF0F9FF),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
-                );
-              },
+        // Row 1: Health & Family
+        Row(
+          children: [
+            Expanded(
+              child: _PillarItem(
+                title: 'Health',
+                icon: Icons.favorite_rounded,
+                primaryColor: const Color(0xFFE11D48),
+                bgColor: const Color(0xFFFFF1F2),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HealthPillarScreen()),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
-        const SizedBox(width: 6),
-        Expanded(
-          child: _PillarItem(
-            title: 'Social Cause',
-            icon: Icons.volunteer_activism_rounded,
-            primaryColor: const Color(0xFF059669),
-            bgColor: const Color(0xFFECFDF5),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SocialCausePillarScreen(isStandalone: true)),
-              );
-            },
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _PillarItem(
+                title: 'Family',
+                icon: Icons.family_restroom_rounded,
+                primaryColor: const Color(0xFF7C3AED),
+                bgColor: const Color(0xFFF5F3FF),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FamilyPillarScreen()),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Row 2: Work & Social Cause
+        Row(
+          children: [
+            Expanded(
+              child: _PillarItem(
+                title: 'Work',
+                icon: Icons.work_outline_rounded,
+                primaryColor: const Color(0xFFD97706),
+                bgColor: const Color(0xFFFFFBEB),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfilePillarScreen()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _PillarItem(
+                title: 'Social Cause',
+                icon: Icons.volunteer_activism_rounded,
+                primaryColor: const Color(0xFF059669),
+                bgColor: const Color(0xFFECFDF5),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SocialCausePillarScreen(isStandalone: true)),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -125,34 +113,52 @@ class _PillarItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 2),
+          padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: primaryColor.withOpacity(0.25),
-              width: 1,
+              color: primaryColor.withOpacity(0.3),
+              width: 1.1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: primaryColor.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
-              Icon(icon, size: 16, color: primaryColor),
-              const SizedBox(height: 3),
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: primaryColor,
-                  letterSpacing: -0.2,
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.12),
+                  shape: BoxShape.circle,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
+                child: Icon(icon, size: 17, color: primaryColor),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                    letterSpacing: 0.1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 11,
+                color: primaryColor.withOpacity(0.6),
               ),
             ],
           ),

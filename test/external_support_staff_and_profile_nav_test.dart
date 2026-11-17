@@ -75,17 +75,17 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find the Profile button
-      final profileFinder = find.widgetWithText(InkWell, 'Profile');
-      expect(profileFinder, findsOneWidget);
+      // Find the Work pillar button
+      final workFinder = find.widgetWithText(InkWell, 'Work');
+      expect(workFinder, findsOneWidget);
 
-      // Tap Profile button
-      await tester.tap(profileFinder);
+      // Tap Work button
+      await tester.tap(workFinder);
       await tester.pumpAndSettle();
 
-      // Must navigate to ProfilePillarScreen (Pillar 3 Suite)
+      // Must navigate to ProfilePillarScreen (Pillar 3 Work & Operations Suite)
       expect(find.byType(ProfilePillarScreen), findsOneWidget);
-      expect(find.text('STAFF PROFILE'), findsOneWidget);
+      expect(find.text('WORK & OPERATIONS'), findsOneWidget);
     });
 
     testWidgets('AttendancePillarScreen displays Exemption card for External Support Staff', (tester) async {

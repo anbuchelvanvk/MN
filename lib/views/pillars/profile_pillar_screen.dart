@@ -10,6 +10,7 @@ import '../../models/profile_document_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../ceo/ceo_subpages.dart';
 import '../dept_head/dept_head_subpages.dart';
+import '../employee/employee_subpages.dart';
 import 'tier_pillar_screen.dart';
 
 class ProfilePillarScreen extends StatefulWidget {
@@ -62,7 +63,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'STAFF PROFILE',
+          'WORK & OPERATIONS',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -95,7 +96,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             _buildStaffProfileCard(employee),
             const SizedBox(height: 12),
 
-            // 1b. Account Security & Password Management
+            // 1b. My Work & To-Do Tasks
+            _buildWorkTasksCard(context, provider, employee),
+            const SizedBox(height: 12),
+
+            // 1c. Account Security & Password Management
             _buildAccountSecurityCard(context, provider, employee),
             const SizedBox(height: 14),
 
@@ -556,7 +561,147 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
-  // --- 4-RING SUBSYSTEM MATRIX ---
+  Widget _buildWorkTasksCard(BuildContext context, EcosystemProvider provider, dynamic employee) {
+    final tasks = provider.currentEmployeeTasks;
+    final pendingTasks = tasks.where((t) => t.status == 'pending').toList();
+    final completedTasks = tasks.where((t) => t.status == 'completed').toList();
+
+    return LiquidGlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: 18,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD97706).withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.assignment_outlined, size: 18, color: Color(0xFFD97706)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'MY WORK & TO-DO TASKS',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${pendingTasks.length} Pending • ${completedTasks.length} Completed',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EmployeeThingsToDoScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD97706).withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFD97706).withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'View All',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFD97706),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFFD97706)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (pendingTasks.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...pendingTasks.take(2).map((task) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundySurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.radio_button_unchecked, size: 14, color: Color(0xFFD97706)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        task.title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppColors.sandLight,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD97706).withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        task.priority.toUpperCase(),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFD97706),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
 
   Widget _buildSixRingsMatrix(BuildContext context, EcosystemProvider provider) {
     final employee = provider.currentEmployee;
@@ -588,7 +733,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'PROFILE RINGS',
+                        'WORK & OPERATIONS RINGS',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -610,7 +755,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
                 ),
                 child: Text(
-                  'PILLAR 3 SUITE',
+                  'WORK PILLAR 3',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 9.5,
                     fontWeight: FontWeight.bold,
@@ -3211,7 +3356,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(left: 6),
                   child: _staffFilterChip(
-                    label: 'EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id} • ${emp.name}',
+                    label: emp.name,
                     isSelected: isSel,
                     onTap: () => setState(() => _ceoSelectedStaffId = emp.id),
                   ),
@@ -3270,36 +3415,15 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  emp.name,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                    color: AppColors.sandLight,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: AppColors.sandGold.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id}',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.sandGold,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            emp.name,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: AppColors.sandLight,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -3389,7 +3513,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'EMP #${emp.empNo} • ${emp.name.toUpperCase()}',
+                      emp.name.toUpperCase(),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -3687,7 +3811,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(left: 6),
                   child: _staffFilterChip(
-                    label: 'EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id} • ${emp.name}',
+                    label: emp.name,
                     isSelected: isSel,
                     onTap: () => setState(() => _ceoSelectedStaffId = emp.id),
                   ),
@@ -3796,7 +3920,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'EMP #${emp.empNo} • ${emp.name}',
+                          emp.name,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,

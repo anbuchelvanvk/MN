@@ -55,7 +55,7 @@ class FoodLogItem {
   final DateTime timestamp;
   final String timeString;
   final String portionSize; // 'Small', 'Normal', 'Big', 'Cup', 'Mug'
-  final int quantity; // 1, 2, 3...
+  final double quantity; // 0.5, 1.0, 1.5, 2.0...
 
   FoodLogItem({
     required this.id,
@@ -66,7 +66,7 @@ class FoodLogItem {
     required this.timestamp,
     required this.timeString,
     this.portionSize = 'Normal',
-    this.quantity = 1,
+    this.quantity = 1.0,
   });
 
   Map<String, dynamic> toMap() => {
@@ -90,7 +90,7 @@ class FoodLogItem {
     timestamp: map['timestamp'] != null ? DateTime.tryParse(map['timestamp']) ?? DateTime.now() : DateTime.now(),
     timeString: map['timeString'] ?? '',
     portionSize: map['portionSize'] ?? 'Normal',
-    quantity: (map['quantity'] as num?)?.toInt() ?? 1,
+    quantity: (map['quantity'] as num?)?.toDouble() ?? 1.0,
   );
 }
 

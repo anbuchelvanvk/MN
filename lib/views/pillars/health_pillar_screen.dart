@@ -540,20 +540,105 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildCalorieTargetHeaderCard(context, eco),
-          const SizedBox(height: 14),
+          // 1. Horizontal Date Strip (Date is first)
           _buildHorizontalDateStrip(eco),
-          const SizedBox(height: 14),
-          _buildDailyStepTrackerCard(context, eco),
           const SizedBox(height: 16),
+
+          // 2. Pillar 1 Modules (the four boxes)
           _buildTheFourGrids(eco),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
+
+          // 3. Module options & active content below
           _buildActiveGridContent(context, eco),
+          const SizedBox(height: 18),
+
+          // 4. Daily Step Count & Tracker
+          _buildDailyStepTrackerCard(context, eco),
+          const SizedBox(height: 14),
+
+          // 5. Daily Calorie Target
+          _buildCalorieTargetHeaderCard(context, eco),
+
+          // 6. Leadership: View Employee Health Activities Gateway
           if (eco.isCeo || eco.activeRole.toLowerCase() == 'ceo' || eco.activeRole.toLowerCase() == 'hr') ...[
-            const SizedBox(height: 24),
-            _buildStaffHealthActivitiesInspector(context, eco),
+            const SizedBox(height: 20),
+            _buildStaffHealthActivitiesGateway(context, eco),
           ],
           const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStaffHealthActivitiesGateway(BuildContext context, EcosystemProvider eco) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A0F172A),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.sandGold.withOpacity(0.18),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.health_and_safety_rounded, color: AppColors.sandGold, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'EMPLOYEE HEALTH ACTIVITIES',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandLight,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Inspect team calorie targets, BMI, workouts & meals',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.sandGold,
+              foregroundColor: AppColors.burgundyBg,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EmployeeHealthActivitiesScreen()),
+              );
+            },
+            child: Text(
+              'Inspect',
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
@@ -2000,7 +2085,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             ),
                           ),
                           Text(
-                            '${log.portionSize} • ${log.quantity > 1 ? 'Qty: ${log.quantity} • ' : ''}${log.grams.toStringAsFixed(0)}g • ${log.timeString}',
+                            '${log.portionSize} • ${log.quantity != 1.0 ? "Qty: ${log.quantity % 1 == 0 ? log.quantity.toInt() : log.quantity.toStringAsFixed(1)} • " : ""}${log.grams.toStringAsFixed(0)}g • ${log.timeString}',
                             style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
                           ),
                         ],
@@ -2038,7 +2123,8 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 : 'Dinner';
 
     String selectedPortion = 'Normal';
-    int quantity = 1;
+    double quantity = 1.0;
+    final quantityController = TextEditingController(text: '1.0');
 
     showDialog(
       context: context,
@@ -2223,7 +2309,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '$portionLabel x $quantity = ${totalGrams.toInt()}g total',
+                                    '$portionLabel x ${quantity % 1 == 0 ? quantity.toInt() : quantity.toStringAsFixed(1)} = ${totalGrams.toInt()}g total',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 10,
                                       color: AppColors.sandPrimary,
@@ -2249,19 +2335,42 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(minWidth: 26, minHeight: 28),
                                     icon: const Icon(Icons.remove, size: 15, color: AppColors.sandGold),
-                                    onPressed: quantity > 1
-                                        ? () => setDialogState(() => quantity--)
+                                    onPressed: quantity > 0.5
+                                        ? () {
+                                            setDialogState(() {
+                                              quantity = ((quantity - 0.5) * 10).round() / 10.0;
+                                              if (quantity < 0.5) quantity = 0.5;
+                                              quantityController.text = quantity % 1 == 0
+                                                  ? quantity.toInt().toString()
+                                                  : quantity.toStringAsFixed(1);
+                                            });
+                                          }
                                         : null,
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                                    child: Text(
-                                      quantity.toString(),
+                                  SizedBox(
+                                    width: 44,
+                                    child: TextField(
+                                      controller: quantityController,
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      textAlign: TextAlign.center,
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.sandLight,
                                       ),
+                                      decoration: const InputDecoration(
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.symmetric(vertical: 4),
+                                        border: InputBorder.none,
+                                      ),
+                                      onChanged: (val) {
+                                        final parsed = double.tryParse(val.trim());
+                                        if (parsed != null && parsed > 0) {
+                                          setDialogState(() {
+                                            quantity = parsed;
+                                          });
+                                        }
+                                      },
                                     ),
                                   ),
                                   IconButton(
@@ -2269,7 +2378,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(minWidth: 26, minHeight: 28),
                                     icon: const Icon(Icons.add, size: 15, color: AppColors.sandGold),
-                                    onPressed: () => setDialogState(() => quantity++),
+                                    onPressed: () {
+                                      setDialogState(() {
+                                        quantity = ((quantity + 0.5) * 10).round() / 10.0;
+                                        quantityController.text = quantity % 1 == 0
+                                            ? quantity.toInt().toString()
+                                            : quantity.toStringAsFixed(1);
+                                      });
+                                    },
                                   ),
                                 ],
                               ),
@@ -2385,10 +2501,11 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   quantity: quantity,
                                 );
                                 Navigator.pop(ctx);
+                                final qtyDisplay = quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(1);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     backgroundColor: AppColors.burgundyPrimary,
-                                    content: Text('Logged $quantity x ${item.name} (${calculatedKcal.toInt()} kcal) for ${_formatDayLabel(_selectedDate)}'),
+                                    content: Text('Logged $qtyDisplay x ${item.name} (${calculatedKcal.toInt()} kcal) for ${_formatDayLabel(_selectedDate)}'),
                                   ),
                                 );
                               },
@@ -4718,7 +4835,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           ),
                         ),
                         Text(
-                          '${selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept} • EMP #${selectedStaff.empNo.isNotEmpty ? selectedStaff.empNo : selectedStaff.id}',
+                          selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept,
                           style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
                         ),
                       ],
@@ -5179,5 +5296,484 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     if (m.contains('snack')) return '☕';
     if (m.contains('dinner')) return '🍲';
     return '🍽️';
+  }
+}
+
+/// Dedicated Screen to view employee health activities for CEO & HR
+class EmployeeHealthActivitiesScreen extends StatefulWidget {
+  const EmployeeHealthActivitiesScreen({super.key});
+
+  @override
+  State<EmployeeHealthActivitiesScreen> createState() => _EmployeeHealthActivitiesScreenState();
+}
+
+class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitiesScreen> {
+  String? _inspectedStaffId;
+  Map<String, dynamic>? _inspectedHealthData;
+  bool _isLoadingInspectedHealth = false;
+
+  Future<void> _fetchInspectedStaffHealth(String empId, EcosystemProvider eco) async {
+    setState(() {
+      _inspectedStaffId = empId;
+      _isLoadingInspectedHealth = true;
+    });
+    final res = await eco.loadEmployeePillarsForInspection(empId);
+    if (mounted) {
+      setState(() {
+        _inspectedHealthData = res['health'] as Map<String, dynamic>?;
+        _isLoadingInspectedHealth = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.watch<EcosystemProvider>();
+    final teamMembers = eco.employees.where((e) => !e.isCeo).toList();
+
+    if (_inspectedStaffId == null && teamMembers.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _inspectedStaffId == null) {
+          _fetchInspectedStaffHealth(teamMembers.first.id, eco);
+        }
+      });
+    }
+
+    final selectedStaff = teamMembers.firstWhere(
+      (e) => e.id == _inspectedStaffId,
+      orElse: () => teamMembers.isNotEmpty ? teamMembers.first : eco.currentEmployee,
+    );
+
+    final health = _inspectedHealthData ?? {};
+    final double hCm = (health['heightCm'] as num?)?.toDouble() ?? 0.0;
+    final double wKg = (health['weightKg'] as num?)?.toDouble() ?? 0.0;
+    final double liveBmi = (health['bmi'] as num?)?.toDouble() ?? 0.0;
+    final String liveBmiCat = (health['bmiCategory'] as String?) ?? 'Not Calibrated';
+    final double? calTarget = (health['dailyCalorieTarget'] as num?)?.toDouble();
+    final double todayKcal = (health['todayCalories'] as num?)?.toDouble() ?? 0.0;
+    final int stepGoal = (health['dailyStepGoal'] as num?)?.toInt() ?? 10000;
+    final int todaySteps = (health['todaySteps'] as num?)?.toInt() ?? 0;
+    final int workoutMins = (health['workoutMinutesToday'] as num?)?.toInt() ?? 0;
+    final meals = (health['meals'] as List?)?.cast<FoodLogItem>() ?? <FoodLogItem>[];
+    final workouts = (health['workouts'] as List?)?.cast<WorkoutLogItem>() ?? <WorkoutLogItem>[];
+
+    return Scaffold(
+      backgroundColor: AppColors.burgundyBg,
+      appBar: AppBar(
+        backgroundColor: AppColors.burgundyBg,
+        elevation: 0,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'EMPLOYEE HEALTH ACTIVITIES',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: AppColors.sandLight,
+            letterSpacing: 0.8,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Employee Horizontal Selector
+              Text(
+                'SELECT EMPLOYEE',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.sandGold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: teamMembers.map((emp) {
+                    final isSel = emp.id == selectedStaff.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        onTap: () => _fetchInspectedStaffHealth(emp.id, eco),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSel ? AppColors.magentaPrimary : AppColors.burgundySurface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSel ? AppColors.sandGold : AppColors.sandBorder,
+                              width: isSel ? 1.4 : 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircleAvatar(
+                                radius: 10,
+                                backgroundColor: isSel ? Colors.white : AppColors.sandGold.withOpacity(0.2),
+                                child: Text(
+                                  emp.initials,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSel ? AppColors.magentaPrimary : AppColors.sandGold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                emp.name,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSel ? Colors.white : AppColors.sandLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Staff Card
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundyCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.magentaPrimary,
+                      child: Text(
+                        selectedStaff.initials,
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selectedStaff.name,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                            ),
+                          ),
+                          Text(
+                            selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        calTarget != null && calTarget > 0 ? '${calTarget.toStringAsFixed(0)} kcal Target' : 'No Target Set',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              if (_isLoadingInspectedHealth)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: CircularProgressIndicator(color: AppColors.sandGold),
+                  ),
+                )
+              else ...[
+                // Metrics Grid (Calories, BMI, Steps, Exercise)
+                Row(
+                  children: [
+                    Expanded(
+                      child: _metricTile(
+                        icon: Icons.local_fire_department_rounded,
+                        title: 'CALORIES TODAY',
+                        value: '${todayKcal.toInt()} kcal',
+                        subText: calTarget != null ? 'Goal: ${calTarget.toInt()}' : 'No Goal Set',
+                        accentColor: const Color(0xFFF97316),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _metricTile(
+                        icon: Icons.monitor_weight_outlined,
+                        title: 'BIOMETRIC BMI',
+                        value: liveBmi > 0 ? liveBmi.toStringAsFixed(1) : 'Pending',
+                        subText: (wKg > 0 && hCm > 0) ? '${wKg.toInt()}kg • ${hCm.toInt()}cm' : liveBmiCat,
+                        accentColor: const Color(0xFF10B981),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _metricTile(
+                        icon: Icons.directions_walk_rounded,
+                        title: 'DAILY STEPS',
+                        value: '$todaySteps steps',
+                        subText: 'Target: $stepGoal',
+                        accentColor: const Color(0xFF06B6D4),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _metricTile(
+                        icon: Icons.fitness_center_rounded,
+                        title: 'EXERCISE TODAY',
+                        value: '$workoutMins mins',
+                        subText: '${workouts.length} workouts logged',
+                        accentColor: const Color(0xFFEC4899),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+
+                // Logged Workouts & Exercises
+                Text(
+                  'LOGGED WORKOUTS & EXERCISES (${workouts.length})',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.sandGold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (workouts.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundyCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.sandBorder),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'No workout sessions recorded yet by ${selectedStaff.name}.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                      ),
+                    ),
+                  )
+                else
+                  ...workouts.map((w) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.burgundyCard,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.sandBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('💪', style: TextStyle(fontSize: 20)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  w.activityName,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                ),
+                                Text(
+                                  '${w.durationMinutes} mins • ${w.intensity} • ${w.caloriesBurned.toInt()} kcal • ${w.timeString}',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+
+                const SizedBox(height: 18),
+
+                // Logged Meals & Food Intake
+                Text(
+                  'LOGGED MEALS & FOOD INTAKE (${meals.length})',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.sandGold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (meals.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundyCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.sandBorder),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'No meal intake recorded yet by ${selectedStaff.name}.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                      ),
+                    ),
+                  )
+                else
+                  ...meals.map((m) {
+                    final qtyDisplay = m.quantity != 1.0 ? 'Qty: ${m.quantity % 1 == 0 ? m.quantity.toInt() : m.quantity.toStringAsFixed(1)} • ' : '';
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.burgundyCard,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.sandBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('🍽️', style: TextStyle(fontSize: 20)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  m.foodName,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.sandLight,
+                                  ),
+                                ),
+                                Text(
+                                  '${m.mealType} • $qtyDisplay${m.portionSize} (${m.grams.toInt()}g) • ${m.timeString}',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF97316).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${m.calories.toInt()} kcal',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFFF97316),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                const SizedBox(height: 20),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _metricTile({
+    required IconData icon,
+    required String title,
+    required String value,
+    required String subText,
+    required Color accentColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.sandBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 14, color: accentColor),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.sandPrimary,
+                    letterSpacing: 0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: AppColors.sandLight,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subText,
+            style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: accentColor),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 }

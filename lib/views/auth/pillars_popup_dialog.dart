@@ -180,10 +180,10 @@ class PillarsPopupDialog extends StatelessWidget {
 
                   _pillarButton(
                     context: context,
-                    title: 'Profile',
+                    title: 'Work',
                     pillarBadge: 'Pillar 3',
                     cadence: 'Occasional',
-                    icon: Icons.badge_outlined,
+                    icon: Icons.work_outline_rounded,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePillarScreen()));

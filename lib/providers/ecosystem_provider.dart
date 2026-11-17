@@ -3831,7 +3831,7 @@ class EcosystemProvider extends ChangeNotifier {
     required double calories,
     DateTime? logDate,
     String portionSize = 'Normal',
-    int quantity = 1,
+    double quantity = 1.0,
   }) {
     final targetDate = logDate ?? DateTime.now();
     final timeStr = '${targetDate.day} ${_monthName(targetDate.month)} ${targetDate.year}, ${targetDate.hour % 12 == 0 ? 12 : targetDate.hour % 12}:${targetDate.minute.toString().padLeft(2, '0')} ${targetDate.hour >= 12 ? 'PM' : 'AM'}';
@@ -4694,11 +4694,26 @@ class EcosystemProvider extends ChangeNotifier {
 
   void deleteFamilyActivityItem(FamilyActivityItem item) {
     final cleanId = item.id.trim();
-    _familyActivityLogs.removeWhere((a) =>
+    int targetIndex = _familyActivityLogs.indexWhere((a) =>
+        identical(a, item) ||
         (cleanId.isNotEmpty && a.id.trim() == cleanId) ||
-        (a.activityName == item.activityName &&
-            (a.hoursSpent - item.hoursSpent).abs() < 0.01 &&
+        (a.activityName.trim().toLowerCase() == item.activityName.trim().toLowerCase() &&
+            (a.hoursSpent - item.hoursSpent).abs() < 0.05 &&
             _isSameDayDate(a.timestamp, item.timestamp)));
+
+    if (targetIndex != -1) {
+      _familyActivityLogs.removeAt(targetIndex);
+    } else if (cleanId.isNotEmpty) {
+      _familyActivityLogs.removeWhere((a) => a.id.trim() == cleanId);
+    } else {
+      // Fallback: match by name and hours
+      final fallbackIdx = _familyActivityLogs.indexWhere((a) =>
+          a.activityName.trim().toLowerCase() == item.activityName.trim().toLowerCase() &&
+          (a.hoursSpent - item.hoursSpent).abs() < 0.05);
+      if (fallbackIdx != -1) {
+        _familyActivityLogs.removeAt(fallbackIdx);
+      }
+    }
     notifyListeners();
 
     _firebaseEmployeeService.saveEmployeePillar(

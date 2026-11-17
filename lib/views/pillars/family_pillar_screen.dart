@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/employee_model.dart';
 import '../../models/family_models.dart';
 import '../../providers/ecosystem_provider.dart';
 
@@ -58,24 +59,6 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   final TextEditingController _familyMembersController = TextEditingController();
   bool _dinnerTogetherToday = false;
 
-  // Leadership Staff Family Inspector State (CEO & HR only)
-  String? _inspectedStaffId;
-  Map<String, dynamic>? _inspectedFamilyData;
-  bool _isLoadingInspectedFamily = false;
-
-  Future<void> _fetchInspectedStaffFamily(String empId, EcosystemProvider eco) async {
-    setState(() {
-      _inspectedStaffId = empId;
-      _isLoadingInspectedFamily = true;
-    });
-    final res = await eco.loadEmployeePillarsForInspection(empId);
-    if (mounted) {
-      setState(() {
-        _inspectedFamilyData = res['family'] as Map<String, dynamic>?;
-        _isLoadingInspectedFamily = false;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -220,10 +203,6 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Hero Welcome Card
-              _buildHeroHeader(eco),
-              const SizedBox(height: 14),
-
               // Horizontal Date Strip (Center Carousel with +/- 3 Days & Month Nav)
               _buildHorizontalDateStrip(eco),
               const SizedBox(height: 16),
@@ -235,8 +214,8 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               // Active Section Content
               _buildActiveSectionContent(context, eco),
               if (eco.isCeo || eco.activeRole.toLowerCase() == 'ceo' || eco.activeRole.toLowerCase() == 'hr') ...[
-                const SizedBox(height: 24),
-                _buildStaffFamilyActivitiesInspector(context, eco),
+                const SizedBox(height: 20),
+                _buildStaffFamilyActivitiesGateway(context, eco),
               ],
               const SizedBox(height: 85),
             ],
@@ -261,65 +240,6 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     );
   }
 
-  // =========================================================================
-  // 1. HERO HEADER
-  // =========================================================================
-
-  Widget _buildHeroHeader(EcosystemProvider eco) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyPrimary,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.sandBorder),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.burgundyPrimary.withOpacity(0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.burgundySurface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-            ),
-            child: const Text('👨‍👩‍👧‍👦', style: TextStyle(fontSize: 28)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Family & Friends Time',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  'Daily Cadence • Dedicated hours for loved ones, family support, and quality moments recorded with date & time.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: Colors.white.withOpacity(0.9),
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // =========================================================================
   // HORIZONTAL DATE STRIP: CENTER DATE CAROUSEL WITH +/- 3 DAYS & MONTH NAV
@@ -2456,15 +2376,116 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     );
   }
 
-  Widget _buildStaffFamilyActivitiesInspector(BuildContext context, EcosystemProvider eco) {
-    // List corporate team members (exclude CEO account)
-    final teamMembers = eco.employees.where((e) => !e.isCeo).toList();
-    if (teamMembers.isEmpty) return const SizedBox.shrink();
+  Widget _buildStaffFamilyActivitiesGateway(BuildContext context, EcosystemProvider eco) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.burgundyCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.sandBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.sandGold.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.supervised_user_circle_rounded, color: AppColors.sandGold, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'EMPLOYEE FAMILY ACTIVITIES',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandLight,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'View team family time, quality moments & social logs',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.sandGold,
+              foregroundColor: AppColors.burgundyBg,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EmployeeFamilyActivitiesScreen()),
+              );
+            },
+            child: Text(
+              'Inspect',
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    // Auto-select first employee if not yet selected
-    if (_inspectedStaffId == null) {
+/// Dedicated Screen to inspect team family activities for CEO & HR
+class EmployeeFamilyActivitiesScreen extends StatefulWidget {
+  const EmployeeFamilyActivitiesScreen({super.key});
+
+  @override
+  State<EmployeeFamilyActivitiesScreen> createState() => _EmployeeFamilyActivitiesScreenState();
+}
+
+class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitiesScreen> {
+  String? _inspectedStaffId;
+  Map<String, dynamic>? _inspectedFamilyData;
+  bool _isLoadingInspectedFamily = false;
+
+  Future<void> _fetchInspectedStaffFamily(String empId, EcosystemProvider eco) async {
+    setState(() {
+      _inspectedStaffId = empId;
+      _isLoadingInspectedFamily = true;
+    });
+    final res = await eco.loadEmployeePillarsForInspection(empId);
+    if (mounted) {
+      setState(() {
+        _inspectedFamilyData = res['family'] as Map<String, dynamic>?;
+        _isLoadingInspectedFamily = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.watch<EcosystemProvider>();
+    final teamMembers = eco.employees.where((e) => !e.isCeo).toList();
+
+    if (_inspectedStaffId == null && teamMembers.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _inspectedStaffId == null && teamMembers.isNotEmpty) {
+        if (mounted && _inspectedStaffId == null) {
           _fetchInspectedStaffFamily(teamMembers.first.id, eco);
         }
       });
@@ -2472,7 +2493,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
 
     final selectedStaff = teamMembers.firstWhere(
       (e) => e.id == _inspectedStaffId,
-      orElse: () => teamMembers.first,
+      orElse: () => teamMembers.isNotEmpty ? teamMembers.first : eco.currentEmployee,
     );
 
     final family = _inspectedFamilyData ?? {};
@@ -2481,482 +2502,385 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     final double friendsHoursToday = (family['totalFriendsHoursToday'] as num?)?.toDouble() ?? 0.0;
     final double totalSocialHours = (family['totalSocialHoursToday'] as num?)?.toDouble() ?? 0.0;
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.sandBorder),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 14,
-            offset: Offset(0, 4),
+    return Scaffold(
+      backgroundColor: AppColors.burgundyBg,
+      appBar: AppBar(
+        backgroundColor: AppColors.burgundyBg,
+        elevation: 0,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'EMPLOYEE FAMILY ACTIVITIES',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: AppColors.sandLight,
+            letterSpacing: 0.8,
           ),
-        ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Leadership Badge & Title
-          Row(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.sandGold, width: 1.2),
+              // Employee Filter Chips
+              Text(
+                'SELECT EMPLOYEE',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.sandGold,
+                  letterSpacing: 0.5,
                 ),
-                child: const Icon(Icons.family_restroom, color: AppColors.sandGold, size: 20),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: teamMembers.map((emp) {
+                    final isSelected = emp.id == selectedStaff.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _fetchInspectedStaffFamily(emp.id, eco),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.sandGold : AppColors.burgundyCard,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 10,
+                                backgroundColor: isSelected ? AppColors.burgundyBg : AppColors.burgundySurface,
+                                child: Text(
+                                  emp.initials,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected ? AppColors.sandGold : AppColors.sandLight,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                emp.name,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Staff Header Card (EMP # removed to prevent clipping)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.burgundyCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.sandBorder),
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Flexible(
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.burgundySurface,
                           child: Text(
-                            "VIEW EMPLOYEE FAMILY ACTIVITIES",
+                            selectedStaff.initials,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
-                              letterSpacing: 0.6,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
-                          ),
-                          child: Text(
-                            'LEADERSHIP',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF10B981),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Live employee family time, activities, reflections & social quality time',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Horizontal Employee Selector
-          Text(
-            'SELECT EMPLOYEE',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: AppColors.sandGold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: teamMembers.map((emp) {
-                final isSelected = emp.id == selectedStaff.id;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => _fetchInspectedStaffFamily(emp.id, eco),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.magentaPrimary : AppColors.burgundySurface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
-                          width: isSelected ? 1.5 : 1.0,
-                        ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: AppColors.magentaPrimary.withOpacity(0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                )
-                              ]
-                            : null,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircleAvatar(
-                            radius: 12,
-                            backgroundColor: isSelected ? Colors.white : AppColors.burgundyCard,
-                            child: Text(
-                              emp.initials,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected ? AppColors.magentaPrimary : AppColors.sandLight,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            emp.name,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? Colors.white : AppColors.sandLight,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Employee Activity Dossier
-          if (_isLoadingInspectedFamily)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 36),
-              alignment: Alignment.center,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.sandGold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Loading ${selectedStaff.name}\'s family activities...',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            // Staff Hero Banner
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.burgundySurface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.sandBorder),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColors.magentaPrimary,
-                    child: Text(
-                      selectedStaff.initials,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          selectedStaff.name,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
-                          ),
-                        ),
-                        Text(
-                          '${selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept} • EMP #${selectedStaff.empNo.isNotEmpty ? selectedStaff.empNo : selectedStaff.id}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.magentaPrimary.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
-                    ),
-                    child: Text(
-                      '${totalSocialHours.toStringAsFixed(1)}h Total Time',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.sandGold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // 3 Mini KPIs
-            Row(
-              children: [
-                Expanded(
-                  child: _staffFamilyMetricBox(
-                    title: 'FAMILY TIME TODAY',
-                    value: '${familyHoursToday.toStringAsFixed(1)}h',
-                    subText: 'Quality Time with Family',
-                    icon: Icons.family_restroom,
-                    accentColor: const Color(0xFF10B981),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _staffFamilyMetricBox(
-                    title: 'SOCIAL / FRIENDS',
-                    value: '${friendsHoursToday.toStringAsFixed(1)}h',
-                    subText: 'Colleagues & Friends',
-                    icon: Icons.people_outline,
-                    accentColor: const Color(0xFF38BDF8),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _staffFamilyMetricBox(
-                    title: 'ACTIVITIES LOGGED',
-                    value: '${activities.length}',
-                    subText: 'Total diary logs',
-                    icon: Icons.event_note_outlined,
-                    accentColor: AppColors.sandGold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Section: Family & Social Activities List
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'LOGGED FAMILY & SOCIAL ACTIVITIES (${activities.length})',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandLight,
-                      letterSpacing: 0.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (activities.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    '${totalSocialHours.toStringAsFixed(1)}h logged',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (activities.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.family_restroom_outlined, size: 18, color: AppColors.sandPrimary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'No family activities logged yet by ${selectedStaff.name}.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else ...() {
-              final Map<DateTime, List<FamilyActivityItem>> groupedActivities = {};
-              for (final a in activities) {
-                final d = DateTime(a.timestamp.year, a.timestamp.month, a.timestamp.day);
-                groupedActivities.putIfAbsent(d, () => []).add(a);
-              }
-              final sortedDates = groupedActivities.keys.toList()..sort((a, b) => b.compareTo(a));
-
-              return sortedDates.map((d) {
-                final dayActs = groupedActivities[d]!;
-                final isToday = d.year == DateTime.now().year && d.month == DateTime.now().month && d.day == DateTime.now().day;
-                final dateHeader = isToday ? 'Today (${DateFormat('dd MMM yyyy').format(d)})' : DateFormat('EEE, dd MMM yyyy').format(d);
-                final dayHours = dayActs.fold<double>(0.0, (sum, item) => sum + item.hoursSpent);
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 6, bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.sandGold.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.sandGold),
-                              const SizedBox(width: 6),
                               Text(
-                                dateHeader,
+                                selectedStaff.name,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
+                                  fontSize: 13.5,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
                                 ),
                               ),
+                              Text(
+                                selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept,
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                              ),
                             ],
                           ),
-                          Text(
-                            '${dayActs.length} activit${dayActs.length > 1 ? "ies" : "y"} • ${dayHours.toStringAsFixed(1)} hrs',
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.sandGold.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                          ),
+                          child: Text(
+                            '${totalSocialHours.toStringAsFixed(1)}h Total',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandGold,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    ...dayActs.map((a) => Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.burgundySurface,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.sandBorder.withOpacity(0.7)),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _staffFamilyMetricBox(
+                            title: 'FAMILY TIME',
+                            value: '${familyHoursToday.toStringAsFixed(1)} hrs',
+                            subText: 'Bonding & Care',
+                            icon: Icons.family_restroom,
+                            accentColor: const Color(0xFFA855F7),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(a.iconEmoji.isNotEmpty ? a.iconEmoji : '❤️', style: const TextStyle(fontSize: 18)),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          a.activityName,
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.sandLight,
-                                          ),
-                                        ),
-                                        Text(
-                                          '${a.category} • ${a.subCategory}',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
-                                    ),
-                                    child: Text(
-                                      '${a.hoursSpent.toStringAsFixed(1)} hrs',
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _staffFamilyMetricBox(
+                            title: 'FRIENDS TIME',
+                            value: '${friendsHoursToday.toStringAsFixed(1)} hrs',
+                            subText: 'Peer Camaraderie',
+                            icon: Icons.people_outline,
+                            accentColor: AppColors.sandGold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _staffFamilyMetricBox(
+                            title: 'ACTIVITIES',
+                            value: '${activities.length}',
+                            subText: 'Logged Entries',
+                            icon: Icons.checklist_rounded,
+                            accentColor: const Color(0xFF10B981),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Datewise Activities Section
+              Text(
+                'LOGGED ACTIVITIES (DATEWISE)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.sandGold,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              if (_isLoadingInspectedFamily) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.sandGold, strokeWidth: 2.5),
+                  ),
+                ),
+              ] else if (activities.isEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundyCard,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.sandBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.sentiment_satisfied_alt_rounded, size: 36, color: AppColors.sandGold),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No Activities Logged Yet',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${selectedStaff.name} has not recorded family time or activities yet.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                () {
+                  final Map<DateTime, List<FamilyActivityItem>> grouped = {};
+                  for (final a in activities) {
+                    final d = DateTime(a.timestamp.year, a.timestamp.month, a.timestamp.day);
+                    grouped.putIfAbsent(d, () => []).add(a);
+                  }
+                  final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+                  return Column(
+                    children: sortedDates.map((d) {
+                      final dayLogs = grouped[d]!;
+                      final isToday = d.year == DateTime.now().year && d.month == DateTime.now().month && d.day == DateTime.now().day;
+                      final dateHeader = isToday ? 'Today (${DateFormat('dd MMM yyyy').format(d)})' : DateFormat('EEE, dd MMM yyyy').format(d);
+                      final double dayHours = dayLogs.fold(0.0, (sum, a) => sum + a.hoursSpent);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.burgundyCard,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.sandBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.sandGold),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      dateHeader,
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF10B981),
+                                        color: AppColors.sandLight,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              if (a.notes != null && a.notes!.trim().isNotEmpty) ...[
-                                const SizedBox(height: 6),
+                                  ],
+                                ),
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: AppColors.burgundyCard.withOpacity(0.6),
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: AppColors.sandGold.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(Icons.notes_rounded, size: 12, color: AppColors.sandGold),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        child: Text(
-                                          a.notes!,
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 10.5,
-                                            color: AppColors.sandPrimary,
-                                            fontStyle: FontStyle.italic,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  child: Text(
+                                    '${dayLogs.length} entries • ${dayHours.toStringAsFixed(1)} hrs',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.sandGold,
+                                    ),
                                   ),
                                 ),
                               ],
-                              const SizedBox(height: 6),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  const Icon(Icons.access_time_rounded, size: 11, color: AppColors.sandPrimary),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    a.timeString,
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        )),
-                  ],
-                );
-              });
-            }(),
-          ],
-        ],
+                            ),
+                            const SizedBox(height: 8),
+                            ...dayLogs.map((a) {
+                              final isFam = a.category == 'Family';
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.burgundySurface,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(a.iconEmoji, style: const TextStyle(fontSize: 18)),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            a.activityName,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.sandLight,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${a.category} • ${a.subCategory}',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 9.5,
+                                              color: isFam ? const Color(0xFFA855F7) : AppColors.sandGold,
+                                            ),
+                                          ),
+                                          if (a.notes != null && a.notes!.isNotEmpty) ...[
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              a.notes!,
+                                              style: GoogleFonts.plusJakartaSans(
+                                                fontSize: 9.5,
+                                                color: AppColors.textMuted,
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.sandGold.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '+${a.hoursSpent.toStringAsFixed(1)}h',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.sandGold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  );
+                }(),
+              ],
+              const SizedBox(height: 30),
+            ],
+          ),
+        ),
       ),
     );
   }
