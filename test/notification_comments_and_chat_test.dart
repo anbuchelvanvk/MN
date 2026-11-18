@@ -1,10 +1,19 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mn_family_app/core/services/push_notification_service.dart';
+import 'package:mn_family_app/core/widgets/celebration_marquee_banner.dart';
 import 'package:mn_family_app/models/company_notification_models.dart';
 import 'package:mn_family_app/models/chat_message_model.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
+import 'package:mn_family_app/views/chat/chat_conversation_screen.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    PushNotificationService.clearTestLogs();
+  });
 
   group('Universal Notification Comments & Likes Tests', () {
     test('NotificationComment model serializes and deserializes correctly', () {
@@ -73,7 +82,7 @@ void main() {
   });
 
   group('Team Chat Engine Tests', () {
-    test('ChatMessage model serializes and deserializes correctly', () {
+    test('ChatMessage model with replies serializes and deserializes correctly', () {
       final msg = ChatMessage(
         id: 'MSG-TEST-1',
         senderId: 'MN-TL1002',
@@ -85,6 +94,9 @@ void main() {
         isRead: false,
         readBy: ['MN-TL1002'],
         likedBy: [],
+        replyToId: 'MSG-TEST-0',
+        replyToSenderName: 'M N Naveenraaj',
+        replyToText: 'Please share the daily pillar status.',
       );
 
       final json = msg.toJson();
@@ -95,15 +107,19 @@ void main() {
       expect(parsed.receiverId, 'MN-CEO01');
       expect(parsed.isAllHands, isFalse);
       expect(parsed.isSentBy('MN-TL1002'), isTrue);
+      expect(parsed.replyToId, 'MSG-TEST-0');
+      expect(parsed.replyToSenderName, 'M N Naveenraaj');
+      expect(parsed.replyToText, 'Please share the daily pillar status.');
     });
 
-    test('EcosystemProvider chat messaging and unread counts', () async {
+    test('EcosystemProvider chat messaging, unread counts & push notifications', () async {
       final provider = EcosystemProvider();
 
       // Clear existing chats for deterministic testing
       provider.chatMessages.clear();
+      PushNotificationService.clearTestLogs();
 
-      // 1. CEO sends message to TL Praveenkumar
+      // 1. CEO sends message to TL Praveenkumar with reply
       provider.setActiveEmpId('MN-CEO01');
       await provider.sendChatMessage(
         receiverId: 'MN-TL1002',
@@ -114,6 +130,12 @@ void main() {
       final lastMsg = provider.getLastMessageWith('MN-TL1002');
       expect(lastMsg?.text, 'Praveen, please check order dispatch status.');
 
+      // Verify native push notification was recorded
+      expect(PushNotificationService.testNotificationLog.isNotEmpty, isTrue);
+      final push = PushNotificationService.testNotificationLog.last;
+      expect(push['title'], contains('M N Naveenraaj'));
+      expect(push['body'], 'Praveen, please check order dispatch status.');
+
       // 2. Switch to TL Praveenkumar and verify unread count
       provider.setActiveEmpId('MN-TL1002');
       expect(provider.getUnreadChatCountFor('MN-CEO01'), 1);
@@ -122,16 +144,20 @@ void main() {
       await provider.markConversationAsRead('MN-CEO01');
       expect(provider.getUnreadChatCountFor('MN-CEO01'), 0);
 
-      // 3. TL replies to CEO
+      // 3. TL replies to CEO referencing the original message
       await provider.sendChatMessage(
         receiverId: 'MN-CEO01',
         text: 'All dispatched on schedule sir!',
+        replyToId: lastMsg?.id,
+        replyToSenderName: lastMsg?.senderName,
+        replyToText: lastMsg?.text,
       );
 
       // Check conversation thread (should have 2 messages)
       final conv = provider.getConversation('MN-CEO01');
       expect(conv.length, 2);
       expect(conv.last.text, 'All dispatched on schedule sir!');
+      expect(conv.last.replyToText, 'Praveen, please check order dispatch status.');
 
       // 4. TL likes the CEO message
       await provider.toggleChatMessageLike(conv.first.id);
@@ -146,6 +172,81 @@ void main() {
       );
       final allHands = provider.getConversation('ALL_HANDS');
       expect(allHands.any((m) => m.text.contains('Team meeting at 4 PM')), isTrue);
+    });
+
+    testWidgets('ChatConversationScreen supports initialText, @mentions, and reply preview', (tester) async {
+      final provider = EcosystemProvider();
+      provider.setActiveEmpId('MN-TL1002');
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<EcosystemProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            home: ChatConversationScreen(
+              peerId: 'ALL_HANDS',
+              peerName: 'MN All-Hands Workforce',
+              peerRole: 'CEO, HR, TL & All Employees',
+              peerInitials: 'MN',
+              isGroup: true,
+              initialText: 'Happy Birthday @M N Naveenraaj 🥳',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify pre-typed text exists in the TextField
+      expect(find.text('Happy Birthday @M N Naveenraaj 🥳'), findsOneWidget);
+
+      // Tap the Mention chip to trigger autocomplete
+      expect(find.text('Mention'), findsOneWidget);
+      await tester.tap(find.text('Mention'));
+      await tester.pumpAndSettle();
+
+      // Verify mention list appears
+      expect(find.text('Mention Colleague'), findsOneWidget);
+
+      // Tap info icon in AppBar to view group recipients
+      await tester.tap(find.byIcon(Icons.people_alt_outlined));
+      await tester.pumpAndSettle();
+
+      // Verify Group Recipients bottom sheet is displayed
+      expect(find.text('MN All-Hands Workforce'), findsWidgets);
+      expect(find.textContaining('Group Recipients & Collaborators'), findsOneWidget);
+    });
+
+    testWidgets('CelebrationMarqueeBanner tap opens group chat with pre-typed celebration text', (tester) async {
+      final provider = EcosystemProvider();
+      provider.setActiveEmpId('MN-TL1002');
+
+      // Set CEO birthday to today so celebration marquee banner activates
+      final now = DateTime.now();
+      final ceoIdx = provider.employees.indexWhere((e) => e.id == 'MN-CEO01');
+      if (ceoIdx != -1) {
+        provider.employees[ceoIdx] = provider.employees[ceoIdx].copyWith(
+          dob: '${now.day}/${now.month}/1990',
+        );
+      }
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<EcosystemProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: CelebrationMarqueeBanner(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the celebration marquee banner
+      expect(find.byType(CelebrationMarqueeBanner), findsOneWidget);
+      await tester.tap(find.byType(CelebrationMarqueeBanner));
+      await tester.pumpAndSettle();
+
+      // Verifies navigation occurred and group chat has pre-typed birthday message
+      expect(find.text('Happy Birthday @M N Naveenraaj 🥳'), findsOneWidget);
     });
   });
 }

@@ -54,6 +54,7 @@ class EcosystemProvider extends ChangeNotifier {
   late List<EmergencyDelegation> _delegations;
 
   List<Employee> get employees => _employees;
+  List<Employee> get allEmployees => _employees;
   List<TaskItem> get tasks => _tasks;
   List<Handover> get handovers => _handovers;
   List<Blocker> get blockers => _blockers;
@@ -2853,6 +2854,8 @@ class EcosystemProvider extends ChangeNotifier {
 
   // Real-time Workforce Chat Engine
   List<ChatMessage> _chatMessages = [];
+  final Set<String> _notifiedChatMessageIds = {};
+  bool _initialChatsStreamLoaded = false;
 
   // Online Orders Workflow Engine (OS1 & OS2 Handler)
   List<OnlineOrderModel> _onlineOrders = [];
@@ -3189,6 +3192,10 @@ class EcosystemProvider extends ChangeNotifier {
                   (a, b) => b.timestamp.compareTo(a.timestamp),
                 );
               }
+
+              // Dispatch instant push notifications for new incoming company announcements & notices
+              _syncAndPushIncomingNotifications(remoteNotifs.where((n) => n.isValid).toList());
+
               notifyListeners();
             },
             onError: (err) {
@@ -3249,6 +3256,34 @@ class EcosystemProvider extends ChangeNotifier {
                 final merged = [...remoteMsgs, ...localOnly];
                 merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
                 _chatMessages = merged;
+
+                // Push notifications for incoming chat messages like WhatsApp outside the app
+                if (!_initialChatsStreamLoaded) {
+                  for (final m in remoteMsgs) {
+                    _notifiedChatMessageIds.add(m.id);
+                  }
+                  _initialChatsStreamLoaded = true;
+                } else {
+                  for (final m in remoteMsgs) {
+                    if (!_notifiedChatMessageIds.contains(m.id)) {
+                      _notifiedChatMessageIds.add(m.id);
+                      final isForMe = m.isAllHands ||
+                          m.receiverId.toLowerCase() == _activeEmpId.toLowerCase();
+                      if (m.senderId.toLowerCase() != _activeEmpId.toLowerCase() && isForMe) {
+                        PushNotificationService().showChatNotification(
+                          id: m.id,
+                          senderName: m.senderName,
+                          message: m.text,
+                          isGroup: m.isAllHands,
+                          payload: 'chat:${m.receiverId}',
+                        ).catchError((err) {
+                          debugPrint('Push notification incoming chat stream error: $err');
+                        });
+                      }
+                    }
+                  }
+                }
+
                 notifyListeners();
               }
             },
@@ -7062,6 +7097,9 @@ class EcosystemProvider extends ChangeNotifier {
     required String text,
     String? attachmentType,
     String? attachmentUrl,
+    String? replyToId,
+    String? replyToSenderName,
+    String? replyToText,
   }) async {
     final cleanText = text.trim();
     if (cleanText.isEmpty) return;
@@ -7080,10 +7118,25 @@ class EcosystemProvider extends ChangeNotifier {
       likedBy: [],
       attachmentType: attachmentType,
       attachmentUrl: attachmentUrl,
+      replyToId: replyToId,
+      replyToSenderName: replyToSenderName,
+      replyToText: replyToText,
     );
 
     _chatMessages.add(newMsg);
+    _notifiedChatMessageIds.add(newMsg.id);
     notifyListeners();
+
+    // Instant local push notification like WhatsApp in outside notification drawer
+    PushNotificationService().showChatNotification(
+      id: newMsg.id,
+      senderName: newMsg.senderName,
+      message: newMsg.text,
+      isGroup: newMsg.isAllHands,
+      payload: 'chat:${newMsg.receiverId}',
+    ).catchError((err) {
+      debugPrint('Push notification chat dispatch note: $err');
+    });
 
     _saveChatsToLocal();
     _firebaseEmployeeService.saveChatMessage(newMsg).catchError((err) {

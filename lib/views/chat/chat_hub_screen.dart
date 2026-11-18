@@ -140,14 +140,15 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                 Tab(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.chat_bubble_outline_rounded, size: 16),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.chat_bubble_outline_rounded, size: 15),
+                      const SizedBox(width: 5),
                       const Text('Conversations'),
                       if (eco.unreadTotalChatCount > 0) ...[
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 5),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                           decoration: const BoxDecoration(
                             color: Color(0xFFEF4444),
                             shape: BoxShape.circle,
@@ -164,10 +165,11 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                 Tab(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.people_outline_rounded, size: 17),
-                      const SizedBox(width: 6),
-                      Text('Workforce Directory (${peers.length})'),
+                      const Icon(Icons.people_outline_rounded, size: 16),
+                      const SizedBox(width: 5),
+                      Text('Workforce (${peers.length})'),
                     ],
                   ),
                 ),
@@ -469,36 +471,15 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
             ),
           ],
         ),
-        title: Row(
-          children: [
-            Flexible(
-              child: Text(
-                peer.name,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5,
-                  fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                peer.straightCutRole,
-                style: const TextStyle(
-                  fontSize: 9,
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        title: Text(
+          peer.name,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13.5,
+            fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.w600,
+            color: AppColors.textDark,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 2),

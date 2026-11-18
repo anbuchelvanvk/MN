@@ -21,6 +21,10 @@ class PushNotificationService {
   static const String _channelName = 'MN Family Official Notifications';
   static const String _channelDescription = 'Official corporate alerts, directives, and reminders';
 
+  static const String _chatChannelId = 'mn_family_channel_chat';
+  static const String _chatChannelName = 'MN Family Chat & Messages';
+  static const String _chatChannelDescription = 'Instant direct messages, group chat alerts and @mentions';
+
   /// Initialize notification plugin with high-importance lock screen channel
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -65,6 +69,17 @@ class PushNotificationService {
             showBadge: true,
           );
           await androidPlugin.createNotificationChannel(channel);
+
+          const AndroidNotificationChannel chatChannel = AndroidNotificationChannel(
+            _chatChannelId,
+            _chatChannelName,
+            description: _chatChannelDescription,
+            importance: Importance.max,
+            playSound: true,
+            enableVibration: true,
+            showBadge: true,
+          );
+          await androidPlugin.createNotificationChannel(chatChannel);
         }
       }
 
@@ -82,6 +97,7 @@ class PushNotificationService {
     required String title,
     required String body,
     String? payload,
+    bool isChat = false,
   }) async {
     // Record for testing verification
     testNotificationLog.add({
@@ -108,14 +124,14 @@ class PushNotificationService {
         htmlFormatBigText: true,
         contentTitle: title,
         htmlFormatContentTitle: true,
-        summaryText: 'MN Family Alert',
+        summaryText: isChat ? 'MN Team Chat' : 'MN Family Alert',
         htmlFormatSummaryText: true,
       );
 
       final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-        _channelId,
-        _channelName,
-        channelDescription: _channelDescription,
+        isChat ? _chatChannelId : _channelId,
+        isChat ? _chatChannelName : _channelName,
+        channelDescription: isChat ? _chatChannelDescription : _channelDescription,
         importance: Importance.max,
         priority: Priority.high,
         styleInformation: bigTextStyleInformation,
@@ -124,7 +140,7 @@ class PushNotificationService {
         playSound: true,
         enableVibration: true,
         fullScreenIntent: true,
-        ticker: 'MN Family Alert',
+        ticker: isChat ? 'New Chat Message' : 'MN Family Alert',
         icon: '@mipmap/ic_launcher',
       );
 
@@ -151,6 +167,24 @@ class PushNotificationService {
     } catch (e) {
       debugPrint('PushNotificationService showNotification note: $e');
     }
+  }
+
+  /// Specialized instant push notification for chat messages & mentions
+  Future<void> showChatNotification({
+    required String id,
+    required String senderName,
+    required String message,
+    required bool isGroup,
+    String? payload,
+  }) async {
+    final title = isGroup ? '💬 $senderName (MN All-Hands)' : '💬 $senderName';
+    await showNotification(
+      id: id,
+      title: title,
+      body: message,
+      payload: payload,
+      isChat: true,
+    );
   }
 
   /// Reset testing logs

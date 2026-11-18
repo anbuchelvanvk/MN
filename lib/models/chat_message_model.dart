@@ -11,6 +11,9 @@ class ChatMessage {
   final List<String> likedBy;
   final String? attachmentType;
   final String? attachmentUrl;
+  final String? replyToId;
+  final String? replyToSenderName;
+  final String? replyToText;
 
   ChatMessage({
     required this.id,
@@ -25,6 +28,9 @@ class ChatMessage {
     this.likedBy = const [],
     this.attachmentType,
     this.attachmentUrl,
+    this.replyToId,
+    this.replyToSenderName,
+    this.replyToText,
   });
 
   bool get isAllHands => receiverId == 'ALL_HANDS';
@@ -46,6 +52,9 @@ class ChatMessage {
     List<String>? likedBy,
     String? attachmentType,
     String? attachmentUrl,
+    String? replyToId,
+    String? replyToSenderName,
+    String? replyToText,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -60,6 +69,9 @@ class ChatMessage {
       likedBy: likedBy ?? this.likedBy,
       attachmentType: attachmentType ?? this.attachmentType,
       attachmentUrl: attachmentUrl ?? this.attachmentUrl,
+      replyToId: replyToId ?? this.replyToId,
+      replyToSenderName: replyToSenderName ?? this.replyToSenderName,
+      replyToText: replyToText ?? this.replyToText,
     );
   }
 
@@ -76,6 +88,9 @@ class ChatMessage {
     'likedBy': likedBy,
     'attachmentType': attachmentType,
     'attachmentUrl': attachmentUrl,
+    'replyToId': replyToId,
+    'replyToSenderName': replyToSenderName,
+    'replyToText': replyToText,
   };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -94,6 +109,9 @@ class ChatMessage {
       likedBy: (json['likedBy'] as List?)?.map((e) => e.toString()).toList() ?? [],
       attachmentType: json['attachmentType']?.toString(),
       attachmentUrl: json['attachmentUrl']?.toString(),
+      replyToId: json['replyToId']?.toString(),
+      replyToSenderName: json['replyToSenderName']?.toString(),
+      replyToText: json['replyToText']?.toString(),
     );
   }
 }
