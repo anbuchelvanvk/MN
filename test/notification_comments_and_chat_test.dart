@@ -462,6 +462,49 @@ void main() {
 
       // Check that the acronym "VPE" IS present
       expect(find.text('VPE'), findsOneWidget);
+
+      // Check that the attachment paperclip icon is present
+      expect(find.byIcon(Icons.attach_file_rounded), findsOneWidget);
+    });
+
+    test('ChatMessage model supports attachments and serialization', () {
+      final msgWithImage = ChatMessage(
+        id: 'MSG-IMG-1',
+        senderId: 'MN-TL1002',
+        senderName: 'Praveenkumar M',
+        senderRole: 'Team Lead',
+        receiverId: 'ALL_HANDS',
+        text: '📷 Photo',
+        timestamp: DateTime.now(),
+        attachmentUrl: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==',
+        attachmentType: 'image',
+      );
+      final json = msgWithImage.toJson();
+      expect(json['attachmentType'], 'image');
+      expect(json['attachmentUrl'], contains('data:image/jpeg;base64'));
+
+      final parsed = ChatMessage.fromJson(json);
+      expect(parsed.attachmentType, 'image');
+      expect(parsed.attachmentUrl, json['attachmentUrl']);
+    });
+
+    test('EcosystemProvider sends chat message with attachmentUrl successfully', () async {
+      final provider = EcosystemProvider();
+      provider.setActiveEmpId('MN-CEO01');
+
+      await provider.sendChatMessage(
+        receiverId: 'ALL_HANDS',
+        text: '',
+        attachmentUrl: 'data:image/jpeg;base64,samplebase64',
+        attachmentType: 'image',
+      );
+
+      final convo = provider.getConversation('ALL_HANDS');
+      expect(convo.isNotEmpty, isTrue);
+      final lastMsg = convo.last;
+      expect(lastMsg.attachmentType, 'image');
+      expect(lastMsg.attachmentUrl, 'data:image/jpeg;base64,samplebase64');
+      expect(lastMsg.text, '📷 Photo');
     });
   });
 }

@@ -1,8 +1,16 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:printing/printing.dart';
+import 'package:http/http.dart' as http;
 import '../../core/theme/app_colors.dart';
 import '../../models/chat_message_model.dart';
 import '../../models/employee_model.dart';
@@ -254,6 +262,712 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     }
     setState(() => _isSending = false);
     _scrollToBottom();
+  }
+
+  void _showAttachmentOptionsSheet(BuildContext context, EcosystemProvider eco) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Share Attachment',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Send photos, capture a picture, or attach PDF documents.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildAttachmentChoice(
+                    icon: Icons.camera_alt_rounded,
+                    label: 'Camera',
+                    gradient: const [Color(0xFFE11D48), Color(0xFFBE123C)],
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _pickAndSendImage(eco, ImageSource.camera);
+                    },
+                  ),
+                  _buildAttachmentChoice(
+                    icon: Icons.photo_library_rounded,
+                    label: 'Photos',
+                    gradient: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _pickAndSendImage(eco, ImageSource.gallery);
+                    },
+                  ),
+                  _buildAttachmentChoice(
+                    icon: Icons.picture_as_pdf_rounded,
+                    label: 'PDF Document',
+                    gradient: const [Color(0xFFDC2626), Color(0xFFB91C1C)],
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _pickAndSendPdf(eco);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttachmentChoice({
+    required IconData icon,
+    required String label,
+    required List<Color> gradient,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: gradient.first.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF334155),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAndSendImage(EcosystemProvider eco, ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final XFile? picked = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 70, // Fully compressed image
+      );
+      if (picked == null) return;
+
+      setState(() => _isSending = true);
+      final bytes = await picked.readAsBytes();
+      final base64Str = base64Encode(bytes);
+      final dataUri = 'data:image/jpeg;base64,$base64Str';
+      final currentText = _textController.text.trim();
+      final reply = _replyingTo;
+
+      await eco.sendChatMessage(
+        receiverId: widget.peerId,
+        text: currentText.isNotEmpty ? currentText : '📷 Photo',
+        replyToId: reply?.id,
+        replyToSenderName: reply?.senderName,
+        replyToText: reply?.text,
+        attachmentUrl: dataUri,
+        attachmentType: 'image',
+      );
+
+      _textController.clear();
+      setState(() {
+        _replyingTo = null;
+        _isSending = false;
+      });
+      _scrollToBottom();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSending = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send image: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickAndSendPdf(EcosystemProvider eco) async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final file = result.files.single;
+      final bytes = file.bytes ?? (file.path != null ? await File(file.path!).readAsBytes() : null);
+      if (bytes == null) return;
+
+      if (bytes.lengthInBytes > 750 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('PDF size must be under 750 KB for instant sync.')),
+          );
+        }
+        return;
+      }
+
+      setState(() => _isSending = true);
+      final base64Str = base64Encode(bytes);
+      final cleanName = file.name.replaceAll(';', '_').replaceAll(',', '_');
+      final dataUri = 'data:application/pdf;name=$cleanName;base64,$base64Str';
+      final currentText = _textController.text.trim();
+      final reply = _replyingTo;
+
+      await eco.sendChatMessage(
+        receiverId: widget.peerId,
+        text: currentText.isNotEmpty ? currentText : '📄 $cleanName',
+        replyToId: reply?.id,
+        replyToSenderName: reply?.senderName,
+        replyToText: reply?.text,
+        attachmentUrl: dataUri,
+        attachmentType: 'pdf',
+      );
+
+      _textController.clear();
+      setState(() {
+        _replyingTo = null;
+        _isSending = false;
+      });
+      _scrollToBottom();
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSending = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send PDF: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildAttachmentWidget(BuildContext context, ChatMessage msg, bool isMe) {
+    final url = msg.attachmentUrl ?? '';
+    final isPdf = msg.attachmentType == 'pdf' || url.contains('application/pdf');
+
+    if (isPdf) {
+      String fileName = 'Document.pdf';
+      if (url.contains('name=')) {
+        final match = RegExp(r'name=([^;]+)').firstMatch(url);
+        if (match != null && match.group(1) != null) {
+          fileName = match.group(1)!;
+        }
+      } else if (msg.text.startsWith('📄 ')) {
+        fileName = msg.text.substring(2).trim();
+      }
+
+      return GestureDetector(
+        onTap: () => _handlePdfClick(context, msg, fileName),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isMe ? Colors.white.withOpacity(0.18) : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isMe ? Colors.white24 : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.picture_as_pdf_rounded,
+                  color: Color(0xFFDC2626),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fileName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isMe ? Colors.white : const Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'PDF Document • Tap to view/save',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isMe ? Colors.white70 : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.download_rounded,
+                size: 18,
+                color: isMe ? Colors.white70 : const Color(0xFF64748B),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () => _showFullImageViewer(context, msg),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          constraints: const BoxConstraints(
+            maxHeight: 220,
+            maxWidth: 240,
+          ),
+          color: Colors.black12,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              _buildImageContent(url),
+              Positioned(
+                bottom: 6,
+                right: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.55),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.fullscreen_rounded, color: Colors.white, size: 12),
+                      SizedBox(width: 3),
+                      Text(
+                        'View & Save',
+                        style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageContent(String url) {
+    try {
+      if (url.startsWith('data:image')) {
+        final commaIdx = url.indexOf(',');
+        if (commaIdx != -1) {
+          final base64Part = url.substring(commaIdx + 1);
+          final bytes = base64Decode(base64Part);
+          return Image.memory(
+            bytes,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const Padding(
+              padding: EdgeInsets.all(16),
+              child: Icon(Icons.broken_image_rounded, color: Colors.grey),
+            ),
+          );
+        }
+      } else if (url.startsWith('http')) {
+        return Image.network(
+          url,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Icon(Icons.broken_image_rounded, color: Colors.grey),
+          ),
+        );
+      }
+    } catch (_) {}
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Icon(Icons.broken_image_rounded, color: Colors.grey),
+    );
+  }
+
+  Uint8List? _extractBytesFromUrl(String url) {
+    try {
+      if (url.startsWith('data:')) {
+        final commaIdx = url.indexOf(',');
+        if (commaIdx != -1) {
+          final base64Part = url.substring(commaIdx + 1);
+          return base64Decode(base64Part);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  void _showFullImageViewer(BuildContext context, ChatMessage msg) {
+    final url = msg.attachmentUrl ?? '';
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            title: Text(
+              msg.senderName.isNotEmpty ? msg.senderName : 'Photo Attachment',
+              style: const TextStyle(fontSize: 15, color: Colors.white),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.file_download_rounded, color: Colors.white, size: 24),
+                tooltip: 'Save to Downloads',
+                onPressed: () => _saveImageLocally(ctx, msg),
+              ),
+              IconButton(
+                icon: const Icon(Icons.share_rounded, color: Colors.white, size: 20),
+                tooltip: 'Share Image',
+                onPressed: () => _shareImage(ctx, msg),
+              ),
+            ],
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              panEnabled: true,
+              boundaryMargin: const EdgeInsets.all(20),
+              minScale: 0.8,
+              maxScale: 4.0,
+              child: _buildImageContent(url),
+            ),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _saveImageLocally(ctx, msg),
+            backgroundColor: AppColors.magentaPrimary,
+            icon: const Icon(Icons.download_rounded, color: Colors.white),
+            label: const Text(
+              'Save to Phone',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveImageLocally(BuildContext context, ChatMessage msg) async {
+    try {
+      final url = msg.attachmentUrl ?? '';
+      Uint8List? bytes = _extractBytesFromUrl(url);
+
+      if (bytes == null && url.startsWith('http')) {
+        final resp = await http.get(Uri.parse(url));
+        if (resp.statusCode == 200) {
+          bytes = resp.bodyBytes;
+        }
+      }
+
+      if (bytes == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not decode photo data.')),
+          );
+        }
+        return;
+      }
+
+      final fileName = 'MN_Photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      Directory? targetDir;
+
+      final publicDownloads = Directory('/storage/emulated/0/Download');
+      if (await publicDownloads.exists()) {
+        targetDir = publicDownloads;
+      } else {
+        targetDir = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+      }
+
+      final file = File('${targetDir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF0F766E),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Saved to Downloads: $fileName',
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Share',
+              textColor: const Color(0xFFFDE68A),
+              onPressed: () => Share.shareXFiles([XFile(file.path)]),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save photo: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _shareImage(BuildContext context, ChatMessage msg) async {
+    try {
+      final url = msg.attachmentUrl ?? '';
+      final bytes = _extractBytesFromUrl(url);
+      if (bytes == null) return;
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/MN_Share_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(bytes);
+      await Share.shareXFiles([XFile(tempFile.path)]);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handlePdfClick(BuildContext context, ChatMessage msg, String fileName) async {
+    try {
+      final url = msg.attachmentUrl ?? '';
+      Uint8List? bytes = _extractBytesFromUrl(url);
+
+      if (bytes == null && url.startsWith('http')) {
+        final resp = await http.get(Uri.parse(url));
+        if (resp.statusCode == 200) {
+          bytes = resp.bodyBytes;
+        }
+      }
+
+      if (bytes == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not read PDF document data.')),
+          );
+        }
+        return;
+      }
+
+      final nonNullBytes = bytes;
+      if (!context.mounted) return;
+
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => Container(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFDC2626), size: 28),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        fileName,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.visibility_rounded, color: Color(0xFF2563EB)),
+                  ),
+                  title: const Text('View / Print Document', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                  subtitle: const Text('Preview and print with device PDF viewer', style: TextStyle(fontSize: 11)),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await Printing.layoutPdf(onLayout: (_) async => nonNullBytes, name: fileName);
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.file_download_rounded, color: Color(0xFF16A34A)),
+                  ),
+                  title: const Text('Save to Downloads', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                  subtitle: const Text('Save document directly to phone storage', style: TextStyle(fontSize: 11)),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await _savePdfLocally(context, nonNullBytes, fileName);
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFDF2F8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.share_rounded, color: AppColors.magentaPrimary),
+                  ),
+                  title: const Text('Share Document', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+                  subtitle: const Text('Send document via WhatsApp, Mail, etc.', style: TextStyle(fontSize: 11)),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    final tempDir = await getTemporaryDirectory();
+                    final tempFile = File('${tempDir.path}/$fileName');
+                    await tempFile.writeAsBytes(nonNullBytes);
+                    await Share.shareXFiles([XFile(tempFile.path)]);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to process PDF: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _savePdfLocally(BuildContext context, Uint8List bytes, String fileName) async {
+    try {
+      Directory? targetDir;
+      final publicDownloads = Directory('/storage/emulated/0/Download');
+      if (await publicDownloads.exists()) {
+        targetDir = publicDownloads;
+      } else {
+        targetDir = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+      }
+
+      final file = File('${targetDir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF0F766E),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Saved to Downloads: $fileName',
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Share',
+              textColor: const Color(0xFFFDE68A),
+              onPressed: () => Share.shareXFiles([XFile(file.path)]),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save document: $e')),
+        );
+      }
+    }
   }
 
   String _formatMsgTime(DateTime dt) {
@@ -1386,6 +2100,45 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               ),
                               const SizedBox(width: 6),
                             ],
+                            // Sent message actions on the LEFT of bubble
+                            if (isMe) ...[
+                              // Quick pin/unpin action button
+                              InkWell(
+                                onTap: () {
+                                  if (msg.isCurrentlyPinned) {
+                                    _showUnpinDialog(context, eco, msg);
+                                  } else {
+                                    _showPinDurationDialog(context, eco, msg);
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                    msg.isCurrentlyPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+                                    size: 15,
+                                    color: msg.isCurrentlyPinned ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ),
+                              // Reply action button
+                              InkWell(
+                                onTap: () {
+                                  setState(() => _replyingTo = msg);
+                                  _focusNode.requestFocus();
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(4),
+                                  child: Icon(
+                                    Icons.reply_rounded,
+                                    size: 16,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                            ],
                             Flexible(
                               child: GestureDetector(
                                 onLongPress: () => _showMessageActionSheet(context, eco, msg),
@@ -1433,186 +2186,196 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                             width: isMentioned ? 1.3 : 1.0,
                                           ),
                                   ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Quoted Reply Preview inside Bubble
-                                    if (msg.replyToText != null && msg.replyToText!.isNotEmpty) ...[
-                                      Container(
-                                        margin: const EdgeInsets.only(bottom: 6),
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: isMe
-                                              ? Colors.white.withOpacity(0.18)
-                                              : const Color(0xFFF1F5F9),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border(
-                                            left: BorderSide(
-                                              color: isMe ? const Color(0xFFFDE68A) : AppColors.magentaPrimary,
-                                              width: 3.5,
-                                            ),
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              msg.replyToSenderName ?? 'Reply',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Quoted Reply Preview inside Bubble
+                                      if (msg.replyToText != null && msg.replyToText!.isNotEmpty) ...[
+                                        Container(
+                                          margin: const EdgeInsets.only(bottom: 6),
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: isMe
+                                                ? Colors.white.withOpacity(0.18)
+                                                : const Color(0xFFF1F5F9),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border(
+                                              left: BorderSide(
                                                 color: isMe ? const Color(0xFFFDE68A) : AppColors.magentaPrimary,
+                                                width: 3.5,
                                               ),
                                             ),
-                                            Text(
-                                              msg.replyToText!,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 10.5,
-                                                color: isMe ? Colors.white70 : const Color(0xFF64748B),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                msg.replyToSenderName ?? 'Reply',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isMe ? const Color(0xFFFDE68A) : AppColors.magentaPrimary,
+                                                ),
+                                              ),
+                                              Text(
+                                                msg.replyToText!,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 10.5,
+                                                  color: isMe ? Colors.white70 : const Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+
+                                      if (!isMe && (widget.isGroup || msg.senderName.isNotEmpty)) ...[
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                msg.senderName,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: widget.isGroup
+                                                      ? AppColors.magentaPrimary
+                                                      : const Color(0xFF0F172A),
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 4, vertical: 1),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF1F5F9),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                msg.senderRole,
+                                                style: const TextStyle(
+                                                  fontSize: 8.5,
+                                                  color: Color(0xFF64748B),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 4),
+                                      ],
 
-                                    if (!isMe && (widget.isGroup || msg.senderName.isNotEmpty)) ...[
+                                      // Attachment Preview Widget (Photo / PDF)
+                                      if (msg.attachmentUrl != null && msg.attachmentUrl!.isNotEmpty) ...[
+                                        _buildAttachmentWidget(context, msg, isMe),
+                                        if (msg.text.isNotEmpty && msg.text != '📷 Photo' && !msg.text.startsWith('📄 '))
+                                          const SizedBox(height: 6),
+                                      ],
+
+                                      if (msg.text.isNotEmpty && (msg.attachmentUrl == null || (msg.text != '📷 Photo' && !msg.text.startsWith('📄 '))))
+                                        _buildMessageText(
+                                          msg.text,
+                                          isMe,
+                                          eco.allEmployees.map((e) => e.name).toList(),
+                                        ),
+                                      const SizedBox(height: 4),
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.end,
                                         children: [
-                                          Flexible(
-                                            child: Text(
-                                              msg.senderName,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: widget.isGroup
-                                                    ? AppColors.magentaPrimary
-                                                    : const Color(0xFF0F172A),
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
+                                          Text(
+                                            _formatMsgTime(msg.timestamp),
+                                            style: TextStyle(
+                                              fontSize: 9.5,
+                                              color: isMe
+                                                ? Colors.white.withOpacity(0.7)
+                                                : const Color(0xFF94A3B8),
                                             ),
                                           ),
-                                          const SizedBox(width: 4),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 4, vertical: 1),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFF1F5F9),
-                                              borderRadius: BorderRadius.circular(4),
+                                          if (msg.isCurrentlyPinned) ...[
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.push_pin_rounded,
+                                              size: 11,
+                                              color: isMe ? const Color(0xFFFDE68A) : const Color(0xFF0D9488),
                                             ),
-                                            child: Text(
-                                              msg.senderRole,
-                                              style: const TextStyle(
-                                                fontSize: 8.5,
-                                                color: Color(0xFF64748B),
-                                                fontWeight: FontWeight.w600,
+                                          ],
+                                          if (isMe) ...[
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              msg.readBy.length > 1
+                                                  ? Icons.done_all_rounded
+                                                  : Icons.done_rounded,
+                                              size: 13,
+                                              color: Colors.white.withOpacity(0.85),
+                                            ),
+                                          ],
+                                          if (msg.likesCount > 0) ...[
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 4, vertical: 1),
+                                              decoration: BoxDecoration(
+                                                color: isMe
+                                                    ? Colors.white.withOpacity(0.2)
+                                                    : const Color(0xFFFEE2E2),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.favorite,
+                                                    size: 10,
+                                                    color: Color(0xFFEF4444),
+                                                  ),
+                                                  const SizedBox(width: 2),
+                                                  Text(
+                                                    '${msg.likesCount}',
+                                                    style: TextStyle(
+                                                      fontSize: 9,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: isMe
+                                                          ? Colors.white
+                                                          : const Color(0xFFEF4444),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          ),
+                                          ],
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
                                     ],
-
-                                    _buildMessageText(
-                                      msg.text,
-                                      isMe,
-                                      eco.allEmployees.map((e) => e.name).toList(),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          _formatMsgTime(msg.timestamp),
-                                          style: TextStyle(
-                                            fontSize: 9.5,
-                                            color: isMe
-                                              ? Colors.white.withOpacity(0.7)
-                                              : const Color(0xFF94A3B8),
-                                          ),
-                                        ),
-                                        if (msg.isCurrentlyPinned) ...[
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            Icons.push_pin_rounded,
-                                            size: 11,
-                                            color: isMe ? const Color(0xFFFDE68A) : const Color(0xFF0D9488),
-                                          ),
-                                        ],
-                                        if (isMe) ...[
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            msg.readBy.length > 1
-                                                ? Icons.done_all_rounded
-                                                : Icons.done_rounded,
-                                            size: 13,
-                                            color: Colors.white.withOpacity(0.85),
-                                          ),
-                                        ],
-                                        if (msg.likesCount > 0) ...[
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 4, vertical: 1),
-                                            decoration: BoxDecoration(
-                                              color: isMe
-                                                  ? Colors.white.withOpacity(0.2)
-                                                  : const Color(0xFFFEE2E2),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(
-                                                  Icons.favorite,
-                                                  size: 10,
-                                                  color: Color(0xFFEF4444),
-                                                ),
-                                                const SizedBox(width: 2),
-                                                Text(
-                                                  '${msg.likesCount}',
-                                                  style: TextStyle(
-                                                    fontSize: 9,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: isMe
-                                                        ? Colors.white
-                                                        : const Color(0xFFEF4444),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                            // Reply action button
-                            InkWell(
-                              onTap: () {
-                                setState(() => _replyingTo = msg);
-                                _focusNode.requestFocus();
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: const Padding(
-                                padding: EdgeInsets.all(4),
-                                child: Icon(
-                                  Icons.reply_rounded,
-                                  size: 16,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                              ),
-                            ),
-                            // Quick like button on peer message
+                            // Received message actions on the RIGHT of bubble
                             if (!isMe) ...[
+                              const SizedBox(width: 4),
+                              // Reply action button
+                              InkWell(
+                                onTap: () {
+                                  setState(() => _replyingTo = msg);
+                                  _focusNode.requestFocus();
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(4),
+                                  child: Icon(
+                                    Icons.reply_rounded,
+                                    size: 16,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ),
+                              // Quick like button on peer message
                               InkWell(
                                 onTap: () => eco.toggleChatMessageLike(msg.id),
                                 borderRadius: BorderRadius.circular(12),
@@ -1627,26 +2390,26 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                   ),
                                 ),
                               ),
-                            ],
-                            // Quick pin/unpin action button
-                            InkWell(
-                              onTap: () {
-                                if (msg.isCurrentlyPinned) {
-                                  _showUnpinDialog(context, eco, msg);
-                                } else {
-                                  _showPinDurationDialog(context, eco, msg);
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Icon(
-                                  msg.isCurrentlyPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-                                  size: 15,
-                                  color: msg.isCurrentlyPinned ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
+                              // Quick pin/unpin action button
+                              InkWell(
+                                onTap: () {
+                                  if (msg.isCurrentlyPinned) {
+                                    _showUnpinDialog(context, eco, msg);
+                                  } else {
+                                    _showPinDurationDialog(context, eco, msg);
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                    msg.isCurrentlyPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+                                    size: 15,
+                                    color: msg.isCurrentlyPinned ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       );
@@ -1789,6 +2552,29 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
               top: false,
               child: Row(
                 children: [
+                  // Attachment button (Photos, Camera, PDF)
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _isSending ? null : () => _showAttachmentOptionsSheet(context, eco),
+                      borderRadius: BorderRadius.circular(22),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: const Icon(
+                          Icons.attach_file_rounded,
+                          size: 20,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ),
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(

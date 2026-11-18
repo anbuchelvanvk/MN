@@ -3307,12 +3307,15 @@ class EcosystemProvider extends ChangeNotifier {
                       final isForMe = m.isAllHands ||
                           m.receiverId.toLowerCase() == _activeEmpId.toLowerCase();
                       if (m.senderId.toLowerCase() != _activeEmpId.toLowerCase() && isForMe) {
+                        final payload = m.isAllHands
+                            ? 'chat:ALL_HANDS|MN All-Hands Workforce|All Employees|true'
+                            : 'chat:${m.senderId}|${m.senderName}|${m.senderRole}|false';
                         PushNotificationService().showChatNotification(
                           id: m.id,
                           senderName: m.senderName,
                           message: m.text,
                           isGroup: m.isAllHands,
-                          payload: 'chat:${m.receiverId}',
+                          payload: payload,
                         ).catchError((err) {
                           debugPrint('Push notification incoming chat stream error: $err');
                         });
@@ -4873,11 +4876,22 @@ class EcosystemProvider extends ChangeNotifier {
       _activeRole = 'hr';
     } else if (empId == 'MN-TL1002') {
       _activeRole = 'team_lead';
+    } else {
+      final emp = _employees.firstWhere(
+        (e) => e.id == empId || e.empNo == empId,
+        orElse: () => currentEmployee,
+      );
+      _activeRole = emp.roleType;
     }
     loadEmployeeFourPillars(empId);
     try {
       PushNotificationService().syncActiveUserToNative(empId, currentEmployee.name);
     } catch (_) {}
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('saved_emp_id', _activeEmpId);
+      prefs.setString('saved_role', _activeRole);
+      prefs.setString('saved_email', currentEmployee.email);
+    }).catchError((_) {});
     notifyListeners();
   }
 
@@ -7206,8 +7220,13 @@ class EcosystemProvider extends ChangeNotifier {
     String? replyToSenderName,
     String? replyToText,
   }) async {
-    final cleanText = text.trim();
-    if (cleanText.isEmpty) return;
+    var cleanText = text.trim();
+    if (cleanText.isEmpty && (attachmentUrl == null || attachmentUrl.isEmpty)) return;
+    if (cleanText.isEmpty) {
+      cleanText = attachmentType == 'image'
+          ? '📷 Photo'
+          : (attachmentType == 'pdf' ? '📄 Document.pdf' : 'Attachment');
+    }
 
     final currentEmp = currentEmployee;
     final newMsg = ChatMessage(

@@ -59,17 +59,26 @@ class _LoginScreenState extends State<LoginScreen> {
       final savedRole = prefs.getString('saved_role');
       final savedEmpId = prefs.getString('saved_emp_id');
 
-      if (savedEmail != null && savedRole != null && savedEmpId != null && mounted) {
+      if (savedEmpId != null && savedEmpId.isNotEmpty && mounted) {
         final eco = context.read<EcosystemProvider>();
         eco.setActiveEmpId(savedEmpId);
         await eco.loadEmployeeFourPillars(savedEmpId);
 
         if (!mounted) return;
         Widget targetScreen;
-        if (savedEmpId == 'MN-CEO01' || savedRole == 'ceo' || savedEmail.toLowerCase().contains('ceoofmn')) {
+        final resolvedRole = savedRole ??
+            (savedEmpId == 'MN-CEO01'
+                ? 'ceo'
+                : (savedEmpId == '7' || savedEmpId == 'MN-HR1001'
+                    ? 'hr'
+                    : (savedEmpId == 'MN-TL1002' ? 'team_lead' : 'employee')));
+
+        if (savedEmpId == 'MN-CEO01' ||
+            resolvedRole == 'ceo' ||
+            (savedEmail != null && savedEmail.toLowerCase().contains('ceoofmn'))) {
           targetScreen = const CeoSuiteScreen();
         } else {
-          switch (savedRole) {
+          switch (resolvedRole) {
             case 'hr':
               targetScreen = const HrPortalScreen();
               break;

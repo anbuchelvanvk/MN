@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../../views/chat/chat_conversation_screen.dart';
+import '../widgets/company_notification_sheet.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -35,6 +38,9 @@ class PushNotificationService {
   factory PushNotificationService() => _instance;
   PushNotificationService._internal();
 
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static String? _pendingPayload;
+
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
   final Set<String> _dispatchedNotificationIds = {};
@@ -49,6 +55,63 @@ class PushNotificationService {
   static const String _chatChannelId = 'mn_family_channel_chat';
   static const String _chatChannelName = 'MN Family Chat & Messages';
   static const String _chatChannelDescription = 'Instant direct messages, group chat alerts and @mentions';
+
+  /// Deep-link direct navigation handler for tapped notifications
+  static void handleNotificationPayload(String? payload) {
+    if (payload == null || payload.trim().isEmpty) return;
+    final cleanPayload = payload.trim();
+    debugPrint('Executing direct deep-link navigation for payload: $cleanPayload');
+
+    final navState = navigatorKey.currentState;
+    if (navState == null || navState.context.mounted != true) {
+      _pendingPayload = cleanPayload;
+      return;
+    }
+
+    final context = navState.context;
+
+    if (cleanPayload.startsWith('chat:')) {
+      // payload format: "chat:PEER_ID|PEER_NAME|PEER_ROLE|IS_GROUP"
+      final raw = cleanPayload.substring(5);
+      final parts = raw.split('|');
+      final peerId = parts.isNotEmpty && parts[0].isNotEmpty ? parts[0] : 'ALL_HANDS';
+      final peerName = parts.length > 1 && parts[1].isNotEmpty
+          ? parts[1]
+          : (peerId == 'ALL_HANDS' ? 'MN All-Hands Workforce' : 'Colleague');
+      final peerRole = parts.length > 2 && parts[2].isNotEmpty
+          ? parts[2]
+          : (peerId == 'ALL_HANDS' ? 'All Employees' : 'Staff');
+      final isGroup = parts.length > 3 ? parts[3] == 'true' : peerId == 'ALL_HANDS';
+      final initials = peerName.trim().split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase();
+
+      navState.push(
+        MaterialPageRoute(
+          builder: (_) => ChatConversationScreen(
+            peerId: peerId,
+            peerName: peerName,
+            peerRole: peerRole,
+            peerInitials: initials.isNotEmpty ? initials : '??',
+            isGroup: isGroup,
+          ),
+        ),
+      );
+    } else if (cleanPayload.startsWith('company_notif:') ||
+        cleanPayload.startsWith('notif:') ||
+        cleanPayload.startsWith('alert:') ||
+        cleanPayload.startsWith('birthday:')) {
+      CompanyNotificationSheet.show(context);
+    }
+  }
+
+  static void processPendingPayloadIfAny() {
+    if (_pendingPayload != null) {
+      final payload = _pendingPayload;
+      _pendingPayload = null;
+      Future.delayed(const Duration(milliseconds: 350), () {
+        handleNotificationPayload(payload);
+      });
+    }
+  }
 
   /// Initialize notification plugin with high-importance lock screen channel
   Future<void> initialize() async {
@@ -72,8 +135,37 @@ class PushNotificationService {
         initSettings,
         onDidReceiveNotificationResponse: (NotificationResponse response) {
           debugPrint('Push notification tapped with payload: ${response.payload}');
+          handleNotificationPayload(response.payload);
         },
       );
+
+      // Listen to native Android notification click events
+      if (!kIsWeb && Platform.isAndroid) {
+        const MethodChannel clickChannel =
+            MethodChannel('com.mnjewelpark.mn_family_app/notification_clicks');
+        clickChannel.setMethodCallHandler((call) async {
+          if (call.method == 'onNotificationClicked') {
+            final payload = call.arguments?.toString();
+            handleNotificationPayload(payload);
+          }
+        });
+
+        try {
+          final initialNativePayload =
+              await clickChannel.invokeMethod<String>('getInitialNotificationPayload');
+          if (initialNativePayload != null && initialNativePayload.isNotEmpty) {
+            handleNotificationPayload(initialNativePayload);
+          }
+        } catch (_) {}
+
+        try {
+          final launchDetails = await _notificationsPlugin.getNotificationAppLaunchDetails();
+          if (launchDetails?.didNotificationLaunchApp == true &&
+              launchDetails?.notificationResponse?.payload != null) {
+            handleNotificationPayload(launchDetails!.notificationResponse!.payload);
+          }
+        } catch (_) {}
+      }
 
       // Create Android High Importance Notification Channel for Lockscreen display
       if (!kIsWeb && Platform.isAndroid) {

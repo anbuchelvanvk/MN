@@ -12,9 +12,28 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.mnjewelpark.mn_family_app/background_permissions"
+    private val NOTIFICATION_CHANNEL = "com.mnjewelpark.mn_family_app/notification_clicks"
+    private var initialPayload: String? = null
+    private var notificationChannel: MethodChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        // Capture payload from launching intent
+        initialPayload = intent?.getStringExtra("notification_payload")
+
+        notificationChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NOTIFICATION_CHANNEL).apply {
+            setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "getInitialNotificationPayload" -> {
+                        val payload = initialPayload
+                        initialPayload = null
+                        result.success(payload)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -76,6 +95,15 @@ class MainActivity : FlutterActivity() {
                 }
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val payload = intent.getStringExtra("notification_payload")
+        if (payload != null) {
+            notificationChannel?.invokeMethod("onNotificationClicked", payload)
         }
     }
 }

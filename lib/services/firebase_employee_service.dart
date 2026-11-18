@@ -1366,7 +1366,8 @@ class FirebaseEmployeeService {
 
   /// Save a chat message to Cloud Firestore
   Future<void> saveChatMessage(ChatMessage message) async {
-    if (!isFirebaseAvailable || message.text.trim().isEmpty) return;
+    final hasContent = message.text.trim().isNotEmpty || (message.attachmentUrl != null && message.attachmentUrl!.isNotEmpty);
+    if (!isFirebaseAvailable || !hasContent) return;
     try {
       await _chatsCollection
           .doc(message.id)

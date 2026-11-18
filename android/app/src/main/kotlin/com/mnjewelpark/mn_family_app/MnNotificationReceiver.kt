@@ -56,6 +56,15 @@ class MnNotificationReceiver : BroadcastReceiver() {
         // Ensure notification channels exist
         createNotificationChannels(context)
 
+        val pendingResult = goAsync()
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+        val wakeLock = powerManager?.newWakeLock(
+            android.os.PowerManager.PARTIAL_WAKE_LOCK,
+            "MnFamilyApp:NotificationSyncWakeLock"
+        )?.apply {
+            acquire(15000) // Keep CPU awake during network fetch
+        }
+
         // Run sync on background worker thread
         thread(start = true) {
             try {
@@ -64,6 +73,12 @@ class MnNotificationReceiver : BroadcastReceiver() {
             } finally {
                 // Schedule next periodic sync to keep continuous closed-app monitoring
                 scheduleNext(context)
+                try {
+                    if (wakeLock?.isHeld == true) {
+                        wakeLock.release()
+                    }
+                } catch (_: Exception) {}
+                pendingResult.finish()
             }
         }
     }
@@ -102,14 +117,23 @@ class MnNotificationReceiver : BroadcastReceiver() {
 
     private fun performSync(context: Context) {
         val prefs = context.getSharedPreferences("mn_app_prefs", Context.MODE_PRIVATE)
-        val activeEmpId = prefs.getString("active_emp_id", "") ?: ""
+        var activeEmpId = prefs.getString("active_emp_id", "") ?: ""
+        if (activeEmpId.isEmpty()) {
+            val flutterPrefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            activeEmpId = flutterPrefs.getString("flutter.saved_emp_id", "")
+                ?: flutterPrefs.getString("flutter.active_emp_id", "")
+                ?: ""
+            if (activeEmpId.isNotEmpty()) {
+                prefs.edit().putString("active_emp_id", activeEmpId).apply()
+            }
+        }
         if (activeEmpId.isEmpty()) return
 
         val notifiedKey = "notified_ids_$activeEmpId"
         val notifiedSet = HashSet(prefs.getStringSet(notifiedKey, emptySet()) ?: emptySet())
 
         // 1. Sync Chats
-        val chatsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/mn_team_chats?pageSize=50"
+        val chatsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/mn_team_chats?pageSize=100"
         val chatsJson = httpGet(chatsUrl)
         if (chatsJson != null) {
             val docs = chatsJson.optJSONArray("documents")
@@ -123,19 +147,28 @@ class MnNotificationReceiver : BroadcastReceiver() {
                     val fields = doc.optJSONObject("fields") ?: continue
                     val senderId = fields.optJSONObject("senderId")?.optString("stringValue", "") ?: ""
                     val senderName = fields.optJSONObject("senderName")?.optString("stringValue", "Colleague") ?: "Colleague"
+                    val senderRole = fields.optJSONObject("senderRole")?.optString("stringValue", "Staff") ?: "Staff"
                     val receiverId = fields.optJSONObject("receiverId")?.optString("stringValue", "") ?: ""
                     val text = fields.optJSONObject("text")?.optString("stringValue", "") ?: ""
+                    val attachmentType = fields.optJSONObject("attachmentType")?.optString("stringValue", "") ?: ""
+
+                    val displayText = if (text.isNotEmpty()) text else if (attachmentType == "image") "📷 Photo" else if (attachmentType == "pdf") "📄 PDF Document" else "New message"
 
                     // Sender never receives push notification for their own message
                     if (!senderId.equals(activeEmpId, ignoreCase = true)) {
                         val isForMe = receiverId.equals(activeEmpId, ignoreCase = true) || receiverId.equals("ALL_HANDS", ignoreCase = true)
-                        if (isForMe && text.isNotEmpty()) {
+                        if (isForMe && displayText.isNotEmpty()) {
                             val title = if (receiverId.equals("ALL_HANDS", ignoreCase = true)) {
                                 "💬 $senderName (MN All-Hands)"
                             } else {
                                 "💬 $senderName"
                             }
-                            showNativeNotification(context, docId, CHAT_CHANNEL_ID, title, text)
+                            val payload = if (receiverId.equals("ALL_HANDS", ignoreCase = true)) {
+                                "chat:ALL_HANDS|MN All-Hands Workforce|All Employees|true"
+                            } else {
+                                "chat:$senderId|$senderName|$senderRole|false"
+                            }
+                            showNativeNotification(context, docId, CHAT_CHANNEL_ID, title, displayText, payload)
                         }
                     }
 
@@ -145,7 +178,7 @@ class MnNotificationReceiver : BroadcastReceiver() {
         }
 
         // 2. Sync Company Notifications
-        val notifsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/company_notifications?pageSize=50"
+        val notifsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/company_notifications?pageSize=100"
         val notifsJson = httpGet(notifsUrl)
         if (notifsJson != null) {
             val docs = notifsJson.optJSONArray("documents")
@@ -163,7 +196,7 @@ class MnNotificationReceiver : BroadcastReceiver() {
 
                     if (targetEmpId.isEmpty() || targetEmpId.equals(activeEmpId, ignoreCase = true)) {
                         if (content.isNotEmpty()) {
-                            showNativeNotification(context, docId, ALERT_CHANNEL_ID, title, content)
+                            showNativeNotification(context, docId, ALERT_CHANNEL_ID, title, content, "company_notif:$docId")
                         }
                     }
 
@@ -181,10 +214,15 @@ class MnNotificationReceiver : BroadcastReceiver() {
         idString: String,
         channelId: String,
         title: String,
-        body: String
+        body: String,
+        payload: String? = null
     ) {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            action = "com.mnjewelpark.mn_family_app.NOTIFICATION_TAP"
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            if (payload != null) {
+                putExtra("notification_payload", payload)
+            }
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
