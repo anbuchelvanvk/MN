@@ -1413,4 +1413,37 @@ class FirebaseEmployeeService {
       debugPrint('Firestore toggleChatMessageLike error: $e');
     }
   }
+
+  /// Pin a chat message in Cloud Firestore (with optional expiry date)
+  Future<void> pinChatMessage(
+    String messageId, {
+    DateTime? until,
+    required String pinnedBy,
+  }) async {
+    if (!isFirebaseAvailable || messageId.isEmpty) return;
+    try {
+      await _chatsCollection.doc(messageId).set({
+        'isPinned': true,
+        'pinnedUntil': until?.toIso8601String(),
+        'pinnedBy': pinnedBy,
+        'pinnedAt': DateTime.now().toIso8601String(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore pinChatMessage error: $e');
+    }
+  }
+
+  /// Unpin a chat message in Cloud Firestore
+  Future<void> unpinChatMessage(String messageId) async {
+    if (!isFirebaseAvailable || messageId.isEmpty) return;
+    try {
+      await _chatsCollection.doc(messageId).set({
+        'isPinned': false,
+        'pinnedUntil': null,
+        'pinnedBy': null,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore unpinChatMessage error: $e');
+    }
+  }
 }

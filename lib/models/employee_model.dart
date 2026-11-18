@@ -199,6 +199,38 @@ class Employee {
         trainingAgenda = trainingAgenda ?? [],
         dailyReviews = dailyReviews ?? [];
 
+  factory Employee.simple({
+    required String id,
+    required String name,
+    required String role,
+    String roleType = 'employee',
+  }) {
+    return Employee(
+      id: id,
+      name: name,
+      role: role,
+      roleType: roleType,
+      phone: '',
+      email: '',
+      avatar: 'assets/images/default_avatar.png',
+      initials: name.isNotEmpty ? name[0].toUpperCase() : '?',
+      doj: '01/01/2026',
+      experienceYears: '1',
+      experienceCategory: 'experienced',
+      status: 'active',
+      ragStatus: 'green',
+      lastActive: 'Active Now',
+      profileCompletion: ProfileCompletion(
+        percentage: 100,
+        isAuthorized: true,
+        photoVerified: true,
+        addressVerified: true,
+        kycVerified: true,
+        sopRolesAcknowledged: true,
+      ),
+    );
+  }
+
   /// OTM (Online Team Manager - Mr. Praveen Kumar) is not a regular employee
   /// and does not have daily attendance or grooming requirements.
   bool get isOtm =>
@@ -246,6 +278,37 @@ class Employee {
   bool get isCeo => roleType.toLowerCase() == 'ceo' || id == 'MN-CEO01';
   bool get isHr => roleType.toLowerCase() == 'hr' || id == '7' || id == 'MN-HR1001';
   bool get isTeamLead => roleType.toLowerCase() == 'team_lead' || roleType.toLowerCase() == 'dept_head' || id == 'MN-TL1002';
+
+  /// Straight-cut short role acronym (e.g. 'CEO', 'HR', 'OTM', 'OSH', 'OS1', 'OS2', 'VPE', 'Ass.VPE', 'AC', 'OSS', 'DVP', 'CC')
+  String get roleAcronym {
+    final rt = roleType.toLowerCase();
+    final r = role.toLowerCase();
+    final e = email.toLowerCase();
+    final i = id.toUpperCase();
+
+    if (rt == 'ceo' || i == 'MN-CEO01' || r.contains('ceo') || e.contains('ceoofmn')) return 'CEO';
+    if (rt == 'hr' || i == '7' || i == 'MN-HR1001' || r.contains('hr') || e.contains('hr@')) return 'HR';
+    if (i == 'MN-TL1002' || e.contains('praveenkumarotm') || r.contains('team manager') || r.contains('otm')) return 'OTM';
+    if (e.contains('gokul') || r.contains('sale head') || r.contains('osh')) return 'OSH';
+    if (e.contains('mithra') || r.contains('assistant photographer') || r.contains('ass.vpe')) return 'Ass.VPE';
+    if (e.contains('aravind') || r.contains('chief photographer') || r.contains('vpe')) return 'VPE';
+    if (e.contains('kaaviya') || r.contains('person 1') || r.contains('os1')) return 'OS1';
+    if (e.contains('nisha') || r.contains('person 2') || r.contains('os2')) return 'OS2';
+    if (e.contains('midhun') || r.contains('analytical') || r.contains('ac')) return 'AC';
+    if (e.contains('subash') || r.contains('strategist') || r.contains('oss')) return 'OSS';
+    if (e.contains('eshwar') || r.contains('developer') || r.contains('dvp')) return 'DVP';
+    if (e.contains('samroy') || r.contains('content creator') || r.contains('cc')) return 'CC';
+    if (r.contains('ece')) return 'ECE';
+
+    // Extract inside parentheses if available, e.g. "Online Sale Person 1 (OS1)" -> "OS1"
+    final parenMatch = RegExp(r'\(([^)]+)\)').firstMatch(role);
+    if (parenMatch != null) {
+      final code = parenMatch.group(1)!.trim();
+      if (code.isNotEmpty && code.length <= 8) return code;
+    }
+
+    return straightCutRole;
+  }
 
   /// Straight-cut short role name for headers, badges & strips (never wraps)
   String get straightCutRole {

@@ -229,7 +229,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   children: [
                     // Pinned: MN All-Hands Workforce Group Chat
-                    _buildAllHandsCard(context, allHandsLast, allHandsUnread),
+                    _buildAllHandsCard(context, allHandsLast, allHandsUnread, eco.hasUnreadMention('ALL_HANDS')),
                     const SizedBox(height: 12),
 
                     const Padding(
@@ -259,7 +259,8 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                       ...peers.map((peer) {
                         final lastMsg = eco.getLastMessageWith(peer.id);
                         final unreadCount = eco.getUnreadChatCountFor(peer.id);
-                        return _buildPeerChatCard(context, peer, lastMsg, unreadCount);
+                        final hasMention = eco.hasUnreadMention(peer.id);
+                        return _buildPeerChatCard(context, peer, lastMsg, unreadCount, hasMention);
                       }),
                   ],
                 ),
@@ -282,7 +283,8 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildAllHandsCard(BuildContext context, ChatMessage? lastMsg, int unreadCount) {
+  Widget _buildAllHandsCard(
+      BuildContext context, ChatMessage? lastMsg, int unreadCount, bool hasMention) {
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -375,12 +377,31 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (unreadCount > 0) ...[
+                      if (hasMention) ...[
                         const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFF10B981), width: 1.0),
+                          ),
+                          child: const Text(
+                            '@',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (unreadCount > 0) ...[
+                        const SizedBox(width: 5),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
+                            color: const Color(0xFF10B981),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -405,7 +426,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
   }
 
   Widget _buildPeerChatCard(
-      BuildContext context, Employee peer, ChatMessage? lastMsg, int unreadCount) {
+      BuildContext context, Employee peer, ChatMessage? lastMsg, int unreadCount, bool hasMention) {
     final initials = peer.name.isNotEmpty
         ? peer.name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
         : '??';
@@ -501,27 +522,54 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
             if (lastMsg != null)
               Text(
                 _formatSnippetTime(lastMsg.timestamp),
-                style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: unreadCount > 0 ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                  fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
+                ),
               ),
             const SizedBox(height: 4),
-            if (unreadCount > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$unreadCount',
-                  style: const TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasMention)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF10B981), width: 1.0),
+                    ),
+                    child: const Text(
+                      '@',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF059669),
+                      ),
+                    ),
                   ),
-                ),
-              )
-            else
-              const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFCBD5E1)),
+                if (unreadCount > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$unreadCount',
+                      style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                else if (!hasMention)
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFCBD5E1)),
+              ],
+            ),
           ],
         ),
       ),

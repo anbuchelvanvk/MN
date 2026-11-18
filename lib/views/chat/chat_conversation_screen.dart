@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -727,11 +728,436 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     return RichText(text: TextSpan(children: spans));
   }
 
+  void _scrollToMessage(String messageId, List<ChatMessage> messages) {
+    final index = messages.indexWhere((m) => m.id == messageId);
+    if (index != -1 && _scrollController.hasClients) {
+      final target = (index * 68.0).clamp(0.0, _scrollController.position.maxScrollExtent);
+      _scrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  Widget _buildPinnedMessageBanner(
+    BuildContext context,
+    EcosystemProvider eco,
+    ChatMessage pinnedMsg,
+    List<ChatMessage> messages,
+  ) {
+    String remainingText = '';
+    if (pinnedMsg.pinnedUntil != null) {
+      final diff = pinnedMsg.pinnedUntil!.difference(DateTime.now());
+      if (diff.inDays > 0) {
+        remainingText = '${diff.inDays}d left';
+      } else if (diff.inHours > 0) {
+        remainingText = '${diff.inHours}h left';
+      } else if (diff.inMinutes > 0) {
+        remainingText = '${diff.inMinutes}m left';
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFCBD5E1), width: 0.9),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFECFDF5),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+            ),
+            child: const Icon(Icons.push_pin_rounded, size: 14, color: Color(0xFF059669)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: InkWell(
+              onTap: () => _scrollToMessage(pinnedMsg.id, messages),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Pinned • ${pinnedMsg.senderName}',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (remainingText.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            remainingText,
+                            style: const TextStyle(
+                              fontSize: 9.5,
+                              color: Color(0xFF64748B),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    pinnedMsg.text,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF475569)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () => _showUnpinDialog(context, eco, pinnedMsg),
+            borderRadius: BorderRadius.circular(12),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.close_rounded, size: 16, color: Color(0xFF94A3B8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMessageActionSheet(BuildContext context, EcosystemProvider eco, ChatMessage msg) {
+    final isPinned = msg.isCurrentlyPinned;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        msg.senderName,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.magentaPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        msg.text,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: Icon(
+                    isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
+                    color: const Color(0xFF0D9488),
+                  ),
+                  title: Text(
+                    isPinned ? 'Unpin Message' : 'Pin Message',
+                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    isPinned
+                        ? 'Remove this message from the pinned banner'
+                        : 'Keep this message easily accessible at the top',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    if (isPinned) {
+                      eco.unpinChatMessage(msg.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Message unpinned')),
+                      );
+                    } else {
+                      _showPinDurationDialog(context, eco, msg);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.reply_rounded, color: AppColors.magentaPrimary),
+                  title: const Text('Reply', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() => _replyingTo = msg);
+                    _focusNode.requestFocus();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.copy_rounded, color: Color(0xFF475569)),
+                  title: const Text('Copy Text', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    Clipboard.setData(ClipboardData(text: msg.text));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Message copied to clipboard')),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    msg.isLikedBy(eco.activeEmpId) ? Icons.favorite : Icons.favorite_border,
+                    color: const Color(0xFFEF4444),
+                  ),
+                  title: Text(
+                    msg.isLikedBy(eco.activeEmpId) ? 'Unlike' : 'Like',
+                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    eco.toggleChatMessageLike(msg.id);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPinDurationDialog(BuildContext context, EcosystemProvider eco, ChatMessage msg) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: const [
+                    Icon(Icons.push_pin_rounded, color: Color(0xFF0D9488), size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Pin Message',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Choose how long this pinned message will stay at the top of the chat:',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 14),
+                _buildPinOptionTile(
+                  ctx,
+                  title: '8 Hours',
+                  subtitle: 'Pinned for 8 hours for quick shifts',
+                  icon: Icons.timer_outlined,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    eco.pinChatMessage(msg.id, duration: '8_hours');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Message pinned for 8 hours 📌')),
+                    );
+                  },
+                ),
+                _buildPinOptionTile(
+                  ctx,
+                  title: '1 Week',
+                  subtitle: 'Pinned for 7 days (standard notice)',
+                  icon: Icons.calendar_view_week_rounded,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    eco.pinChatMessage(msg.id, duration: '1_week');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Message pinned for 1 week 📌')),
+                    );
+                  },
+                ),
+                _buildPinOptionTile(
+                  ctx,
+                  title: '1 Month',
+                  subtitle: 'Pinned for 30 days (monthly goals & policies)',
+                  icon: Icons.calendar_month_rounded,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    eco.pinChatMessage(msg.id, duration: '1_month');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Message pinned for 1 month 📌')),
+                    );
+                  },
+                ),
+                _buildPinOptionTile(
+                  ctx,
+                  title: 'Forever',
+                  subtitle: 'Remains pinned until manually unpinned',
+                  icon: Icons.all_inclusive_rounded,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    eco.pinChatMessage(msg.id, duration: 'forever');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Message pinned forever 📌')),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPinOptionTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: ListTile(
+        dense: true,
+        onTap: onTap,
+        leading: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: const BoxDecoration(
+            color: Color(0xFFECFDF5),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 16, color: const Color(0xFF059669)),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
+      ),
+    );
+  }
+
+  void _showUnpinDialog(BuildContext context, EcosystemProvider eco, ChatMessage msg) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Unpin Message?'),
+        content: const Text('Do you want to remove this message from the pinned banner at the top?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D9488)),
+            onPressed: () {
+              Navigator.pop(ctx);
+              eco.unpinChatMessage(msg.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Message unpinned')),
+              );
+            },
+            child: const Text('Unpin', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final messages = eco.getConversation(widget.peerId);
     final activeEmpId = eco.activeEmpId;
+    final peerEmp = eco.employees.firstWhere(
+      (e) => e.id == widget.peerId || e.name.toLowerCase() == widget.peerName.toLowerCase(),
+      orElse: () => Employee.simple(id: widget.peerId, name: widget.peerName, role: widget.peerRole, roleType: 'employee'),
+    );
+    final roleAcronym = widget.isGroup ? 'All Employees' : peerEmp.roleAcronym;
+    final pinnedMsg = eco.getActivePinnedMessage(widget.peerId);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -820,10 +1246,10 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         const SizedBox(width: 5),
                         Expanded(
                           child: Text(
-                            widget.isGroup ? widget.peerRole : 'Active Now',
-                            style: TextStyle(
+                            roleAcronym,
+                            style: const TextStyle(
                               fontSize: 10.5,
-                              color: widget.isGroup ? const Color(0xFF64748B) : const Color(0xFF10B981),
+                              color: Color(0xFF64748B),
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
@@ -885,6 +1311,10 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
               ),
             ),
 
+          // Pinned Message Top Banner (WhatsApp-style)
+          if (pinnedMsg != null)
+            _buildPinnedMessageBanner(context, eco, pinnedMsg, messages),
+
           // Messages list
           Expanded(
             child: messages.isEmpty
@@ -930,6 +1360,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       final msg = messages[index];
                       final isMe = msg.isSentBy(activeEmpId);
                       final isLiked = msg.isLikedBy(activeEmpId);
+                      final isMentioned = msg.mentionsUser(activeEmpId, eco.currentEmployee.name);
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -956,45 +1387,52 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               const SizedBox(width: 6),
                             ],
                             Flexible(
-                              child: Container(
-                                constraints: BoxConstraints(
-                                  maxWidth: MediaQuery.of(context).size.width * 0.74,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: isMe
-                                      ? const LinearGradient(
-                                          colors: [
-                                            Color(0xFF831843), // Rich festive plum
-                                            Color(0xFF9D174D),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        )
-                                      : null,
-                                  color: isMe ? null : Colors.white,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: const Radius.circular(16),
-                                    topRight: const Radius.circular(16),
-                                    bottomLeft: Radius.circular(isMe ? 16 : 4),
-                                    bottomRight: Radius.circular(isMe ? 4 : 16),
+                              child: GestureDetector(
+                                onLongPress: () => _showMessageActionSheet(context, eco, msg),
+                                child: Container(
+                                  constraints: BoxConstraints(
+                                    maxWidth: MediaQuery.of(context).size.width * 0.74,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isMe
-                                          ? const Color(0xFF831843).withOpacity(0.18)
-                                          : const Color(0x0A000000),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: isMe
+                                        ? const LinearGradient(
+                                            colors: [
+                                              Color(0xFF831843), // Rich festive plum
+                                              Color(0xFF9D174D),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          )
+                                        : null,
+                                    color: isMe ? null : Colors.white,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: const Radius.circular(16),
+                                      topRight: const Radius.circular(16),
+                                      bottomLeft: Radius.circular(isMe ? 16 : 4),
+                                      bottomRight: Radius.circular(isMe ? 4 : 16),
                                     ),
-                                  ],
-                                  border: isMe
-                                      ? null
-                                      : Border.all(color: const Color(0xFFE2E8F0)),
-                                ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: isMe
+                                            ? const Color(0xFF831843).withOpacity(0.18)
+                                            : const Color(0x0A000000),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                    border: isMe
+                                        ? null
+                                        : Border.all(
+                                            color: isMentioned
+                                                ? AppColors.magentaPrimary.withOpacity(0.55)
+                                                : const Color(0xFFE2E8F0),
+                                            width: isMentioned ? 1.3 : 1.0,
+                                          ),
+                                  ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1098,6 +1536,14 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                               : const Color(0xFF94A3B8),
                                           ),
                                         ),
+                                        if (msg.isCurrentlyPinned) ...[
+                                          const SizedBox(width: 4),
+                                          Icon(
+                                            Icons.push_pin_rounded,
+                                            size: 11,
+                                            color: isMe ? const Color(0xFFFDE68A) : const Color(0xFF0D9488),
+                                          ),
+                                        ],
                                         if (isMe) ...[
                                           const SizedBox(width: 4),
                                           Icon(
@@ -1148,6 +1594,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                 ),
                               ),
                             ),
+                          ),
                             // Reply action button
                             InkWell(
                               onTap: () {
@@ -1181,6 +1628,25 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                 ),
                               ),
                             ],
+                            // Quick pin/unpin action button
+                            InkWell(
+                              onTap: () {
+                                if (msg.isCurrentlyPinned) {
+                                  _showUnpinDialog(context, eco, msg);
+                                } else {
+                                  _showPinDurationDialog(context, eco, msg);
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Icon(
+                                  msg.isCurrentlyPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+                                  size: 15,
+                                  color: msg.isCurrentlyPinned ? const Color(0xFF0D9488) : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       );

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/core/services/push_notification_service.dart';
 import 'package:mn_family_app/core/widgets/celebration_marquee_banner.dart';
 import 'package:mn_family_app/models/company_notification_models.dart';
 import 'package:mn_family_app/models/chat_message_model.dart';
+import 'package:mn_family_app/models/employee_model.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 import 'package:mn_family_app/views/chat/chat_conversation_screen.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +14,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     PushNotificationService.clearTestLogs();
   });
 
@@ -285,6 +288,180 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(RichText), findsWidgets);
+    });
+
+    test('Employee roleAcronym resolves concise acronyms for all workforce roles', () {
+      final ceo = Employee.simple(id: '1', name: 'Naveenraaj', role: 'Managing Director & CEO', roleType: 'ceo');
+      expect(ceo.roleAcronym, 'CEO');
+
+      final hr = Employee.simple(id: '2', name: 'Mohankumar G', role: 'HR Manager', roleType: 'hr');
+      expect(hr.roleAcronym, 'HR');
+
+      final otm = Employee.simple(id: '3', name: 'Praveenkumar M', role: 'Online Team Manager (OTM)', roleType: 'dept_head');
+      expect(otm.roleAcronym, 'OTM');
+
+      final osh = Employee.simple(id: '4', name: 'Gokulakrishnan K', role: 'Online Sale Head (OSH)', roleType: 'employee');
+      expect(osh.roleAcronym, 'OSH');
+
+      final os1 = Employee.simple(id: '5', name: 'Kaaviya', role: 'Online Sale Person 1 (OS1)', roleType: 'employee');
+      expect(os1.roleAcronym, 'OS1');
+
+      final os2 = Employee.simple(id: '6', name: 'Nisha', role: 'Online Sale Person 2 (OS2)', roleType: 'employee');
+      expect(os2.roleAcronym, 'OS2');
+
+      final vpe = Employee.simple(id: 'vpe_001', name: 'Aravinda Samy', role: 'Videographer & Photographer Executive (VPE)', roleType: 'employee');
+      expect(vpe.roleAcronym, 'VPE');
+
+      final assVpe = Employee.simple(id: '8', name: 'Mithra M', role: 'Assistant Photographer & Videographer (Ass.VPE)', roleType: 'employee');
+      expect(assVpe.roleAcronym, 'Ass.VPE');
+
+      final ac = Employee.simple(id: '9', name: 'Midhun Kumar', role: 'Accountant (AC)', roleType: 'employee');
+      expect(ac.roleAcronym, 'AC');
+
+      final oss = Employee.simple(id: '10', name: 'Subash', role: 'Online Support Staff (OSS)', roleType: 'employee');
+      expect(oss.roleAcronym, 'OSS');
+
+      final dvp = Employee.simple(id: '11', name: 'Vimal', role: 'Delivery Person (DVP)', roleType: 'employee');
+      expect(dvp.roleAcronym, 'DVP');
+
+      final cc = Employee.simple(id: '12', name: 'Sam Roy', role: 'Customer Care (CC)', roleType: 'employee');
+      expect(cc.roleAcronym, 'CC');
+    });
+
+    test('ChatMessage mentionsUser accurately detects user tags', () {
+      final msg = ChatMessage(
+        id: 'M1',
+        senderId: 'MN-TL1002',
+        senderName: 'Praveenkumar M',
+        senderRole: 'Team Lead',
+        receiverId: 'ALL_HANDS',
+        text: 'Hi @Aravinda Samy and @everyone please check this update.',
+        timestamp: DateTime.now(),
+      );
+
+      expect(msg.mentionsUser('ANY_ID', 'Aravinda Samy'), isTrue);
+      expect(msg.mentionsUser('ANY_ID', 'Aravinda'), isTrue);
+      expect(msg.mentionsUser('ANY_ID', 'Mohankumar G'), isTrue); // because @everyone
+      expect(msg.mentionsUser('ANY_ID', 'Unknown Person'), isTrue); // because @everyone
+
+      final directMsg = ChatMessage(
+        id: 'M2',
+        senderId: 'MN-TL1002',
+        senderName: 'Praveenkumar M',
+        senderRole: 'Team Lead',
+        receiverId: 'ALL_HANDS',
+        text: 'Hi @Kaaviya how are sales today?',
+        timestamp: DateTime.now(),
+      );
+
+      expect(directMsg.mentionsUser('5', 'Kaaviya'), isTrue);
+      expect(directMsg.mentionsUser('6', 'Nisha'), isFalse);
+    });
+
+    test('ChatMessage pin durations and expiration operate correctly', () {
+      final now = DateTime.now();
+
+      // Pinned for 8 hours
+      final pinned8h = ChatMessage(
+        id: 'PIN-1',
+        senderId: 'MN-CEO01',
+        senderName: 'M N Naveenraaj',
+        senderRole: 'CEO',
+        receiverId: 'ALL_HANDS',
+        text: 'Important all-hands announcement',
+        timestamp: now,
+        isPinned: true,
+        pinnedUntil: now.add(const Duration(hours: 8)),
+        pinnedBy: 'MN-CEO01',
+      );
+      expect(pinned8h.isCurrentlyPinned, isTrue);
+
+      // Expired pinned message
+      final expiredPin = ChatMessage(
+        id: 'PIN-2',
+        senderId: 'MN-CEO01',
+        senderName: 'M N Naveenraaj',
+        senderRole: 'CEO',
+        receiverId: 'ALL_HANDS',
+        text: 'Yesterday notice',
+        timestamp: now.subtract(const Duration(days: 2)),
+        isPinned: true,
+        pinnedUntil: now.subtract(const Duration(hours: 1)),
+        pinnedBy: 'MN-CEO01',
+      );
+      expect(expiredPin.isCurrentlyPinned, isFalse);
+
+      // Pinned forever
+      final foreverPin = ChatMessage(
+        id: 'PIN-3',
+        senderId: 'MN-CEO01',
+        senderName: 'M N Naveenraaj',
+        senderRole: 'CEO',
+        receiverId: 'ALL_HANDS',
+        text: 'Standard company guidelines',
+        timestamp: now,
+        isPinned: true,
+        pinnedUntil: null, // Forever
+        pinnedBy: 'MN-CEO01',
+      );
+      expect(foreverPin.isCurrentlyPinned, isTrue);
+    });
+
+    test('EcosystemProvider pinChatMessage and unpinChatMessage update state seamlessly', () async {
+      final provider = EcosystemProvider();
+      provider.setActiveEmpId('MN-CEO01');
+
+      // Send a message to ALL_HANDS
+      await provider.sendChatMessage(
+        receiverId: 'ALL_HANDS',
+        text: 'Please review the monthly jewelry catalog targets.',
+      );
+
+      final conversation = provider.getConversation('ALL_HANDS');
+      expect(conversation.isNotEmpty, isTrue);
+      final msg = conversation.last;
+
+      // Pin message for 8 hours
+      await provider.pinChatMessage(msg.id, duration: '8_hours');
+      final pinnedMsg = provider.getActivePinnedMessage('ALL_HANDS');
+      expect(pinnedMsg, isNotNull);
+      expect(pinnedMsg!.id, msg.id);
+      expect(pinnedMsg.isCurrentlyPinned, isTrue);
+
+      // Unpin message
+      await provider.unpinChatMessage(msg.id);
+      final unpinned = provider.getActivePinnedMessage('ALL_HANDS');
+      expect(unpinned, isNull);
+    });
+
+    testWidgets('ChatConversationScreen displays peer role acronym and does NOT display "Active Now"', (tester) async {
+      final provider = EcosystemProvider();
+      provider.setActiveEmpId('MN-CEO01');
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<EcosystemProvider>.value(
+          value: provider,
+          child: const MaterialApp(
+            home: ChatConversationScreen(
+              peerId: 'vpe_001',
+              peerName: 'Aravinda Samy',
+              peerRole: 'Videographer & Photographer Executive (VPE)',
+              peerInitials: 'AS',
+              isGroup: false,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Check header text: Aravinda Samy
+      expect(find.text('Aravinda Samy'), findsOneWidget);
+
+      // Check that "Active Now" is NOT present
+      expect(find.text('Active Now'), findsNothing);
+
+      // Check that the acronym "VPE" IS present
+      expect(find.text('VPE'), findsOneWidget);
     });
   });
 }

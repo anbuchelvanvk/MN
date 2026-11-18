@@ -7290,6 +7290,124 @@ class EcosystemProvider extends ChangeNotifier {
     });
   }
 
+  /// Pin a chat message for a specific duration ('8_hours', '1_week', '1_month', 'forever')
+  Future<void> pinChatMessage(String messageId, {required String duration}) async {
+    DateTime? until;
+    final now = DateTime.now();
+    switch (duration) {
+      case '8_hours':
+        until = now.add(const Duration(hours: 8));
+        break;
+      case '1_week':
+        until = now.add(const Duration(days: 7));
+        break;
+      case '1_month':
+        until = now.add(const Duration(days: 30));
+        break;
+      case 'forever':
+      default:
+        until = null;
+        break;
+    }
+
+    final idx = _chatMessages.indexWhere((m) => m.id == messageId);
+    if (idx != -1) {
+      final target = _chatMessages[idx];
+      // Unpin any previously pinned message in this same conversation
+      for (int i = 0; i < _chatMessages.length; i++) {
+        final m = _chatMessages[i];
+        final isSameConvo = target.isAllHands
+            ? m.isAllHands
+            : ((m.senderId == target.senderId && m.receiverId == target.receiverId) ||
+                (m.senderId == target.receiverId && m.receiverId == target.senderId));
+        if (isSameConvo && m.isPinned && m.id != messageId) {
+          _chatMessages[i] = m.copyWith(isPinned: false, pinnedUntil: null);
+          _firebaseEmployeeService.unpinChatMessage(m.id);
+        }
+      }
+
+      _chatMessages[idx] = target.copyWith(
+        isPinned: true,
+        pinnedUntil: until,
+        pinnedBy: currentEmployee.name,
+        pinnedAt: now,
+      );
+      _saveChatsToLocal();
+      notifyListeners();
+
+      _firebaseEmployeeService
+          .pinChatMessage(
+            messageId,
+            until: until,
+            pinnedBy: currentEmployee.name,
+          )
+          .catchError((err) {
+        debugPrint('Firestore pinChatMessage error: $err');
+      });
+    }
+  }
+
+  /// Unpin a chat message
+  Future<void> unpinChatMessage(String messageId) async {
+    final idx = _chatMessages.indexWhere((m) => m.id == messageId);
+    if (idx != -1) {
+      _chatMessages[idx] = _chatMessages[idx].copyWith(
+        isPinned: false,
+        pinnedUntil: null,
+        pinnedBy: null,
+      );
+      _saveChatsToLocal();
+      notifyListeners();
+
+      _firebaseEmployeeService.unpinChatMessage(messageId).catchError((err) {
+        debugPrint('Firestore unpinChatMessage error: $err');
+      });
+    }
+  }
+
+  /// Get currently active pinned message for a conversation
+  ChatMessage? getActivePinnedMessage(String peerId) {
+    final cleanPeer = peerId.trim().toLowerCase();
+    final cleanActive = _activeEmpId.trim().toLowerCase();
+
+    final matches = _chatMessages.where((m) {
+      if (!m.isCurrentlyPinned) return false;
+      if (peerId == 'ALL_HANDS') {
+        return m.isAllHands;
+      } else {
+        return (m.senderId.toLowerCase() == cleanPeer &&
+                m.receiverId.toLowerCase() == cleanActive) ||
+            (m.senderId.toLowerCase() == cleanActive &&
+                m.receiverId.toLowerCase() == cleanPeer);
+      }
+    }).toList();
+
+    if (matches.isEmpty) return null;
+    matches.sort((a, b) =>
+        (b.pinnedAt ?? b.timestamp).compareTo(a.pinnedAt ?? a.timestamp));
+    return matches.first;
+  }
+
+  /// Check whether there are unread messages where the current user is mentioned
+  int getUnreadMentionCountFor(String peerId) {
+    final cleanPeer = peerId.trim().toLowerCase();
+    final currentName = currentEmployee.name;
+
+    return _chatMessages.where((m) {
+      final matchesPeer = peerId == 'ALL_HANDS'
+          ? m.isAllHands
+          : (m.senderId.toLowerCase() == cleanPeer &&
+              m.receiverId.toLowerCase() == _activeEmpId.toLowerCase());
+      if (!matchesPeer) return false;
+      if (m.isReadBy(_activeEmpId)) return false;
+      return m.mentionsUser(_activeEmpId, currentName);
+    }).length;
+  }
+
+  bool hasUnreadMention(String peerId) {
+    return getUnreadMentionCountFor(peerId) > 0;
+  }
+
   Future<void> _loadLocalChats() async {
     try {
       final prefs = await SharedPreferences.getInstance();

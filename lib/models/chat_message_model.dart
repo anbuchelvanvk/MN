@@ -14,6 +14,10 @@ class ChatMessage {
   final String? replyToId;
   final String? replyToSenderName;
   final String? replyToText;
+  final bool isPinned;
+  final DateTime? pinnedUntil;
+  final String? pinnedBy;
+  final DateTime? pinnedAt;
 
   ChatMessage({
     required this.id,
@@ -31,6 +35,10 @@ class ChatMessage {
     this.replyToId,
     this.replyToSenderName,
     this.replyToText,
+    this.isPinned = false,
+    this.pinnedUntil,
+    this.pinnedBy,
+    this.pinnedAt,
   });
 
   bool get isAllHands => receiverId == 'ALL_HANDS';
@@ -38,6 +46,34 @@ class ChatMessage {
   bool isReadBy(String empId) => isRead || readBy.any((id) => id.toLowerCase() == empId.toLowerCase());
   bool isLikedBy(String empId) => likedBy.any((id) => id.toLowerCase() == empId.toLowerCase());
   int get likesCount => likedBy.length;
+
+  /// Check if the message is currently active as pinned (considers expiry duration)
+  bool get isCurrentlyPinned {
+    if (!isPinned) return false;
+    if (pinnedUntil == null) return true; // Forever
+    return pinnedUntil!.isAfter(DateTime.now());
+  }
+
+  /// Check whether this message tags or @mentions the given user
+  bool mentionsUser(String userEmpId, String userName) {
+    if (senderId.toLowerCase() == userEmpId.toLowerCase()) return false;
+    final lowerText = text.toLowerCase();
+    if (lowerText.contains('@all') || lowerText.contains('@everyone') || lowerText.contains('@team')) {
+      return true;
+    }
+
+    final cleanName = userName.trim().toLowerCase();
+    if (cleanName.isEmpty) return false;
+
+    if (lowerText.contains('@$cleanName')) return true;
+
+    // Check individual name parts (e.g. '@naveenraaj', '@praveenkumar', '@kaaviya', '@mohankumar')
+    final tokens = cleanName.split(RegExp(r'\s+')).where((t) => t.length > 2);
+    for (final t in tokens) {
+      if (lowerText.contains('@$t')) return true;
+    }
+    return false;
+  }
 
   ChatMessage copyWith({
     String? id,
@@ -55,6 +91,10 @@ class ChatMessage {
     String? replyToId,
     String? replyToSenderName,
     String? replyToText,
+    bool? isPinned,
+    DateTime? pinnedUntil,
+    String? pinnedBy,
+    DateTime? pinnedAt,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -72,6 +112,10 @@ class ChatMessage {
       replyToId: replyToId ?? this.replyToId,
       replyToSenderName: replyToSenderName ?? this.replyToSenderName,
       replyToText: replyToText ?? this.replyToText,
+      isPinned: isPinned ?? this.isPinned,
+      pinnedUntil: pinnedUntil ?? this.pinnedUntil,
+      pinnedBy: pinnedBy ?? this.pinnedBy,
+      pinnedAt: pinnedAt ?? this.pinnedAt,
     );
   }
 
@@ -91,6 +135,10 @@ class ChatMessage {
     'replyToId': replyToId,
     'replyToSenderName': replyToSenderName,
     'replyToText': replyToText,
+    'isPinned': isPinned,
+    'pinnedUntil': pinnedUntil?.toIso8601String(),
+    'pinnedBy': pinnedBy,
+    'pinnedAt': pinnedAt?.toIso8601String(),
   };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -112,6 +160,14 @@ class ChatMessage {
       replyToId: json['replyToId']?.toString(),
       replyToSenderName: json['replyToSenderName']?.toString(),
       replyToText: json['replyToText']?.toString(),
+      isPinned: json['isPinned'] == true,
+      pinnedUntil: json['pinnedUntil'] != null
+          ? DateTime.tryParse(json['pinnedUntil'].toString())
+          : null,
+      pinnedBy: json['pinnedBy']?.toString(),
+      pinnedAt: json['pinnedAt'] != null
+          ? DateTime.tryParse(json['pinnedAt'].toString())
+          : null,
     );
   }
 }
