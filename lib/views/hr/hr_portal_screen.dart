@@ -16,6 +16,7 @@ import 'hr_management_widgets.dart';
 import 'hr_portal_subpages.dart';
 import '../notes/personal_notes_screen.dart';
 import '../chat/chat_hub_screen.dart';
+import '../ceo/ceo_suite_screen.dart';
 
 class HrPortalScreen extends StatefulWidget {
   const HrPortalScreen({super.key});
@@ -29,15 +30,32 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        PillarsPopupDialog.show(context);
+      if (!mounted) return;
+      final eco = context.read<EcosystemProvider>();
+      // M N Naveenraaj is the Managing Director & CEO, strictly not HR.
+      // If CEO credentials are active, seamlessly redirect to the Executive CEO Suite.
+      if (eco.activeEmpId == 'MN-CEO01' && (eco.activeRole == 'ceo' || eco.isCeo)) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const CeoSuiteScreen()),
+        );
+        return;
       }
+      PillarsPopupDialog.show(context);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
+    final isCeo = eco.currentEmployee.isCeo || eco.activeRole == 'ceo' || eco.activeEmpId == 'MN-CEO01';
+    final hrEmp = isCeo
+        ? eco.employees.firstWhere(
+            (e) => e.roleType == 'hr' || e.id == '7' || e.id == 'MN-HR1001',
+            orElse: () => eco.currentEmployee,
+          )
+        : eco.currentEmployee;
+
     final allEmployees = eco.employees;
     final totalStaff = allEmployees.length;
     final isTuesday = DateTime.now().weekday == DateTime.tuesday;
@@ -50,10 +68,10 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
       appBar: RoleAppBar(
-        roleName: 'HR Admin',
-        userName: '${eco.currentEmployee.name} (HR Admin)',
-        roleColor: AppColors.ragGreen,
-        roleIcon: Icons.manage_accounts_outlined,
+        roleName: isCeo ? 'CEO Suite' : 'HR Admin',
+        userName: isCeo ? '${eco.currentEmployee.name} (CEO)' : '${hrEmp.name} (HR Admin)',
+        roleColor: isCeo ? AppColors.sandGold : AppColors.ragGreen,
+        roleIcon: isCeo ? Icons.workspace_premium_outlined : Icons.manage_accounts_outlined,
         onBellPressed: () => CompanyNotificationSheet.show(context),
         onExportPressed: () => ExportAuditModal.show(context),
       ),
@@ -96,7 +114,9 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            eco.currentEmployee.initials.isNotEmpty ? eco.currentEmployee.initials : 'MG',
+                            (isCeo ? eco.currentEmployee.initials : hrEmp.initials).isNotEmpty
+                                ? (isCeo ? eco.currentEmployee.initials : hrEmp.initials)
+                                : 'MG',
                             style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.bold,
                               fontSize: 17,
@@ -114,7 +134,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    eco.currentEmployee.name,
+                                    isCeo ? eco.currentEmployee.name : hrEmp.name,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
@@ -126,16 +146,18 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFECFDF5),
+                                    color: isCeo ? const Color(0xFFFEF3C7) : const Color(0xFFECFDF5),
                                     borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                                    border: Border.all(
+                                      color: isCeo ? const Color(0xFFFDE68A) : const Color(0xFFA7F3D0),
+                                    ),
                                   ),
                                   child: Text(
-                                    'HR ADMIN',
+                                    isCeo ? 'CEO' : 'HR ADMIN',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF059669),
+                                      color: isCeo ? const Color(0xFFD97706) : const Color(0xFF059669),
                                     ),
                                   ),
                                 ),
@@ -143,7 +165,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '${eco.currentEmployee.role} • ID: ${eco.currentEmployee.id}',
+                              '${isCeo ? eco.currentEmployee.role : hrEmp.role} • ID: ${isCeo ? eco.currentEmployee.id : hrEmp.id}',
                               style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
                               overflow: TextOverflow.ellipsis,
                             ),

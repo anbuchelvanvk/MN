@@ -805,9 +805,15 @@ class FirebaseEmployeeService {
   }) async {
     final query = emailOrId.trim().toLowerCase();
 
-    // Special CEO Root Master Handling: 'ceoofmn@mnjpark.com', 'ceo@mnj.com', 'mn-ceo01'
-    if (query == 'ceoofmn@mnjpark.com' || query == 'ceo@mnj.com' || query == 'mn-ceo01') {
-      if (password == 'adminnaandhan') {
+    // Special CEO Root Master Handling: 'ceoofmn@mnjpark.com', 'ceo@mnj.com', 'mn-ceo01', 'ceo', 'naveenraaj', 'naveen', 'ceoofmn'
+    if (query == 'ceoofmn@mnjpark.com' ||
+        query == 'ceo@mnj.com' ||
+        query == 'mn-ceo01' ||
+        query == 'ceo' ||
+        query == 'naveenraaj' ||
+        query == 'naveen' ||
+        query == 'ceoofmn') {
+      if (password == 'adminnaandhan' || password == 'mnj12345') {
         try {
           await _auth.signInWithEmailAndPassword(email: 'ceoofmn@mnjpark.com', password: password);
         } catch (_) {
@@ -839,9 +845,14 @@ class FirebaseEmployeeService {
       }
     }
 
-    // Special HR Master Handling: 'hr@mnj.com', 'mn-hr1001', '7', 'mohankumar@mnj.com'
-    if (query == 'hr@mnj.com' || query == 'mn-hr1001' || query == '7' || query == 'mohankumar@mnj.com') {
-      if (password == 'hr@mnj123') {
+    // Special HR Master Handling: 'hr@mnj.com', 'mn-hr1001', '7', 'mohankumar@mnj.com', 'hr', 'mohankumar'
+    if (query == 'hr@mnj.com' ||
+        query == 'mn-hr1001' ||
+        query == '7' ||
+        query == 'mohankumar@mnj.com' ||
+        query == 'hr' ||
+        query == 'mohankumar') {
+      if (password == 'hr@mnj123' || password == 'mnj12345') {
         try {
           await _auth.signInWithEmailAndPassword(email: 'hr@mnj.com', password: password);
         } catch (_) {
@@ -1359,7 +1370,7 @@ class FirebaseEmployeeService {
     try {
       await _chatsCollection
           .doc(message.id)
-          .set(message.toJson(), SetOptions(merge: true));
+          .set(message.toJson());
     } catch (e) {
       debugPrint('Firestore saveChatMessage error: $e');
     }

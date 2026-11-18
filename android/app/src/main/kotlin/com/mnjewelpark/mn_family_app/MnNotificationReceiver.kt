@@ -25,7 +25,7 @@ class MnNotificationReceiver : BroadcastReceiver() {
         private const val CHAT_CHANNEL_NAME = "MN Family Chat & Messages"
         private const val ALERT_CHANNEL_ID = "mn_family_channel_high"
         private const val ALERT_CHANNEL_NAME = "MN Family Official Notifications"
-        private const val INTERVAL_MS = 20000L // 20-second interval
+        private const val INTERVAL_MS = 2500L // 2.5-second ultra-low latency interval
 
         fun scheduleNext(context: Context, delayMs: Long = INTERVAL_MS) {
             try {
@@ -109,7 +109,7 @@ class MnNotificationReceiver : BroadcastReceiver() {
         val notifiedSet = HashSet(prefs.getStringSet(notifiedKey, emptySet()) ?: emptySet())
 
         // 1. Sync Chats
-        val chatsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/mn_team_chats?pageSize=10"
+        val chatsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/mn_team_chats?pageSize=50"
         val chatsJson = httpGet(chatsUrl)
         if (chatsJson != null) {
             val docs = chatsJson.optJSONArray("documents")
@@ -145,7 +145,7 @@ class MnNotificationReceiver : BroadcastReceiver() {
         }
 
         // 2. Sync Company Notifications
-        val notifsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/company_notifications?pageSize=10"
+        val notifsUrl = "https://firestore.googleapis.com/v1/projects/mn-family/databases/(default)/documents/company_notifications?pageSize=50"
         val notifsJson = httpGet(notifsUrl)
         if (notifsJson != null) {
             val docs = notifsJson.optJSONArray("documents")

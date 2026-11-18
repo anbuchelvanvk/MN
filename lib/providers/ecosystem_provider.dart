@@ -36,11 +36,15 @@ class EcosystemProvider extends ChangeNotifier {
   String? get notificationMessage => _notificationMessage;
   bool get isCeo =>
       _activeRole.toLowerCase() == 'ceo' ||
-      _activeEmpId == 'MN-CEO01' ||
-      currentEmployee.isCeo;
+      (_activeEmpId == 'MN-CEO01' &&
+          _activeRole.toLowerCase() != 'hr' &&
+          _activeRole.toLowerCase() != 'team_lead' &&
+          _activeRole.toLowerCase() != 'dept_head' &&
+          _activeRole.toLowerCase() != 'employee');
   bool get isHr =>
       _activeRole.toLowerCase() == 'hr' ||
       _activeEmpId == 'MN-HR1001' ||
+      _activeEmpId == '7' ||
       currentEmployee.isHr;
 
   late List<Employee> _employees;
@@ -2804,37 +2808,61 @@ class EcosystemProvider extends ChangeNotifier {
     return _employees.firstWhere(
       (e) =>
           e.id == _activeEmpId ||
+          ((e.id == '7' || e.id == 'MN-HR1001') &&
+              (_activeEmpId == 'MN-HR1001' ||
+                  _activeEmpId == '7' ||
+                  _activeEmpId.toLowerCase() == 'hr')) ||
           e.email.toLowerCase() == _activeEmpId.toLowerCase(),
-      orElse: () => _employees.isNotEmpty
-          ? _employees.first
-          : Employee(
-              id: _activeEmpId,
-              name: 'Online Staff',
-              role: 'Online Department Executive',
-              roleType: 'employee',
-              dept: 'Online Department',
-              phone: '',
-              email: '',
-              avatar: '',
-              initials: 'MN',
-              doj: 'Today',
-              experienceYears: 'Fresher (0 yrs)',
-              experienceCategory: 'fresher',
-              probationWeeks: 0,
-              probationStatus: 'cleared',
-              probationEndDate: 'Completed',
-              profileCompletion: ProfileCompletion(
-                percentage: 25,
-                isAuthorized: false,
-                photoVerified: true,
-                addressVerified: false,
-                kycVerified: false,
-                sopRolesAcknowledged: false,
-              ),
-              status: 'active',
-              ragStatus: 'green',
-              lastActive: 'Just now',
-            ),
+      orElse: () {
+        if (_activeRole == 'hr') {
+          return _employees.firstWhere(
+            (e) => e.isHr || e.id == '7',
+            orElse: () => _employees.first,
+          );
+        }
+        if (_activeRole == 'dept_head' || _activeRole == 'team_lead') {
+          return _employees.firstWhere(
+            (e) => e.isTeamLead,
+            orElse: () => _employees.first,
+          );
+        }
+        if (_activeRole == 'ceo') {
+          return _employees.firstWhere(
+            (e) => e.isCeo,
+            orElse: () => _employees.first,
+          );
+        }
+        return _employees.isNotEmpty
+            ? _employees.first
+            : Employee(
+                id: _activeEmpId,
+                name: 'Online Staff',
+                role: 'Online Department Executive',
+                roleType: 'employee',
+                dept: 'Online Department',
+                phone: '',
+                email: '',
+                avatar: '',
+                initials: 'MN',
+                doj: 'Today',
+                experienceYears: 'Fresher (0 yrs)',
+                experienceCategory: 'fresher',
+                probationWeeks: 0,
+                probationStatus: 'cleared',
+                probationEndDate: 'Completed',
+                profileCompletion: ProfileCompletion(
+                  percentage: 25,
+                  isAuthorized: false,
+                  photoVerified: true,
+                  addressVerified: false,
+                  kycVerified: false,
+                  sopRolesAcknowledged: false,
+                ),
+                status: 'active',
+                ragStatus: 'green',
+                lastActive: 'Just now',
+              );
+      },
     );
   }
 
@@ -4827,11 +4855,25 @@ class EcosystemProvider extends ChangeNotifier {
 
   void setActiveRole(String role) {
     _activeRole = role;
+    if (role == 'ceo') {
+      _activeEmpId = 'MN-CEO01';
+    } else if (role == 'hr') {
+      _activeEmpId = '7';
+    } else if (role == 'team_lead' || role == 'dept_head') {
+      _activeEmpId = 'MN-TL1002';
+    }
     notifyListeners();
   }
 
   void setActiveEmpId(String empId) {
     _activeEmpId = empId;
+    if (empId == 'MN-CEO01') {
+      _activeRole = 'ceo';
+    } else if (empId == '7' || empId == 'MN-HR1001') {
+      _activeRole = 'hr';
+    } else if (empId == 'MN-TL1002') {
+      _activeRole = 'team_lead';
+    }
     loadEmployeeFourPillars(empId);
     try {
       PushNotificationService().syncActiveUserToNative(empId, currentEmployee.name);
@@ -4883,6 +4925,30 @@ class EcosystemProvider extends ChangeNotifier {
         defaultEmail: 'ceoofmn@mnjpark.com',
         validPasswords: ['adminnaandhan', 'mnj12345'],
       ),
+      'ceo': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+        validPasswords: ['adminnaandhan', 'mnj12345'],
+      ),
+      'naveenraaj': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+        validPasswords: ['adminnaandhan', 'mnj12345'],
+      ),
+      'naveen': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+        validPasswords: ['adminnaandhan', 'mnj12345'],
+      ),
+      'ceoofmn': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+        validPasswords: ['adminnaandhan', 'mnj12345'],
+      ),
 
       // 2. HR Manager & Operations Custodian Mohankumar G (Emp #7)
       '7': (
@@ -4904,6 +4970,18 @@ class EcosystemProvider extends ChangeNotifier {
         validPasswords: ['hr@mnj123', 'mnj12345'],
       ),
       'mn-hr1001': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+        validPasswords: ['hr@mnj123', 'mnj12345'],
+      ),
+      'hr': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+        validPasswords: ['hr@mnj123', 'mnj12345'],
+      ),
+      'mohankumar': (
         roleType: 'hr',
         empId: '7',
         defaultEmail: 'hr@mnj.com',
@@ -5228,14 +5306,17 @@ class EcosystemProvider extends ChangeNotifier {
 
         if (roleType == 'hr') {
           _activeRole = 'hr';
+          _activeEmpId = (empId.isNotEmpty && empId != 'MN-CEO01') ? empId : '7';
         } else if (roleType == 'team_lead' || roleType == 'dept_head') {
           _activeRole = 'dept_head';
-        } else if (roleType == 'ceo') {
+          _activeEmpId = empId.isNotEmpty ? empId : 'MN-TL1002';
+        } else if (roleType == 'ceo' || empId == 'MN-CEO01') {
           _activeRole = 'ceo';
+          _activeEmpId = 'MN-CEO01';
         } else {
           _activeRole = 'employee';
+          _activeEmpId = empId;
         }
-        _activeEmpId = empId;
         _firebaseEmployeeService.ensureFirebaseAuthSession(
           cleanEmail,
           cleanPass,

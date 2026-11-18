@@ -9,8 +9,8 @@ class MnBackgroundSyncService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Start background polling
-        MnNotificationReceiver.scheduleNext(this, 5000)
+        // Start background polling immediately
+        MnNotificationReceiver.scheduleNext(this, 1000)
         return START_STICKY
     }
 

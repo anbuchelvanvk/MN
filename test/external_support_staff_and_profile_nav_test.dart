@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/core/widgets/quick_pillar_nav_row.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 import 'package:mn_family_app/views/pillars/profile_pillar_screen.dart';
@@ -8,6 +9,10 @@ import 'package:mn_family_app/views/pillars/attendance_pillar_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
   group('External Support Staff [Online] & Profile Navigation Tests', () {
     test('All 5 External Support Staff from Konar Book are registered with correct specs', () {

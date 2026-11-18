@@ -66,21 +66,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (!mounted) return;
         Widget targetScreen;
-        switch (savedRole) {
-          case 'hr':
-            targetScreen = const HrPortalScreen();
-            break;
-          case 'dept_head':
-          case 'team_lead':
-            targetScreen = const DeptHeadPortalScreen();
-            break;
-          case 'ceo':
-            targetScreen = const CeoSuiteScreen();
-            break;
-          case 'employee':
-          default:
-            targetScreen = const EmployeePortalScreen();
-            break;
+        if (savedEmpId == 'MN-CEO01' || savedRole == 'ceo' || savedEmail.toLowerCase().contains('ceoofmn')) {
+          targetScreen = const CeoSuiteScreen();
+        } else {
+          switch (savedRole) {
+            case 'hr':
+              targetScreen = const HrPortalScreen();
+              break;
+            case 'dept_head':
+            case 'team_lead':
+              targetScreen = const DeptHeadPortalScreen();
+              break;
+            case 'ceo':
+              targetScreen = const CeoSuiteScreen();
+              break;
+            case 'employee':
+            default:
+              targetScreen = const EmployeePortalScreen();
+              break;
+          }
         }
 
         Navigator.pushReplacement(
@@ -140,21 +144,25 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       Widget targetScreen;
-      switch (detectedRole) {
-        case 'hr':
-          targetScreen = const HrPortalScreen();
-          break;
-        case 'dept_head':
-        case 'team_lead':
-          targetScreen = const DeptHeadPortalScreen();
-          break;
-        case 'ceo':
-          targetScreen = const CeoSuiteScreen();
-          break;
-        case 'employee':
-        default:
-          targetScreen = const EmployeePortalScreen();
-          break;
+      if (eco.activeEmpId == 'MN-CEO01' || detectedRole == 'ceo' || email.toLowerCase().contains('ceoofmn')) {
+        targetScreen = const CeoSuiteScreen();
+      } else {
+        switch (detectedRole) {
+          case 'hr':
+            targetScreen = const HrPortalScreen();
+            break;
+          case 'dept_head':
+          case 'team_lead':
+            targetScreen = const DeptHeadPortalScreen();
+            break;
+          case 'ceo':
+            targetScreen = const CeoSuiteScreen();
+            break;
+          case 'employee':
+          default:
+            targetScreen = const EmployeePortalScreen();
+            break;
+        }
       }
 
       Navigator.pushAndRemoveUntil(

@@ -60,15 +60,15 @@ class MainActivity : FlutterActivity() {
                         .putString("active_emp_id", empId)
                         .putString("active_emp_name", empName)
                         .apply()
-                    // Kick off background sync
-                    MnNotificationReceiver.scheduleNext(this, 3000)
+                    // Kick off background sync immediately
+                    MnNotificationReceiver.scheduleNext(this, 1000)
                     result.success(true)
                 }
                 "startBackgroundSync" -> {
                     try {
                         val serviceIntent = Intent(this, MnBackgroundSyncService::class.java)
                         startService(serviceIntent)
-                        MnNotificationReceiver.scheduleNext(this, 3000)
+                        MnNotificationReceiver.scheduleNext(this, 1000)
                         result.success(true)
                     } catch (e: Exception) {
                         result.error("SERVICE_ERROR", e.message, null)
