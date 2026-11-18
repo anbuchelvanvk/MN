@@ -8377,10 +8377,15 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   /// Update KONAR Book and dispatch targeted notifications strictly to Online Team + CEO + HR
+  Future<Uint8List?> fetchKonarBookPdfBytes(String bookId) async {
+    return _firebaseEmployeeService.loadKonarBookPdfBytes(bookId);
+  }
+
   Future<void> updateKonarBook(
     KonarBookModel updatedBook, {
     required String updaterName,
     required String updaterRole,
+    void Function(double progress)? onProgress,
   }) async {
     final idx = _konarBooks.indexWhere((b) => b.id == updatedBook.id);
     if (idx != -1) {
@@ -8390,8 +8395,8 @@ class EcosystemProvider extends ChangeNotifier {
     }
     notifyListeners();
 
-    // 1. Save directly into Cloud Firestore
-    await _firebaseEmployeeService.saveKonarBook(updatedBook);
+    // 1. Save directly into Cloud Firestore with automatic chunking for PDFs
+    await _firebaseEmployeeService.saveKonarBook(updatedBook, onProgress: onProgress);
 
     // 2. Targeted Notification:
     // Only Online Department employees + TL (Praveenkumar) + HR (Mohankumar) + CEO (Naveenraaj)

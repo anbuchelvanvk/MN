@@ -47,6 +47,9 @@ class KonarBookModel {
   final String? pdfBase64;
   final String? pdfUrl;
   final String? attachmentFileName;
+  final bool hasPdfAttachment;
+  final int? totalPdfChunks;
+  final int? pdfFileSize;
 
   KonarBookModel({
     required this.id,
@@ -63,6 +66,9 @@ class KonarBookModel {
     this.pdfBase64,
     this.pdfUrl,
     this.attachmentFileName,
+    this.hasPdfAttachment = false,
+    this.totalPdfChunks,
+    this.pdfFileSize,
   });
 
   KonarBookModel copyWith({
@@ -80,6 +86,9 @@ class KonarBookModel {
     String? pdfBase64,
     String? pdfUrl,
     String? attachmentFileName,
+    bool? hasPdfAttachment,
+    int? totalPdfChunks,
+    int? pdfFileSize,
   }) {
     return KonarBookModel(
       id: id ?? this.id,
@@ -96,10 +105,13 @@ class KonarBookModel {
       pdfBase64: pdfBase64 ?? this.pdfBase64,
       pdfUrl: pdfUrl ?? this.pdfUrl,
       attachmentFileName: attachmentFileName ?? this.attachmentFileName,
+      hasPdfAttachment: hasPdfAttachment ?? this.hasPdfAttachment,
+      totalPdfChunks: totalPdfChunks ?? this.totalPdfChunks,
+      pdfFileSize: pdfFileSize ?? this.pdfFileSize,
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson({bool includePdfBase64 = false}) => {
     'id': id,
     'department': department,
     'departmentCode': departmentCode,
@@ -111,12 +123,20 @@ class KonarBookModel {
     'updatedByRole': updatedByRole,
     'updatedByEmpId': updatedByEmpId,
     'sections': sections.map((s) => s.toJson()).toList(),
-    'pdfBase64': pdfBase64,
     'pdfUrl': pdfUrl,
     'attachmentFileName': attachmentFileName,
+    'hasPdfAttachment': hasPdfAttachment,
+    'totalPdfChunks': totalPdfChunks,
+    'pdfFileSize': pdfFileSize,
+    if (includePdfBase64 && pdfBase64 != null && pdfBase64!.length < 350000)
+      'pdfBase64': pdfBase64,
   };
 
   factory KonarBookModel.fromJson(Map<String, dynamic> json) {
+    final rawBase64 = json['pdfBase64']?.toString();
+    final hasChunks = json['hasPdfAttachment'] as bool? ??
+        (rawBase64 != null && rawBase64.isNotEmpty);
+
     return KonarBookModel(
       id: json['id']?.toString() ?? 'online_department',
       department: json['department']?.toString() ?? 'Online Department',
@@ -135,9 +155,12 @@ class KonarBookModel {
               ?.map((s) => KonarSection.fromJson(Map<String, dynamic>.from(s as Map)))
               .toList() ??
           [],
-      pdfBase64: json['pdfBase64']?.toString(),
+      pdfBase64: rawBase64,
       pdfUrl: json['pdfUrl']?.toString(),
       attachmentFileName: json['attachmentFileName']?.toString() ?? 'Online_Department_KONAR_Book.pdf',
+      hasPdfAttachment: hasChunks,
+      totalPdfChunks: (json['totalPdfChunks'] as num?)?.toInt(),
+      pdfFileSize: (json['pdfFileSize'] as num?)?.toInt(),
     );
   }
 

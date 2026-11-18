@@ -1,22 +1,51 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../models/konar_book_model.dart';
+import '../../providers/ecosystem_provider.dart';
 
 class KonarPdfService {
   /// Generate the complete official branded PDF document for a KONAR Book
-  static Future<Uint8List> generateKonarPdf(KonarBookModel book) async {
-    // If the book already has an uploaded binary/base64 PDF, return it directly
+  static Future<Uint8List> generateKonarPdf(KonarBookModel book, {EcosystemProvider? eco}) async {
+    // 1. If the book already has an uploaded binary/base64 PDF, return it directly
     if (book.pdfBase64 != null && book.pdfBase64!.isNotEmpty) {
       try {
         final commaIdx = book.pdfBase64!.indexOf(',');
         final base64Clean = commaIdx != -1 ? book.pdfBase64!.substring(commaIdx + 1) : book.pdfBase64!;
         return base64Decode(base64Clean);
       } catch (_) {}
+    }
+
+    // 2. Check local disk cache first (avoid re-downloading across sessions)
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final cachedFile = File('${tempDir.path}/konar_${book.id}_${book.version}.pdf');
+      if (await cachedFile.exists()) {
+        final bytes = await cachedFile.readAsBytes();
+        if (bytes.isNotEmpty) return bytes;
+      }
+    } catch (_) {}
+
+    // 3. If book has a custom PDF attachment stored in Firestore subcollection chunks, fetch and assemble
+    if (book.hasPdfAttachment && eco != null) {
+      try {
+        final chunkBytes = await eco.fetchKonarBookPdfBytes(book.id);
+        if (chunkBytes != null && chunkBytes.isNotEmpty) {
+          try {
+            final tempDir = await getTemporaryDirectory();
+            final cachedFile = File('${tempDir.path}/konar_${book.id}_${book.version}.pdf');
+            await cachedFile.writeAsBytes(chunkBytes);
+          } catch (_) {}
+          return chunkBytes;
+        }
+      } catch (e) {
+        debugPrint('Note loading PDF chunks: $e');
+      }
     }
 
     final pdf = pw.Document();
@@ -255,8 +284,8 @@ class KonarPdfService {
   }
 
   /// Saves the KONAR Book PDF directly into the device's public Downloads directory
-  static Future<File> saveKonarPdfLocally(KonarBookModel book) async {
-    final pdfBytes = await generateKonarPdf(book);
+  static Future<File> saveKonarPdfLocally(KonarBookModel book, {EcosystemProvider? eco}) async {
+    final pdfBytes = await generateKonarPdf(book, eco: eco);
     final fileName = '${book.department.replaceAll(' ', '_')}_KONAR_Book_${book.version}.pdf';
 
     Directory? targetDir;
@@ -273,8 +302,8 @@ class KonarPdfService {
   }
 
   /// In-app preview and print using system PDF print spooler
-  static Future<void> viewOrPrintKonarPdf(KonarBookModel book) async {
-    final pdfBytes = await generateKonarPdf(book);
+  static Future<void> viewOrPrintKonarPdf(KonarBookModel book, {EcosystemProvider? eco}) async {
+    final pdfBytes = await generateKonarPdf(book, eco: eco);
     await Printing.layoutPdf(
       onLayout: (_) async => pdfBytes,
       name: '${book.department}_KONAR_Book',

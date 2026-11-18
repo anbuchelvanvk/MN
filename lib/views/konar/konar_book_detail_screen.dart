@@ -25,6 +25,7 @@ class KonarBookDetailScreen extends StatefulWidget {
 
 class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
   bool _isProcessing = false;
+  String? _processingMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -78,8 +79,22 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
         ],
       ),
       body: _isProcessing
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.magentaPrimary),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(color: AppColors.magentaPrimary),
+                    const SizedBox(height: 16),
+                    Text(
+                      _processingMessage ?? 'Processing official KONAR Book...',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.magentaPrimary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -386,9 +401,13 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
   }
 
   Future<void> _handleDownloadPdf(KonarBookModel book) async {
-    setState(() => _isProcessing = true);
+    setState(() {
+      _isProcessing = true;
+      _processingMessage = 'Assembling & downloading ${book.department} PDF...';
+    });
     try {
-      final file = await KonarPdfService.saveKonarPdfLocally(book);
+      final eco = context.read<EcosystemProvider>();
+      final file = await KonarPdfService.saveKonarPdfLocally(book, eco: eco);
       if (!mounted) return;
       setState(() => _isProcessing = false);
 
@@ -425,13 +444,22 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
   }
 
   Future<void> _handlePrintPdf(KonarBookModel book) async {
+    setState(() {
+      _isProcessing = true;
+      _processingMessage = 'Loading official PDF preview...';
+    });
     try {
-      await KonarPdfService.viewOrPrintKonarPdf(book);
+      final eco = context.read<EcosystemProvider>();
+      await KonarPdfService.viewOrPrintKonarPdf(book, eco: eco);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to open PDF viewer: $e')),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
       }
     }
   }
@@ -626,23 +654,47 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         );
 
                         Navigator.pop(ctx);
-                        setState(() => _isProcessing = true);
+                        setState(() {
+                          _isProcessing = true;
+                          _processingMessage = pickedBase64 != null
+                              ? 'Saving PDF to Cloud...'
+                              : 'Updating KONAR Book...';
+                        });
                         final messenger = ScaffoldMessenger.of(context);
 
-                        await eco.updateKonarBook(
-                          updated,
-                          updaterName: eco.currentEmployee.name,
-                          updaterRole: eco.currentEmployee.role,
-                        );
-
-                        if (mounted) {
-                          setState(() => _isProcessing = false);
-                          messenger.showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFF0F766E),
-                              content: Text('KONAR Book updated to ${updated.version} and Online Team notified!'),
-                            ),
+                        try {
+                          await eco.updateKonarBook(
+                            updated,
+                            updaterName: eco.currentEmployee.name,
+                            updaterRole: eco.currentEmployee.role,
+                            onProgress: (progress) {
+                              if (mounted) {
+                                setState(() {
+                                  _processingMessage = 'Uploading PDF in secure chunks (${(progress * 100).toInt()}%)...';
+                                });
+                              }
+                            },
                           );
+
+                          if (mounted) {
+                            setState(() => _isProcessing = false);
+                            messenger.showSnackBar(
+                              SnackBar(
+                                backgroundColor: const Color(0xFF0F766E),
+                                content: Text('KONAR Book updated to ${updated.version} and Online Team notified!'),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            setState(() => _isProcessing = false);
+                            messenger.showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.red.shade700,
+                                content: Text('Failed to update KONAR Book: $e'),
+                              ),
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(

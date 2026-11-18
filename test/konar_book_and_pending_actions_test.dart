@@ -33,6 +33,18 @@ void main() {
       expect(recreated.sections.first.title, book.sections.first.title);
       expect(recreated.sections.first.subtitle, book.sections.first.subtitle);
     });
+
+    test('Large PDF base64 is safely excluded from standard toJson to protect 1MB Firestore limit', () {
+      final largeBase64 = 'A' * 2000000; // 2 MB string
+      final book = KonarBookModel.defaultOnlineDepartment().copyWith(
+        pdfBase64: largeBase64,
+        hasPdfAttachment: true,
+      );
+
+      final json = book.toJson(includePdfBase64: false);
+      expect(json.containsKey('pdfBase64'), isFalse);
+      expect(json['hasPdfAttachment'], isTrue);
+    });
   });
 
   group('Targeted Company Notification Tests', () {

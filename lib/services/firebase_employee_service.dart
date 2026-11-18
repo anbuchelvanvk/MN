@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -1487,13 +1488,106 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Persist KONAR Book changes to Cloud Firestore
-  Future<void> saveKonarBook(KonarBookModel book) async {
+  /// Persist KONAR Book changes to Cloud Firestore with automatic subcollection chunking for PDFs
+  Future<void> saveKonarBook(KonarBookModel book, {void Function(double progress)? onProgress}) async {
     if (!isFirebaseAvailable) return;
     try {
-      await _konarBooksCollection.doc(book.id).set(book.toJson(), SetOptions(merge: true));
+      final String? base64Data = book.pdfBase64;
+      final bool hasNewPdf = base64Data != null && base64Data.isNotEmpty;
+
+      int totalChunks = book.totalPdfChunks ?? 0;
+      int fileSize = book.pdfFileSize ?? 0;
+
+      if (hasNewPdf) {
+        fileSize = base64Data.length;
+        // 400 KB per chunk (approx 409,600 chars), safely under Firestore's 1 MB limit per document
+        const int chunkSize = 400 * 1024;
+        totalChunks = (base64Data.length / chunkSize).ceil();
+
+        final chunksRef = _konarBooksCollection.doc(book.id).collection('pdf_chunks');
+
+        // Delete any existing chunks first to prevent stale residue
+        try {
+          final oldChunks = await chunksRef.get();
+          if (oldChunks.docs.isNotEmpty) {
+            final deleteBatch = _firestore.batch();
+            for (final doc in oldChunks.docs) {
+              deleteBatch.delete(doc.reference);
+            }
+            await deleteBatch.commit();
+          }
+        } catch (e) {
+          debugPrint('Note clearing old pdf_chunks: $e');
+        }
+
+        // Write chunks in small batches of 4 (approx 1.6 MB per batch, well under Firestore's 10 MB payload limit)
+        const int batchSize = 4;
+        for (int i = 0; i < totalChunks; i += batchSize) {
+          final batch = _firestore.batch();
+          final end = (i + batchSize < totalChunks) ? i + batchSize : totalChunks;
+
+          for (int j = i; j < end; j++) {
+            final startIdx = j * chunkSize;
+            final endIdx = (startIdx + chunkSize < base64Data.length)
+                ? startIdx + chunkSize
+                : base64Data.length;
+            final chunkStr = base64Data.substring(startIdx, endIdx);
+
+            final chunkDoc = chunksRef.doc('chunk_$j');
+            batch.set(chunkDoc, {
+              'index': j,
+              'data': chunkStr,
+              'size': chunkStr.length,
+              'total': totalChunks,
+            });
+          }
+
+          await batch.commit();
+
+          if (onProgress != null) {
+            onProgress(end / totalChunks);
+          }
+        }
+      }
+
+      // Save main book metadata (WITHOUT large base64 payload to prevent 1MB overflow)
+      final bookData = book.toJson(includePdfBase64: false);
+      bookData.remove('pdfBase64');
+      bookData['hasPdfAttachment'] = hasNewPdf || book.hasPdfAttachment;
+      bookData['totalPdfChunks'] = totalChunks > 0 ? totalChunks : book.totalPdfChunks;
+      bookData['pdfFileSize'] = fileSize > 0 ? fileSize : book.pdfFileSize;
+
+      await _konarBooksCollection.doc(book.id).set(bookData, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore saveKonarBook error: $e');
+      rethrow;
+    }
+  }
+
+  /// Load and assemble PDF binary bytes from chunked Firestore subcollection
+  Future<Uint8List?> loadKonarBookPdfBytes(String bookId) async {
+    if (!isFirebaseAvailable) return null;
+    try {
+      final chunksRef = _konarBooksCollection.doc(bookId).collection('pdf_chunks');
+      final snapshot = await chunksRef.orderBy('index').get();
+
+      if (snapshot.docs.isEmpty) return null;
+
+      final buffer = StringBuffer();
+      for (final doc in snapshot.docs) {
+        final chunkData = doc.data()['data']?.toString() ?? '';
+        buffer.write(chunkData);
+      }
+
+      final fullBase64 = buffer.toString();
+      if (fullBase64.isEmpty) return null;
+
+      final commaIdx = fullBase64.indexOf(',');
+      final cleanBase64 = commaIdx != -1 ? fullBase64.substring(commaIdx + 1) : fullBase64;
+      return base64Decode(cleanBase64);
+    } catch (e) {
+      debugPrint('Firestore loadKonarBookPdfBytes error: $e');
+      return null;
     }
   }
 }
