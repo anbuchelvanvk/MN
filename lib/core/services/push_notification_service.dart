@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../views/chat/chat_conversation_screen.dart';
+import '../../views/konar/konar_book_detail_screen.dart';
 import '../widgets/company_notification_sheet.dart';
 
 @pragma('vm:entry-point')
@@ -92,6 +93,16 @@ class PushNotificationService {
             peerRole: peerRole,
             peerInitials: initials.isNotEmpty ? initials : '??',
             isGroup: isGroup,
+          ),
+        ),
+      );
+    } else if (cleanPayload.startsWith('konar_book:')) {
+      final rawDept = cleanPayload.substring(11).trim();
+      final dept = rawDept.contains(':') ? rawDept.split(':').last : rawDept;
+      navState.push(
+        MaterialPageRoute(
+          builder: (_) => KonarBookDetailScreen(
+            department: dept.isNotEmpty ? dept : 'Online Department',
           ),
         ),
       );

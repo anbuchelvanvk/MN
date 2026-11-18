@@ -8385,6 +8385,7 @@ class EcosystemProvider extends ChangeNotifier {
     KonarBookModel updatedBook, {
     required String updaterName,
     required String updaterRole,
+    String? updaterEmpId,
     void Function(double progress)? onProgress,
   }) async {
     final idx = _konarBooks.indexWhere((b) => b.id == updatedBook.id);
@@ -8398,22 +8399,75 @@ class EcosystemProvider extends ChangeNotifier {
     // 1. Save directly into Cloud Firestore with automatic chunking for PDFs
     await _firebaseEmployeeService.saveKonarBook(updatedBook, onProgress: onProgress);
 
-    // 2. Targeted Notification:
-    // Only Online Department employees + TL (Praveenkumar) + HR (Mohankumar) + CEO (Naveenraaj)
-    final targetIds = {
-      'MN-CEO01',
-      'MN-HR001',
-      'MN-TL1002',
-      'MN-EMP1003',
-      'MN-EMP1004',
-      'MN-EMP1005',
-      'MN-EMP1006',
-      'MN-EMP1007',
-      'MN-EMP1008',
-      'MN-EMP1009',
-      'MN-EMP1010',
-      'MN-EMP1011',
-    };
+    // 2. Targeted Push Notification Routing:
+    // Dynamic rule for Online Team or ANY future department added:
+    // - CEO always receives push notification (unless CEO was the updater)
+    // - HR always receives push notification (unless HR was the updater)
+    // - Department TL always receives push notification (unless TL was the updater)
+    // - All employees of that specific department receive push notification (unless that employee was the updater)
+    // - Never send push notification to other unrelated departments
+    // - Never send push notification to the updater / sender themselves
+    final String activeId = (updaterEmpId != null && updaterEmpId.isNotEmpty) ? updaterEmpId : _activeEmpId;
+    final String deptName = updatedBook.department.trim().toLowerCase();
+
+    final targetIds = <String>{};
+
+    // CEO
+    for (final e in _employees) {
+      if (e.isCeo || e.roleType.toLowerCase() == 'ceo' || e.id == 'MN-CEO01') {
+        targetIds.add(e.id);
+      }
+    }
+
+    // HR
+    for (final e in _employees) {
+      if (e.isHr || e.roleType.toLowerCase() == 'hr' || e.id == 'MN-HR001' || e.id == 'MN-HR1001' || e.id == '7') {
+        targetIds.add(e.id);
+        targetIds.add('MN-HR001');
+      }
+    }
+
+    // Department Team Leader(s) & Department Employees
+    for (final e in _employees) {
+      final empDept = e.dept.trim().toLowerCase();
+      final isMatchingDept = empDept == deptName ||
+          deptName.contains(empDept) ||
+          empDept.contains(deptName) ||
+          (deptName.contains('online') && (e.id == 'MN-TL1002' || e.isOtm || empDept.contains('online')));
+
+      if (isMatchingDept) {
+        targetIds.add(e.id);
+      }
+    }
+
+    if (deptName.contains('online')) {
+      targetIds.addAll([
+        'MN-TL1002',
+        'MN-EMP1003',
+        'MN-EMP1004',
+        'MN-EMP1005',
+        'MN-EMP1006',
+        'MN-EMP1007',
+        'MN-EMP1008',
+        'MN-EMP1009',
+        'MN-EMP1010',
+        'MN-EMP1011',
+      ]);
+    }
+
+    // Exclude the updater / sender themselves (never send notification to self)
+    targetIds.remove(activeId);
+    targetIds.remove(_activeEmpId);
+    if (activeId == 'MN-CEO01' || _activeEmpId == 'MN-CEO01') {
+      targetIds.remove('MN-CEO01');
+    }
+    if (activeId == 'MN-HR001' || activeId == 'MN-HR1001' || activeId == '7' ||
+        _activeEmpId == 'MN-HR001' || _activeEmpId == 'MN-HR1001' || _activeEmpId == '7') {
+      targetIds.removeAll({'MN-HR001', 'MN-HR1001', '7'});
+    }
+    if (activeId == 'MN-TL1002' || _activeEmpId == 'MN-TL1002') {
+      targetIds.remove('MN-TL1002');
+    }
 
     final notifId = 'NOTIF-KONAR-${DateTime.now().millisecondsSinceEpoch}';
     final notifTitle = '📘 ${updatedBook.department} KONAR Book Updated';
@@ -8436,13 +8490,13 @@ class EcosystemProvider extends ChangeNotifier {
       debugPrint('Firestore save konar notification note: $err');
     });
 
-    // If active employee is one of the targets, dispatch native push notification immediately
-    if (targetIds.contains(_activeEmpId)) {
+    // If active employee is one of the target recipients, dispatch instant native push notification
+    if (targetIds.contains(_activeEmpId) && _activeEmpId != activeId) {
       PushNotificationService().showNotification(
         id: notifId,
         title: notifTitle,
         body: notifContent,
-        payload: 'konar_book:${updatedBook.id}',
+        payload: 'konar_book:${updatedBook.department}',
       ).catchError((_) {});
     }
   }

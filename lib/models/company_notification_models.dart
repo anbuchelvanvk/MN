@@ -84,6 +84,7 @@ class CompanyNotification {
     List<String>? likedStaffIds,
     List<String>? dismissedByStaffIds,
     String? targetEmpId,
+    List<String>? targetEmpIds,
     List<NotificationComment>? comments,
   }) {
     return CompanyNotification(
@@ -100,6 +101,7 @@ class CompanyNotification {
       likedStaffIds: likedStaffIds ?? this.likedStaffIds,
       dismissedByStaffIds: dismissedByStaffIds ?? this.dismissedByStaffIds,
       targetEmpId: targetEmpId ?? this.targetEmpId,
+      targetEmpIds: targetEmpIds ?? this.targetEmpIds,
       comments: comments ?? this.comments,
     );
   }

@@ -213,52 +213,15 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 18),
 
-                  // Quick Action Buttons (Download PDF & Print/View)
+                  // Quick Summary of KONAR Book Header
                   Row(
                     children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _handleDownloadPdf(book),
-                          icon: const Icon(Icons.file_download_rounded, size: 18),
-                          label: const Text('Download PDF'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0F766E),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _handlePrintPdf(book),
-                          icon: const Icon(Icons.visibility_rounded, size: 17, color: Color(0xFF831843)),
-                          label: const Text('View / Print'),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
-                            backgroundColor: const Color(0xFFFDF2F8),
-                            foregroundColor: const Color(0xFF831843),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Chapters Section Header
-                  Row(
-                    children: [
-                      const Icon(Icons.auto_stories_rounded, size: 18, color: AppColors.magentaPrimary),
+                      const Icon(Icons.summarize_rounded, size: 18, color: AppColors.magentaPrimary),
                       const SizedBox(width: 8),
                       Text(
-                        'Standard Operating Chapters',
+                        'Quick Summary of KONAR Book',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -266,18 +229,132 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        '${book.sections.length} Chapters',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDF2F8),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFFBCFE8)),
+                        ),
+                        child: Text(
+                          '${book.sections.length} Summaries',
+                          style: const TextStyle(fontSize: 10.5, color: Color(0xFF831843), fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
 
-                  // Chapters List
+                  // Chapters / Summaries List
                   ...book.sections.map((section) => _buildChapterCard(section)),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
+
+                  // Lined Action Buttons at the End of Scrolling (View Full Book, Download Full Book, Share)
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x06000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.menu_book_rounded, size: 16, color: AppColors.magentaPrimary),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Official ${book.department} Manual (${book.version})',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            // View Full Book Button
+                            Expanded(
+                              flex: 3,
+                              child: OutlinedButton.icon(
+                                onPressed: () => _handlePrintPdf(book),
+                                icon: const Icon(Icons.visibility_rounded, size: 16, color: Color(0xFF831843)),
+                                label: const Text(
+                                  'View Full Book',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
+                                  backgroundColor: const Color(0xFFFDF2F8),
+                                  foregroundColor: const Color(0xFF831843),
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+
+                            // Download Full Book Button
+                            Expanded(
+                              flex: 4,
+                              child: ElevatedButton.icon(
+                                onPressed: () => _handleDownloadPdf(book),
+                                icon: const Icon(Icons.file_download_rounded, size: 17),
+                                label: const Text(
+                                  'Download Full Book',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF0F766E),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+
+                            // Share Button
+                            Container(
+                              height: 44,
+                              width: 44,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFFCBD5E1)),
+                              ),
+                              child: IconButton(
+                                tooltip: 'Share Book',
+                                onPressed: () => _handleSharePdf(book),
+                                icon: const Icon(Icons.share_rounded, size: 18, color: Color(0xFF334155)),
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -461,6 +538,31 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
       if (mounted) {
         setState(() => _isProcessing = false);
       }
+    }
+  }
+
+  Future<void> _handleSharePdf(KonarBookModel book) async {
+    setState(() {
+      _isProcessing = true;
+      _processingMessage = 'Preparing ${book.department} PDF for sharing...';
+    });
+    try {
+      final eco = context.read<EcosystemProvider>();
+      final file = await KonarPdfService.saveKonarPdfLocally(book, eco: eco);
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Official ${book.department} KONAR Book (${book.version}) - MN Jewel Park',
+        subject: '${book.department} Official KONAR Book',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to share PDF: $e')),
+      );
     }
   }
 
@@ -667,6 +769,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             updated,
                             updaterName: eco.currentEmployee.name,
                             updaterRole: eco.currentEmployee.role,
+                            updaterEmpId: eco.currentEmployee.id,
                             onProgress: (progress) {
                               if (mounted) {
                                 setState(() {
