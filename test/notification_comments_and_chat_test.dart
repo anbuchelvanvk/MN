@@ -130,7 +130,16 @@ void main() {
       final lastMsg = provider.getLastMessageWith('MN-TL1002');
       expect(lastMsg?.text, 'Praveen, please check order dispatch status.');
 
-      // Verify native push notification was recorded
+      // Verify sender does NOT receive self-notification
+      expect(PushNotificationService.testNotificationLog.isEmpty, isTrue);
+
+      // Verify recipient receives push notification when incoming message arrives
+      await PushNotificationService().showChatNotification(
+        id: lastMsg!.id,
+        senderName: lastMsg.senderName,
+        message: lastMsg.text,
+        isGroup: false,
+      );
       expect(PushNotificationService.testNotificationLog.isNotEmpty, isTrue);
       final push = PushNotificationService.testNotificationLog.last;
       expect(push['title'], contains('M N Naveenraaj'));
@@ -148,9 +157,9 @@ void main() {
       await provider.sendChatMessage(
         receiverId: 'MN-CEO01',
         text: 'All dispatched on schedule sir!',
-        replyToId: lastMsg?.id,
-        replyToSenderName: lastMsg?.senderName,
-        replyToText: lastMsg?.text,
+        replyToId: lastMsg.id,
+        replyToSenderName: lastMsg.senderName,
+        replyToText: lastMsg.text,
       );
 
       // Check conversation thread (should have 2 messages)

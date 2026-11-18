@@ -1,6 +1,30 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  try {
+    debugPrint('Background message received: ${message.messageId}');
+    final notification = message.notification;
+    final data = message.data;
+    final title = notification?.title ?? data['title'] ?? 'MN Family Alert';
+    final body = notification?.body ?? data['body'] ?? '';
+    final isChat = data['type'] == 'chat' || title.contains('💬');
+    if (body.isNotEmpty) {
+      await PushNotificationService().showNotification(
+        id: message.messageId ?? 'BG-${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        body: body,
+        isChat: isChat,
+      );
+    }
+  } catch (e) {
+    debugPrint('Background message error: $e');
+  }
+}
 
 /// PushNotificationService manages native device push notifications,
 /// ensuring alerts appear in the status bar and on the phone lock screen
@@ -80,6 +104,45 @@ class PushNotificationService {
             showBadge: true,
           );
           await androidPlugin.createNotificationChannel(chatChannel);
+        }
+      }
+
+      // Configure Firebase Cloud Messaging for Background & Closed App notifications
+      if (!kIsWeb) {
+        try {
+          if (Firebase.apps.isNotEmpty) {
+            FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+            final messaging = FirebaseMessaging.instance;
+            await messaging.requestPermission(
+              alert: true,
+              badge: true,
+              sound: true,
+            );
+            await messaging.setForegroundNotificationPresentationOptions(
+              alert: true,
+              badge: true,
+              sound: true,
+            );
+            FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+              final notification = message.notification;
+              final data = message.data;
+              final title = notification?.title ?? data['title'] ?? 'MN Family Alert';
+              final body = notification?.body ?? data['body'] ?? '';
+              final isChat = data['type'] == 'chat' || title.contains('💬');
+              if (body.isNotEmpty) {
+                showNotification(
+                  id: message.messageId ?? 'FG-${DateTime.now().millisecondsSinceEpoch}',
+                  title: title,
+                  body: body,
+                  isChat: isChat,
+                );
+              }
+            });
+            // Subscribe to workforce broadcast topic
+            await messaging.subscribeToTopic('mn_workforce');
+          }
+        } catch (fcmError) {
+          debugPrint('FirebaseMessaging initialization note: $fcmError');
         }
       }
 

@@ -1176,6 +1176,7 @@ class EcosystemProvider extends ChangeNotifier {
       )
       .length;
   final Set<String> _notifiedCompanyNotifIds = {};
+  bool _initialCompanyNotifsLoaded = false;
   int _notifSequence = 0;
 
   // Personal Notes (Strictly private & confidential per active user)
@@ -1194,6 +1195,14 @@ class EcosystemProvider extends ChangeNotifier {
   void _syncAndPushIncomingNotifications(
     List<CompanyNotification> remoteNotifs,
   ) {
+    if (!_initialCompanyNotifsLoaded) {
+      for (final notif in remoteNotifs) {
+        _notifiedCompanyNotifIds.add(notif.id);
+      }
+      _initialCompanyNotifsLoaded = true;
+      return;
+    }
+
     for (final notif in remoteNotifs) {
       if (!_notifiedCompanyNotifIds.contains(notif.id)) {
         _notifiedCompanyNotifIds.add(notif.id);
@@ -3872,8 +3881,8 @@ class EcosystemProvider extends ChangeNotifier {
     // Online Orders Handler (Clean state: only real data created or streamed from Firestore)
     _onlineOrders = [];
 
-    // Real-time Workforce Chat Engine
-    _chatMessages = _seedInitialChatMessages();
+    // Real-time Workforce Chat Engine (Clean state: only real messages sent by users or streamed from Firestore)
+    _chatMessages = [];
 
     // Pre-seed Google Sheets HR Attendance data with official November ledger
     _hrAttendanceSheet =
@@ -7127,17 +7136,6 @@ class EcosystemProvider extends ChangeNotifier {
     _notifiedChatMessageIds.add(newMsg.id);
     notifyListeners();
 
-    // Instant local push notification like WhatsApp in outside notification drawer
-    PushNotificationService().showChatNotification(
-      id: newMsg.id,
-      senderName: newMsg.senderName,
-      message: newMsg.text,
-      isGroup: newMsg.isAllHands,
-      payload: 'chat:${newMsg.receiverId}',
-    ).catchError((err) {
-      debugPrint('Push notification chat dispatch note: $err');
-    });
-
     _saveChatsToLocal();
     _firebaseEmployeeService.saveChatMessage(newMsg).catchError((err) {
       debugPrint('Firestore saveChatMessage note: $err');
@@ -7206,6 +7204,9 @@ class EcosystemProvider extends ChangeNotifier {
           final loaded = decoded
               .map((e) =>
                   ChatMessage.fromJson(Map<String, dynamic>.from(e as Map)))
+              .where((m) =>
+                  !m.id.startsWith('SEED-MSG') &&
+                  !m.text.contains('Online Department is active'))
               .toList();
           _chatMessages = loaded;
           notifyListeners();
@@ -7219,76 +7220,17 @@ class EcosystemProvider extends ChangeNotifier {
   Future<void> _saveChatsToLocal() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final cleanMsgs = _chatMessages
+          .where((m) =>
+              !m.id.startsWith('SEED-MSG') &&
+              !m.text.contains('Online Department is active'))
+          .toList();
       final encoded =
-          jsonEncode(_chatMessages.map((m) => m.toJson()).toList());
+          jsonEncode(cleanMsgs.map((m) => m.toJson()).toList());
       await prefs.setString(_chatsStorageKey, encoded);
     } catch (e) {
       debugPrint('Error saving chats: $e');
     }
-  }
-
-  List<ChatMessage> _seedInitialChatMessages() {
-    final now = DateTime.now();
-    return [
-      ChatMessage(
-        id: 'SEED-MSG-1',
-        senderId: 'MN-CEO01',
-        senderName: 'M N Naveenraaj',
-        senderRole: 'Managing Director & CEO',
-        receiverId: 'ALL_HANDS',
-        text:
-            'Welcome team to the MN Jewel Park collaborative portal! Let us maintain focus across all 4 Pillars today.',
-        timestamp: now.subtract(const Duration(hours: 3)),
-        readBy: ['MN-CEO01'],
-        likedBy: ['7', 'MN-TL1002'],
-      ),
-      ChatMessage(
-        id: 'SEED-MSG-2',
-        senderId: '7',
-        senderName: 'Mohankumar G',
-        senderRole: 'HR Manager',
-        receiverId: 'ALL_HANDS',
-        text:
-            'Good day all. Please ensure your daily attendance check-ins and health logs are updated on time.',
-        timestamp: now.subtract(const Duration(hours: 2)),
-        readBy: ['7'],
-        likedBy: ['MN-TL1002'],
-      ),
-      ChatMessage(
-        id: 'SEED-MSG-3',
-        senderId: 'MN-TL1002',
-        senderName: 'Praveenkumar M',
-        senderRole: 'Team Lead',
-        receiverId: 'ALL_HANDS',
-        text:
-            'Online Department is active. Customer inquiries and jewelry catalogue orders are being processed efficiently.',
-        timestamp: now.subtract(const Duration(hours: 1)),
-        readBy: ['MN-TL1002'],
-        likedBy: ['MN-CEO01'],
-      ),
-      ChatMessage(
-        id: 'SEED-MSG-4',
-        senderId: 'MN-CEO01',
-        senderName: 'M N Naveenraaj',
-        senderRole: 'Managing Director & CEO',
-        receiverId: 'MN-TL1002',
-        text:
-            'Praveenkumar, please review the online catalog requests with the team today.',
-        timestamp: now.subtract(const Duration(minutes: 45)),
-        readBy: ['MN-CEO01', 'MN-TL1002'],
-      ),
-      ChatMessage(
-        id: 'SEED-MSG-5',
-        senderId: 'MN-TL1002',
-        senderName: 'Praveenkumar M',
-        senderRole: 'Team Lead',
-        receiverId: 'MN-CEO01',
-        text:
-            'Yes sir, reviewing now. All orders and customer queries are on schedule.',
-        timestamp: now.subtract(const Duration(minutes: 30)),
-        readBy: ['MN-TL1002', 'MN-CEO01'],
-      ),
-    ];
   }
 
   // --- Personal Notes Storage & Actions (100% private to _activeEmpId) ---

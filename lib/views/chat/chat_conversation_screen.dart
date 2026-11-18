@@ -61,8 +61,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       );
     }
 
-    _textController.addListener(_onTextChanged);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final eco = Provider.of<EcosystemProvider>(context, listen: false);
       eco.markConversationAsRead(widget.peerId);
@@ -72,22 +70,22 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
   @override
   void dispose() {
-    _textController.removeListener(_onTextChanged);
     _textController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  void _onTextChanged() {
+  void _onTextChanged([String? _]) {
     final text = _textController.text;
     final selection = _textController.selection;
-    if (selection.baseOffset <= 0) {
+    final cursorOffset = selection.baseOffset >= 0 ? selection.baseOffset : text.length;
+    if (cursorOffset <= 0) {
       if (_showMentionSuggestions) setState(() => _showMentionSuggestions = false);
       return;
     }
 
-    final textBeforeCursor = text.substring(0, selection.baseOffset);
+    final textBeforeCursor = text.substring(0, cursorOffset);
     final lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
     if (lastAtIndex != -1) {
@@ -102,10 +100,12 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
               e.straightCutRole.toLowerCase().contains(q);
         }).toList();
 
-        setState(() {
-          _mentionMatches = matches;
-          _showMentionSuggestions = matches.isNotEmpty;
-        });
+        if (!_showMentionSuggestions || _mentionMatches.length != matches.length) {
+          setState(() {
+            _mentionMatches = matches;
+            _showMentionSuggestions = matches.isNotEmpty;
+          });
+        }
         return;
       }
     }
@@ -118,18 +118,19 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   void _insertMention(Employee emp) {
     final text = _textController.text;
     final selection = _textController.selection;
-    final textBeforeCursor = text.substring(0, selection.baseOffset);
+    final cursorOffset = selection.baseOffset >= 0 ? selection.baseOffset : text.length;
+    final textBeforeCursor = text.substring(0, cursorOffset);
     final lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
     if (lastAtIndex != -1) {
       final beforeAt = text.substring(0, lastAtIndex);
-      final afterCursor = text.substring(selection.baseOffset);
+      final afterCursor = text.substring(cursorOffset);
       final inserted = '@${emp.name} ';
       final newText = '$beforeAt$inserted$afterCursor';
 
-      _textController.text = newText;
-      _textController.selection = TextSelection.fromPosition(
-        TextPosition(offset: beforeAt.length + inserted.length),
+      _textController.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: beforeAt.length + inserted.length),
       );
     }
 
@@ -490,88 +491,101 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
   Widget _buildMentionSuggestionsBar() {
     return Container(
-      constraints: const BoxConstraints(maxHeight: 140),
+      constraints: const BoxConstraints(maxHeight: 180),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, -3),
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            child: Row(
-              children: [
-                const Icon(Icons.alternate_email_rounded, size: 14, color: AppColors.magentaPrimary),
-                const SizedBox(width: 4),
-                const Text(
-                  'Mention Colleague',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
-                ),
-                const Spacer(),
-                InkWell(
-                  onTap: () => setState(() => _showMentionSuggestions = false),
-                  child: const Icon(Icons.close, size: 14, color: Color(0xFF94A3B8)),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              itemCount: _mentionMatches.length,
-              itemBuilder: (context, idx) {
-                final emp = _mentionMatches[idx];
-                final initials = emp.name.isNotEmpty
-                    ? emp.name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
-                    : '??';
-
-                return InkWell(
-                  onTap: () => _insertMention(emp),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: const Color(0xFF475569),
-                          child: Text(
-                            initials,
-                            style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            emp.name,
-                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          emp.straightCutRole,
-                          style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8)),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              color: const Color(0xFFF8FAFC),
+              child: Row(
+                children: [
+                  const Icon(Icons.alternate_email_rounded, size: 14, color: AppColors.magentaPrimary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Mention Colleague',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.magentaPrimary,
                     ),
                   ),
-                );
-              },
+                  const Spacer(),
+                  InkWell(
+                    onTap: () => setState(() => _showMentionSuggestions = false),
+                    child: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF94A3B8)),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            Flexible(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                shrinkWrap: true,
+                itemCount: _mentionMatches.length,
+                itemBuilder: (context, idx) {
+                  final emp = _mentionMatches[idx];
+                  final initials = emp.name.isNotEmpty
+                      ? emp.name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
+                      : '??';
+
+                  return InkWell(
+                    onTap: () => _insertMention(emp),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: AppColors.magentaPrimary.withOpacity(0.12),
+                            child: Text(
+                              initials,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppColors.magentaPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              emp.name,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -709,11 +723,11 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         const SizedBox(width: 5),
                         Expanded(
                           child: Text(
-                            widget.peerRole,
-                            style: const TextStyle(
+                            widget.isGroup ? widget.peerRole : 'Active Now',
+                            style: TextStyle(
                               fontSize: 10.5,
-                              color: Color(0xFF64748B),
-                              fontWeight: FontWeight.w500,
+                              color: widget.isGroup ? const Color(0xFF64748B) : const Color(0xFF10B981),
+                              fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -746,7 +760,9 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           const SizedBox(width: 6),
         ],
       ),
-      body: Column(
+      body: Stack(
+        children: [
+          Column(
         children: [
           // Banner for All-Hands group
           if (widget.isGroup)
@@ -1071,9 +1087,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   ),
           ),
 
-          // Mentions autocomplete popup
-          if (_showMentionSuggestions && _mentionMatches.isNotEmpty)
-            _buildMentionSuggestionsBar(),
 
           // Quoted reply banner above input bar
           if (_replyingTo != null)
@@ -1139,6 +1152,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         _textController.selection = TextSelection.fromPosition(
                           TextPosition(offset: _textController.text.length),
                         );
+                        _onTextChanged();
                         _focusNode.requestFocus();
                       },
                       borderRadius: BorderRadius.circular(14),
@@ -1227,6 +1241,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                         ),
+                        onChanged: _onTextChanged,
                         onSubmitted: (_) => _sendMessage(eco),
                       ),
                     ),
@@ -1278,6 +1293,17 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           ),
         ],
       ),
-    );
+
+      // Mentions autocomplete popup floating safely above input bar
+      if (_showMentionSuggestions && _mentionMatches.isNotEmpty)
+        Positioned(
+          left: 10,
+          right: 10,
+          bottom: 96 + (_replyingTo != null ? 48 : 0),
+          child: _buildMentionSuggestionsBar(),
+        ),
+    ],
+  ),
+);
   }
 }
