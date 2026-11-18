@@ -7,6 +7,73 @@ import '../../models/chat_message_model.dart';
 import '../../models/employee_model.dart';
 import '../../providers/ecosystem_provider.dart';
 
+/// Custom TextEditingController that dynamically styles mentioned names in signature Magenta
+class MentionTextEditingController extends TextEditingController {
+  final List<String> Function() getEmployeeNames;
+
+  MentionTextEditingController({
+    super.text,
+    required this.getEmployeeNames,
+  });
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final text = this.text;
+    if (!text.contains('@')) {
+      return TextSpan(text: text, style: style);
+    }
+
+    final spans = <TextSpan>[];
+    final defaultStyle = style ?? const TextStyle(fontSize: 13.5, color: AppColors.textDark);
+    final mentionStyle = defaultStyle.copyWith(
+      color: AppColors.magentaPrimary,
+      fontWeight: FontWeight.bold,
+      backgroundColor: const Color(0xFFFDF2F8),
+    );
+
+    final rawNames = getEmployeeNames();
+    final names = rawNames
+        .where((n) => n.trim().isNotEmpty)
+        .toList()
+      ..sort((a, b) => b.length.compareTo(a.length)); // Longest names first
+
+    final patternParts = <String>[];
+    for (final name in names) {
+      patternParts.add('@${RegExp.escape(name)}');
+    }
+    patternParts.add(r'@[A-Za-z0-9_]+');
+    final regex = RegExp('(${patternParts.join('|')})');
+
+    int lastIndex = 0;
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: text.substring(lastIndex, match.start),
+          style: defaultStyle,
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(0),
+        style: mentionStyle,
+      ));
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastIndex),
+        style: defaultStyle,
+      ));
+    }
+
+    return TextSpan(children: spans);
+  }
+}
+
 class ChatConversationScreen extends StatefulWidget {
   final String peerId; // 'ALL_HANDS' or specific employeeId
   final String peerName;
@@ -30,7 +97,7 @@ class ChatConversationScreen extends StatefulWidget {
 }
 
 class _ChatConversationScreenState extends State<ChatConversationScreen> {
-  final TextEditingController _textController = TextEditingController();
+  late final MentionTextEditingController _textController;
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   bool _isSending = false;
@@ -54,8 +121,16 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   @override
   void initState() {
     super.initState();
+    _textController = MentionTextEditingController(
+      text: widget.initialText ?? '',
+      getEmployeeNames: () {
+        if (!mounted) return [];
+        final eco = Provider.of<EcosystemProvider>(context, listen: false);
+        return eco.allEmployees.map((e) => e.name).toList();
+      },
+    );
+
     if (widget.initialText != null && widget.initialText!.isNotEmpty) {
-      _textController.text = widget.initialText!;
       _textController.selection = TextSelection.fromPosition(
         TextPosition(offset: _textController.text.length),
       );
@@ -590,7 +665,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     );
   }
 
-  Widget _buildMessageText(String text, bool isMe) {
+  Widget _buildMessageText(String text, bool isMe, List<String> employeeNames) {
     if (!text.contains('@')) {
       return Text(
         text,
@@ -603,28 +678,50 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     }
 
     final spans = <TextSpan>[];
-    final words = text.split(' ');
+    final defaultStyle = TextStyle(
+      fontSize: 13,
+      color: isMe ? Colors.white : AppColors.textDark,
+      height: 1.35,
+    );
+    final mentionStyle = TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.bold,
+      color: isMe ? const Color(0xFFFDE68A) : AppColors.magentaPrimary,
+      backgroundColor: isMe ? Colors.white.withOpacity(0.18) : const Color(0xFFFDF2F8),
+    );
 
-    for (int i = 0; i < words.length; i++) {
-      final w = words[i];
-      final isMention = w.startsWith('@');
-      spans.add(
-        TextSpan(
-          text: i == words.length - 1 ? w : '$w ',
-          style: isMention
-              ? TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: isMe ? const Color(0xFFFDE68A) : AppColors.magentaPrimary,
-                  backgroundColor: isMe ? Colors.white.withOpacity(0.12) : const Color(0xFFFDF2F8),
-                )
-              : TextStyle(
-                  fontSize: 13,
-                  color: isMe ? Colors.white : AppColors.textDark,
-                  height: 1.35,
-                ),
-        ),
-      );
+    final names = employeeNames
+        .where((n) => n.trim().isNotEmpty)
+        .toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+
+    final patternParts = <String>[];
+    for (final name in names) {
+      patternParts.add('@${RegExp.escape(name)}');
+    }
+    patternParts.add(r'@[A-Za-z0-9_]+');
+    final regex = RegExp('(${patternParts.join('|')})');
+
+    int lastIndex = 0;
+    for (final match in regex.allMatches(text)) {
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: text.substring(lastIndex, match.start),
+          style: defaultStyle,
+        ));
+      }
+      spans.add(TextSpan(
+        text: match.group(0),
+        style: mentionStyle,
+      ));
+      lastIndex = match.end;
+    }
+
+    if (lastIndex < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastIndex),
+        style: defaultStyle,
+      ));
     }
 
     return RichText(text: TextSpan(children: spans));
@@ -982,7 +1079,11 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                       const SizedBox(height: 4),
                                     ],
 
-                                    _buildMessageText(msg.text, isMe),
+                                    _buildMessageText(
+                                      msg.text,
+                                      isMe,
+                                      eco.allEmployees.map((e) => e.name).toList(),
+                                    ),
                                     const SizedBox(height: 4),
                                     Row(
                                       mainAxisSize: MainAxisSize.min,

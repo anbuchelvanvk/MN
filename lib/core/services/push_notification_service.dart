@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -253,5 +254,69 @@ class PushNotificationService {
   /// Reset testing logs
   static void clearTestLogs() {
     testNotificationLog.clear();
+  }
+
+  static const MethodChannel _backgroundChannel =
+      MethodChannel('com.mnjewelpark.mn_family_app/background_permissions');
+
+  /// Check whether battery optimization is ignored (unrestricted background)
+  Future<bool> isBatteryOptimizationIgnored() async {
+    if (kIsWeb || !Platform.isAndroid) return true;
+    try {
+      final res = await _backgroundChannel.invokeMethod<bool>('isBatteryOptimizationIgnored');
+      return res ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Request exemption from battery optimizations (pops Android system dialog)
+  Future<bool> requestIgnoreBatteryOptimizations() async {
+    if (kIsWeb || !Platform.isAndroid) return true;
+    try {
+      final res = await _backgroundChannel.invokeMethod<bool>('requestIgnoreBatteryOptimizations');
+      return res ?? false;
+    } catch (e) {
+      debugPrint('Battery optimization request note: $e');
+      return false;
+    }
+  }
+
+  /// Sync active logged-in employee ID to Android native preferences
+  Future<void> syncActiveUserToNative(String empId, String empName) async {
+    if (kIsWeb || !Platform.isAndroid) return;
+    try {
+      await _backgroundChannel.invokeMethod('syncActiveUser', {
+        'empId': empId,
+        'empName': empName,
+      });
+    } catch (e) {
+      debugPrint('Sync active user to native note: $e');
+    }
+  }
+
+  /// Start 24/7 background keep-alive sync
+  Future<void> startBackgroundSync() async {
+    if (kIsWeb || !Platform.isAndroid) return;
+    try {
+      await _backgroundChannel.invokeMethod('startBackgroundSync');
+    } catch (e) {
+      debugPrint('Start background sync note: $e');
+    }
+  }
+
+  /// Request all prior permissions (Notifications + Battery Exemption + Native Sync)
+  Future<void> requestAllPriorPermissions({String? empId, String? empName}) async {
+    await initialize();
+    if (!kIsWeb && Platform.isAndroid) {
+      final isIgnored = await isBatteryOptimizationIgnored();
+      if (!isIgnored) {
+        await requestIgnoreBatteryOptimizations();
+      }
+      if (empId != null && empId.isNotEmpty) {
+        await syncActiveUserToNative(empId, empName ?? empId);
+      }
+      await startBackgroundSync();
+    }
   }
 }

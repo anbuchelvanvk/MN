@@ -26,8 +26,8 @@ void main() async {
   // Initialize Network Connectivity Monitoring
   NetworkConnectivityService().initialize();
 
-  // Initialize Native Push Notifications with Lock Screen visibility
-  await PushNotificationService().initialize();
+  // Initialize Native Push Notifications & Request 24/7 Background Exemption Permissions
+  await PushNotificationService().requestAllPriorPermissions();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

@@ -4833,6 +4833,9 @@ class EcosystemProvider extends ChangeNotifier {
   void setActiveEmpId(String empId) {
     _activeEmpId = empId;
     loadEmployeeFourPillars(empId);
+    try {
+      PushNotificationService().syncActiveUserToNative(empId, currentEmployee.name);
+    } catch (_) {}
     notifyListeners();
   }
 
@@ -5145,6 +5148,12 @@ class EcosystemProvider extends ChangeNotifier {
         );
         await loadEmployeeFourPillars(reg.empId);
         checkAndResetDailySops();
+        try {
+          PushNotificationService().requestAllPriorPermissions(
+            empId: reg.empId,
+            empName: currentEmployee.name,
+          );
+        } catch (_) {}
         notifyListeners();
         return _activeRole;
       } else {
@@ -5191,6 +5200,12 @@ class EcosystemProvider extends ChangeNotifier {
         );
         await loadEmployeeFourPillars(emp.id);
         checkAndResetDailySops();
+        try {
+          PushNotificationService().requestAllPriorPermissions(
+            empId: emp.id,
+            empName: currentEmployee.name,
+          );
+        } catch (_) {}
         notifyListeners();
         return _activeRole;
       } else {

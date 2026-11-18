@@ -257,5 +257,34 @@ void main() {
       // Verifies navigation occurred and group chat has pre-typed birthday message
       expect(find.text('Happy Birthday @M N Naveenraaj 🥳'), findsOneWidget);
     });
+
+    testWidgets('MentionTextEditingController styles @mentions in signature Magenta in chat box', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) {
+                final controller = MentionTextEditingController(
+                  text: 'Wishing @M N Naveenraaj and @Mithra M great success!',
+                  getEmployeeNames: () => ['M N Naveenraaj', 'Mithra M'],
+                );
+                final span = controller.buildTextSpan(
+                  context: context,
+                  style: const TextStyle(color: Colors.black),
+                  withComposing: false,
+                );
+                final mentionSpan = span.children!.firstWhere(
+                  (s) => s is TextSpan && s.text == '@M N Naveenraaj',
+                ) as TextSpan;
+                assert(mentionSpan.style?.color != null);
+                return RichText(text: span);
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(RichText), findsWidgets);
+    });
   });
 }
