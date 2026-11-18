@@ -65,7 +65,12 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
 
   @override
   Widget build(BuildContext context) {
-    final message = widget.celebrations.map((c) => c.message).join('    ✨    ');
+    final eco = context.watch<EcosystemProvider>();
+    final activeId = eco.activeEmpId;
+    final activeName = eco.currentEmployee.name;
+    final message = widget.celebrations
+        .map((c) => c.displayMessage(activeId, activeName))
+        .join('    ✨    ');
 
     return Container(
       width: double.infinity,

@@ -1241,10 +1241,14 @@ class EcosystemProvider extends ChangeNotifier {
       if (_matchesMonthAndDay(emp.dob, now)) {
         events.add(
           CelebrationEvent(
+            employeeId: emp.id,
             employeeName: emp.name,
+            isFemale: emp.isFemale,
             type: 'birthday',
             message:
                 '🎉 Happy Birthday ${emp.name}! May all your dreams come true! 🎂',
+            othersMessage:
+                '🎉 Today is ${emp.name}\'s Birthday, wish ${emp.isFemale ? "her" : "him"} the best! 🎂',
             date: '${now.day}/${now.month}',
           ),
         );
@@ -1252,10 +1256,14 @@ class EcosystemProvider extends ChangeNotifier {
       if (_matchesMonthAndDay(emp.anniversaryDate, now)) {
         events.add(
           CelebrationEvent(
+            employeeId: emp.id,
             employeeName: emp.name,
+            isFemale: emp.isFemale,
             type: 'anniversary',
             message:
                 '💍 Happy Wedding Anniversary ${emp.name}! Wishing you a lifetime of joy and togetherness! 💐',
+            othersMessage:
+                '💍 Today is ${emp.name}\'s Wedding Anniversary, wish them the best! 💐',
             date: '${now.day}/${now.month}',
           ),
         );
@@ -1282,14 +1290,14 @@ class EcosystemProvider extends ChangeNotifier {
       PushNotificationService().showNotification(
         id: 'CELEB-${event.type}-${event.employeeName.hashCode}',
         title: notifTitle,
-        body: event.message,
+        body: event.othersMessage,
         payload: 'celebration_event',
       );
 
       final newNotif = CompanyNotification(
         id: 'NOTIF-CELEB-${DateTime.now().millisecondsSinceEpoch}-${event.employeeName.hashCode}',
         title: notifTitle,
-        content: event.message,
+        content: event.othersMessage,
         type: event.type == 'birthday'
             ? CompanyNotificationType.birthday
             : CompanyNotificationType.anniversary,

@@ -226,15 +226,41 @@ class CompanyNotification {
 }
 
 class CelebrationEvent {
+  final String employeeId;
   final String employeeName;
+  final bool isFemale;
   final String type; // 'birthday' or 'anniversary'
-  final String message;
+  final String message; // Personalized message for the celebrant
+  final String othersMessage; // Broadcast message for colleagues
   final String date;
 
   CelebrationEvent({
+    this.employeeId = '',
     required this.employeeName,
+    this.isFemale = false,
     required this.type,
     required this.message,
+    String? othersMessage,
     required this.date,
-  });
+  }) : othersMessage = othersMessage ??
+            (type == 'birthday'
+                ? "🎉 Today is $employeeName's Birthday, wish ${isFemale ? 'her' : 'him'} the best! 🎂"
+                : "💍 Today is $employeeName's Wedding Anniversary, wish them the best! 💐");
+
+  /// Dynamically selects the display message based on whether the logged in user
+  /// is the celebrant or a colleague.
+  String displayMessage(String activeEmpId, String activeEmpName) {
+    final cleanActiveId = activeEmpId.trim().toLowerCase();
+    final cleanEmpId = employeeId.trim().toLowerCase();
+    final cleanActiveName = activeEmpName.trim().toLowerCase();
+    final cleanEmpName = employeeName.trim().toLowerCase();
+
+    final bool isSelf = (cleanEmpId.isNotEmpty && cleanActiveId == cleanEmpId) ||
+        (cleanEmpName.isNotEmpty &&
+            (cleanActiveName == cleanEmpName ||
+                cleanActiveName.contains(cleanEmpName) ||
+                cleanEmpName.contains(cleanActiveName)));
+
+    return isSelf ? message : othersMessage;
+  }
 }
