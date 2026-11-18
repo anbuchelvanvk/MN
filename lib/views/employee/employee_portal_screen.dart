@@ -19,6 +19,7 @@ import 'employee_profile_screen.dart';
 import 'employee_subpages.dart';
 import '../orders/online_orders_handler_screen.dart';
 import '../notes/personal_notes_screen.dart';
+import '../chat/chat_hub_screen.dart';
 
 class EmployeePortalScreen extends StatefulWidget {
   const EmployeePortalScreen({super.key});
@@ -308,6 +309,21 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                 const SizedBox(height: 12),
                 Column(
                   children: [
+                    _verticalActionTile(
+                      'Team Chat',
+                      Icons.chat_bubble_outline_rounded,
+                      eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : '',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
+                            value: eco,
+                            child: const ChatHubScreen(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     _verticalActionTile(
                       'Things To Do',
                       Icons.checklist,

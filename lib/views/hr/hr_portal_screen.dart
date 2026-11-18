@@ -15,6 +15,7 @@ import '../employee/employee_profile_screen.dart';
 import 'hr_management_widgets.dart';
 import 'hr_portal_subpages.dart';
 import '../notes/personal_notes_screen.dart';
+import '../chat/chat_hub_screen.dart';
 
 class HrPortalScreen extends StatefulWidget {
   const HrPortalScreen({super.key});
@@ -207,6 +208,14 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                     const SizedBox(height: 12),
                     Column(
                       children: [
+                        _portalDirectAccessTile(
+                          context: context,
+                          label: 'Team Chat',
+                          icon: Icons.chat_bubble_outline_rounded,
+                          badge: eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : '',
+                          destination: const ChatHubScreen(),
+                        ),
+                        const SizedBox(height: 8),
                         _portalDirectAccessTile(
                           context: context,
                           label: 'Staff Directory',

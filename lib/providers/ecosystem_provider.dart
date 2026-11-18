@@ -16,6 +16,7 @@ import '../models/konar_tasks_catalog.dart';
 import '../models/social_cause_models.dart';
 import '../models/company_notification_models.dart';
 import '../models/personal_note_model.dart';
+import '../models/chat_message_model.dart';
 import '../models/hr_attendance_sheet_models.dart';
 import '../models/acceptance_notification_model.dart';
 import '../services/google_sheets_attendance_service.dart';
@@ -2846,8 +2847,12 @@ class EcosystemProvider extends ChangeNotifier {
   StreamSubscription<List<CompanyNotification>>? _notificationsSubscription;
   StreamSubscription<List<TaskItem>>? _personalTodosSubscription;
   StreamSubscription<List<OnlineOrderModel>>? _onlineOrdersSubscription;
+  StreamSubscription<List<ChatMessage>>? _chatMessagesSubscription;
   bool _firebaseSyncActive = false;
   bool get firebaseSyncActive => _firebaseSyncActive;
+
+  // Real-time Workforce Chat Engine
+  List<ChatMessage> _chatMessages = [];
 
   // Online Orders Workflow Engine (OS1 & OS2 Handler)
   List<OnlineOrderModel> _onlineOrders = [];
@@ -3002,6 +3007,7 @@ class EcosystemProvider extends ChangeNotifier {
   EcosystemProvider() {
     _initData();
     _loadLocalPersonalNotesAndDismissed();
+    _loadLocalChats();
     _initFirebaseSync();
     checkAndDispatchCelebrations();
     _startMidnightCelebrationTimer();
@@ -3228,6 +3234,30 @@ class EcosystemProvider extends ChangeNotifier {
           );
     } catch (e) {
       debugPrint('Firestore online orders stream error: $e');
+    }
+
+    try {
+      _chatMessagesSubscription = _firebaseEmployeeService
+          .streamChatMessages()
+          .listen(
+            (remoteMsgs) {
+              if (remoteMsgs.isNotEmpty) {
+                final remoteIds = remoteMsgs.map((m) => m.id).toSet();
+                final localOnly = _chatMessages
+                    .where((m) => !remoteIds.contains(m.id))
+                    .toList();
+                final merged = [...remoteMsgs, ...localOnly];
+                merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+                _chatMessages = merged;
+                notifyListeners();
+              }
+            },
+            onError: (err) {
+              debugPrint('Firestore chat stream note: $err');
+            },
+          );
+    } catch (e) {
+      debugPrint('Firestore chat stream error: $e');
     }
   }
 
@@ -3806,6 +3836,9 @@ class EcosystemProvider extends ChangeNotifier {
 
     // Online Orders Handler (Clean state: only real data created or streamed from Firestore)
     _onlineOrders = [];
+
+    // Real-time Workforce Chat Engine
+    _chatMessages = _seedInitialChatMessages();
 
     // Pre-seed Google Sheets HR Attendance data with official November ledger
     _hrAttendanceSheet =
@@ -6887,6 +6920,324 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  // --- Universal Notification Comments & Comment Likes ---
+  Future<void> addNotificationComment(String notifId, String text) async {
+    final cleanText = text.trim();
+    if (cleanText.isEmpty) return;
+
+    final idx = _companyNotifications.indexWhere((n) => n.id == notifId);
+    if (idx == -1) return;
+
+    final notif = _companyNotifications[idx];
+    final currentEmp = currentEmployee;
+    final newComment = NotificationComment(
+      id: 'CMT-${DateTime.now().millisecondsSinceEpoch}',
+      notificationId: notifId,
+      authorId: _activeEmpId,
+      authorName: currentEmp.name,
+      authorRole: currentEmp.straightCutRole,
+      text: cleanText,
+      timestamp: DateTime.now(),
+      likedStaffIds: [],
+    );
+
+    final updatedComments = [...notif.comments, newComment];
+    final updatedNotif = notif.copyWith(comments: updatedComments);
+    _companyNotifications[idx] = updatedNotif;
+    notifyListeners();
+
+    // Persist to Cloud Firestore
+    _firebaseEmployeeService
+        .updateCompanyNotificationComments(notifId, updatedComments)
+        .catchError((err) {
+      debugPrint('Firestore updateCompanyNotificationComments note: $err');
+    });
+  }
+
+  Future<void> toggleNotificationCommentLike(
+      String notifId, String commentId) async {
+    final notifIdx = _companyNotifications.indexWhere((n) => n.id == notifId);
+    if (notifIdx == -1) return;
+
+    final notif = _companyNotifications[notifIdx];
+    final commentIdx = notif.comments.indexWhere((c) => c.id == commentId);
+    if (commentIdx == -1) return;
+
+    final comment = notif.comments[commentIdx];
+    final updatedLikes = List<String>.from(comment.likedStaffIds);
+    if (updatedLikes
+        .any((id) => id.toLowerCase() == _activeEmpId.toLowerCase())) {
+      updatedLikes
+          .removeWhere((id) => id.toLowerCase() == _activeEmpId.toLowerCase());
+    } else {
+      updatedLikes.add(_activeEmpId);
+    }
+
+    final updatedComment = comment.copyWith(likedStaffIds: updatedLikes);
+    final updatedComments = List<NotificationComment>.from(notif.comments);
+    updatedComments[commentIdx] = updatedComment;
+
+    final updatedNotif = notif.copyWith(comments: updatedComments);
+    _companyNotifications[notifIdx] = updatedNotif;
+    notifyListeners();
+
+    // Persist to Cloud Firestore
+    _firebaseEmployeeService
+        .updateCompanyNotificationComments(notifId, updatedComments)
+        .catchError((err) {
+      debugPrint('Firestore toggleCommentLike note: $err');
+    });
+  }
+
+  // --- Real-time Team Chat Actions & Storage ---
+  static const String _chatsStorageKey = 'mn_team_chats_storage_v1';
+
+  List<ChatMessage> get chatMessages => _chatMessages;
+
+  /// Returns messages for a specific conversation thread (either 'ALL_HANDS' or a peer empId)
+  List<ChatMessage> getConversation(String peerId) {
+    if (peerId == 'ALL_HANDS') {
+      final msgs =
+          _chatMessages.where((m) => m.receiverId == 'ALL_HANDS').toList();
+      msgs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      return msgs;
+    }
+    final cleanPeer = peerId.trim().toLowerCase();
+    final cleanActive = _activeEmpId.trim().toLowerCase();
+    final msgs = _chatMessages.where((m) {
+      final s = m.senderId.trim().toLowerCase();
+      final r = m.receiverId.trim().toLowerCase();
+      return (s == cleanActive && r == cleanPeer) ||
+          (s == cleanPeer && r == cleanActive);
+    }).toList();
+    msgs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    return msgs;
+  }
+
+  /// Get the last message exchanged with a peer or in All-Hands
+  ChatMessage? getLastMessageWith(String peerId) {
+    final conv = getConversation(peerId);
+    if (conv.isEmpty) return null;
+    return conv.last;
+  }
+
+  /// Unread messages count for a specific thread
+  int getUnreadChatCountFor(String peerId) {
+    final cleanPeer = peerId.trim().toLowerCase();
+    final cleanActive = _activeEmpId.trim().toLowerCase();
+    if (peerId == 'ALL_HANDS') {
+      return _chatMessages
+          .where((m) =>
+              m.receiverId == 'ALL_HANDS' &&
+              m.senderId.toLowerCase() != cleanActive &&
+              !m.isReadBy(_activeEmpId))
+          .length;
+    }
+    return _chatMessages
+        .where((m) =>
+            m.senderId.toLowerCase() == cleanPeer &&
+            m.receiverId.toLowerCase() == cleanActive &&
+            !m.isReadBy(_activeEmpId))
+        .length;
+  }
+
+  /// Total unread chat count across all conversations
+  int get unreadTotalChatCount {
+    int total = 0;
+    // Check All Hands
+    total += getUnreadChatCountFor('ALL_HANDS');
+    // Check individual peers
+    final Set<String> checkedPeers = {};
+    for (final emp in _employees) {
+      if (emp.id == _activeEmpId) continue;
+      if (checkedPeers.add(emp.id)) {
+        total += getUnreadChatCountFor(emp.id);
+      }
+    }
+    return total;
+  }
+
+  Future<void> sendChatMessage({
+    required String receiverId,
+    required String text,
+    String? attachmentType,
+    String? attachmentUrl,
+  }) async {
+    final cleanText = text.trim();
+    if (cleanText.isEmpty) return;
+
+    final currentEmp = currentEmployee;
+    final newMsg = ChatMessage(
+      id: 'MSG-${DateTime.now().millisecondsSinceEpoch}',
+      senderId: _activeEmpId,
+      senderName: currentEmp.name,
+      senderRole: currentEmp.straightCutRole,
+      receiverId: receiverId,
+      text: cleanText,
+      timestamp: DateTime.now(),
+      isRead: false,
+      readBy: [_activeEmpId],
+      likedBy: [],
+      attachmentType: attachmentType,
+      attachmentUrl: attachmentUrl,
+    );
+
+    _chatMessages.add(newMsg);
+    notifyListeners();
+
+    _saveChatsToLocal();
+    _firebaseEmployeeService.saveChatMessage(newMsg).catchError((err) {
+      debugPrint('Firestore saveChatMessage note: $err');
+    });
+  }
+
+  Future<void> markConversationAsRead(String peerId) async {
+    final cleanPeer = peerId.trim().toLowerCase();
+    final cleanActive = _activeEmpId.trim().toLowerCase();
+    bool changed = false;
+
+    for (int i = 0; i < _chatMessages.length; i++) {
+      final m = _chatMessages[i];
+      final isTarget = peerId == 'ALL_HANDS'
+          ? (m.receiverId == 'ALL_HANDS' &&
+              m.senderId.toLowerCase() != cleanActive)
+          : (m.senderId.toLowerCase() == cleanPeer &&
+              m.receiverId.toLowerCase() == cleanActive);
+
+      if (isTarget && !m.isReadBy(_activeEmpId)) {
+        final updatedReadBy = List<String>.from(m.readBy)..add(_activeEmpId);
+        _chatMessages[i] = m.copyWith(isRead: true, readBy: updatedReadBy);
+        changed = true;
+        _firebaseEmployeeService.markChatMessageRead(m.id, _activeEmpId);
+      }
+    }
+
+    if (changed) {
+      _saveChatsToLocal();
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleChatMessageLike(String messageId) async {
+    final idx = _chatMessages.indexWhere((m) => m.id == messageId);
+    if (idx == -1) return;
+
+    final msg = _chatMessages[idx];
+    final updatedLikes = List<String>.from(msg.likedBy);
+    if (updatedLikes
+        .any((id) => id.toLowerCase() == _activeEmpId.toLowerCase())) {
+      updatedLikes
+          .removeWhere((id) => id.toLowerCase() == _activeEmpId.toLowerCase());
+    } else {
+      updatedLikes.add(_activeEmpId);
+    }
+
+    _chatMessages[idx] = msg.copyWith(likedBy: updatedLikes);
+    notifyListeners();
+
+    _saveChatsToLocal();
+    _firebaseEmployeeService
+        .toggleChatMessageLike(messageId, _activeEmpId)
+        .catchError((err) {
+      debugPrint('Firestore toggleChatMessageLike note: $err');
+    });
+  }
+
+  Future<void> _loadLocalChats() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final chatsRaw = prefs.getString(_chatsStorageKey);
+      if (chatsRaw != null && chatsRaw.isNotEmpty) {
+        final decoded = jsonDecode(chatsRaw) as List?;
+        if (decoded != null && decoded.isNotEmpty) {
+          final loaded = decoded
+              .map((e) =>
+                  ChatMessage.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList();
+          _chatMessages = loaded;
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading chats: $e');
+    }
+  }
+
+  Future<void> _saveChatsToLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded =
+          jsonEncode(_chatMessages.map((m) => m.toJson()).toList());
+      await prefs.setString(_chatsStorageKey, encoded);
+    } catch (e) {
+      debugPrint('Error saving chats: $e');
+    }
+  }
+
+  List<ChatMessage> _seedInitialChatMessages() {
+    final now = DateTime.now();
+    return [
+      ChatMessage(
+        id: 'SEED-MSG-1',
+        senderId: 'MN-CEO01',
+        senderName: 'M N Naveenraaj',
+        senderRole: 'Managing Director & CEO',
+        receiverId: 'ALL_HANDS',
+        text:
+            'Welcome team to the MN Jewel Park collaborative portal! Let us maintain focus across all 4 Pillars today.',
+        timestamp: now.subtract(const Duration(hours: 3)),
+        readBy: ['MN-CEO01'],
+        likedBy: ['7', 'MN-TL1002'],
+      ),
+      ChatMessage(
+        id: 'SEED-MSG-2',
+        senderId: '7',
+        senderName: 'Mohankumar G',
+        senderRole: 'HR Manager',
+        receiverId: 'ALL_HANDS',
+        text:
+            'Good day all. Please ensure your daily attendance check-ins and health logs are updated on time.',
+        timestamp: now.subtract(const Duration(hours: 2)),
+        readBy: ['7'],
+        likedBy: ['MN-TL1002'],
+      ),
+      ChatMessage(
+        id: 'SEED-MSG-3',
+        senderId: 'MN-TL1002',
+        senderName: 'Praveenkumar M',
+        senderRole: 'Team Lead',
+        receiverId: 'ALL_HANDS',
+        text:
+            'Online Department is active. Customer inquiries and jewelry catalogue orders are being processed efficiently.',
+        timestamp: now.subtract(const Duration(hours: 1)),
+        readBy: ['MN-TL1002'],
+        likedBy: ['MN-CEO01'],
+      ),
+      ChatMessage(
+        id: 'SEED-MSG-4',
+        senderId: 'MN-CEO01',
+        senderName: 'M N Naveenraaj',
+        senderRole: 'Managing Director & CEO',
+        receiverId: 'MN-TL1002',
+        text:
+            'Praveenkumar, please review the online catalog requests with the team today.',
+        timestamp: now.subtract(const Duration(minutes: 45)),
+        readBy: ['MN-CEO01', 'MN-TL1002'],
+      ),
+      ChatMessage(
+        id: 'SEED-MSG-5',
+        senderId: 'MN-TL1002',
+        senderName: 'Praveenkumar M',
+        senderRole: 'Team Lead',
+        receiverId: 'MN-CEO01',
+        text:
+            'Yes sir, reviewing now. All orders and customer queries are on schedule.',
+        timestamp: now.subtract(const Duration(minutes: 30)),
+        readBy: ['MN-TL1002', 'MN-CEO01'],
+      ),
+    ];
+  }
+
   // --- Personal Notes Storage & Actions (100% private to _activeEmpId) ---
   static const String _personalNotesStorageKey = 'mn_personal_notes_storage_v1';
   static const String _dismissedNotifsStorageKey =
@@ -7768,6 +8119,7 @@ class EcosystemProvider extends ChangeNotifier {
     _notificationsSubscription?.cancel();
     _personalTodosSubscription?.cancel();
     _onlineOrdersSubscription?.cancel();
+    _chatMessagesSubscription?.cancel();
     super.dispose();
   }
 }

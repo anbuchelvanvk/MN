@@ -8,6 +8,7 @@ import '../../models/company_notification_models.dart';
 import '../../views/orders/online_orders_handler_screen.dart';
 import '../../views/pillars/attendance_pillar_screen.dart';
 import 'social_cause_detail_dialog.dart';
+import 'notification_comments_sheet.dart';
 
 class CompanyNotificationSheet extends StatefulWidget {
   const CompanyNotificationSheet({super.key});
@@ -518,10 +519,10 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                       ),
                     ],
                   ),
-                  if (notif.type == CompanyNotificationType.socialCause || notif.actionTag?.startsWith('CAUSE-') == true) ...[
                     const SizedBox(height: 8),
                     Row(
                       children: [
+                        // Like Button
                         InkWell(
                           onTap: () {
                             final targetId = notif.actionTag ?? notif.id;
@@ -533,12 +534,12 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                             decoration: BoxDecoration(
                               color: notif.isLikedBy(eco.activeEmpId)
                                   ? const Color(0xFFEF4444).withOpacity(0.18)
-                                  : AppColors.sandGold.withOpacity(0.12),
+                                  : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: notif.isLikedBy(eco.activeEmpId)
                                     ? const Color(0xFFEF4444)
-                                    : AppColors.sandGold.withOpacity(0.4),
+                                    : const Color(0xFFE2E8F0),
                                 width: 0.8,
                               ),
                             ),
@@ -548,7 +549,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                 Icon(
                                   notif.isLikedBy(eco.activeEmpId) ? Icons.favorite : Icons.favorite_border,
                                   size: 13,
-                                  color: notif.isLikedBy(eco.activeEmpId) ? const Color(0xFFEF4444) : AppColors.sandGold,
+                                  color: notif.isLikedBy(eco.activeEmpId) ? const Color(0xFFEF4444) : const Color(0xFF64748B),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -556,7 +557,50 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                   style: TextStyle(
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.bold,
-                                    color: notif.isLikedBy(eco.activeEmpId) ? const Color(0xFFEF4444) : AppColors.sandGold,
+                                    color: notif.isLikedBy(eco.activeEmpId) ? const Color(0xFFEF4444) : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Comments Button
+                        InkWell(
+                          onTap: () {
+                            NotificationCommentsSheet.show(context, notif);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: notif.commentsCount > 0
+                                  ? const Color(0xFF6366F1).withOpacity(0.12)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: notif.commentsCount > 0
+                                    ? const Color(0xFF6366F1).withOpacity(0.4)
+                                    : const Color(0xFFE2E8F0),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.mode_comment_outlined,
+                                  size: 12.5,
+                                  color: notif.commentsCount > 0 ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  notif.commentsCount > 0 ? '${notif.commentsCount}' : 'Comment',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: notif.commentsCount > 0 ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -590,13 +634,13 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           ),
                         ],
                         const Spacer(),
-                        const Text(
-                          'Tap to view deed',
-                          style: TextStyle(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.w600),
-                        ),
+                        if (notif.type == CompanyNotificationType.socialCause || notif.actionTag?.startsWith('CAUSE-') == true)
+                          const Text(
+                            'Tap to view deed',
+                            style: TextStyle(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.w600),
+                          ),
                       ],
                     ),
-                  ],
                   if (notif.actionTag == 'ATTENDANCE' || notif.actionTag == 'ATTENDANCE_UPDATE' || notif.title.toLowerCase().contains('attendance')) ...[
                     const SizedBox(height: 8),
                     Row(
@@ -841,6 +885,26 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                       ),
                       const SizedBox(width: 8),
                     ],
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        NotificationCommentsSheet.show(context, notif);
+                      },
+                      icon: const Icon(Icons.mode_comment_outlined, size: 14, color: Color(0xFF4F46E5)),
+                      label: Text(
+                        notif.commentsCount > 0
+                            ? 'Comments (${notif.commentsCount})'
+                            : 'Comments',
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF4F46E5), fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        side: const BorderSide(color: Color(0xFFC7D2FE)),
+                        backgroundColor: const Color(0xFFEEF2FF),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx),
                       style: OutlinedButton.styleFrom(

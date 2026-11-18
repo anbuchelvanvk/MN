@@ -8,6 +8,7 @@ import '../models/social_cause_models.dart';
 import '../models/company_notification_models.dart';
 import '../models/task_model.dart';
 import '../models/online_order_model.dart';
+import '../models/chat_message_model.dart';
 
 /// Firebase Employee & Omnichannel Service for MN Jewel Park
 /// Handles centralized Cloud Firestore sync, authentication, role allocation,
@@ -48,6 +49,9 @@ class FirebaseEmployeeService {
 
   CollectionReference<Map<String, dynamic>> get _ordersCollection =>
       _firestore.collection('online_orders');
+
+  CollectionReference<Map<String, dynamic>> get _chatsCollection =>
+      _firestore.collection('mn_team_chats');
 
   /// Stream real-time employee list for Online Department (strictly filtered to allowed official workforce)
   Stream<List<Employee>> streamEmployees() {
@@ -1089,6 +1093,18 @@ class FirebaseEmployeeService {
     }
   }
 
+  /// Update comments on a company notification in Cloud Firestore
+  Future<void> updateCompanyNotificationComments(String notifId, List<NotificationComment> comments) async {
+    if (!isFirebaseAvailable) return;
+    try {
+      await _notificationsCollection.doc(notifId).set({
+        'comments': comments.map((c) => c.toJson()).toList(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore updateCompanyNotificationComments error: $e');
+    }
+  }
+
   /// Stream real-time company universal notifications (filtering out dead/empty documents)
   Stream<List<CompanyNotification>> streamCompanyNotifications() {
     if (!isFirebaseAvailable) return const Stream.empty();
@@ -1321,6 +1337,69 @@ class FirebaseEmployeeService {
           }
         } catch (_) {}
       }
+    }
+  }
+
+  /// Stream real-time chat messages from Cloud Firestore
+  Stream<List<ChatMessage>> streamChatMessages() {
+    if (!isFirebaseAvailable) return Stream.value([]);
+    return _chatsCollection
+        .orderBy('timestamp', descending: false)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => ChatMessage.fromJson(doc.data()))
+          .toList();
+    });
+  }
+
+  /// Save a chat message to Cloud Firestore
+  Future<void> saveChatMessage(ChatMessage message) async {
+    if (!isFirebaseAvailable || message.text.trim().isEmpty) return;
+    try {
+      await _chatsCollection
+          .doc(message.id)
+          .set(message.toJson(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveChatMessage error: $e');
+    }
+  }
+
+  /// Mark chat message as read in Cloud Firestore
+  Future<void> markChatMessageRead(String messageId, String empId) async {
+    if (!isFirebaseAvailable || empId.trim().isEmpty) return;
+    try {
+      await _chatsCollection.doc(messageId).set({
+        'isRead': true,
+        'readBy': FieldValue.arrayUnion([empId.trim()]),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore markChatMessageRead error: $e');
+    }
+  }
+
+  /// Toggle like/reaction on chat message in Cloud Firestore
+  Future<void> toggleChatMessageLike(String messageId, String empId) async {
+    if (!isFirebaseAvailable || empId.trim().isEmpty) return;
+    try {
+      final docRef = _chatsCollection.doc(messageId);
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) return;
+      final currentLikes = (docSnap.data()?['likedBy'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [];
+      if (currentLikes.contains(empId)) {
+        await docRef.update({
+          'likedBy': FieldValue.arrayRemove([empId]),
+        });
+      } else {
+        await docRef.update({
+          'likedBy': FieldValue.arrayUnion([empId]),
+        });
+      }
+    } catch (e) {
+      debugPrint('Firestore toggleChatMessageLike error: $e');
     }
   }
 }

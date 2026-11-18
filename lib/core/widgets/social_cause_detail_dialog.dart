@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 import '../../models/company_notification_models.dart';
 import '../../models/social_cause_models.dart';
 import '../../providers/ecosystem_provider.dart';
+import 'notification_comments_sheet.dart';
 
 class SocialCauseDetailDialog extends StatelessWidget {
   final SocialCauseItem? initialCause;
@@ -298,66 +299,123 @@ class SocialCauseDetailDialog extends StatelessWidget {
                           const SizedBox(height: 14),
 
                           // Heart Reaction & Interactions Bar
-                          Row(
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
-                              // Like / Heart Reaction Button
-                              InkWell(
-                                onTap: () {
-                                  if (effectiveId != null && effectiveId.isNotEmpty) {
-                                    eco.toggleSocialCauseReaction(effectiveId, reactingEmpId: currentUserId);
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(20),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: isLikedByMe
-                                        ? const Color(0xFFFEE2E2)
-                                        : const Color(0xFFF8FAFC),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Like / Heart Reaction Button
+                                  InkWell(
+                                    onTap: () {
+                                      if (effectiveId != null && effectiveId.isNotEmpty) {
+                                        eco.toggleSocialCauseReaction(effectiveId, reactingEmpId: currentUserId);
+                                      }
+                                    },
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: isLikedByMe
-                                          ? const Color(0xFFEF4444)
-                                          : const Color(0xFFCBD5E1),
-                                      width: 1.2,
-                                    ),
-                                    boxShadow: isLikedByMe
-                                        ? [
-                                            BoxShadow(
-                                              color: const Color(0xFFEF4444).withOpacity(0.2),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        isLikedByMe ? Icons.favorite : Icons.favorite_border,
-                                        size: 18,
-                                        color: isLikedByMe ? const Color(0xFFEF4444) : const Color(0xFF64748B),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        totalLikes > 0
-                                            ? '$totalLikes ${totalLikes == 1 ? 'Reaction' : 'Reactions'}'
-                                            : 'Like',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isLikedByMe ? const Color(0xFFDC2626) : const Color(0xFF475569),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                                      decoration: BoxDecoration(
+                                        color: isLikedByMe
+                                            ? const Color(0xFFFEE2E2)
+                                            : const Color(0xFFF8FAFC),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isLikedByMe
+                                              ? const Color(0xFFEF4444)
+                                              : const Color(0xFFCBD5E1),
+                                          width: 1.1,
                                         ),
+                                        boxShadow: isLikedByMe
+                                            ? [
+                                                BoxShadow(
+                                                  color: const Color(0xFFEF4444).withOpacity(0.2),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ]
+                                            : null,
                                       ),
-                                    ],
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            isLikedByMe ? Icons.favorite : Icons.favorite_border,
+                                            size: 16,
+                                            color: isLikedByMe ? const Color(0xFFEF4444) : const Color(0xFF64748B),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            totalLikes > 0
+                                                ? '$totalLikes ${totalLikes == 1 ? 'Reaction' : 'Reactions'}'
+                                                : 'Like',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: isLikedByMe ? const Color(0xFFDC2626) : const Color(0xFF475569),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+
+                                  // Comments button
+                                  InkWell(
+                                    onTap: () {
+                                      final n = notif ??
+                                          CompanyNotification(
+                                            id: effectiveId ?? 'CAUSE-TEMP',
+                                            title: title,
+                                            content: description,
+                                            type: CompanyNotificationType.socialCause,
+                                            timestamp: cause?.date ?? DateTime.now(),
+                                            senderName: employeeName,
+                                            senderRole: employeeRole,
+                                          );
+                                      NotificationCommentsSheet.show(context, n);
+                                    },
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEEF2FF),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: const Color(0xFFC7D2FE)),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.mode_comment_outlined, size: 15, color: Color(0xFF4F46E5)),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            notif != null && notif.commentsCount > 0
+                                                ? 'Comments (${notif.commentsCount})'
+                                                : 'Comments',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF4F46E5),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const Spacer(),
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
                                 child: Text(
                                   'Close',
                                   style: GoogleFonts.plusJakartaSans(

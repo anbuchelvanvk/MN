@@ -22,6 +22,7 @@ class CompanyNotification {
   final List<String> likedStaffIds;
   final List<String> dismissedByStaffIds;
   final String? targetEmpId;
+  final List<NotificationComment> comments;
 
   CompanyNotification({
     required this.id,
@@ -37,6 +38,7 @@ class CompanyNotification {
     this.likedStaffIds = const [],
     this.dismissedByStaffIds = const [],
     this.targetEmpId,
+    this.comments = const [],
   });
 
   bool isReadBy(String empId) {
@@ -60,6 +62,7 @@ class CompanyNotification {
 
   bool isLikedBy(String empId) => likedStaffIds.contains(empId);
   int get likesCount => likedStaffIds.length;
+  int get commentsCount => comments.length;
   bool get isCeoReacted => likedStaffIds.any((id) => id == 'MN-CEO01' || id.toLowerCase().contains('ceo'));
 
   CompanyNotification copyWith({
@@ -76,6 +79,7 @@ class CompanyNotification {
     List<String>? likedStaffIds,
     List<String>? dismissedByStaffIds,
     String? targetEmpId,
+    List<NotificationComment>? comments,
   }) {
     return CompanyNotification(
       id: id ?? this.id,
@@ -91,6 +95,7 @@ class CompanyNotification {
       likedStaffIds: likedStaffIds ?? this.likedStaffIds,
       dismissedByStaffIds: dismissedByStaffIds ?? this.dismissedByStaffIds,
       targetEmpId: targetEmpId ?? this.targetEmpId,
+      comments: comments ?? this.comments,
     );
   }
 
@@ -165,6 +170,7 @@ class CompanyNotification {
     'likedStaffIds': likedStaffIds,
     'dismissedByStaffIds': dismissedByStaffIds,
     'targetEmpId': targetEmpId,
+    'comments': comments.map((c) => c.toJson()).toList(),
   };
 
   factory CompanyNotification.fromJson(Map<String, dynamic> json) {
@@ -221,6 +227,87 @@ class CompanyNotification {
       likedStaffIds: (json['likedStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       dismissedByStaffIds: (json['dismissedByStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       targetEmpId: json['targetEmpId']?.toString(),
+      comments: (json['comments'] as List?)
+              ?.map((c) => NotificationComment.fromJson(Map<String, dynamic>.from(c as Map)))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class NotificationComment {
+  final String id;
+  final String notificationId;
+  final String authorId;
+  final String authorName;
+  final String authorRole;
+  final String text;
+  final DateTime timestamp;
+  final List<String> likedStaffIds;
+
+  NotificationComment({
+    required this.id,
+    required this.notificationId,
+    required this.authorId,
+    required this.authorName,
+    required this.authorRole,
+    required this.text,
+    required this.timestamp,
+    this.likedStaffIds = const [],
+  });
+
+  bool isLikedBy(String staffId) =>
+      likedStaffIds.any((id) => id.toLowerCase() == staffId.toLowerCase());
+  int get likesCount => likedStaffIds.length;
+
+  NotificationComment copyWith({
+    String? id,
+    String? notificationId,
+    String? authorId,
+    String? authorName,
+    String? authorRole,
+    String? text,
+    DateTime? timestamp,
+    List<String>? likedStaffIds,
+  }) {
+    return NotificationComment(
+      id: id ?? this.id,
+      notificationId: notificationId ?? this.notificationId,
+      authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
+      authorRole: authorRole ?? this.authorRole,
+      text: text ?? this.text,
+      timestamp: timestamp ?? this.timestamp,
+      likedStaffIds: likedStaffIds ?? this.likedStaffIds,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'notificationId': notificationId,
+        'authorId': authorId,
+        'authorName': authorName,
+        'authorRole': authorRole,
+        'text': text,
+        'timestamp': timestamp.toIso8601String(),
+        'likedStaffIds': likedStaffIds,
+      };
+
+  factory NotificationComment.fromJson(Map<String, dynamic> json) {
+    return NotificationComment(
+      id: json['id']?.toString() ?? 'CMT-${DateTime.now().millisecondsSinceEpoch}',
+      notificationId: json['notificationId']?.toString() ?? '',
+      authorId: json['authorId']?.toString() ?? '',
+      authorName: json['authorName']?.toString() ?? 'Staff Member',
+      authorRole: json['authorRole']?.toString() ?? 'Team Member',
+      text: json['text']?.toString() ?? '',
+      timestamp: json['timestamp'] != null
+          ? DateTime.tryParse(json['timestamp'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      likedStaffIds: (json['likedStaffIds'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

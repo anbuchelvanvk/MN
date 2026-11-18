@@ -8,6 +8,7 @@ import '../../views/auth/pillars_popup_dialog.dart';
 import '../../views/auth/login_screen.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../views/pillars/profile_pillar_screen.dart';
+import '../../views/chat/chat_hub_screen.dart';
 
 class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String roleName;
@@ -258,6 +259,87 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 4),
 
+                  // Chat Hub Action Button
+                  Consumer<EcosystemProvider>(
+                    builder: (context, eco, _) {
+                      final unreadChats = eco.unreadTotalChatCount;
+                      return SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                key: const ValueKey('role_app_bar_chat_button'),
+                                borderRadius: BorderRadius.circular(10),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const ChatHubScreen()),
+                                  );
+                                },
+                                child: Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.pureWhite,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: unreadChats > 0
+                                          ? const Color(0xFF6366F1)
+                                          : const Color(0xFF6366F1).withOpacity(0.35),
+                                      width: 1.1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF6366F1).withOpacity(0.12),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.chat_bubble_outline_rounded,
+                                      size: 18,
+                                      color: Color(0xFF4F46E5),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (unreadChats > 0)
+                              Positioned(
+                                top: 1,
+                                right: 1,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.white, width: 1.2),
+                                  ),
+                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                  child: Text(
+                                    unreadChats > 99 ? '99+' : '$unreadChats',
+                                    style: const TextStyle(
+                                      fontSize: 8.5,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 6),
+
                   // Hamburger Toggle Button
                   Consumer<EcosystemProvider>(
                     builder: (context, eco, _) {
@@ -447,6 +529,30 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const SizedBox(height: 12),
                 const Divider(color: AppColors.sandBorder, height: 1),
                 const SizedBox(height: 10),
+
+                // Team Chat Hub
+                Consumer<EcosystemProvider>(
+                  builder: (context, eco, _) {
+                    final unreadChats = eco.unreadTotalChatCount;
+                    return _menuItemTile(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      iconColor: const Color(0xFF6366F1),
+                      title: 'MN Team Chat',
+                      subtitle: unreadChats > 0
+                          ? '$unreadChats unread messages'
+                          : 'Direct & All-Hands team messaging',
+                      badgeText: unreadChats > 0 ? '$unreadChats' : null,
+                      badgeColor: const Color(0xFF6366F1),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ChatHubScreen()),
+                        );
+                      },
+                    );
+                  },
+                ),
 
                 // 1. Notification Hub
                 Consumer<EcosystemProvider>(

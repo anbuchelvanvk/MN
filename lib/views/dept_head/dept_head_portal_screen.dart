@@ -15,6 +15,7 @@ import '../orders/online_orders_handler_screen.dart';
 import 'dept_head_subpages.dart';
 import 'monthly_scorecard_screen.dart';
 import '../notes/personal_notes_screen.dart';
+import '../chat/chat_hub_screen.dart';
 
 class DeptHeadPortalScreen extends StatefulWidget {
   const DeptHeadPortalScreen({super.key});
@@ -239,6 +240,8 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                   const SizedBox(height: 12),
                   Column(
                     children: [
+                      _verticalTabTile(const ChatHubScreen(), 'Team Chat', Icons.chat_bubble_outline_rounded, eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : ''),
+                      const SizedBox(height: 8),
                       _verticalTabTile(const MonthlyScorecardScreen(), 'Monthly Scorecard', Icons.assessment_outlined, 'OTM'),
                       const SizedBox(height: 8),
                       _verticalTabTile(const TlTeamTasksScreen(), 'Team Tasks', Icons.assignment_outlined, opsTasks.isNotEmpty ? '${opsTasks.length}' : ''),

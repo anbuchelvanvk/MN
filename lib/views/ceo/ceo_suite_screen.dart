@@ -26,6 +26,7 @@ import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'ceo_subpages.dart';
 import '../notes/personal_notes_screen.dart';
 import '../dept_head/monthly_scorecard_screen.dart';
+import '../chat/chat_hub_screen.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   const CeoSuiteScreen({super.key});
@@ -332,6 +333,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   const SizedBox(height: 12),
                   Column(
                     children: [
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Team Chat',
+                        icon: Icons.chat_bubble_outline_rounded,
+                        badge: eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : '',
+                        destination: const ChatHubScreen(),
+                      ),
+                      const SizedBox(height: 8),
                       _verticalCeoTabTile(
                         context: context,
                         eco: eco,
