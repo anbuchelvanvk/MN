@@ -800,8 +800,9 @@ class EcosystemProvider extends ChangeNotifier {
           if (e.id == 'MN-CEO01' ||
               e.roleType == 'ceo' ||
               e.isOtm ||
-              e.id == 'MN-TL1002')
+              e.id == 'MN-TL1002') {
             return false;
+          }
           if (e.empNo.isEmpty) return false;
           final empNoMatch = sheetEmpNos.contains(e.empNo.trim().toLowerCase());
           final nameMatch = sheetNames.any(
@@ -1428,8 +1429,9 @@ class EcosystemProvider extends ChangeNotifier {
   int get todayLunchDurationMinutes {
     if (todayLunchOutPunch == null) return 0;
     if (todayLunchInPunch == null) {
-      if (todayLogoutPunch != null)
+      if (todayLogoutPunch != null) {
         return 45; // Capped at standard 45 mins if shift already ended
+      }
       final elapsed = DateTime.now()
           .difference(todayLunchOutPunch!.timestamp)
           .inMinutes;
@@ -2041,9 +2043,6 @@ class EcosystemProvider extends ChangeNotifier {
     for (int day = 1; day <= totalDays; day++) {
       final targetDate = DateTime(y, m, day);
       final isToday = (y == now.year && m == now.month && day == now.day);
-      final isFuture = targetDate.isAfter(
-        DateTime(now.year, now.month, now.day),
-      );
       final dayName = days[targetDate.weekday - 1];
       final monthName = months[targetDate.month - 1];
       final dateLabel = isToday
@@ -2878,14 +2877,17 @@ class EcosystemProvider extends ChangeNotifier {
       (e) => e.id == empId || e.empNo == empId,
       orElse: () => currentEmployee,
     );
-    if (!emp.hasAttendanceAndGrooming)
+    if (!emp.hasAttendanceAndGrooming) {
       return false; // CEO and OTM Praveenkumar are exempt from attendance
+    }
     if (_manuallyPresentEmployeeIds.contains(emp.id) ||
-        _manuallyPresentEmployeeIds.contains(emp.empNo))
+        _manuallyPresentEmployeeIds.contains(emp.empNo)) {
       return false;
+    }
     if (_absentEmployeeIds.contains(emp.id) ||
-        _absentEmployeeIds.contains(emp.empNo))
+        _absentEmployeeIds.contains(emp.empNo)) {
       return true;
+    }
 
     // 1. Check official HR Google Sheets Master Ledger
     final sheet = hrAttendanceSheet;
@@ -2898,8 +2900,9 @@ class EcosystemProvider extends ChangeNotifier {
         final todayRec = row.days[now.day];
         if (todayRec != null &&
             todayRec.type != HrAttendanceDayType.pendingUpdate) {
-          if (todayRec.type == HrAttendanceDayType.holiday && isTuesday)
+          if (todayRec.type == HrAttendanceDayType.holiday && isTuesday) {
             return false;
+          }
           final isLeaveOrAbsent =
               todayRec.type == HrAttendanceDayType.leaveCl ||
               todayRec.type == HrAttendanceDayType.leaveLop;
@@ -2911,8 +2914,9 @@ class EcosystemProvider extends ChangeNotifier {
         final latestRec = row.days[latestDay];
         if (latestRec != null &&
             latestRec.type != HrAttendanceDayType.pendingUpdate) {
-          if (latestRec.type == HrAttendanceDayType.holiday && isTuesday)
+          if (latestRec.type == HrAttendanceDayType.holiday && isTuesday) {
             return false;
+          }
           final isLeaveOrAbsent =
               latestRec.type == HrAttendanceDayType.leaveCl ||
               latestRec.type == HrAttendanceDayType.leaveLop;
