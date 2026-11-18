@@ -1028,6 +1028,91 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  bool _matchesMonthAndDay(String? dateStr, DateTime now) {
+    if (dateStr == null || dateStr.trim().isEmpty) return false;
+    final clean = dateStr.trim();
+    final dt = DateTime.tryParse(clean);
+    if (dt != null) {
+      return dt.month == now.month && dt.day == now.day;
+    }
+    final parts = clean.split(RegExp(r'[-/.]'));
+    if (parts.length >= 3) {
+      final p0 = int.tryParse(parts[0]);
+      final p1 = int.tryParse(parts[1]);
+      final p2 = int.tryParse(parts[2]);
+      if (p0 != null && p1 != null && p2 != null) {
+        if (p0 > 1000) {
+          return p1 == now.month && p2 == now.day;
+        }
+        if (p2 > 1000) {
+          if (p1 == now.month && p0 == now.day) return true;
+          if (p0 == now.month && p1 == now.day) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  List<CelebrationEvent> get todayCelebrations {
+    final now = DateTime.now();
+    final List<CelebrationEvent> events = [];
+    for (final emp in _employees) {
+      if (_matchesMonthAndDay(emp.dob, now)) {
+        events.add(CelebrationEvent(
+          employeeName: emp.name,
+          type: 'birthday',
+          message: '🎉 Happy Birthday ${emp.name}! May all your dreams come true! 🎂',
+          date: '${now.day}/${now.month}',
+        ));
+      }
+      if (_matchesMonthAndDay(emp.anniversaryDate, now)) {
+        events.add(CelebrationEvent(
+          employeeName: emp.name,
+          type: 'anniversary',
+          message: '💍 Happy Wedding Anniversary ${emp.name}! Wishing you a lifetime of joy and togetherness! 💐',
+          date: '${now.day}/${now.month}',
+        ));
+      }
+    }
+    return events;
+  }
+
+  Future<void> checkAndDispatchCelebrations() async {
+    final events = todayCelebrations;
+    if (events.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final todayKey = 'celebration_dispatched_${DateTime.now().year}_${DateTime.now().month}_${DateTime.now().day}';
+    final alreadyDispatched = prefs.getBool(todayKey) ?? false;
+    if (alreadyDispatched) return;
+
+    for (final event in events) {
+      final notifTitle = event.type == 'birthday'
+          ? '🎂 Birthday Celebration Today!'
+          : '💐 Wedding Anniversary Celebration Today!';
+
+      PushNotificationService().showNotification(
+        id: 'CELEB-${event.type}-${event.employeeName.hashCode}',
+        title: notifTitle,
+        body: event.message,
+        payload: 'celebration_event',
+      );
+
+      final newNotif = CompanyNotification(
+        id: 'NOTIF-CELEB-${DateTime.now().millisecondsSinceEpoch}-${event.employeeName.hashCode}',
+        title: notifTitle,
+        content: event.message,
+        type: event.type == 'birthday' ? CompanyNotificationType.birthday : CompanyNotificationType.anniversary,
+        timestamp: DateTime.now(),
+        senderName: 'M N Naveenraaj',
+        senderRole: 'Managing Director & CEO',
+      );
+      _companyNotifications.insert(0, newNotif);
+    }
+    await prefs.setBool(todayKey, true);
+    notifyListeners();
+  }
+
   // Attendance Pillar 4 & eSSL Security Biometric Device State
   List<AttendancePunchRecord> _attendancePunches = [];
   EsslDeviceConfig _esslConfig = EsslDeviceConfig(
@@ -2381,6 +2466,7 @@ class EcosystemProvider extends ChangeNotifier {
     _initData();
     _loadLocalPersonalNotesAndDismissed();
     _initFirebaseSync();
+    checkAndDispatchCelebrations();
   }
 
   void _initFirebaseSync() {
@@ -4650,6 +4736,7 @@ class EcosystemProvider extends ChangeNotifier {
     required double hoursSpent,
     String iconEmoji = '❤️',
     String? notes,
+    String? imageUrl,
     DateTime? date,
   }) {
     final now = DateTime.now();
@@ -4667,6 +4754,7 @@ class EcosystemProvider extends ChangeNotifier {
         hoursSpent: hoursSpent,
         iconEmoji: iconEmoji,
         notes: notes,
+        imageUrl: imageUrl,
         timestamp: entryDate,
         timeString: timeStr,
       ),
@@ -5814,17 +5902,29 @@ class EcosystemProvider extends ChangeNotifier {
         targetEmpIds: ceoHrTargets.toList(),
       ),
     );
-    PushNotificationService().showNotification(
-      id: 'SC-PEND-${newCause.id}',
-      title: '💛 New Social Cause: Approval Required',
-      body: '${newCause.employeeName} posted "${newCause.title}". Requires CEO & HR verification.',
-      payload: 'social_cause_pending',
-    );
+    if (isCeo || activeRole.toLowerCase() == 'ceo' || activeRole.toLowerCase() == 'hr') {
+      PushNotificationService().showNotification(
+        id: 'SC-PEND-${newCause.id}',
+        title: '💛 New Social Cause: Approval Required',
+        body: '${newCause.employeeName} posted "${newCause.title}". Requires CEO & HR verification.',
+        payload: 'social_cause_pending',
+      );
+    }
     notifyListeners();
 
     _firebaseEmployeeService.saveSocialCause(newCause).catchError((err) {
       debugPrint('Firestore saveSocialCause note: $err');
     });
+  }
+
+  /// Delete a social cause entry (accessible to author, HR, and CEO)
+  Future<void> deleteSocialCause(String causeId) async {
+    _socialCauses.removeWhere((c) => c.id == causeId);
+    _acceptancePopups.removeWhere((p) => p.id.contains(causeId));
+    _companyNotifications.removeWhere((n) => n.actionTag == causeId || n.id.contains(causeId));
+    notifyListeners();
+
+    await _firebaseEmployeeService.deleteSocialCause(causeId);
   }
 
   final Set<String> _approvingCauseIds = {};
@@ -6167,6 +6267,32 @@ class EcosystemProvider extends ChangeNotifier {
   void createOnlineOrder(OnlineOrderModel order) {
     _onlineOrders.insert(0, order);
     _notificationMessage = 'Online Order #${order.orderId} created for ${order.brand} (${order.primaryResponsibleRole})!';
+
+    // Automatically add as a new task in assigned staff's today's To-Do list
+    final targetEmpId = order.handledByEmpId.isNotEmpty ? order.handledByEmpId : order.primaryResponsibleEmpId;
+    final staffEmp = _employees.firstWhere(
+      (e) => e.id == targetEmpId || e.empNo == targetEmpId,
+      orElse: () => _employees.firstWhere((e) => e.id == targetEmpId, orElse: () => currentEmployee),
+    );
+    final orderTaskId = 'task_order_${order.orderId}';
+    _tasks.removeWhere((t) => t.id == orderTaskId);
+    _tasks.insert(
+      0,
+      TaskItem(
+        id: orderTaskId,
+        empId: staffEmp.id,
+        title: '📦 Process Online Order #${order.orderId} (${order.brand} - ${order.customerName})',
+        category: 'Online Order Workflow',
+        isDefaultSop: false,
+        assignedByRole: 'dept_head',
+        assignedByName: 'Praveenkumar M (TL)',
+        due: order.expectedDeliveryDate.isNotEmpty ? order.expectedDeliveryDate : 'Today',
+        priority: 'High',
+        status: 'pending',
+        isImmutable: false,
+      ),
+    );
+
     notifyListeners();
 
     _firebaseEmployeeService.saveOnlineOrder(order).catchError((err) {
@@ -6248,6 +6374,11 @@ class EcosystemProvider extends ChangeNotifier {
       order.reallocatedByEmpId = authorizedBy;
       order.status = 'reallocated';
       _onlineOrders[idx] = order;
+
+      final taskIdx = _tasks.indexWhere((t) => t.id == 'task_order_${order.orderId}');
+      if (taskIdx != -1) {
+        _tasks[taskIdx] = _tasks[taskIdx].copyWith(empId: newEmpId);
+      }
 
       _notificationMessage = 'Order #${order.orderId} reallocated to $newEmpName by $authorizedBy.';
       notifyListeners();

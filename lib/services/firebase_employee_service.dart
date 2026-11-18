@@ -1023,6 +1023,16 @@ class FirebaseEmployeeService {
     }
   }
 
+  /// Delete a social cause from Cloud Firestore
+  Future<void> deleteSocialCause(String causeId) async {
+    if (!isFirebaseAvailable) return;
+    try {
+      await _socialCausesCollection.doc(causeId).delete();
+    } catch (e) {
+      debugPrint('Firestore deleteSocialCause error: $e');
+    }
+  }
+
   /// Update approval status of a social cause in Cloud Firestore
   Future<void> updateSocialCauseStatus({
     required String causeId,

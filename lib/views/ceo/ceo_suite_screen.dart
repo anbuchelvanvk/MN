@@ -25,6 +25,7 @@ import '../hr/hr_employee_inspection_screen.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'ceo_subpages.dart';
 import '../notes/personal_notes_screen.dart';
+import '../dept_head/monthly_scorecard_screen.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   const CeoSuiteScreen({super.key});
@@ -334,10 +335,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       _verticalCeoTabTile(
                         context: context,
                         eco: eco,
-                        label: 'Roles & Privileges',
-                        icon: Icons.admin_panel_settings_outlined,
-                        badge: '',
-                        destination: const CeoRolesPrivilegesScreen(),
+                        label: 'Monthly Scorecard',
+                        icon: Icons.assessment_outlined,
+                        badge: 'OTM',
+                        destination: const MonthlyScorecardScreen(),
                       ),
                       const SizedBox(height: 8),
                       _verticalCeoTabTile(

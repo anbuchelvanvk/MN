@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/employee_model.dart';
 import '../../models/family_models.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../../services/image_optimization_service.dart';
 
 class FamilyPillarScreen extends StatefulWidget {
   const FamilyPillarScreen({super.key});
@@ -34,6 +36,15 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     final now = DateTime.now();
     return d.year == now.year && d.month == now.month && d.day == now.day;
   }
+
+  bool _isPastDate(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(d.year, d.month, d.day);
+    return target.isBefore(today);
+  }
+
+  String? _activityPhotoUrl;
 
   String _formatDayLabel(DateTime d) {
     if (_isToday(d)) return 'Today (${d.day} ${_months[d.month - 1].substring(0, 3)})';
@@ -91,6 +102,16 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   }
 
   void _submitActivity(EcosystemProvider eco) {
+    if (_isPastDate(_selectedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Cannot log entries for past dates. Previous dates are view & delete only.'),
+        ),
+      );
+      return;
+    }
+
     final activityName = _customActivityController.text.trim();
     if (activityName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -119,6 +140,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
       hoursSpent: _loggedHours,
       iconEmoji: _selectedEmoji,
       notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+      imageUrl: _activityPhotoUrl,
       date: _selectedDate,
     );
 
@@ -136,6 +158,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
 
     // Switch to diary section to view newly logged activity
     setState(() {
+      _activityPhotoUrl = null;
       _selectedSectionIndex = 3;
     });
   }
@@ -828,6 +851,15 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(8),
                             onTap: () {
+                              if (_isPastDate(_selectedDate)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: AppColors.ragRed,
+                                    content: Text('Cannot log entries for past dates. Previous dates are view & delete only.'),
+                                  ),
+                                );
+                                return;
+                              }
                               eco.addFamilyActivity(
                                 activityName: 'Quality Family Time',
                                 category: 'Family',
@@ -1317,6 +1349,15 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(8),
                           onTap: () {
+                            if (_isPastDate(_selectedDate)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: AppColors.ragRed,
+                                  content: Text('Cannot log entries for past dates. Previous dates are view & delete only.'),
+                                ),
+                              );
+                              return;
+                            }
                             eco.addFamilyActivity(
                               activityName: 'Chai / Coffee Catchup',
                               category: 'Friends & Colleagues',
@@ -1614,6 +1655,89 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.sandGold)),
                 ),
               ),
+              const SizedBox(height: 14),
+
+              // Upload Picture (Optional) - Family Memories
+              Row(
+                children: [
+                  Text(
+                    'UPLOAD PICTURE (OPTIONAL)',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.photo_camera_back_outlined, size: 14, color: AppColors.sandGold),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.camera_alt, size: 14, color: AppColors.sandGold),
+                      label: const Text('Camera', style: TextStyle(fontSize: 11, color: AppColors.sandGold)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.sandBorder),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
+                      onPressed: () async {
+                        final res = await ImageOptimizationService.pickAndCompressImage(source: ImageSource.camera);
+                        if (res != null) {
+                          setState(() {
+                            _activityPhotoUrl = res.dataUrl;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.photo_library, size: 14, color: AppColors.sandGold),
+                      label: const Text('Gallery', style: TextStyle(fontSize: 11, color: AppColors.sandGold)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.sandBorder),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
+                      onPressed: () async {
+                        final res = await ImageOptimizationService.pickAndCompressImage(source: ImageSource.gallery);
+                        if (res != null) {
+                          setState(() {
+                            _activityPhotoUrl = res.dataUrl;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              if (_activityPhotoUrl != null) ...[
+                const SizedBox(height: 8),
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: ImageOptimizationService.buildImageWidget(
+                        _activityPhotoUrl!,
+                        height: 120,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: InkWell(
+                        onTap: () => setState(() => _activityPhotoUrl = null),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                          child: const Icon(Icons.close, size: 14, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 18),
 
               // Step 3: Hours Spent
@@ -1748,22 +1872,48 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Submit Button
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sandGold,
-                  foregroundColor: AppColors.burgundyBg,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 2,
+              // Submit Button or Past Date Lock
+              if (_isPastDate(_selectedDate))
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_clock_rounded, color: Color(0xFFDC2626), size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Entries Locked for Past Dates (${_formatDayLabel(_selectedDate)}). Previous dates are view & delete only.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF991B1B),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.sandGold,
+                    foregroundColor: AppColors.burgundyBg,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 2,
+                  ),
+                  icon: const Icon(Icons.check_circle_outline, size: 20),
+                  label: Text(
+                    'Record & Add to Activity Diary',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  onPressed: () => _submitActivity(eco),
                 ),
-                icon: const Icon(Icons.check_circle_outline, size: 20),
-                label: Text(
-                  'Record & Add to Activity Diary',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                onPressed: () => _submitActivity(eco),
-              ),
             ],
           ),
         ),
@@ -2244,6 +2394,19 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                if (log.imageUrl != null && log.imageUrl!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: ImageOptimizationService.buildImageWidget(
+                        log.imageUrl!,
+                        height: 90,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
               ],

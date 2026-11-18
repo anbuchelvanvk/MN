@@ -103,12 +103,22 @@ class PushNotificationService {
     }
 
     try {
-      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      final bigTextStyleInformation = BigTextStyleInformation(
+        body,
+        htmlFormatBigText: true,
+        contentTitle: title,
+        htmlFormatContentTitle: true,
+        summaryText: 'MN Family Alert',
+        htmlFormatSummaryText: true,
+      );
+
+      final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         _channelId,
         _channelName,
         channelDescription: _channelDescription,
         importance: Importance.max,
         priority: Priority.high,
+        styleInformation: bigTextStyleInformation,
         // NotificationVisibility.public displays the full notification on the lock screen even when locked
         visibility: NotificationVisibility.public,
         playSound: true,
@@ -124,7 +134,7 @@ class PushNotificationService {
         presentSound: true,
       );
 
-      const NotificationDetails platformDetails = NotificationDetails(
+      final NotificationDetails platformDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );

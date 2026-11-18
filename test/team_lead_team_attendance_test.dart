@@ -36,10 +36,10 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Switch to Absentees tab (which contains the Team Attendance section)
-      final absenteesTab = find.text('Absentees');
-      expect(absenteesTab, findsOneWidget);
-      await tester.tap(absenteesTab);
+      // Switch to Team Attendance tab (Absentees tab removed in favor of Team Attendance)
+      final attendanceTab = find.text('Team Attendance');
+      expect(attendanceTab, findsOneWidget);
+      await tester.tap(attendanceTab);
       await tester.pumpAndSettle();
 
       // Verify "Team Attendance" section title and subheader exist

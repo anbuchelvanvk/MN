@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Service to capture, downsample, and strictly compress photos & receipts to <= 150 KB
@@ -48,6 +49,57 @@ class ImageOptimizationService {
       debugPrint('ImageOptimizationService pick error: $e');
       return null;
     }
+  }
+
+  /// Safe widget builder supporting base64 data URLs and remote HTTP URLs
+  static Widget buildImageWidget(
+    String url, {
+    double? height,
+    double? width,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    if (url.startsWith('data:image')) {
+      try {
+        final commaIdx = url.indexOf(',');
+        final base64Data = commaIdx != -1 ? url.substring(commaIdx + 1) : url;
+        final bytes = base64Decode(base64Data);
+        return Image.memory(
+          bytes,
+          height: height,
+          width: width,
+          fit: fit,
+          errorBuilder: (_, __, ___) => Container(
+            height: height ?? 80,
+            width: width,
+            color: const Color(0xFFF1F5F9),
+            alignment: Alignment.center,
+            child: const Icon(Icons.broken_image, color: Color(0xFF94A3B8), size: 24),
+          ),
+        );
+      } catch (_) {}
+    }
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return Image.network(
+        url,
+        height: height,
+        width: width,
+        fit: fit,
+        errorBuilder: (_, __, ___) => Container(
+          height: height ?? 80,
+          width: width,
+          color: const Color(0xFFF1F5F9),
+          alignment: Alignment.center,
+          child: const Icon(Icons.broken_image, color: Color(0xFF94A3B8), size: 24),
+        ),
+      );
+    }
+    return Container(
+      height: height ?? 80,
+      width: width,
+      color: const Color(0xFFF1F5F9),
+      alignment: Alignment.center,
+      child: const Icon(Icons.image, color: Color(0xFF94A3B8), size: 24),
+    );
   }
 
   /// Iteratively downscales the image in memory until under the 150 KB target

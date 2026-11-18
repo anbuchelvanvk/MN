@@ -7,6 +7,7 @@ import '../../providers/ecosystem_provider.dart';
 import '../../models/social_cause_models.dart';
 import '../../services/image_optimization_service.dart';
 import '../../core/widgets/social_cause_detail_dialog.dart';
+import '../ceo/ceo_subpages.dart';
 
 class SocialCausePillarScreen extends StatefulWidget {
   final bool isStandalone;
@@ -71,6 +72,49 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
             ),
             onPressed: () => _showPostSocialCauseDialog(context, eco),
           ),
+          if (eco.isCeo || eco.activeRole == 'ceo' || eco.activeRole == 'hr') ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.verified_user_outlined, size: 18, color: AppColors.sandGold),
+                  if (eco.pendingSocialCauses.isNotEmpty)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(color: Color(0xFFE11D48), shape: BoxShape.circle),
+                        child: Text(
+                          '${eco.pendingSocialCauses.length}',
+                          style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              label: Text(
+                'Approve Pending Social Causes (${eco.pendingSocialCauses.length})',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.sandGold,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.sandGold, width: 1.2),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CeoSocialCausesScreen()),
+                );
+              },
+            ),
+          ],
           const SizedBox(height: 16),
 
           // 3. Filter tabs
@@ -383,8 +427,59 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Status Badge at top-right
-                    _buildStatusBadge(cause),
+                    // Status Badge & Delete action at top-right
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        _buildStatusBadge(cause),
+                        if (cause.empId == eco.activeEmpId || eco.isCeo || eco.activeRole == 'ceo' || eco.activeRole == 'hr') ...[
+                          const SizedBox(height: 6),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(6),
+                            onTap: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (c) => AlertDialog(
+                                  backgroundColor: AppColors.burgundyCard,
+                                  title: const Text('Delete Social Cause?', style: TextStyle(color: AppColors.sandLight, fontSize: 14, fontWeight: FontWeight.bold)),
+                                  content: const Text('Are you sure you want to delete this social cause? It will be removed permanently.', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(c, false),
+                                      child: const Text('Cancel', style: TextStyle(color: AppColors.sandGold)),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+                                      onPressed: () => Navigator.pop(c, true),
+                                      child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                await eco.deleteSocialCause(cause.id);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Social cause deleted successfully')),
+                                  );
+                                }
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.delete_outline_rounded, size: 14, color: Color(0xFFEF4444)),
+                                  SizedBox(width: 2),
+                                  Text('Delete', style: TextStyle(fontSize: 10, color: Color(0xFFEF4444), fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
 
@@ -792,9 +887,17 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                 const SizedBox(height: 12),
 
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Cost / Amount Spent (₹)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
-                    const Spacer(),
+                    Flexible(
+                      child: Text(
+                        'Amount Spent (₹)',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     // Volunteering Toggle Button
                     InkWell(
                       borderRadius: BorderRadius.circular(16),
@@ -811,7 +914,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                         decoration: BoxDecoration(
                           color: isVolunteering ? const Color(0xFF10B981) : AppColors.burgundySurface,
                           borderRadius: BorderRadius.circular(16),
@@ -832,7 +935,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                             Text(
                               isVolunteering ? 'Volunteering (₹0)' : 'Volunteering',
                               style: TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: isVolunteering ? Colors.white : AppColors.sandGold,
                               ),

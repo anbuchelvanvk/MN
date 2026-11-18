@@ -4,6 +4,7 @@ import 'package:mn_family_app/views/pillars/profile_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/health_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/family_pillar_screen.dart';
 import 'package:mn_family_app/views/pillars/social_cause_pillar_screen.dart';
+import 'celebration_marquee_banner.dart';
 
 class QuickPillarNavRow extends StatelessWidget {
   final bool forceAttendance;
@@ -17,6 +18,7 @@ class QuickPillarNavRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        const CelebrationMarqueeBanner(),
         // Row 1: Health & Family
         Row(
           children: [

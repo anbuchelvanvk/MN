@@ -72,6 +72,13 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     return _isSameDay(d, now);
   }
 
+  bool _isPastDate(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(d.year, d.month, d.day);
+    return target.isBefore(today);
+  }
+
   String _formatDayLabel(DateTime d) {
     if (_isToday(d)) return 'Today (${d.day} ${_months[d.month - 1].substring(0, 3)})';
     return '${_weekdays[d.weekday - 1]}, ${d.day} ${_months[d.month - 1].substring(0, 3)}';
@@ -1230,6 +1237,15 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   }
 
   void _openSetStepGoalDialog(BuildContext context, EcosystemProvider eco) {
+    if (_isPastDate(_selectedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Cannot edit step targets for past dates. Previous dates are view only.'),
+        ),
+      );
+      return;
+    }
     int targetGoal = eco.dailyStepGoal;
     final controller = TextEditingController(text: targetGoal.toString());
 
@@ -2113,6 +2129,15 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   }
 
   void _openLogFoodDialog(BuildContext context, EcosystemProvider eco, FoodItem item) {
+    if (_isPastDate(_selectedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Cannot log meals for past dates. Previous dates are view & delete only.'),
+        ),
+      );
+      return;
+    }
     final hour = DateTime.now().hour;
     String selectedMealType = (hour < 11)
         ? 'Breakfast'
@@ -2525,6 +2550,15 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   }
 
   void _openAddCustomFoodDialog(BuildContext context, EcosystemProvider eco, {String? initialName}) {
+    if (_isPastDate(_selectedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Cannot log meals for past dates. Previous dates are view & delete only.'),
+        ),
+      );
+      return;
+    }
     final nameCtrl = TextEditingController(text: initialName ?? '');
     final kcalCtrl = TextEditingController();
     final gramsCtrl = TextEditingController();
@@ -2885,6 +2919,15 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   }
 
   void _openRecordWorkoutDialog(BuildContext context, EcosystemProvider eco, {WorkoutActivityType? presetActivity}) {
+    if (_isPastDate(_selectedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Cannot log workouts for past dates. Previous dates are view & delete only.'),
+        ),
+      );
+      return;
+    }
     WorkoutActivityType selectedActivity = presetActivity ?? WorkoutDatabase.activities.first;
     int durationMinutes = 30;
     String intensity = 'Moderate';
@@ -4390,6 +4433,15 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   }
 
   void _openStepCountRecordingDialog(BuildContext context, EcosystemProvider eco) {
+    if (_isPastDate(_selectedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.ragRed,
+          content: Text('Cannot log steps for past dates. Previous dates are view only.'),
+        ),
+      );
+      return;
+    }
     final curSteps = eco.getStepsForDate(_selectedDate);
     final ctrl = TextEditingController(text: curSteps > 0 ? curSteps.toString() : '');
 

@@ -6,9 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import '../../core/models/monthly_scorecard_model.dart';
 import '../../core/services/monthly_scorecard_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/services/push_notification_service.dart';
+import '../../services/firebase_employee_service.dart';
+import '../../providers/ecosystem_provider.dart';
 
 class MonthlyScorecardScreen extends StatefulWidget {
   const MonthlyScorecardScreen({super.key});
@@ -34,8 +39,29 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
 
   Future<void> _loadScorecard() async {
     setState(() => _isLoading = true);
-    final prefs = await SharedPreferences.getInstance();
     final key = 'monthly_scorecard_${_selectedYear}_$_selectedMonth';
+
+    // 1. Try remote Firestore load first for cross-device sync
+    if (FirebaseEmployeeService.isFirebaseAvailable) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('monthly_scorecards')
+            .doc('${_selectedYear}_$_selectedMonth')
+            .get();
+        if (doc.exists && doc.data() != null) {
+          _model = MonthlyScorecardModel.fromJson(doc.data()!);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(key, jsonEncode(_model.toJson()));
+          if (mounted) setState(() => _isLoading = false);
+          return;
+        }
+      } catch (e) {
+        debugPrint('Firestore load monthly scorecard: $e');
+      }
+    }
+
+    // 2. Fallback to local SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
     final jsonStr = prefs.getString(key);
 
     if (jsonStr != null) {
@@ -58,6 +84,38 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
     final prefs = await SharedPreferences.getInstance();
     final key = 'monthly_scorecard_${_selectedYear}_$_selectedMonth';
     await prefs.setString(key, jsonEncode(_model.toJson()));
+
+    // 1. Save to Cloud Firestore for cross-device visibility (CEO & Team)
+    if (FirebaseEmployeeService.isFirebaseAvailable) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('monthly_scorecards')
+            .doc('${_selectedYear}_$_selectedMonth')
+            .set(_model.toJson(), SetOptions(merge: true));
+      } catch (e) {
+        debugPrint('Firestore save monthly scorecard: $e');
+      }
+    }
+
+    // 2. Dispatch push notification to CEO & Online Team
+    PushNotificationService().showNotification(
+      id: 'scorecard_${DateTime.now().millisecondsSinceEpoch}',
+      title: '📊 Monthly Scorecard Updated',
+      body: 'Online Team TL updated the monthly scorecard for ${_model.monthName} ${_model.year}.',
+    );
+
+    try {
+      if (mounted) {
+        final eco = context.read<EcosystemProvider>();
+        eco.postBroadcastNotification(
+          title: '📊 Monthly Scorecard Updated',
+          content: 'Online Team TL updated the monthly performance scorecard for ${_model.monthName} ${_model.year}. Available on CEO Portal & Online Team direct access.',
+          senderName: eco.currentEmployee.name,
+          senderRole: 'Online Team Lead',
+        );
+      }
+    } catch (_) {}
+
     if (mounted) {
       setState(() {});
     }

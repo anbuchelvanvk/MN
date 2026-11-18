@@ -7,6 +7,7 @@ class FamilyActivityItem {
   final double hoursSpent;
   final String iconEmoji;
   final String? notes;
+  final String? imageUrl;
   final DateTime timestamp;
   final String timeString;
 
@@ -18,6 +19,7 @@ class FamilyActivityItem {
     required this.hoursSpent,
     this.iconEmoji = '❤️',
     this.notes,
+    this.imageUrl,
     required this.timestamp,
     required this.timeString,
   });
@@ -30,6 +32,7 @@ class FamilyActivityItem {
     'hoursSpent': hoursSpent,
     'iconEmoji': iconEmoji,
     'notes': notes,
+    'imageUrl': imageUrl,
     'timestamp': timestamp.toIso8601String(),
     'timeString': timeString,
   };
@@ -44,6 +47,7 @@ class FamilyActivityItem {
     hoursSpent: (map['hoursSpent'] as num?)?.toDouble() ?? 1.0,
     iconEmoji: map['iconEmoji'] ?? '❤️',
     notes: map['notes'],
+    imageUrl: map['imageUrl'],
     timestamp: map['timestamp'] != null ? DateTime.tryParse(map['timestamp']) ?? DateTime.now() : DateTime.now(),
     timeString: map['timeString'] ?? '',
   );

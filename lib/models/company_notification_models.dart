@@ -224,3 +224,17 @@ class CompanyNotification {
     );
   }
 }
+
+class CelebrationEvent {
+  final String employeeName;
+  final String type; // 'birthday' or 'anniversary'
+  final String message;
+  final String date;
+
+  CelebrationEvent({
+    required this.employeeName,
+    required this.type,
+    required this.message,
+    required this.date,
+  });
+}

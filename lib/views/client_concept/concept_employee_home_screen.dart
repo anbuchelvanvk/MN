@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../core/widgets/company_notification_sheet.dart';
+import '../../core/widgets/celebration_marquee_banner.dart';
 import '../pillars/work_pillar_screen.dart';
 import '../pillars/attendance_pillar_screen.dart';
 import '../dept_head/monthly_scorecard_screen.dart';
@@ -162,6 +163,7 @@ class _ConceptEmployeeHomeScreenState extends State<ConceptEmployeeHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const CelebrationMarqueeBanner(),
               // 1. Top Luxury Burgundy Profile Card
               Container(
                 padding: const EdgeInsets.all(18),

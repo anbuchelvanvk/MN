@@ -243,8 +243,6 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       const SizedBox(height: 8),
                       _verticalTabTile(const TlTeamTasksScreen(), 'Team Tasks', Icons.assignment_outlined, opsTasks.isNotEmpty ? '${opsTasks.length}' : ''),
                       const SizedBox(height: 8),
-                      _verticalTabTile(const TlAbsenteesScreen(), 'Absentees', Icons.person_off_outlined, teamAbsentees.isNotEmpty ? '${teamAbsentees.length}' : ''),
-                      const SizedBox(height: 8),
                       _verticalTabTile(const TlMyTasksScreen(), 'My Tasks', Icons.task_alt_outlined, ''),
                       const SizedBox(height: 8),
                       _verticalTabTile(const TlDailySopsScreen(), 'Daily SOPs', Icons.menu_book_outlined, ''),
