@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
-import '../../models/employee_model.dart';
 import '../../models/family_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../services/image_optimization_service.dart';
