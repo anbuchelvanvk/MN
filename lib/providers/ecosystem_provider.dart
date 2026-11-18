@@ -1015,8 +1015,8 @@ class EcosystemProvider extends ChangeNotifier {
     for (final notif in remoteNotifs) {
       if (!_notifiedCompanyNotifIds.contains(notif.id)) {
         _notifiedCompanyNotifIds.add(notif.id);
-        // Only push if not already read by this employee
-        if (!notif.isReadBy(_activeEmpId)) {
+        // Only push if not already read by this employee and targeted for this employee
+        if (!notif.isReadBy(_activeEmpId) && notif.isTargetedFor(_activeEmpId)) {
           PushNotificationService().showNotification(
             id: notif.id,
             title: notif.title,
@@ -1108,9 +1108,30 @@ class EcosystemProvider extends ChangeNotifier {
         senderRole: 'Managing Director & CEO',
       );
       _companyNotifications.insert(0, newNotif);
+      _firebaseEmployeeService.saveCompanyNotification(newNotif).catchError((err) {
+        debugPrint('Firestore celebration notification sync note: $err');
+      });
     }
     await prefs.setBool(todayKey, true);
     notifyListeners();
+  }
+
+  Timer? _midnightCelebrationTimer;
+
+  /// Automatically schedules celebration checking and push notifications exactly at 12:00 AM midnight daily
+  void _startMidnightCelebrationTimer() {
+    _midnightCelebrationTimer?.cancel();
+    if ((!kIsWeb && Platform.environment.containsKey('FLUTTER_TEST')) ||
+        WidgetsBinding.instance.runtimeType.toString().contains('Test')) {
+      return;
+    }
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1, 0, 0, 5);
+    final duration = tomorrow.difference(now);
+    _midnightCelebrationTimer = Timer(duration, () {
+      checkAndDispatchCelebrations();
+      _startMidnightCelebrationTimer();
+    });
   }
 
   // Attendance Pillar 4 & eSSL Security Biometric Device State
@@ -2467,6 +2488,7 @@ class EcosystemProvider extends ChangeNotifier {
     _loadLocalPersonalNotesAndDismissed();
     _initFirebaseSync();
     checkAndDispatchCelebrations();
+    _startMidnightCelebrationTimer();
   }
 
   void _initFirebaseSync() {
@@ -4246,6 +4268,7 @@ class EcosystemProvider extends ChangeNotifier {
           },
           email: oldEmp.email,
         );
+        checkAndDispatchCelebrations();
       } catch (e) {
         debugPrint('Firebase profile sync note: $e');
       }
@@ -6438,6 +6461,7 @@ class EcosystemProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _midnightCelebrationTimer?.cancel();
     _employeeSubscription?.cancel();
     _socialCausesSubscription?.cancel();
     _notificationsSubscription?.cancel();

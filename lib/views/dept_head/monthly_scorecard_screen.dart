@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -176,6 +177,19 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
     try {
       final bytes = await MonthlyScorecardPdfService.generatePdf(_model);
       final fileName = 'Monthly_Scorecard_${_model.monthName}_${_model.year}.pdf';
+
+      if (kIsWeb) {
+        await Printing.sharePdf(bytes: bytes, filename: fileName);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: const Color(0xFF059669),
+              content: Text('Scorecard PDF prepared for download ($fileName)'),
+            ),
+          );
+        }
+        return;
+      }
 
       Directory? dir;
       try {

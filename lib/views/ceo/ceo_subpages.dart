@@ -2051,7 +2051,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: const Color(0xFF10B981),
-              content: Text('Excel backup generated successfully: ${path.split(Platform.pathSeparator).last}'),
+              content: Text('Excel backup generated successfully: ${path.split(RegExp(r"[\\/]")).last}'),
             ),
           );
         }

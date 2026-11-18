@@ -76,7 +76,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(d.year, d.month, d.day);
-    return target.isBefore(today);
+    return target.isBefore(today) || target.isAfter(today);
   }
 
   String _formatDayLabel(DateTime d) {
