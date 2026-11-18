@@ -27,6 +27,8 @@ import 'ceo_subpages.dart';
 import '../notes/personal_notes_screen.dart';
 import '../dept_head/monthly_scorecard_screen.dart';
 import '../chat/chat_hub_screen.dart';
+import '../../core/widgets/daily_pending_actions_dialog.dart';
+import '../konar/konar_books_directory_screen.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   const CeoSuiteScreen({super.key});
@@ -68,13 +70,16 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final eco = context.read<EcosystemProvider>();
       if (eco.activeEmpId != 'MN-CEO01') {
         eco.setActiveEmpId('MN-CEO01');
       }
       if (mounted) {
-        PillarsPopupDialog.show(context);
+        await PillarsPopupDialog.show(context);
+        if (mounted) {
+          await DailyPendingActionsDialog.showIfNeeded(context);
+        }
       }
     });
   }
@@ -340,6 +345,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         icon: Icons.chat_bubble_outline_rounded,
                         badge: eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : '',
                         destination: const ChatHubScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'KONAR Books',
+                        icon: Icons.menu_book_rounded,
+                        badge: 'SOP',
+                        destination: const KonarBooksDirectoryScreen(),
                       ),
                       const SizedBox(height: 8),
                       _verticalCeoTabTile(

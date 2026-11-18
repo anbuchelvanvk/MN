@@ -9,6 +9,7 @@ import '../models/company_notification_models.dart';
 import '../models/task_model.dart';
 import '../models/online_order_model.dart';
 import '../models/chat_message_model.dart';
+import '../models/konar_book_model.dart';
 
 /// Firebase Employee & Omnichannel Service for MN Jewel Park
 /// Handles centralized Cloud Firestore sync, authentication, role allocation,
@@ -52,6 +53,9 @@ class FirebaseEmployeeService {
 
   CollectionReference<Map<String, dynamic>> get _chatsCollection =>
       _firestore.collection('mn_team_chats');
+
+  CollectionReference<Map<String, dynamic>> get _konarBooksCollection =>
+      _firestore.collection('konar_books');
 
   /// Stream real-time employee list for Online Department (strictly filtered to allowed official workforce)
   Stream<List<Employee>> streamEmployees() {
@@ -1445,6 +1449,51 @@ class FirebaseEmployeeService {
       }, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore unpinChatMessage error: $e');
+    }
+  }
+
+  /// Stream live KONAR Books from Cloud Firestore
+  Stream<List<KonarBookModel>> streamKonarBooks() {
+    if (!isFirebaseAvailable) {
+      return Stream.value([KonarBookModel.defaultOnlineDepartment()]);
+    }
+    return _konarBooksCollection.snapshots().map((snapshot) {
+      if (snapshot.docs.isEmpty) {
+        return [KonarBookModel.defaultOnlineDepartment()];
+      }
+      return snapshot.docs
+          .map((doc) => KonarBookModel.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+    });
+  }
+
+  /// Fetch KONAR Books from Cloud Firestore (auto-seeding default if empty)
+  Future<List<KonarBookModel>> getKonarBooks() async {
+    if (!isFirebaseAvailable) {
+      return [KonarBookModel.defaultOnlineDepartment()];
+    }
+    try {
+      final snapshot = await _konarBooksCollection.get();
+      if (snapshot.docs.isEmpty) {
+        final defaultBook = KonarBookModel.defaultOnlineDepartment();
+        await saveKonarBook(defaultBook);
+        return [defaultBook];
+      }
+      return snapshot.docs
+          .map((doc) => KonarBookModel.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+    } catch (_) {
+      return [KonarBookModel.defaultOnlineDepartment()];
+    }
+  }
+
+  /// Persist KONAR Book changes to Cloud Firestore
+  Future<void> saveKonarBook(KonarBookModel book) async {
+    if (!isFirebaseAvailable) return;
+    try {
+      await _konarBooksCollection.doc(book.id).set(book.toJson(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Firestore saveKonarBook error: $e');
     }
   }
 }

@@ -16,6 +16,8 @@ import 'dept_head_subpages.dart';
 import 'monthly_scorecard_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../chat/chat_hub_screen.dart';
+import '../../core/widgets/daily_pending_actions_dialog.dart';
+import '../konar/konar_book_detail_screen.dart';
 
 class DeptHeadPortalScreen extends StatefulWidget {
   const DeptHeadPortalScreen({super.key});
@@ -28,9 +30,12 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        PillarsPopupDialog.show(context);
+        await PillarsPopupDialog.show(context);
+        if (mounted) {
+          await DailyPendingActionsDialog.showIfNeeded(context);
+        }
       }
     });
   }
@@ -241,6 +246,8 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                   Column(
                     children: [
                       _verticalTabTile(const ChatHubScreen(), 'Team Chat', Icons.chat_bubble_outline_rounded, eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : ''),
+                      const SizedBox(height: 8),
+                      _verticalTabTile(const KonarBookDetailScreen(department: 'Online Department'), 'KONAR Book', Icons.menu_book_rounded, 'OTM'),
                       const SizedBox(height: 8),
                       _verticalTabTile(const MonthlyScorecardScreen(), 'Monthly Scorecard', Icons.assessment_outlined, 'OTM'),
                       const SizedBox(height: 8),

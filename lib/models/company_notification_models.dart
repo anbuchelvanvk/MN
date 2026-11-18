@@ -22,6 +22,7 @@ class CompanyNotification {
   final List<String> likedStaffIds;
   final List<String> dismissedByStaffIds;
   final String? targetEmpId;
+  final List<String> targetEmpIds;
   final List<NotificationComment> comments;
 
   CompanyNotification({
@@ -38,6 +39,7 @@ class CompanyNotification {
     this.likedStaffIds = const [],
     this.dismissedByStaffIds = const [],
     this.targetEmpId,
+    this.targetEmpIds = const [],
     this.comments = const [],
   });
 
@@ -49,8 +51,11 @@ class CompanyNotification {
     return dismissedByStaffIds.contains(empId);
   }
 
-  /// Whether notification is targeted for a specific employee
+  /// Whether notification is targeted for a specific employee or set of employees
   bool isTargetedFor(String empId) {
+    if (targetEmpIds.isNotEmpty) {
+      return targetEmpIds.contains(empId);
+    }
     if (targetEmpId != null && targetEmpId!.trim().isNotEmpty) {
       return targetEmpId == empId;
     }
@@ -170,6 +175,7 @@ class CompanyNotification {
     'likedStaffIds': likedStaffIds,
     'dismissedByStaffIds': dismissedByStaffIds,
     'targetEmpId': targetEmpId,
+    'targetEmpIds': targetEmpIds,
     'comments': comments.map((c) => c.toJson()).toList(),
   };
 
@@ -227,6 +233,7 @@ class CompanyNotification {
       likedStaffIds: (json['likedStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       dismissedByStaffIds: (json['dismissedByStaffIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       targetEmpId: json['targetEmpId']?.toString(),
+      targetEmpIds: (json['targetEmpIds'] as List?)?.map((e) => e.toString()).toList() ?? [],
       comments: (json['comments'] as List?)
               ?.map((c) => NotificationComment.fromJson(Map<String, dynamic>.from(c as Map)))
               .toList() ??

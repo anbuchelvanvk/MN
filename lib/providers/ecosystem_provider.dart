@@ -22,6 +22,7 @@ import '../models/acceptance_notification_model.dart';
 import '../services/google_sheets_attendance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/online_order_model.dart';
+import '../models/konar_book_model.dart';
 import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
 import '../core/services/push_notification_service.dart';
@@ -46,6 +47,13 @@ class EcosystemProvider extends ChangeNotifier {
       _activeEmpId == 'MN-HR1001' ||
       _activeEmpId == '7' ||
       currentEmployee.isHr;
+  bool get isTeamLead =>
+      _activeRole.toLowerCase() == 'team_lead' ||
+      _activeRole.toLowerCase() == 'dept_head' ||
+      _activeEmpId == 'MN-TL1002' ||
+      _activeEmpId == '2' ||
+      currentEmployee.isDeptHead;
+  bool get isDeptHead => isTeamLead;
 
   late List<Employee> _employees;
   late List<TaskItem> _tasks;
@@ -2886,6 +2894,7 @@ class EcosystemProvider extends ChangeNotifier {
   StreamSubscription<List<TaskItem>>? _personalTodosSubscription;
   StreamSubscription<List<OnlineOrderModel>>? _onlineOrdersSubscription;
   StreamSubscription<List<ChatMessage>>? _chatMessagesSubscription;
+  StreamSubscription<List<KonarBookModel>>? _konarBooksSubscription;
   bool _firebaseSyncActive = false;
   bool get firebaseSyncActive => _firebaseSyncActive;
 
@@ -2893,6 +2902,16 @@ class EcosystemProvider extends ChangeNotifier {
   List<ChatMessage> _chatMessages = [];
   final Set<String> _notifiedChatMessageIds = {};
   bool _initialChatsStreamLoaded = false;
+
+  // Live Official KONAR Books Engine
+  List<KonarBookModel> _konarBooks = [];
+  List<KonarBookModel> get konarBooks =>
+      _konarBooks.isNotEmpty ? _konarBooks : [KonarBookModel.defaultOnlineDepartment()];
+
+  KonarBookModel get onlineDeptKonarBook => _konarBooks.firstWhere(
+        (b) => b.id == 'online_department',
+        orElse: () => KonarBookModel.defaultOnlineDepartment(),
+      );
 
   // Online Orders Workflow Engine (OS1 & OS2 Handler)
   List<OnlineOrderModel> _onlineOrders = [];
@@ -3333,6 +3352,24 @@ class EcosystemProvider extends ChangeNotifier {
           );
     } catch (e) {
       debugPrint('Firestore chat stream error: $e');
+    }
+
+    try {
+      _konarBooksSubscription = _firebaseEmployeeService
+          .streamKonarBooks()
+          .listen(
+            (remoteBooks) {
+              if (remoteBooks.isNotEmpty) {
+                _konarBooks = remoteBooks;
+                notifyListeners();
+              }
+            },
+            onError: (err) {
+              debugPrint('Firestore KONAR Books stream note: $err');
+            },
+          );
+    } catch (e) {
+      debugPrint('Firestore KONAR Books stream error: $e');
     }
   }
 
@@ -8339,6 +8376,99 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  /// Update KONAR Book and dispatch targeted notifications strictly to Online Team + CEO + HR
+  Future<void> updateKonarBook(
+    KonarBookModel updatedBook, {
+    required String updaterName,
+    required String updaterRole,
+  }) async {
+    final idx = _konarBooks.indexWhere((b) => b.id == updatedBook.id);
+    if (idx != -1) {
+      _konarBooks[idx] = updatedBook;
+    } else {
+      _konarBooks.add(updatedBook);
+    }
+    notifyListeners();
+
+    // 1. Save directly into Cloud Firestore
+    await _firebaseEmployeeService.saveKonarBook(updatedBook);
+
+    // 2. Targeted Notification:
+    // Only Online Department employees + TL (Praveenkumar) + HR (Mohankumar) + CEO (Naveenraaj)
+    final targetIds = {
+      'MN-CEO01',
+      'MN-HR001',
+      'MN-TL1002',
+      'MN-EMP1003',
+      'MN-EMP1004',
+      'MN-EMP1005',
+      'MN-EMP1006',
+      'MN-EMP1007',
+      'MN-EMP1008',
+      'MN-EMP1009',
+      'MN-EMP1010',
+      'MN-EMP1011',
+    };
+
+    final notifId = 'NOTIF-KONAR-${DateTime.now().millisecondsSinceEpoch}';
+    final notifTitle = '📘 ${updatedBook.department} KONAR Book Updated';
+    final notifContent = '$updaterName ($updaterRole) updated the official ${updatedBook.department} KONAR Book (${updatedBook.version}). Tap to view and download latest standard operating procedures.';
+
+    final newNotif = CompanyNotification(
+      id: notifId,
+      title: notifTitle,
+      content: notifContent,
+      timestamp: DateTime.now(),
+      type: CompanyNotificationType.broadcastNotice,
+      senderName: updaterName,
+      senderRole: updaterRole,
+      actionTag: 'konar_book',
+      targetEmpIds: targetIds.toList(),
+    );
+
+    _companyNotifications.insert(0, newNotif);
+    _firebaseEmployeeService.saveCompanyNotification(newNotif).catchError((err) {
+      debugPrint('Firestore save konar notification note: $err');
+    });
+
+    // If active employee is one of the targets, dispatch native push notification immediately
+    if (targetIds.contains(_activeEmpId)) {
+      PushNotificationService().showNotification(
+        id: notifId,
+        title: notifTitle,
+        body: notifContent,
+        payload: 'konar_book:${updatedBook.id}',
+      ).catchError((_) {});
+    }
+  }
+
+  // --- 4 Pillars Attention & Corner Badge Status ---
+  bool get isHealthLoggedToday {
+    final now = DateTime.now();
+    return getFoodLogsForDate(now).isNotEmpty ||
+        getWorkoutLogsForDate(now).isNotEmpty ||
+        getStepsForDate(now) > 0 ||
+        totalWorkoutMinutes > 0;
+  }
+
+  bool get isFamilyLoggedToday {
+    final now = DateTime.now();
+    return getFamilyActivitiesForDate(now).isNotEmpty || totalFamilyHoursToday > 0;
+  }
+
+  int get todayPendingTodosCount {
+    return _tasks
+        .where((t) => t.empId == _activeEmpId && t.status != 'completed')
+        .length;
+  }
+
+  int get pendingSocialCausesCount => pendingSocialCauses.length;
+
+  int get healthPillarBadgeCount => isHealthLoggedToday ? 0 : 1;
+  int get familyPillarBadgeCount => isFamilyLoggedToday ? 0 : 1;
+  int get workPillarBadgeCount => todayPendingTodosCount;
+  int get socialCausePillarBadgeCount => (isCeo || isHr) ? pendingSocialCausesCount : 0;
+
   @override
   void dispose() {
     _midnightCelebrationTimer?.cancel();
@@ -8348,6 +8478,7 @@ class EcosystemProvider extends ChangeNotifier {
     _personalTodosSubscription?.cancel();
     _onlineOrdersSubscription?.cancel();
     _chatMessagesSubscription?.cancel();
+    _konarBooksSubscription?.cancel();
     super.dispose();
   }
 }

@@ -278,6 +278,7 @@ class Employee {
   bool get isCeo => roleType.toLowerCase() == 'ceo' || id == 'MN-CEO01';
   bool get isHr => roleType.toLowerCase() == 'hr' || id == '7' || id == 'MN-HR1001';
   bool get isTeamLead => roleType.toLowerCase() == 'team_lead' || roleType.toLowerCase() == 'dept_head' || id == 'MN-TL1002';
+  bool get isDeptHead => isTeamLead;
 
   /// Straight-cut short role acronym (e.g. 'CEO', 'HR', 'OTM', 'OSH', 'OS1', 'OS2', 'VPE', 'Ass.VPE', 'AC', 'OSS', 'DVP', 'CC')
   String get roleAcronym {

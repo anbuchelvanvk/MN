@@ -20,6 +20,8 @@ import 'employee_subpages.dart';
 import '../orders/online_orders_handler_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../chat/chat_hub_screen.dart';
+import '../../core/widgets/daily_pending_actions_dialog.dart';
+import '../konar/konar_book_detail_screen.dart';
 
 class EmployeePortalScreen extends StatefulWidget {
   const EmployeePortalScreen({super.key});
@@ -35,10 +37,13 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
   @override
   void initState() {
     super.initState();
-    // Display the 4-button closable popup once the user is logged in
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Display the 4-button closable popup once the user is logged in, followed by pending actions floating dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        PillarsPopupDialog.show(context);
+        await PillarsPopupDialog.show(context);
+        if (mounted) {
+          await DailyPendingActionsDialog.showIfNeeded(context);
+        }
       }
     });
   }
@@ -320,6 +325,18 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                             value: eco,
                             child: const ChatHubScreen(),
                           ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _verticalActionTile(
+                      'KONAR Book',
+                      Icons.menu_book_rounded,
+                      'OTM',
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const KonarBookDetailScreen(department: 'Online Department'),
                         ),
                       ),
                     ),
