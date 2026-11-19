@@ -234,7 +234,7 @@ class Employee {
   /// OTM (Online Team Manager - Mr. Praveen Kumar) is not a regular employee
   /// and does not have daily attendance or grooming requirements.
   bool get isOtm =>
-      roleType.toLowerCase() == 'team_lead' ||
+      (roleType.toLowerCase() == 'team_lead' && dept.toLowerCase().contains('online')) ||
       role.toLowerCase().contains('online team manager') ||
       id.toUpperCase() == 'MN-TL1002' ||
       email.toLowerCase().contains('praveenkumar');
@@ -247,8 +247,9 @@ class Employee {
       roleType.toLowerCase() == 'external' ||
       id.toUpperCase().startsWith('EXT-');
 
-  /// Regular staff require attendance and grooming; CEO, OTM, and External Support Staff are completely exempt.
+  /// Regular staff require attendance and grooming; CEO, Team Leads (Online & Offline), and External Support Staff are completely exempt.
   bool get hasAttendanceAndGrooming =>
+      !isTeamLead &&
       !isOtm &&
       !isExternalSupport &&
       roleType.toLowerCase() != 'ceo' &&
@@ -259,7 +260,9 @@ class Employee {
   String get displayEmpId {
     if (empNo.isNotEmpty) return empNo;
     if (roleType.toLowerCase() == 'ceo' || id.toUpperCase() == 'MN-CEO01') return 'MN-CEO01';
-    if (isOtm) return 'MN-TL1002';
+    if (id == 'MN-TL1002' || (role.toLowerCase().contains('online team manager') && name.toLowerCase().contains('praveen'))) {
+      return 'MN-TL1002';
+    }
     if (isExternalSupport) return id;
     return id;
   }
@@ -277,7 +280,12 @@ class Employee {
   String get department => dept;
   bool get isCeo => roleType.toLowerCase() == 'ceo' || id == 'MN-CEO01' || name.toLowerCase().contains('naveenraaj');
   bool get isHr => (roleType.toLowerCase() == 'hr' || id == '7' || id == 'MN-HR1001') && !isCeo;
-  bool get isTeamLead => roleType.toLowerCase() == 'team_lead' || roleType.toLowerCase() == 'dept_head' || id == 'MN-TL1002';
+  bool get isTeamLead =>
+      roleType.toLowerCase() == 'team_lead' ||
+      roleType.toLowerCase() == 'dept_head' ||
+      role.toLowerCase().contains('team lead') ||
+      role.toLowerCase().contains('dept head') ||
+      id == 'MN-TL1002';
   bool get isDeptHead => isTeamLead;
 
   /// Straight-cut short role acronym (e.g. 'CEO', 'HR', 'OTM', 'OSH', 'OS1', 'OS2', 'VPE', 'Ass.VPE', 'AC', 'OSS', 'DVP', 'CC')

@@ -2,7 +2,13 @@ import 'task_model.dart';
 
 class KonarTaskCatalog {
   /// Generates the standard daily SOP tasks for each role based on the Konar Book
-  static List<TaskItem> getStandardTasksForEmployee(String empId, String roleCode, String empName) {
+  static List<TaskItem> getStandardTasksForEmployee(
+    String empId,
+    String roleCode,
+    String empName, [
+    String? roleTitle,
+    String? deptName,
+  ]) {
     switch (roleCode.toUpperCase()) {
       case 'VPE': // Chief Photographer & Video Editor (Mr. Y. Aravinda Samy)
         return [
@@ -775,30 +781,109 @@ class KonarTaskCatalog {
           ),
         ];
 
+      case 'TL': // Department Team Lead (Offline & other departments)
+        final dept = (deptName != null && deptName.isNotEmpty) ? deptName : 'Department';
+        return [
+          TaskItem(
+            id: 'KONAR-TL-01',
+            empId: empId,
+            title: '$dept Opening Readiness: Staff Attendance, Floor Setup & Daily Briefing',
+            category: 'Operations Leadership',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Konar SOP',
+            due: '10:00 AM',
+            priority: 'Critical SLA',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-TL-02',
+            empId: empId,
+            title: 'Mid-Day $dept Deliverables, Counter SLAs & Escalation Review',
+            category: 'Deliverables & SLAs',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Konar SOP',
+            due: '01:30 PM',
+            priority: 'High',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-TL-03',
+            empId: empId,
+            title: 'Review Walk-ins, Orders, Customer Requirements & Staff Productivity',
+            category: 'Performance Tracking',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Konar SOP',
+            due: '05:00 PM',
+            priority: 'High',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-TL-04',
+            empId: empId,
+            title: '$dept Shift Close: Task Audits, Vault Custody & Evening Handover to Management',
+            category: 'Shift Close & Handover',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Konar SOP',
+            due: '08:30 PM',
+            priority: 'Critical SLA',
+            status: 'pending',
+          ),
+        ];
+
       default:
+        final title = (roleTitle != null && roleTitle.isNotEmpty) ? roleTitle : 'Department Operations';
         return [
           TaskItem(
             id: 'KONAR-GEN-1',
             empId: empId,
-            title: 'Daily Department SOP & Deliverables Execution',
+            title: '$title: Morning Opening Readiness & Operational Checklist',
             category: 'Daily Operations',
             isDefaultSop: true,
             assignedByRole: 'system',
             assignedByName: 'Konar SOP',
-            due: '11:00 AM',
+            due: '10:15 AM',
             priority: 'High',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-GEN-2',
+            empId: empId,
+            title: '$title: Core Deliverables Execution, Customer Service & Task SLAs',
+            category: 'Core Deliverables',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Konar SOP',
+            due: '02:30 PM',
+            priority: 'High',
+            status: 'pending',
+          ),
+          TaskItem(
+            id: 'KONAR-GEN-3',
+            empId: empId,
+            title: '$title: Shift Reconciliation, Cleanliness & Evening Department Handover',
+            category: 'Shift Handover',
+            isDefaultSop: true,
+            assignedByRole: 'system',
+            assignedByName: 'Konar SOP',
+            due: '08:00 PM',
+            priority: 'Standard',
             status: 'pending',
           ),
         ];
     }
   }
 
-  /// Resolves the role code ('VPE', 'ASS.VPE', 'OTM', 'OSH', 'OS1', 'OS2', 'ECE', 'AC', 'OSS', 'DVP', 'CC', 'HR', 'CEO')
+  /// Resolves the role code ('VPE', 'ASS.VPE', 'OTM', 'TL', 'OSH', 'OS1', 'OS2', 'ECE', 'AC', 'OSS', 'DVP', 'CC', 'HR', 'CEO')
   /// from an employee's role string, email, or id with strict unambiguous matching.
-  static String resolveRoleCode(String role, String email, String id) {
+  static String resolveRoleCode(String role, String email, String id, [String? dept]) {
     final r = role.toLowerCase().trim();
     final e = email.toLowerCase().trim();
     final i = id.toUpperCase().trim();
+    final d = (dept ?? '').toLowerCase().trim();
 
     // 1. CEO (Managing Director & CEO - M N Naveenraaj)
     if (e == 'ceoofmn@mnjpark.com' ||
@@ -825,12 +910,21 @@ class KonarTaskCatalog {
 
     // 3. OTM (Online Team Manager & Team Lead - Praveenkumar M)
     if (e == 'praveenkumarotm@mnj.com' ||
-        e.contains('praveen') ||
+        (e.contains('praveen') && !r.contains('offline')) ||
         i == 'MN-TL1002' ||
-        r.contains('online team manager') ||
-        r.contains('team lead') ||
-        (r.contains('otm') && !r.contains('photographer'))) {
+        ((r.contains('online') || d.contains('online')) && (r.contains('team manager') || r.contains('team lead')))) {
       return 'OTM';
+    }
+
+    // 4. Team Lead (Offline & other departments)
+    if (r.contains('team lead') ||
+        r.contains('dept head') ||
+        r.contains('department head') ||
+        r.contains('department lead') ||
+        r.contains('operations lead') ||
+        r.contains('team manager') ||
+        i.startsWith('MN-TL')) {
+      return 'TL';
     }
 
     // 4. OSH (Online Sales Head - Gokul)

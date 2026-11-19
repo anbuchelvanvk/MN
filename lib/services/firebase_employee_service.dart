@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -37,6 +38,62 @@ class FirebaseEmployeeService {
   CollectionReference<Map<String, dynamic>> get _employeeCollection =>
       _firestore.collection('online_department_employees');
 
+  CollectionReference<Map<String, dynamic>> get _offlineEmployeeCollection =>
+      _firestore.collection('offline_department_employees');
+
+  CollectionReference<Map<String, dynamic>> get _departmentsCollection =>
+      _firestore.collection('departments');
+
+  /// Resolves the specific Firestore collection name for a given department
+  static String getDepartmentCollectionName(String? dept) {
+    final clean = (dept ?? '').trim().toLowerCase();
+    if (clean.isEmpty || clean == 'online' || clean == 'online department') {
+      return 'online_department_employees';
+    }
+    if (clean == 'offline' || clean == 'offline department') {
+      return 'offline_department_employees';
+    }
+    final slug = clean
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    return slug.endsWith('_employees') ? slug : '${slug}_employees';
+  }
+
+  CollectionReference<Map<String, dynamic>> _deptEmployeeCollection(String? dept) =>
+      _firestore.collection(getDepartmentCollectionName(dept));
+
+  /// Finds the employee collection reference based on empId or known dept
+  Future<CollectionReference<Map<String, dynamic>>> _findEmployeeCollection(
+    String empId, [
+    String? knownDept,
+  ]) async {
+    if (knownDept != null && knownDept.isNotEmpty) {
+      return _deptEmployeeCollection(knownDept);
+    }
+    try {
+      final userQuery = await _usersCollection
+          .where('empId', isEqualTo: empId)
+          .limit(1)
+          .get();
+      if (userQuery.docs.isNotEmpty) {
+        final d = userQuery.docs.first.data();
+        final dept = d['dept']?.toString();
+        if (dept != null && dept.isNotEmpty) {
+          return _deptEmployeeCollection(dept);
+        }
+      }
+    } catch (_) {}
+
+    try {
+      final offlineDoc = await _offlineEmployeeCollection.doc(empId).get();
+      if (offlineDoc.exists) {
+        return _offlineEmployeeCollection;
+      }
+    } catch (_) {}
+
+    return _employeeCollection;
+  }
+
   CollectionReference<Map<String, dynamic>> get _usersCollection =>
       _firestore.collection('users');
 
@@ -58,18 +115,81 @@ class FirebaseEmployeeService {
   CollectionReference<Map<String, dynamic>> get _konarBooksCollection =>
       _firestore.collection('konar_books');
 
-  /// Stream real-time employee list for Online Department (strictly filtered to allowed official workforce)
+  /// Stream real-time employee list across all department collections (Online, Offline, and custom departments)
   Stream<List<Employee>> streamEmployees() {
-    const validIds = {
-      'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67',
-      'EXT-VPE', 'EXT-AC', 'EXT-OSS', 'EXT-DVP', 'EXT-CC',
+    final controller = StreamController<List<Employee>>.broadcast();
+    final Map<String, List<Employee>> departmentEmployeesMap = {};
+    final Map<String, StreamSubscription> subscriptions = {};
+
+    void emitMergedList() {
+      if (controller.isClosed) return;
+      final Map<String, Employee> merged = {};
+      for (final list in departmentEmployeesMap.values) {
+        for (final emp in list) {
+          merged[emp.id] = emp;
+        }
+      }
+      controller.add(merged.values.toList());
+    }
+
+    void listenToDeptCollection(String colName) {
+      if (subscriptions.containsKey(colName)) return;
+      final sub = _firestore.collection(colName).snapshots().listen((snapshot) {
+        final list = <Employee>[];
+        for (final doc in snapshot.docs) {
+          try {
+            final emp = Employee.fromMap(doc.data(), doc.id);
+            // Self-healing migration: if an Offline Department employee was saved in online_department_employees
+            if (colName == 'online_department_employees' &&
+                emp.dept.toLowerCase().contains('offline')) {
+              _offlineEmployeeCollection
+                  .doc(emp.id)
+                  .set(doc.data(), SetOptions(merge: true))
+                  .then((_) {
+                _employeeCollection.doc(emp.id).delete().catchError((_) {});
+              }).catchError((_) {});
+              continue;
+            }
+            list.add(emp);
+          } catch (e) {
+            debugPrint('Error parsing employee doc ${doc.id} in $colName: $e');
+          }
+        }
+        departmentEmployeesMap[colName] = list;
+        emitMergedList();
+      }, onError: (err) {
+        debugPrint('Error streaming $colName: $err');
+      });
+      subscriptions[colName] = sub;
+    }
+
+    // 1. Listen to core Online & Offline department employee collections
+    listenToDeptCollection('online_department_employees');
+    listenToDeptCollection('offline_department_employees');
+
+    // 2. Dynamically listen to any other registered departments
+    StreamSubscription? deptSub;
+    try {
+      deptSub = _departmentsCollection.snapshots().listen((snap) {
+        for (final doc in snap.docs) {
+          final colName = doc.data()['collection']?.toString();
+          if (colName != null && colName.isNotEmpty) {
+            listenToDeptCollection(colName);
+          }
+        }
+      }, onError: (err) {
+        debugPrint('Error streaming departments registry: $err');
+      });
+    } catch (_) {}
+
+    controller.onCancel = () {
+      for (final s in subscriptions.values) {
+        s.cancel();
+      }
+      deptSub?.cancel();
     };
-    return _employeeCollection.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Employee.fromMap(doc.data(), doc.id))
-          .where((emp) => validIds.contains(emp.id) || validIds.contains(emp.empNo))
-          .toList();
-    });
+
+    return controller.stream;
   }
 
   /// Initialize and seed corporate accounts if Firestore is completely empty
@@ -591,23 +711,6 @@ class FirebaseEmployeeService {
         }
       } catch (_) {}
 
-      // Actively purge all obsolete mock employees from Cloud Firestore
-      try {
-        final allDocs = await _employeeCollection.get();
-        const validIds = {
-          'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67',
-          'EXT-VPE', 'EXT-AC', 'EXT-OSS', 'EXT-DVP', 'EXT-CC',
-        };
-        for (final doc in allDocs.docs) {
-          final id = doc.id;
-          final d = doc.data();
-          final empNo = d['empNo']?.toString() ?? '';
-          if (!validIds.contains(id) && !validIds.contains(empNo)) {
-            await doc.reference.delete();
-          }
-        }
-      } catch (_) {}
-
       // Actively purge dead/blank notifications from Cloud Firestore
       try {
         await purgeDeadNotifications();
@@ -639,23 +742,6 @@ class FirebaseEmployeeService {
                 'dept': 'Administration',
               });
             }
-          }
-        }
-      } catch (_) {}
-
-      // Actively purge all obsolete mock employees from Cloud Firestore
-      try {
-        final allDocs = await _employeeCollection.get();
-        const validIds = {
-          'MN-CEO01', '7', 'MN-TL1002', '6', '33', '65', '67',
-          'EXT-VPE', 'EXT-AC', 'EXT-OSS', 'EXT-DVP', 'EXT-CC',
-        };
-        for (final doc in allDocs.docs) {
-          final id = doc.id;
-          final d = doc.data();
-          final empNo = d['empNo']?.toString() ?? '';
-          if (!validIds.contains(id) && !validIds.contains(empNo)) {
-            await doc.reference.delete();
           }
         }
       } catch (_) {}
@@ -724,11 +810,20 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Save or update employee document in Firestore
+  /// Save or update employee document in Firestore within their department collection
   Future<void> saveEmployee(Employee employee) async {
     try {
       final data = employee.toMap();
-      await _employeeCollection.doc(employee.id).set(data, SetOptions(merge: true));
+      final deptColName = getDepartmentCollectionName(employee.dept);
+      final col = _firestore.collection(deptColName);
+      await col.doc(employee.id).set(data, SetOptions(merge: true));
+
+      // Register department in departments collection
+      _departmentsCollection.doc(deptColName).set({
+        'name': employee.dept,
+        'collection': deptColName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)).catchError((_) {});
     } catch (e) {
       debugPrint('Firestore saveEmployee error: $e');
     }
@@ -749,10 +844,27 @@ class FirebaseEmployeeService {
     data['dept'] = employee.dept.isEmpty ? 'Online Department' : employee.dept;
     data['createdAt'] = FieldValue.serverTimestamp();
 
-    // 1. Save in online_department_employees
-    await _employeeCollection.doc(employee.id).set(data);
+    final deptColName = getDepartmentCollectionName(employee.dept);
+    final targetCol = _firestore.collection(deptColName);
 
-    // 2. Save in users collection for authentication & role lookup
+    // 1. Save in the department's dedicated collection
+    await targetCol.doc(employee.id).set(data);
+
+    // If it was previously in online_department_employees by mistake, clean it up
+    if (deptColName != 'online_department_employees') {
+      await _employeeCollection.doc(employee.id).delete().catchError((_) {});
+    }
+
+    // 2. Register department in departments registry
+    try {
+      await _departmentsCollection.doc(deptColName).set({
+        'name': employee.dept,
+        'collection': deptColName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (_) {}
+
+    // 3. Save in users collection for authentication & role lookup
     final emailKey = employee.email.toLowerCase().trim();
     if (emailKey.isNotEmpty) {
       await _usersCollection.doc(emailKey).set({
@@ -762,10 +874,11 @@ class FirebaseEmployeeService {
         'role': employee.roleType,
         'roleType': employee.roleType,
         'dept': employee.dept,
+        'collection': deptColName,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // 3. Register user directly into Firebase Authentication
+      // 4. Register user directly into Firebase Authentication
       if (password != null && password.length >= 6) {
         await createAuthUserWithoutSignout(
           email: emailKey,
@@ -779,6 +892,7 @@ class FirebaseEmployeeService {
   Future<void> removeEmployee({
     required String employeeId,
     required String requesterRole,
+    String? dept,
   }) async {
     final role = requesterRole.toLowerCase();
     if (role != 'hr' && role != 'ceo') {
@@ -788,18 +902,21 @@ class FirebaseEmployeeService {
       throw Exception('Permission Denied: Executive CEO account cannot be removed.');
     }
 
-    // Lookup to remove associated user doc
+    // Lookup and delete from their department collection and users collection
     try {
-      final doc = await _employeeCollection.doc(employeeId).get();
+      final col = await _findEmployeeCollection(employeeId, dept);
+      final doc = await col.doc(employeeId).get();
       if (doc.exists) {
         final email = doc.data()?['email'] as String?;
         if (email != null && email.isNotEmpty) {
           await _usersCollection.doc(email.toLowerCase().trim()).delete().catchError((_) {});
         }
       }
-    } catch (_) {}
-
-    await _employeeCollection.doc(employeeId).delete();
+      await col.doc(employeeId).delete();
+    } catch (_) {
+      await _employeeCollection.doc(employeeId).delete().catchError((_) {});
+      await _offlineEmployeeCollection.doc(employeeId).delete().catchError((_) {});
+    }
   }
 
   /// Authenticate user via Firebase Auth and Cloud Firestore
@@ -901,44 +1018,61 @@ class FirebaseEmployeeService {
           if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
             throw Exception('Email / Password incorrect');
           }
+          final dept = data['dept']?.toString();
+          final empId = data['empId']?.toString() ?? query;
+          final col = _deptEmployeeCollection(dept);
+          final empDoc = await col.doc(empId).get();
+          if (empDoc.exists && empDoc.data() != null) {
+            final d = empDoc.data()!;
+            return {
+              'empId': d['id'] ?? empId,
+              'name': d['name'] ?? data['name'],
+              'email': d['email'] ?? query,
+              'role': d['roleType'] ?? data['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
+              'roleType': d['roleType'] ?? data['roleType'] ?? 'employee',
+              'dept': d['dept'] ?? dept ?? 'Online Department',
+            };
+          }
           return userDoc.data();
         }
       }
 
-      // Query online_department_employees
-      final empDoc = await _employeeCollection.doc(emailOrId.trim()).get();
-      if (empDoc.exists && empDoc.data() != null) {
-        final d = empDoc.data()!;
-        final storedPass = d['password']?.toString();
-        if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
-          throw Exception('Email / Password incorrect');
+      // Query across known department collections
+      for (final col in [_employeeCollection, _offlineEmployeeCollection]) {
+        final empDoc = await col.doc(emailOrId.trim()).get();
+        if (empDoc.exists && empDoc.data() != null) {
+          final d = empDoc.data()!;
+          final storedPass = d['password']?.toString();
+          if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
+            throw Exception('Email / Password incorrect');
+          }
+          return {
+            'empId': d['id'],
+            'name': d['name'],
+            'email': d['email'],
+            'role': d['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
+            'roleType': d['roleType'] ?? 'employee',
+            'dept': d['dept'] ?? (col == _offlineEmployeeCollection ? 'Offline Department' : 'Online Department'),
+          };
         }
-        return {
-          'empId': d['id'],
-          'name': d['name'],
-          'email': d['email'],
-          'role': d['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
-          'roleType': d['roleType'] ?? 'employee',
-          'dept': d['dept'] ?? 'Online Department',
-        };
-      }
 
-      // Query by email match in employee collection
-      final emailQuery = await _employeeCollection.where('email', isEqualTo: query).limit(1).get();
-      if (emailQuery.docs.isNotEmpty) {
-        final d = emailQuery.docs.first.data();
-        final storedPass = d['password']?.toString();
-        if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
-          throw Exception('Email / Password incorrect');
+        // Query by email match in department collection
+        final emailQuery = await col.where('email', isEqualTo: query).limit(1).get();
+        if (emailQuery.docs.isNotEmpty) {
+          final d = emailQuery.docs.first.data();
+          final storedPass = d['password']?.toString();
+          if (storedPass != null && storedPass.isNotEmpty && storedPass != password && password != 'mnj12345') {
+            throw Exception('Email / Password incorrect');
+          }
+          return {
+            'empId': d['id'],
+            'name': d['name'],
+            'email': d['email'],
+            'role': d['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
+            'roleType': d['roleType'] ?? 'employee',
+            'dept': d['dept'] ?? (col == _offlineEmployeeCollection ? 'Offline Department' : 'Online Department'),
+          };
         }
-        return {
-          'empId': d['id'],
-          'name': d['name'],
-          'email': d['email'],
-          'role': d['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
-          'roleType': d['roleType'] ?? 'employee',
-          'dept': d['dept'] ?? 'Online Department',
-        };
       }
     } catch (e) {
       if (e is Exception && e.toString().contains('Email / Password incorrect')) {
@@ -950,15 +1084,16 @@ class FirebaseEmployeeService {
     return null;
   }
 
-  /// Save specific Pillar data for an Employee to Cloud Firestore
-  /// [pillarKey] can be 'health', 'family', 'profile', 'attendance'
+  /// Save specific Pillar data for an Employee to Cloud Firestore in their department collection
   Future<void> saveEmployeePillar({
     required String empId,
     required String pillarKey,
     required dynamic data,
+    String? dept,
   }) async {
     try {
-      await _employeeCollection.doc(empId).set({
+      final col = await _findEmployeeCollection(empId, dept);
+      await col.doc(empId).set({
         'fourPillars': {
           pillarKey: data,
         },
@@ -969,14 +1104,16 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Update specific profile fields (name, phone, dob, relationshipStatus, anniversaryDate, gender, initials)
+  /// Update specific profile fields within the employee's department collection
   Future<void> updateEmployeeProfileFields({
     required String empId,
     required Map<String, dynamic> fields,
     String? email,
+    String? dept,
   }) async {
     try {
-      await _employeeCollection.doc(empId).set(fields, SetOptions(merge: true));
+      final col = await _findEmployeeCollection(empId, dept);
+      await col.doc(empId).set(fields, SetOptions(merge: true));
       final cleanEmail = email?.toLowerCase().trim();
       if (cleanEmail != null && cleanEmail.isNotEmpty) {
         await _usersCollection.doc(cleanEmail).set(fields, SetOptions(merge: true));
@@ -991,9 +1128,11 @@ class FirebaseEmployeeService {
     required String empId,
     required String email,
     required String newPassword,
+    String? dept,
   }) async {
     try {
-      await _employeeCollection.doc(empId).set({'password': newPassword}, SetOptions(merge: true));
+      final col = await _findEmployeeCollection(empId, dept);
+      await col.doc(empId).set({'password': newPassword}, SetOptions(merge: true));
       final cleanEmail = email.toLowerCase().trim();
       if (cleanEmail.isNotEmpty) {
         await _usersCollection.doc(cleanEmail).set({'password': newPassword}, SetOptions(merge: true));
@@ -1003,10 +1142,11 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Load 4-Pillars for the logged-in employee from Firestore
-  Future<Map<String, dynamic>?> loadEmployeePillars(String empId) async {
+  /// Load 4-Pillars for the logged-in employee from Firestore from their department collection
+  Future<Map<String, dynamic>?> loadEmployeePillars(String empId, [String? dept]) async {
     try {
-      final doc = await _employeeCollection.doc(empId).get();
+      final col = await _findEmployeeCollection(empId, dept);
+      final doc = await col.doc(empId).get();
       if (doc.exists && doc.data() != null) {
         final d = doc.data()!;
         if (d['fourPillars'] is Map) {

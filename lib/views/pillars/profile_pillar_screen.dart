@@ -114,14 +114,14 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
             // 4. Dynamic Subsystem Views based on selected ring
             if (_selectedRingIndex == 0) ...[
-              if (employee.isCeo || employee.isOtm)
+              if (employee.isCeo || employee.isTeamLead)
                 _buildCeoStaffAttendanceSection(context, provider)
               else if (employee.isExternalSupport)
                 _buildOtmExemptSection('Attendance', employee)
               else
                 _buildMonthlyAttendanceSection(context, provider),
             ] else if (_selectedRingIndex == 1) ...[
-              if (employee.isCeo || employee.isOtm)
+              if (employee.isCeo || employee.isTeamLead)
                 _buildCeoStaffVaultCustodySection(context, provider)
               else if (employee.isExternalSupport)
                 _buildOtmExemptSection('Document Verification & Safe Vault Custody', employee)
@@ -145,7 +145,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   ),
               ],
             ] else if (_selectedRingIndex == 2) ...[
-              if (employee.isOtm)
+              if (employee.isTeamLead)
                 _buildTeamGroomingInspectionSection(context, provider)
               else if (employee.isCeo || employee.isExternalSupport)
                 _buildOtmExemptSection('Daily Retail Showroom Grooming & Attire', employee)
@@ -807,39 +807,43 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               ],
             ),
           ] else ...[
-            // Staff & OTM have 3 rings: Attendance, Documents, Grooming
+            // Staff & Team Lead have 3 rings: Attendance, Documents, Grooming
             Builder(builder: (_) {
               final isTuesday = DateTime.now().weekday == DateTime.tuesday;
-              final onlineTeam = provider.employees.where((e) => e.dept.toLowerCase().contains('online') && e.id != employee.id).toList();
-              final onlineTeamTotal = onlineTeam.length;
-              final onlineTeamPresent = isTuesday ? 0 : onlineTeam.where((e) => !provider.isEmployeeAbsent(e.id)).length;
-              final onlineTeamDocs = onlineTeam.expand((e) => provider.getEmployeeDocuments(e.id)).toList();
-              final onlineTeamSubmittedDocs = onlineTeamDocs.where((d) => d.status == DocumentSubmissionStatus.submitted).length;
-              final onlineTeamTotalDocs = onlineTeamDocs.length;
+              final isLead = employee.isTeamLead;
+              final deptTeam = provider.employees.where((e) =>
+                  e.dept.toLowerCase() == employee.dept.toLowerCase() &&
+                  e.id != employee.id &&
+                  e.hasAttendanceAndGrooming).toList();
+              final deptTotal = deptTeam.length;
+              final deptPresent = isTuesday ? 0 : deptTeam.where((e) => !provider.isEmployeeAbsent(e.id)).length;
+              final deptDocs = deptTeam.expand((e) => provider.getEmployeeDocuments(e.id)).toList();
+              final deptSubmittedDocs = deptDocs.where((d) => d.status == DocumentSubmissionStatus.submitted).length;
+              final deptTotalDocs = deptDocs.length;
 
               return Row(
                 children: [
                   Expanded(
                     child: _buildRingCard(
                       index: 0,
-                      title: employee.isOtm ? 'Team Attend' : 'Attendance',
-                      displayValue: employee.isOtm
+                      title: isLead ? 'Team Attend' : 'Attendance',
+                      displayValue: isLead
                           ? (isTuesday
                               ? 'Week-off'
-                              : (onlineTeamTotal > 0 ? '$onlineTeamPresent/$onlineTeamTotal' : 'All Set'))
+                              : (deptTotal > 0 ? '$deptPresent/$deptTotal' : 'All Set'))
                           : '${provider.monthlyAttendancePercentage.toStringAsFixed(0)}%',
-                      subText: employee.isOtm
-                          ? (isTuesday ? 'Tuesday Week-off' : 'Online Team')
+                      subText: isLead
+                          ? (isTuesday ? 'Tuesday Week-off' : '${employee.dept} Team')
                           : '${provider.workingDaysAttended}/${provider.totalCalendarDaysInCurrentMonth} Days',
-                      progress: employee.isOtm
-                          ? (isTuesday ? 1.0 : (onlineTeamTotal > 0 ? (onlineTeamPresent / onlineTeamTotal) : 1.0))
+                      progress: isLead
+                          ? (isTuesday ? 1.0 : (deptTotal > 0 ? (deptPresent / deptTotal) : 1.0))
                           : (provider.monthlyAttendancePercentage / 100.0).clamp(0.0, 1.0),
-                      ringColor: employee.isOtm
+                      ringColor: isLead
                           ? (isTuesday ? const Color(0xFF94A3B8) : const Color(0xFF10B981))
                           : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B))),
                       icon: Icons.fact_check_outlined,
-                      statusText: employee.isOtm
-                          ? (isTuesday ? 'Tuesday Week-off' : '$onlineTeamPresent Present')
+                      statusText: isLead
+                          ? (isTuesday ? 'Tuesday Week-off' : (deptTotal > 0 ? '$deptPresent Present' : 'All Set'))
                           : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio'),
                     ),
                   ),
@@ -847,22 +851,22 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Expanded(
                     child: _buildRingCard(
                       index: 1,
-                      title: employee.isOtm ? 'Team Vault' : 'Documents',
-                      displayValue: employee.isOtm
-                          ? (onlineTeamTotalDocs > 0 ? '$onlineTeamSubmittedDocs/$onlineTeamTotalDocs' : 'Safe')
+                      title: isLead ? 'Team Vault' : 'Documents',
+                      displayValue: isLead
+                          ? (deptTotalDocs > 0 ? '$deptSubmittedDocs/$deptTotalDocs' : 'Safe')
                           : (provider.totalOriginalsCount == 0 ? '0 Docs' : '${(provider.documentsSubmissionRatio * 100).toStringAsFixed(0)}%'),
-                      subText: employee.isOtm
+                      subText: isLead
                           ? 'Custody Safe'
                           : (provider.totalOriginalsCount == 0 ? '0 Uploaded' : '${provider.submittedOriginalsCount}/${provider.totalOriginalsCount} Vault'),
-                      progress: employee.isOtm
-                          ? (onlineTeamTotalDocs > 0 ? (onlineTeamSubmittedDocs / onlineTeamTotalDocs) : 1.0)
+                      progress: isLead
+                          ? (deptTotalDocs > 0 ? (deptSubmittedDocs / deptTotalDocs) : 1.0)
                           : provider.documentsSubmissionRatio,
-                      ringColor: employee.isOtm
+                      ringColor: isLead
                           ? const Color(0xFF10B981)
                           : (provider.totalOriginalsCount == 0 ? const Color(0xFF94A3B8) : (provider.pendingOriginalsCount == 0 ? AppColors.ragGreen : const Color(0xFFEF4444))),
                       icon: Icons.lock_clock_outlined,
-                      statusText: employee.isOtm
-                          ? '$onlineTeamSubmittedDocs Verified'
+                      statusText: isLead
+                          ? (deptTotalDocs > 0 ? '$deptSubmittedDocs Verified' : 'Custody Safe')
                           : (provider.totalOriginalsCount == 0 ? 'Need to be added' : (provider.pendingOriginalsCount == 0 ? 'Custody Safe' : '${provider.pendingOriginalsCount} Pending')),
                     ),
                   ),
@@ -870,21 +874,21 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Expanded(
                     child: _buildRingCard(
                       index: 2,
-                      title: employee.isOtm ? 'Team Groom' : 'Grooming',
-                      displayValue: employee.isOtm
+                      title: isLead ? 'Team Groom' : 'Grooming',
+                      displayValue: isLead
                           ? '50 Pts'
                           : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingPercentage(provider.activeEmpId).toStringAsFixed(0)}%' : '0%'),
-                      subText: employee.isOtm
+                      subText: isLead
                           ? 'Inspection'
                           : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isNotEmpty ? '${provider.getEmployeeGroomingDailyPoints(provider.activeEmpId)}/50 Pts' : 'Pending Audit'),
-                      progress: employee.isOtm ? 1.0 : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) / 100.0).clamp(0.0, 1.0),
-                      ringColor: employee.isOtm
+                      progress: isLead ? 1.0 : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) / 100.0).clamp(0.0, 1.0),
+                      ringColor: isLead
                           ? AppColors.sandGold
                           : (provider.getEmployeeGroomingAudits(provider.activeEmpId).isEmpty
                               ? const Color(0xFF94A3B8)
                               : (provider.getEmployeeGroomingPercentage(provider.activeEmpId) >= 80 ? AppColors.magentaPrimary : const Color(0xFFF59E0B))),
                       icon: Icons.face_retouching_natural,
-                      statusText: employee.isOtm ? 'Team Audits' : 'Showroom Attire',
+                      statusText: isLead ? 'Team Audits' : 'Showroom Attire',
                     ),
                   ),
                 ],
@@ -3215,9 +3219,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   // =========================================================================
 
   Widget _buildCeoStaffAttendanceSection(BuildContext context, EcosystemProvider provider) {
-    final isOtm = provider.currentEmployee.isOtm;
-    final corporateStaff = isOtm
-        ? provider.employees.where((e) => e.hasAttendanceAndGrooming && e.dept.toLowerCase().contains('online') && e.id != provider.currentEmployee.id).toList()
+    final isLead = provider.currentEmployee.isTeamLead;
+    final corporateStaff = isLead
+        ? provider.employees.where((e) => e.hasAttendanceAndGrooming && e.dept.toLowerCase() == provider.currentEmployee.dept.toLowerCase() && e.id != provider.currentEmployee.id).toList()
         : provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
     final sheet = provider.hrAttendanceSheet;
     final lastSynced = provider.attendanceSheetLastSynced;
@@ -3270,7 +3274,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isOtm ? 'ONLINE TEAM ATTENDANCE' : 'STAFF ATTENDANCE OVERVIEW',
+                                isLead ? '${provider.currentEmployee.dept.toUpperCase()} ATTENDANCE' : 'STAFF ATTENDANCE OVERVIEW',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.bold,
@@ -3689,9 +3693,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   }
 
   Widget _buildCeoStaffVaultCustodySection(BuildContext context, EcosystemProvider provider) {
-    final isOtm = provider.currentEmployee.isOtm;
-    final corporateStaff = isOtm
-        ? provider.employees.where((e) => e.hasAttendanceAndGrooming && e.dept.toLowerCase().contains('online') && e.id != provider.currentEmployee.id).toList()
+    final isLead = provider.currentEmployee.isTeamLead;
+    final corporateStaff = isLead
+        ? provider.employees.where((e) => e.hasAttendanceAndGrooming && e.dept.toLowerCase() == provider.currentEmployee.dept.toLowerCase() && e.id != provider.currentEmployee.id).toList()
         : provider.employees.where((e) => e.hasAttendanceAndGrooming && e.roleType != 'ceo').toList();
 
     final List<_StaffDocEntry> allStaffDocs = [];
@@ -3746,7 +3750,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isOtm ? 'ONLINE TEAM VAULT CUSTODY' : 'STAFF VAULT CUSTODY & VERIFICATION',
+                          isLead ? '${provider.currentEmployee.dept.toUpperCase()} VAULT CUSTODY' : 'STAFF VAULT CUSTODY & VERIFICATION',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
@@ -4148,10 +4152,17 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   Widget _buildOtmExemptSection(String subsystemName, [dynamic employee]) {
     final isExt = employee != null && (employee.isExternalSupport == true || employee.dept == 'External Support Staff [Online]');
-    final header = isExt ? 'EXTERNAL SUPPORT STAFF [ONLINE]' : 'ONLINE TEAM MANAGER (OTM)';
+    final isLead = employee != null && (employee.isTeamLead == true);
+    final header = isExt
+        ? 'EXTERNAL SUPPORT STAFF [ONLINE]'
+        : (isLead
+            ? '${(employee.role as String).toUpperCase()} (${(employee.dept as String).toUpperCase()})'
+            : 'ONLINE TEAM MANAGER (OTM)');
     final desc = isExt
         ? 'Exempt from retail showroom $subsystemName. Off-site contractor managed via Konar deliverables & tasks.'
-        : 'Exempt from $subsystemName.';
+        : (isLead
+            ? 'Exempt from personal showroom $subsystemName. Manages ${employee.dept} team operations.'
+            : 'Exempt from $subsystemName.');
 
     return Container(
       padding: const EdgeInsets.all(20),

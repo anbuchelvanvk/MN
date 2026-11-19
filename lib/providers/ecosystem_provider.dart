@@ -1255,9 +1255,8 @@ class EcosystemProvider extends ChangeNotifier {
     return list;
   }
 
-  int get unreadNotificationCount => activeCompanyNotifications
-      .where((n) => !n.isReadBy(_activeEmpId))
-      .length;
+  int get unreadNotificationCount =>
+      activeCompanyNotifications.where((n) => !n.isReadBy(_activeEmpId)).length;
   final Set<String> _notifiedCompanyNotifIds = {};
   bool _initialCompanyNotifsLoaded = false;
   int _notifSequence = 0;
@@ -3145,11 +3144,14 @@ class EcosystemProvider extends ChangeNotifier {
         emp.role,
         emp.email,
         emp.id,
+        emp.dept,
       );
       final standardTasks = KonarTaskCatalog.getStandardTasksForEmployee(
         emp.id,
         code,
         emp.name,
+        emp.role,
+        emp.dept,
       );
       _tasks.addAll(standardTasks);
     }
@@ -3198,9 +3200,7 @@ class EcosystemProvider extends ChangeNotifier {
     ensureEmployeeStandardTasks(emp.id);
 
     return _tasks
-        .where(
-          (t) => possibleIds.contains(t.empId) || t.empId == emp.id,
-        )
+        .where((t) => possibleIds.contains(t.empId) || t.empId == emp.id)
         .toList();
   }
 
@@ -3209,8 +3209,16 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   List<TaskItem> get operationsDeptTasks {
+    final curDept = currentEmployee.dept.toLowerCase();
+    final isLead = isTeamLead;
     final opsEmpIds = _employees
-        .where((e) => e.roleType != 'ceo' && e.roleType != 'hr')
+        .where((e) {
+          if (e.roleType == 'ceo' || e.roleType == 'hr') return false;
+          if (isLead && !isCeo && !isHr) {
+            return e.dept.toLowerCase() == curDept;
+          }
+          return true;
+        })
         .map((e) => e.id)
         .toSet();
     return _tasks.where((t) => opsEmpIds.contains(t.empId)).toList();
@@ -3413,20 +3421,6 @@ class EcosystemProvider extends ChangeNotifier {
       _employeeSubscription = _firebaseEmployeeService.streamEmployees().listen(
         (remoteEmployees) {
           if (remoteEmployees.isNotEmpty) {
-            const validIds = {
-              'MN-CEO01',
-              '7',
-              'MN-TL1002',
-              '6',
-              '33',
-              '65',
-              '67',
-              'EXT-VPE',
-              'EXT-AC',
-              'EXT-OSS',
-              'EXT-DVP',
-              'EXT-CC',
-            };
             final updatedList = List<Employee>.from(_employees);
             for (final remote in remoteEmployees) {
               final cleanRemote =
@@ -3454,11 +3448,6 @@ class EcosystemProvider extends ChangeNotifier {
                             roleType: 'hr',
                           )
                         : remote);
-
-              if (!validIds.contains(cleanRemote.id) &&
-                  !validIds.contains(cleanRemote.empNo)) {
-                continue;
-              }
 
               final idx = updatedList.indexWhere(
                 (e) =>
@@ -3494,9 +3483,6 @@ class EcosystemProvider extends ChangeNotifier {
                 }
               }
             }
-            updatedList.retainWhere(
-              (e) => validIds.contains(e.id) || validIds.contains(e.empNo),
-            );
             _employees = updatedList;
             _firebaseSyncActive = true;
             notifyListeners();
@@ -7363,11 +7349,14 @@ class EcosystemProvider extends ChangeNotifier {
       newEmp.role,
       newEmp.email,
       newEmp.id,
+      newEmp.dept,
     );
     final stdTasks = KonarTaskCatalog.getStandardTasksForEmployee(
       newEmp.id,
       code,
       newEmp.name,
+      newEmp.role,
+      newEmp.dept,
     );
     _tasks.addAll(stdTasks);
 
@@ -8923,9 +8912,7 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   int get todayPendingTodosCount {
-    return currentEmployeeTasks
-        .where((t) => t.status != 'completed')
-        .length;
+    return currentEmployeeTasks.where((t) => t.status != 'completed').length;
   }
 
   int get pendingSocialCausesCount => pendingSocialCauses.length;

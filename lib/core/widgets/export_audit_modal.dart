@@ -57,12 +57,17 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
   }
 
   List<Employee> _getTeamMembers(EcosystemProvider eco) {
-    final leadDept = eco.currentEmployee.dept;
+    final leadDept = eco.currentEmployee.dept.trim().toLowerCase();
     return eco.employees.where((e) {
       final isCeo = e.roleType == 'ceo' || e.role.toLowerCase().contains('ceo') || e.id.toUpperCase().contains('CEO');
       final isHr = e.roleType == 'hr' || e.role.toLowerCase().contains('hr') || e.id.toUpperCase().contains('HR');
-      if (isCeo || isHr) return false;
-      return e.dept == leadDept || leadDept.toLowerCase().contains('online');
+      if (isCeo || isHr || e.id == eco.currentEmployee.id) return false;
+      if (leadDept.isEmpty) return true;
+      final eDept = e.dept.trim().toLowerCase();
+      if (leadDept.contains('online')) {
+        return eDept.contains('online') || eDept.contains('operation');
+      }
+      return eDept == leadDept;
     }).toList();
   }
 

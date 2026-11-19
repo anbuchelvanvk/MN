@@ -54,10 +54,18 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
     final opsTasks = eco.operationsDeptTasks;
     final openCount = opsTasks.where((t) => t.isPending).length;
     final postponedCount = opsTasks.where((t) => t.isPostponed).length;
+    final curDept = eco.currentEmployee.dept.trim().toLowerCase();
     final teamMembers = eco.employees.where((e) {
       final isCeo = e.roleType == 'ceo' || e.role.toLowerCase().contains('ceo') || e.id.toUpperCase().contains('CEO');
       final isHr = e.roleType == 'hr' || e.role.toLowerCase().contains('hr') || e.id.toUpperCase().contains('HR');
-      return !isCeo && !isHr;
+      final isSelf = e.id == eco.currentEmployee.id;
+      if (isCeo || isHr || isSelf) return false;
+      if (curDept.isEmpty) return true;
+      final eDept = e.dept.trim().toLowerCase();
+      if (curDept.contains('online')) {
+        return eDept.contains('online') || eDept.contains('operation');
+      }
+      return eDept == curDept;
     }).toList();
     final teamAbsentees = teamMembers.where((m) => eco.isEmployeeAbsent(m.id)).toList();
 
@@ -255,7 +263,16 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                     children: [
                       _verticalTabTile(const ChatHubScreen(), 'Team Chat', Icons.chat_bubble_outline_rounded, eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : ''),
                       const SizedBox(height: 8),
-                      _verticalTabTile(const KonarBookDetailScreen(department: 'Online Department'), 'KONAR Book', Icons.menu_book_rounded, 'OTM'),
+                      _verticalTabTile(
+                        KonarBookDetailScreen(
+                          department: eco.currentEmployee.dept.isNotEmpty
+                              ? eco.currentEmployee.dept
+                              : 'Online Department',
+                        ),
+                        'KONAR Book',
+                        Icons.menu_book_rounded,
+                        eco.currentEmployee.dept.toLowerCase().contains('online') ? 'OTM' : 'SOP',
+                      ),
                       const SizedBox(height: 8),
                       _verticalTabTile(const MonthlyScorecardScreen(), 'Monthly Scorecard', Icons.assessment_outlined, 'OTM'),
                       const SizedBox(height: 8),
