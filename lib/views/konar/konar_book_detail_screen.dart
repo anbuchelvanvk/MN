@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/services/konar_pdf_service.dart';
+import '../../core/services/google_drive_upload_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/konar_book_model.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -35,11 +37,26 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
       orElse: () => eco.onlineDeptKonarBook,
     );
 
-    final bool canEdit = eco.isCeo ||
-        eco.isHr ||
+    final isCeo = eco.isCeo;
+    final isHr = eco.isHr;
+    final isTl = eco.isTeamLead ||
         eco.isDeptHead ||
+        eco.activeRole == 'team_lead' ||
         eco.activeRole == 'dept_head' ||
         eco.activeEmpId == 'MN-TL1002';
+
+    // TL has edit access ONLY for their own department's KONAR book
+    final bool isTlForThisDept = isTl &&
+        (eco.currentEmployee.dept.toLowerCase().contains(book.department.toLowerCase()) ||
+            book.department.toLowerCase().contains(eco.currentEmployee.dept.toLowerCase()) ||
+            (eco.currentEmployee.dept.toLowerCase().contains('online') &&
+                (book.department.toLowerCase().contains('online') ||
+                    book.id.toLowerCase().contains('online'))) ||
+            book.id.toLowerCase().contains(eco.currentEmployee.dept.toLowerCase().replaceAll(' ', '_')));
+
+    // Only CEO, HR, and Department TL (for their specific department) can update or upload.
+    // Regular employees have read-only access (view and download).
+    final bool canEdit = isCeo || isHr || isTlForThisDept;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -329,69 +346,74 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        // Primary Full-Width Download Button (Zero truncation)
-                        SizedBox(
-                          width: double.infinity,
-                          height: 46,
-                          child: ElevatedButton.icon(
-                            onPressed: () => _handleDownloadPdf(book),
-                            icon: const Icon(Icons.file_download_rounded, size: 19),
-                            label: const Text(
-                              'Download Full Book (PDF)',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0F766E),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        // Row of View Full Book & Share Book
+                        // Lined Action Row: View Full Book, Download Book, Share (FittedBox - zero truncation)
                         Row(
                           children: [
                             // View Full Book Button
                             Expanded(
+                              flex: 5,
                               child: SizedBox(
-                                height: 42,
+                                height: 44,
                                 child: OutlinedButton.icon(
                                   onPressed: () => _handlePrintPdf(book),
                                   icon: const Icon(Icons.visibility_rounded, size: 16, color: Color(0xFF831843)),
-                                  label: const Text(
-                                    'View Full Book',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  label: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'View Full Book',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                    ),
                                   ),
                                   style: OutlinedButton.styleFrom(
                                     side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
                                     backgroundColor: const Color(0xFFFDF2F8),
                                     foregroundColor: const Color(0xFF831843),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6),
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            // Share Button
+                            const SizedBox(width: 8),
+                            // Download Book Button
                             Expanded(
+                              flex: 5,
                               child: SizedBox(
-                                height: 42,
-                                child: OutlinedButton.icon(
-                                  onPressed: () => _handleSharePdf(book),
-                                  icon: const Icon(Icons.share_rounded, size: 16, color: Color(0xFF334155)),
-                                  label: const Text(
-                                    'Share Book',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                height: 44,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _handleDownloadPdf(book),
+                                  icon: const Icon(Icons.file_download_rounded, size: 16, color: Colors.white),
+                                  label: const FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Download Book',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Colors.white),
+                                    ),
                                   ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
-                                    backgroundColor: const Color(0xFFF8FAFC),
-                                    foregroundColor: const Color(0xFF334155),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0F766E),
+                                    foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                                    elevation: 0,
                                   ),
                                 ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Share Button
+                            SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: OutlinedButton(
+                                onPressed: () => _handleSharePdf(book),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                                  backgroundColor: const Color(0xFFF8FAFC),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                child: const Icon(Icons.share_rounded, size: 18, color: Color(0xFF334155)),
                               ),
                             ),
                           ],
@@ -616,7 +638,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
     final titleController = TextEditingController(text: book.title);
     final descController = TextEditingController(text: book.description);
     final versionController = TextEditingController(text: book.version);
+    final driveUrlController = TextEditingController(text: book.pdfUrl ?? '');
     String? pickedBase64 = book.pdfBase64;
+    Uint8List? pickedPdfBytes;
     String? pickedFileName = book.attachmentFileName;
 
     showModalBottomSheet(
@@ -725,8 +749,25 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                   ),
                   const SizedBox(height: 14),
 
+                  // Google Drive PDF Link
+                  const Text('Google Drive PDF Link', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: driveUrlController,
+                    decoration: InputDecoration(
+                      hintText: 'https://drive.google.com/file/d/.../view',
+                      hintStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      prefixIcon: const Icon(Icons.add_link_rounded, size: 20, color: Color(0xFF0F766E)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
                   // Attach New PDF Document
-                  const Text('Official PDF Attachment (Optional)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Text('Or Select Local PDF Document', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   InkWell(
                     onTap: () async {
@@ -740,6 +781,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         final bytes = file.bytes ?? (file.path != null ? await File(file.path!).readAsBytes() : null);
                         if (bytes != null) {
                           setModalState(() {
+                            pickedPdfBytes = bytes;
                             pickedBase64 = base64Encode(bytes);
                             pickedFileName = file.name;
                           });
@@ -769,7 +811,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const Text(
-                                  'PDF replaces auto-generated chapters',
+                                  'Uploaded directly to Google Drive & synced',
                                   style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
                                 ),
                               ],
@@ -789,40 +831,55 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                     height: 46,
                     child: ElevatedButton(
                       onPressed: () async {
-                        final updated = book.copyWith(
-                          title: titleController.text.trim(),
-                          description: descController.text.trim(),
-                          version: versionController.text.trim().isNotEmpty ? versionController.text.trim() : book.version,
-                          lastUpdated: DateTime.now(),
-                          updatedByName: eco.currentEmployee.name,
-                          updatedByRole: eco.currentEmployee.role,
-                          updatedByEmpId: eco.currentEmployee.id,
-                          pdfBase64: pickedBase64,
-                          attachmentFileName: pickedFileName,
-                        );
-
                         Navigator.pop(ctx);
                         setState(() {
                           _isProcessing = true;
-                          _processingMessage = pickedBase64 != null
-                              ? 'Saving PDF to Cloud...'
+                          _processingMessage = pickedPdfBytes != null
+                              ? 'Uploading PDF to Google Drive...'
                               : 'Updating KONAR Book...';
                         });
                         final messenger = ScaffoldMessenger.of(context);
 
                         try {
+                          String? finalDriveUrl = driveUrlController.text.trim().isNotEmpty
+                              ? driveUrlController.text.trim()
+                              : book.pdfUrl;
+
+                          // If local PDF was selected, upload directly to Google Drive via Webhook
+                          if (pickedPdfBytes != null) {
+                            try {
+                              final uploadRes = await GoogleDriveUploadService.uploadPdfToDrive(
+                                pdfBytes: pickedPdfBytes!,
+                                fileName: pickedFileName ?? '${book.department.replaceAll(' ', '_')}_KONAR_Book.pdf',
+                              );
+                              final uploadedUrl = uploadRes['driveUrl'] as String? ?? uploadRes['downloadUrl'] as String?;
+                              if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
+                                finalDriveUrl = uploadedUrl;
+                              }
+                            } catch (uploadErr) {
+                              debugPrint('Google Drive upload error: $uploadErr');
+                            }
+                          }
+
+                          final updated = book.copyWith(
+                            title: titleController.text.trim(),
+                            description: descController.text.trim(),
+                            version: versionController.text.trim().isNotEmpty ? versionController.text.trim() : book.version,
+                            lastUpdated: DateTime.now(),
+                            updatedByName: eco.currentEmployee.name,
+                            updatedByRole: eco.currentEmployee.role,
+                            updatedByEmpId: eco.currentEmployee.id,
+                            pdfBase64: finalDriveUrl != null ? null : pickedBase64,
+                            pdfUrl: finalDriveUrl,
+                            attachmentFileName: pickedFileName ?? book.attachmentFileName,
+                            hasPdfAttachment: (finalDriveUrl != null && finalDriveUrl.isNotEmpty) || (pickedBase64 != null && pickedBase64!.isNotEmpty),
+                          );
+
                           await eco.updateKonarBook(
                             updated,
                             updaterName: eco.currentEmployee.name,
                             updaterRole: eco.currentEmployee.role,
                             updaterEmpId: eco.currentEmployee.id,
-                            onProgress: (progress) {
-                              if (mounted) {
-                                setState(() {
-                                  _processingMessage = 'Uploading PDF in secure chunks (${(progress * 100).toInt()}%)...';
-                                });
-                              }
-                            },
                           );
 
                           if (mounted) {
@@ -830,7 +887,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             messenger.showSnackBar(
                               SnackBar(
                                 backgroundColor: const Color(0xFF0F766E),
-                                content: Text('KONAR Book updated to ${updated.version} and Online Team notified!'),
+                                content: Text('KONAR Book updated to ${updated.version} & synced to Google Drive!'),
                               ),
                             );
                           }
@@ -838,10 +895,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                           if (mounted) {
                             setState(() => _isProcessing = false);
                             messenger.showSnackBar(
-                              SnackBar(
-                                backgroundColor: Colors.red.shade700,
-                                content: Text('Failed to update KONAR Book: $e'),
-                              ),
+                              SnackBar(content: Text('Failed to update KONAR Book: $e')),
                             );
                           }
                         }
@@ -850,8 +904,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         backgroundColor: AppColors.magentaPrimary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
                       ),
-                      child: const Text('Save & Publish to Online Team', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('Save & Publish to Team', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
                     ),
                   ),
                 ],

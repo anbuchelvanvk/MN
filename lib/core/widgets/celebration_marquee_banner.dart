@@ -44,20 +44,20 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
     if (!_isTestEnvironment) {
       _animController = AnimationController(
         vsync: this,
-        duration: const Duration(seconds: 18),
+        duration: const Duration(seconds: 24),
       )..addListener(() {
           if (_scrollController.hasClients) {
             final maxScroll = _scrollController.position.maxScrollExtent;
             if (maxScroll > 15 && _animController != null) {
               final val = _animController!.value;
-              // Hold at beginning for 25% of the cycle so users can read the start clearly
-              if (val < 0.25) {
+              // Hold at beginning for 45% of the cycle so users can read the start with zero motion
+              if (val < 0.45) {
                 _scrollController.jumpTo(0);
-              } else if (val > 0.85) {
-                // Hold briefly at end
+              } else if (val > 0.90) {
+                // Hold at end
                 _scrollController.jumpTo(maxScroll);
               } else {
-                final progress = (val - 0.25) / 0.60;
+                final progress = (val - 0.45) / 0.45;
                 _scrollController.jumpTo(progress * maxScroll);
               }
             } else if (_scrollController.hasClients && _scrollController.offset != 0) {
@@ -145,33 +145,47 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
                 child: const Icon(Icons.celebration_rounded, color: Color(0xFFFDE68A), size: 18),
               ),
               Expanded(
-                child: ClipRect(
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    child: Row(
-                      children: [
-                        Text(
-                          message,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        const SizedBox(width: 80),
-                        Text(
-                          message,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return const LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.white,
+                        Colors.white,
+                        Colors.transparent,
                       ],
+                      stops: [0.0, 0.03, 0.97, 1.0],
+                    ).createShader(bounds);
+                  },
+                  blendMode: BlendMode.dstIn,
+                  child: ClipRect(
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          Text(
+                            message,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(width: 80),
+                          Text(
+                            message,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

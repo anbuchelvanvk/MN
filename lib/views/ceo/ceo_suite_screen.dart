@@ -81,7 +81,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         if (mounted) {
           await PillarsPopupDialog.show(context);
           if (mounted) {
-            await DailyPendingActionsDialog.showIfNeeded(context);
+            await Future.delayed(const Duration(milliseconds: 250));
+            if (mounted) {
+              await DailyPendingActionsDialog.showIfNeeded(context);
+            }
           }
         }
       }

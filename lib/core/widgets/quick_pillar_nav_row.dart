@@ -132,7 +132,7 @@ class _PillarItem extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 9),
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(12),
@@ -151,31 +151,35 @@ class _PillarItem extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
                       color: primaryColor.withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, size: 17, color: primaryColor),
+                    child: Icon(icon, size: 16, color: primaryColor),
                   ),
-                  const SizedBox(width: 9),
+                  const SizedBox(width: 7),
                   Expanded(
-                    child: Text(
-                      title,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: primaryColor,
-                        letterSpacing: 0.1,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 1,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 3),
                   Icon(
                     Icons.arrow_forward_ios_rounded,
-                    size: 11,
-                    color: primaryColor.withOpacity(0.6),
+                    size: 10,
+                    color: primaryColor.withOpacity(0.55),
                   ),
                 ],
               ),

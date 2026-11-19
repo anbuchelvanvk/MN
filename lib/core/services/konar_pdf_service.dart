@@ -6,8 +6,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:http/http.dart' as http;
 import '../../models/konar_book_model.dart';
 import '../../providers/ecosystem_provider.dart';
+import 'google_drive_upload_service.dart';
 
 class KonarPdfService {
   /// Generate the complete official branded PDF document for a KONAR Book
@@ -45,6 +47,24 @@ class KonarPdfService {
         }
       } catch (e) {
         debugPrint('Note loading PDF chunks: $e');
+      }
+    }
+
+    // 4. If book has a Google Drive URL or remote PDF URL, stream bytes directly in-app
+    if (book.pdfUrl != null && book.pdfUrl!.trim().isNotEmpty) {
+      try {
+        final downloadUrl = GoogleDriveUploadService.getDirectDownloadUrl(book.pdfUrl!.trim());
+        final response = await http.get(Uri.parse(downloadUrl));
+        if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+          try {
+            final tempDir = await getTemporaryDirectory();
+            final cachedFile = File('${tempDir.path}/konar_${book.id}_${book.version}.pdf');
+            await cachedFile.writeAsBytes(response.bodyBytes);
+          } catch (_) {}
+          return response.bodyBytes;
+        }
+      } catch (e) {
+        debugPrint('Note loading PDF from Google Drive URL: $e');
       }
     }
 

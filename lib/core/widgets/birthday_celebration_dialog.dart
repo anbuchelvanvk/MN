@@ -18,9 +18,12 @@ class BirthdayCelebrationDialog extends StatelessWidget {
     required this.event,
   });
 
+  static bool _isShowing = false;
+
   /// Evaluates whether the currently logged-in user is celebrating their Birthday or Anniversary today,
   /// and displays the celebration popup ONCE per day before any other dialogs.
   static Future<void> showIfNeeded(BuildContext context) async {
+    if (_isShowing) return;
     final eco = Provider.of<EcosystemProvider>(context, listen: false);
     final now = DateTime.now();
 
@@ -49,6 +52,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
 
       if (!context.mounted) return;
 
+      _isShowing = true;
       await showDialog(
         context: context,
         barrierDismissible: true,
@@ -60,6 +64,8 @@ class BirthdayCelebrationDialog extends StatelessWidget {
       await prefs.setBool(storageKey, true);
     } catch (e) {
       debugPrint('Celebration modal preference error: $e');
+    } finally {
+      _isShowing = false;
     }
   }
 

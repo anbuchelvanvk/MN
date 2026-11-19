@@ -26,6 +26,7 @@ import '../models/konar_book_model.dart';
 import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
 import '../core/services/push_notification_service.dart';
+import '../core/widgets/birthday_celebration_dialog.dart';
 
 class EcosystemProvider extends ChangeNotifier {
   String _activeRole = 'ceo'; // 'employee', 'dept_head', 'hr', 'ceo'
@@ -1169,15 +1170,56 @@ class EcosystemProvider extends ChangeNotifier {
   // Company Universal Notification Feed (Birthdays, Milestones, Social Deeds, Management Broadcasts, SOP To-Dos)
   List<CompanyNotification> _companyNotifications = [];
   List<CompanyNotification> get companyNotifications => _companyNotifications;
-  List<CompanyNotification> get activeCompanyNotifications =>
-      _companyNotifications
-          .where(
-            (n) =>
-                n.isValid &&
-                !n.isDismissedBy(_activeEmpId) &&
-                n.isTargetedFor(_activeEmpId),
-          )
-          .toList();
+  List<CompanyNotification> get activeCompanyNotifications {
+    final list = _companyNotifications
+        .where(
+          (n) =>
+              n.isValid &&
+              !n.isDismissedBy(_activeEmpId) &&
+              n.isTargetedFor(_activeEmpId),
+        )
+        .toList();
+
+    // Ensure active celebration events for today are guaranteed in the notification feed
+    final now = DateTime.now();
+    for (final event in todayCelebrations) {
+      final isSelf = _activeEmpId == event.employeeId ||
+          currentEmployee.name.toLowerCase().contains(event.employeeName.toLowerCase()) ||
+          (isCeo && (event.employeeId == 'MN-CEO01' || event.employeeName.toLowerCase().contains('naveenraaj'))) ||
+          (isHr && (event.employeeId == 'MN-HR001' || event.employeeName.toLowerCase().contains('mohankumar')));
+
+      final notifId = isSelf
+          ? 'NOTIF-MYCELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}'
+          : 'NOTIF-CELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}';
+
+      if (!list.any((n) => n.id == notifId)) {
+        list.insert(
+          0,
+          CompanyNotification(
+            id: notifId,
+            title: isSelf
+                ? (event.type == 'birthday'
+                    ? '🎉 Happy Birthday ${event.employeeName}! 🎂'
+                    : '💍 Happy Wedding Anniversary ${event.employeeName}! 💐')
+                : (event.type == 'birthday'
+                    ? '🎂 Birthday Celebration Today!'
+                    : '💐 Wedding Anniversary Celebration Today!'),
+            content: isSelf ? event.message : event.othersMessage,
+            type: event.type == 'birthday'
+                ? CompanyNotificationType.birthday
+                : CompanyNotificationType.anniversary,
+            timestamp: now,
+            senderName: 'M N Naveenraaj',
+            senderRole: 'Managing Director & CEO',
+            targetEmpIds: isSelf ? [event.employeeId] : const [],
+          ),
+        );
+      }
+    }
+
+    list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return list;
+  }
   int get unreadNotificationCount => _companyNotifications
       .where(
         (n) =>
@@ -1208,10 +1250,27 @@ class EcosystemProvider extends ChangeNotifier {
     List<CompanyNotification> remoteNotifs,
   ) {
     if (!_initialCompanyNotifsLoaded) {
+      _initialCompanyNotifsLoaded = true;
+      final now = DateTime.now();
       for (final notif in remoteNotifs) {
+        final isTodayCelebration = (notif.type == CompanyNotificationType.birthday ||
+                notif.type == CompanyNotificationType.anniversary) &&
+            notif.timestamp.year == now.year &&
+            notif.timestamp.month == now.month &&
+            notif.timestamp.day == now.day;
+
+        if (isTodayCelebration &&
+            !notif.isReadBy(_activeEmpId) &&
+            notif.isTargetedFor(_activeEmpId)) {
+          PushNotificationService().showNotification(
+            id: notif.id,
+            title: notif.title,
+            body: notif.content,
+            payload: notif.id,
+          );
+        }
         _notifiedCompanyNotifIds.add(notif.id);
       }
-      _initialCompanyNotifsLoaded = true;
       return;
     }
 
@@ -1340,13 +1399,11 @@ class EcosystemProvider extends ChangeNotifier {
     if (events.isEmpty) return;
 
     final prefs = await SharedPreferences.getInstance();
+    final todayStr = '${now.year}_${now.month}_${now.day}';
 
     for (final event in events) {
-      // Use per-event per-day tracking key so every celebration is reliably dispatched
-      final eventKey =
-          'celebration_dispatched_${event.type}_${event.employeeId}_${now.year}_${now.month}_${now.day}';
-      final alreadyDispatched = prefs.getBool(eventKey) ?? false;
-      if (alreadyDispatched) continue;
+      final broadcastId = 'NOTIF-CELEB-${event.type}-${event.employeeId}-$todayStr';
+      final personalId = 'NOTIF-MYCELEB-${event.type}-${event.employeeId}-$todayStr';
 
       final notifTitle = event.type == 'birthday'
           ? '🎂 Birthday Celebration Today!'
@@ -1354,7 +1411,7 @@ class EcosystemProvider extends ChangeNotifier {
 
       // 1. Broadcast notification for all workforce members
       final broadcastNotif = CompanyNotification(
-        id: 'NOTIF-CELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}',
+        id: broadcastId,
         title: notifTitle,
         content: event.othersMessage,
         type: event.type == 'birthday'
@@ -1370,7 +1427,7 @@ class EcosystemProvider extends ChangeNotifier {
           ? '🎉 Happy Birthday ${event.employeeName}! 🎂'
           : '💍 Happy Wedding Anniversary ${event.employeeName}! 💐';
       final personalNotif = CompanyNotification(
-        id: 'NOTIF-MYCELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}',
+        id: personalId,
         title: personalNotifTitle,
         content: event.message,
         type: event.type == 'birthday'
@@ -1389,33 +1446,45 @@ class EcosystemProvider extends ChangeNotifier {
         _companyNotifications.insert(0, personalNotif);
       }
 
-      _firebaseEmployeeService.saveCompanyNotification(broadcastNotif).catchError((err) {
-        debugPrint('Firestore broadcast celebration notification error: $err');
-      });
-      _firebaseEmployeeService.saveCompanyNotification(personalNotif).catchError((err) {
-        debugPrint('Firestore personal celebration notification error: $err');
-      });
-
-      // 3. Deliver native push notifications
-      final isSelf = _activeEmpId == event.employeeId ||
-          currentEmployee.name.toLowerCase().contains(event.employeeName.toLowerCase());
-      if (isSelf) {
-        PushNotificationService().showNotification(
-          id: 'CELEB-ME-${event.type}-${event.employeeId}',
-          title: personalNotifTitle,
-          body: event.message,
-          payload: 'celebration_event',
-        );
-      } else {
-        PushNotificationService().showNotification(
-          id: 'CELEB-${event.type}-${event.employeeId}',
-          title: notifTitle,
-          body: event.othersMessage,
-          payload: 'celebration_event',
-        );
+      // Sync to Firebase Cloud Firestore (guarded per day)
+      final firestoreSavedKey = 'celebration_firestore_saved_${event.type}_${event.employeeId}_$todayStr';
+      if (!(prefs.getBool(firestoreSavedKey) ?? false)) {
+        _firebaseEmployeeService.saveCompanyNotification(broadcastNotif).catchError((err) {
+          debugPrint('Firestore broadcast celebration notification error: $err');
+        });
+        _firebaseEmployeeService.saveCompanyNotification(personalNotif).catchError((err) {
+          debugPrint('Firestore personal celebration notification error: $err');
+        });
+        await prefs.setBool(firestoreSavedKey, true);
       }
 
-      await prefs.setBool(eventKey, true);
+      // 3. Deliver native push notifications to this device for active user (once per employee per day)
+      final localPushKey = 'celeb_push_shown_${_activeEmpId}_${event.type}_${event.employeeId}_$todayStr';
+      final bool alreadyPushedToDevice = prefs.getBool(localPushKey) ?? false;
+
+      if (!alreadyPushedToDevice) {
+        final isSelf = _activeEmpId == event.employeeId ||
+            currentEmployee.name.toLowerCase().contains(event.employeeName.toLowerCase()) ||
+            (isCeo && (event.employeeId == 'MN-CEO01' || event.employeeName.toLowerCase().contains('naveenraaj'))) ||
+            (isHr && (event.employeeId == 'MN-HR001' || event.employeeName.toLowerCase().contains('mohankumar')));
+
+        if (isSelf) {
+          await PushNotificationService().showNotification(
+            id: 'CELEB-ME-${event.type}-${event.employeeId}-$todayStr',
+            title: personalNotifTitle,
+            body: event.message,
+            payload: 'birthday:${event.employeeId}',
+          );
+        } else {
+          await PushNotificationService().showNotification(
+            id: 'CELEB-${event.type}-${event.employeeId}-$todayStr',
+            title: notifTitle,
+            body: event.othersMessage,
+            payload: 'birthday:${event.employeeId}',
+          );
+        }
+        await prefs.setBool(localPushKey, true);
+      }
     }
 
     notifyListeners();
@@ -3252,6 +3321,12 @@ class EcosystemProvider extends ChangeNotifier {
             _firebaseSyncActive = true;
             notifyListeners();
             checkAndDispatchCelebrations();
+
+            // Auto-trigger floating celebration window if active user is celebrating today
+            final navContext = PushNotificationService.navigatorKey.currentContext;
+            if (navContext != null && navContext.mounted) {
+              BirthdayCelebrationDialog.showIfNeeded(navContext);
+            }
           }
         },
         onError: (err) {

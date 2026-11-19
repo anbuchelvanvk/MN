@@ -435,26 +435,38 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                 const Divider(color: Color(0xFFE2E8F0), height: 1),
                 const SizedBox(height: 12),
 
-                // Actions: Delete (compact icon button), Share, Edit (flexible layout - zero overflow)
+                // Actions: Delete, Share, Edit (Triple Expanded layout - zero overlap & zero clipping)
                 Row(
                   children: [
-                    // Delete Button (Compact square icon button)
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF1F2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFECDD3), width: 1.2),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Color(0xFFDC2626)),
-                        tooltip: 'Delete Note',
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _confirmDeleteNote(context, eco, note);
-                        },
+                    // Delete Button
+                    Expanded(
+                      child: SizedBox(
+                        height: 42,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _confirmDeleteNote(context, eco, note);
+                          },
+                          icon: const Icon(Icons.delete_outline_rounded, size: 15, color: Color(0xFFDC2626)),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(
+                                color: Color(0xFFDC2626),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
+                            backgroundColor: const Color(0xFFFFF1F2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            elevation: 0,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -462,37 +474,30 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                     // Share Button
                     Expanded(
                       child: SizedBox(
-                        height: 44,
-                        child: OutlinedButton(
+                        height: 42,
+                        child: OutlinedButton.icon(
                           onPressed: () {
                             Navigator.pop(ctx);
                             _showShareNotePreviewDialog(context, eco, note);
                           },
+                          icon: const Icon(Icons.share_rounded, size: 15, color: Color(0xFF9D174D)),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Share Image',
+                              style: TextStyle(
+                                color: Color(0xFF9D174D),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
                             backgroundColor: const Color(0xFFFDF2F8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
                             elevation: 0,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.share_rounded, size: 15, color: Color(0xFF9D174D)),
-                              SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  'Share',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: Color(0xFF9D174D),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ),
                         ),
                       ),
@@ -502,38 +507,31 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                     // Edit Button
                     Expanded(
                       child: SizedBox(
-                        height: 44,
-                        child: ElevatedButton(
+                        height: 42,
+                        child: ElevatedButton.icon(
                           onPressed: () {
                             Navigator.pop(ctx);
                             _showAddOrEditNoteDialog(context, eco, existing: note);
                           },
+                          icon: const Icon(Icons.edit_rounded, size: 15, color: Colors.white),
+                          label: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Edit Note',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.magentaPrimary,
                             foregroundColor: Colors.white,
                             elevation: 1,
                             shadowColor: AppColors.magentaPrimary.withOpacity(0.35),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.edit_rounded, size: 15, color: Colors.white),
-                              SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  'Edit Note',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
                           ),
                         ),
                       ),
