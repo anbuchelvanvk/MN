@@ -139,10 +139,12 @@ class FirebaseEmployeeService {
         for (final doc in snapshot.docs) {
           try {
             final emp = Employee.fromMap(doc.data(), doc.id);
-            // Self-healing migration: if an Offline Department employee was saved in online_department_employees
-            if (colName == 'online_department_employees' &&
-                emp.dept.toLowerCase().contains('offline')) {
-              _offlineEmployeeCollection
+            // Self-healing migration: if an employee was saved in online_department_employees but belongs to another department
+            final rawDept = (doc.data()['dept']?.toString() ?? emp.dept).trim();
+            final targetDeptCol = getDepartmentCollectionName(rawDept);
+            if (colName == 'online_department_employees' && targetDeptCol != 'online_department_employees') {
+              _firestore
+                  .collection(targetDeptCol)
                   .doc(emp.id)
                   .set(doc.data(), SetOptions(merge: true))
                   .then((_) {
@@ -1381,8 +1383,57 @@ class FirebaseEmployeeService {
           await doc.reference.delete();
         }
       }
+      await purgeExpiredCelebrations();
     } catch (e) {
       debugPrint('Firestore purgeDeadNotifications note: $e');
+    }
+  }
+
+  /// Purges expired birthday and anniversary celebrations from Cloud Firestore so past celebrations are removed automatically
+  Future<void> purgeExpiredCelebrations() async {
+    if (!isFirebaseAvailable) return;
+    try {
+      final now = DateTime.now();
+      final todayDateStr = '${now.year}_${now.month}_${now.day}';
+      final snapshot = await _notificationsCollection.get();
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final type = data['type']?.toString().toLowerCase() ?? '';
+        final id = doc.id.toLowerCase();
+        final isCeleb = type.contains('birthday') ||
+            type.contains('anniversary') ||
+            id.contains('celeb') ||
+            id.contains('birthday') ||
+            id.contains('anniversary');
+
+        if (isCeleb) {
+          bool isExpired = true;
+          if (doc.id.endsWith(todayDateStr)) {
+            isExpired = false;
+          } else {
+            final ts = data['timestamp'];
+            if (ts != null) {
+              DateTime? docDate;
+              if (ts is Timestamp) {
+                docDate = ts.toDate();
+              } else if (ts is String) {
+                docDate = DateTime.tryParse(ts);
+              }
+              if (docDate != null &&
+                  docDate.year == now.year &&
+                  docDate.month == now.month &&
+                  docDate.day == now.day) {
+                isExpired = false;
+              }
+            }
+          }
+          if (isExpired) {
+            await doc.reference.delete();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Firestore purgeExpiredCelebrations note: $e');
     }
   }
 

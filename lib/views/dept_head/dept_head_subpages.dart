@@ -1077,7 +1077,14 @@ class TlDailySopsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const TlTeamTasksScreen();
+    return const TlSubpageScaffold(
+      title: 'Daily SOP Routines',
+      subtitle: 'Leadership Checklist & Standard Operations',
+      body: PersonalTodoSectionWidget(
+        title: 'Daily SOP Checklist',
+        subtitle: 'Leadership daily routines & deliverables',
+      ),
+    );
   }
 }
 

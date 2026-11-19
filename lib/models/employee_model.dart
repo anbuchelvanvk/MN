@@ -509,7 +509,10 @@ class Employee {
     final resolvedRole = isCeo
         ? 'Managing Director & CEO'
         : (isHr ? 'HR Manager & Operations Custodian' : rawRole);
-    final resolvedDept = (isCeo || isHr) ? 'Administration' : 'Online Department';
+    final rawDept = (map['dept'] as String?)?.trim() ?? '';
+    final resolvedDept = rawDept.isNotEmpty
+        ? rawDept
+        : ((isCeo || isHr) ? 'Administration' : 'Online Department');
     final resolvedInitials = isCeo
         ? 'MN'
         : (isHr

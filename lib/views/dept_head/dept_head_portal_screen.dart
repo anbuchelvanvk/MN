@@ -169,7 +169,9 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Team Lead',
+                                eco.currentEmployee.role.isNotEmpty
+                                    ? eco.currentEmployee.role
+                                    : 'Team Lead',
                                 style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                               ),
                               const SizedBox(height: 6),
@@ -191,12 +193,32 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                                         const Icon(Icons.group, size: 10, color: AppColors.magentaPrimary),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${eco.employees.where((e) => e.roleType != 'ceo' && e.roleType != 'hr').length} Members',
+                                          '${teamMembers.length} Members',
                                           style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                                         ),
                                       ],
                                     ),
                                   ),
+                                  if (eco.currentEmployee.dept.isNotEmpty)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.magentaSubtle,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: AppColors.sandBorder, width: 0.8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.business_center_outlined, size: 10, color: AppColors.magentaPrimary),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            eco.currentEmployee.dept,
+                                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                 ],
                               ),
                             ],
@@ -274,7 +296,12 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                         eco.currentEmployee.dept.toLowerCase().contains('online') ? 'OTM' : 'SOP',
                       ),
                       const SizedBox(height: 8),
-                      _verticalTabTile(const MonthlyScorecardScreen(), 'Monthly Scorecard', Icons.assessment_outlined, 'OTM'),
+                      _verticalTabTile(
+                        const MonthlyScorecardScreen(),
+                        'Monthly Scorecard',
+                        Icons.assessment_outlined,
+                        eco.currentEmployee.dept.toLowerCase().contains('online') ? 'OTM' : 'SOP',
+                      ),
                       const SizedBox(height: 8),
                       _verticalTabTile(const TlTeamTasksScreen(), 'Team Tasks', Icons.assignment_outlined, opsTasks.isNotEmpty ? '${opsTasks.length}' : ''),
                       const SizedBox(height: 8),
@@ -419,72 +446,8 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
             ),
             const SizedBox(height: 8),
 
-            // Online Orders Handler Quick Access
-            InkWell(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
-              ),
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.whiteBg,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.sandBorder, width: 1.1),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: AppColors.magentaSubtle,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.shopping_bag_outlined, color: AppColors.magentaPrimary, size: 16),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Online Orders',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Workflow Checklist',
-                            style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.magentaPrimary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text('Open', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
-                          SizedBox(width: 3),
-                          Icon(Icons.arrow_forward_ios, size: 9, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // User Requirement: Overdue for the online order red pop-up / alert banner
-            if (eco.overdueOnlineOrders.isNotEmpty) ...[
+            // Online Orders Handler Quick Access (Exclusively for Online Department Team Leads)
+            if (eco.currentEmployee.dept.toLowerCase().contains('online')) ...[
               InkWell(
                 onTap: () => Navigator.push(
                   context,
@@ -492,45 +455,111 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                 ),
                 borderRadius: BorderRadius.circular(14),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.ragRedBg,
+                    color: AppColors.whiteBg,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.ragRed, width: 1.5),
+                    border: Border.all(color: AppColors.sandBorder, width: 1.1),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: AppColors.ragRed,
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppColors.magentaSubtle,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 18),
+                        child: const Icon(Icons.shopping_bag_outlined, color: AppColors.magentaPrimary, size: 16),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                      const SizedBox(width: 10),
+                      const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Overdue for Online Orders (${eco.overdueOnlineOrders.length} Orders)',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                              'Online Orders',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
-                              'SLA due dates passed for ${eco.overdueOnlineOrders.map((o) => "#${o.orderId} (${o.brand})").join(", ")}. Tap to review & reassign.',
-                              style: const TextStyle(fontSize: 10.5, color: AppColors.ragRed),
+                              'Workflow Checklist',
+                              style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.ragRed),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.magentaPrimary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Text('Open', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                            SizedBox(width: 3),
+                            Icon(Icons.arrow_forward_ios, size: 9, color: Colors.white),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 12),
+
+              // User Requirement: Overdue for the online order red pop-up / alert banner
+              if (eco.overdueOnlineOrders.isNotEmpty) ...[
+                InkWell(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.ragRedBg,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.ragRed, width: 1.5),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: AppColors.ragRed,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Overdue for Online Orders (${eco.overdueOnlineOrders.length} Orders)',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'SLA due dates passed for ${eco.overdueOnlineOrders.map((o) => "#${o.orderId} (${o.brand})").join(", ")}. Tap to review & reassign.',
+                                style: const TextStyle(fontSize: 10.5, color: AppColors.ragRed),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.ragRed),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ],
 
             // Logout Button with confirmation

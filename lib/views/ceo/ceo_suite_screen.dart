@@ -3899,13 +3899,19 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                       child: Text(d),
                                     ),
                                   ),
-                                  const DropdownMenuItem(
+                                  DropdownMenuItem(
                                     value: '__NEW__',
                                     child: Row(
-                                      children: [
+                                      children: const [
                                         Icon(Icons.add_circle_outline, size: 14, color: AppColors.sandGold),
                                         SizedBox(width: 6),
-                                        Text('+ Create New Department...', style: TextStyle(color: AppColors.sandGold, fontWeight: FontWeight.bold)),
+                                        Flexible(
+                                          child: Text(
+                                            '+ Create New Department...',
+                                            style: TextStyle(color: AppColors.sandGold, fontWeight: FontWeight.bold, fontSize: 11),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),

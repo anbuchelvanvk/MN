@@ -1198,17 +1198,28 @@ class EcosystemProvider extends ChangeNotifier {
   List<CompanyNotification> _companyNotifications = [];
   List<CompanyNotification> get companyNotifications => _companyNotifications;
   List<CompanyNotification> get activeCompanyNotifications {
+    final now = DateTime.now();
     final list = _companyNotifications
         .where(
-          (n) =>
-              n.isValid &&
-              !n.isDismissedBy(_activeEmpId) &&
-              n.isTargetedFor(_activeEmpId),
+          (n) {
+            if (!n.isValid ||
+                n.isDismissedBy(_activeEmpId) ||
+                !n.isTargetedFor(_activeEmpId)) {
+              return false;
+            }
+            final isCeleb = n.type == CompanyNotificationType.birthday ||
+                n.type == CompanyNotificationType.anniversary;
+            if (isCeleb) {
+              return n.timestamp.year == now.year &&
+                  n.timestamp.month == now.month &&
+                  n.timestamp.day == now.day;
+            }
+            return true;
+          },
         )
         .toList();
 
     // Ensure active celebration events for today are guaranteed in the notification feed
-    final now = DateTime.now();
     for (final event in todayCelebrations) {
       final isSelf =
           _activeEmpId == event.employeeId ||
@@ -1303,7 +1314,18 @@ class EcosystemProvider extends ChangeNotifier {
       return;
     }
 
+    final now = DateTime.now();
     for (final notif in remoteNotifs) {
+      final isCeleb = notif.type == CompanyNotificationType.birthday ||
+          notif.type == CompanyNotificationType.anniversary;
+      if (isCeleb &&
+          (notif.timestamp.year != now.year ||
+              notif.timestamp.month != now.month ||
+              notif.timestamp.day != now.day)) {
+        _firebaseEmployeeService.deleteCompanyNotification(notif.id).catchError((_) {});
+        continue;
+      }
+
       if (!_notifiedCompanyNotifIds.contains(notif.id)) {
         _notifiedCompanyNotifIds.add(notif.id);
         // Only push if not already read by this employee and targeted for this employee
@@ -1443,6 +1465,7 @@ class EcosystemProvider extends ChangeNotifier {
           .deleteCompanyNotification(oldNotif.id)
           .catchError((_) {});
     }
+    await _firebaseEmployeeService.purgeExpiredCelebrations();
   }
 
   Future<void> checkAndDispatchCelebrations() async {
@@ -3123,14 +3146,18 @@ class EcosystemProvider extends ChangeNotifier {
       emp = currentEmployee;
     }
 
+    final isNaveen = emp.id == 'MN-CEO01' || emp.email.toLowerCase().contains('ceo') || emp.name.toLowerCase().contains('naveen');
+    final isMohan = emp.id == '7' || emp.id == 'MN-HR001' || emp.id == 'MN-HR1001' || emp.email.toLowerCase().contains('hr@') || emp.name.toLowerCase().contains('mohan');
+    final isPraveen = emp.id == 'MN-TL1002' || emp.id == '2' || emp.email.toLowerCase().contains('praveen') || (emp.isOtm && emp.dept.toLowerCase().contains('online'));
+
     final possibleIds = <String>{
       empId,
       emp.id,
       if (emp.empNo.isNotEmpty) emp.empNo,
       emp.email.toLowerCase(),
-      if (emp.isCeo) ...{'MN-CEO01', 'ceo'},
-      if (emp.isHr) ...{'7', 'MN-HR001', 'MN-HR1001', 'hr'},
-      if (emp.isTeamLead || emp.isOtm) ...{'MN-TL1002', '2', 'otm'},
+      if (isNaveen) ...{'MN-CEO01', 'ceo'},
+      if (isMohan) ...{'7', 'MN-HR001', 'MN-HR1001', 'hr'},
+      if (isPraveen) ...{'MN-TL1002', '2', 'otm'},
     };
 
     final hasStandardSops = _tasks.any(
@@ -3187,14 +3214,18 @@ class EcosystemProvider extends ChangeNotifier {
       emp = currentEmployee;
     }
 
+    final isNaveen = emp.id == 'MN-CEO01' || emp.email.toLowerCase().contains('ceo') || emp.name.toLowerCase().contains('naveen');
+    final isMohan = emp.id == '7' || emp.id == 'MN-HR001' || emp.id == 'MN-HR1001' || emp.email.toLowerCase().contains('hr@') || emp.name.toLowerCase().contains('mohan');
+    final isPraveen = emp.id == 'MN-TL1002' || emp.id == '2' || emp.email.toLowerCase().contains('praveen') || (emp.isOtm && emp.dept.toLowerCase().contains('online'));
+
     final possibleIds = <String>{
       empId,
       emp.id,
       if (emp.empNo.isNotEmpty) emp.empNo,
       emp.email.toLowerCase(),
-      if (emp.isCeo) ...{'MN-CEO01', 'ceo'},
-      if (emp.isHr) ...{'7', 'MN-HR001', 'MN-HR1001', 'hr'},
-      if (emp.isTeamLead || emp.isOtm) ...{'MN-TL1002', '2', 'otm'},
+      if (isNaveen) ...{'MN-CEO01', 'ceo'},
+      if (isMohan) ...{'7', 'MN-HR001', 'MN-HR1001', 'hr'},
+      if (isPraveen) ...{'MN-TL1002', '2', 'otm'},
     };
 
     ensureEmployeeStandardTasks(emp.id);

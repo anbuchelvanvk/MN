@@ -1290,13 +1290,19 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                                 maxLines: 1,
                                               ),
                                             )),
-                                        const DropdownMenuItem(
+                                        DropdownMenuItem(
                                           value: '__NEW__',
                                           child: Row(
-                                            children: [
+                                            children: const [
                                               Icon(Icons.add_circle_outline, size: 14, color: AppColors.magentaPrimary),
                                               SizedBox(width: 6),
-                                              Text('+ Create New Department...', style: TextStyle(color: AppColors.magentaPrimary, fontWeight: FontWeight.bold, fontSize: 11.5)),
+                                              Flexible(
+                                                child: Text(
+                                                  '+ Create New Department...',
+                                                  style: TextStyle(color: AppColors.magentaPrimary, fontWeight: FontWeight.bold, fontSize: 11),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),
