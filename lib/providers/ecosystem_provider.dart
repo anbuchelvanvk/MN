@@ -26,9 +26,18 @@ import '../models/konar_book_model.dart';
 import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
 import '../core/services/push_notification_service.dart';
-import '../core/widgets/birthday_celebration_dialog.dart';
 
 class EcosystemProvider extends ChangeNotifier {
+  bool _isLoggedIn = false;
+  bool get isLoggedIn => _isLoggedIn;
+
+  void setLoggedIn(bool value) {
+    if (_isLoggedIn != value) {
+      _isLoggedIn = value;
+      notifyListeners();
+    }
+  }
+
   String _activeRole = 'ceo'; // 'employee', 'dept_head', 'hr', 'ceo'
   String _activeEmpId = 'MN-CEO01';
   String? _notificationMessage;
@@ -1183,10 +1192,17 @@ class EcosystemProvider extends ChangeNotifier {
     // Ensure active celebration events for today are guaranteed in the notification feed
     final now = DateTime.now();
     for (final event in todayCelebrations) {
-      final isSelf = _activeEmpId == event.employeeId ||
-          currentEmployee.name.toLowerCase().contains(event.employeeName.toLowerCase()) ||
-          (isCeo && (event.employeeId == 'MN-CEO01' || event.employeeName.toLowerCase().contains('naveenraaj'))) ||
-          (isHr && (event.employeeId == 'MN-HR001' || event.employeeName.toLowerCase().contains('mohankumar')));
+      final isSelf =
+          _activeEmpId == event.employeeId ||
+          currentEmployee.name.toLowerCase().contains(
+            event.employeeName.toLowerCase(),
+          ) ||
+          (isCeo &&
+              (event.employeeId == 'MN-CEO01' ||
+                  event.employeeName.toLowerCase().contains('naveenraaj'))) ||
+          (isHr &&
+              (event.employeeId == 'MN-HR001' ||
+                  event.employeeName.toLowerCase().contains('mohankumar')));
 
       final notifId = isSelf
           ? 'NOTIF-MYCELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}'
@@ -1199,11 +1215,11 @@ class EcosystemProvider extends ChangeNotifier {
             id: notifId,
             title: isSelf
                 ? (event.type == 'birthday'
-                    ? '🎉 Happy Birthday ${event.employeeName}! 🎂'
-                    : '💍 Happy Wedding Anniversary ${event.employeeName}! 💐')
+                      ? '🎉 Happy Birthday ${event.employeeName}! 🎂'
+                      : '💍 Happy Wedding Anniversary ${event.employeeName}! 💐')
                 : (event.type == 'birthday'
-                    ? '🎂 Birthday Celebration Today!'
-                    : '💐 Wedding Anniversary Celebration Today!'),
+                      ? '🎂 Birthday Celebration Today!'
+                      : '💐 Wedding Anniversary Celebration Today!'),
             content: isSelf ? event.message : event.othersMessage,
             type: event.type == 'birthday'
                 ? CompanyNotificationType.birthday
@@ -1220,14 +1236,9 @@ class EcosystemProvider extends ChangeNotifier {
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
   }
-  int get unreadNotificationCount => _companyNotifications
-      .where(
-        (n) =>
-            n.isValid &&
-            !n.isDismissedBy(_activeEmpId) &&
-            n.isTargetedFor(_activeEmpId) &&
-            !n.isReadBy(_activeEmpId),
-      )
+
+  int get unreadNotificationCount => activeCompanyNotifications
+      .where((n) => !n.isReadBy(_activeEmpId))
       .length;
   final Set<String> _notifiedCompanyNotifIds = {};
   bool _initialCompanyNotifsLoaded = false;
@@ -1253,7 +1264,8 @@ class EcosystemProvider extends ChangeNotifier {
       _initialCompanyNotifsLoaded = true;
       final now = DateTime.now();
       for (final notif in remoteNotifs) {
-        final isTodayCelebration = (notif.type == CompanyNotificationType.birthday ||
+        final isTodayCelebration =
+            (notif.type == CompanyNotificationType.birthday ||
                 notif.type == CompanyNotificationType.anniversary) &&
             notif.timestamp.year == now.year &&
             notif.timestamp.month == now.month &&
@@ -1301,17 +1313,38 @@ class EcosystemProvider extends ChangeNotifier {
 
     // Support month names: e.g. "19-Nov-1988", "19 November 1988", "Nov 19 1988"
     const monthNames = {
-      'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-      'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
-      'january': 1, 'february': 2, 'march': 3, 'april': 4, 'june': 6,
-      'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12,
+      'jan': 1,
+      'feb': 2,
+      'mar': 3,
+      'apr': 4,
+      'may': 5,
+      'jun': 6,
+      'jul': 7,
+      'aug': 8,
+      'sep': 9,
+      'oct': 10,
+      'nov': 11,
+      'dec': 12,
+      'january': 1,
+      'february': 2,
+      'march': 3,
+      'april': 4,
+      'june': 6,
+      'july': 7,
+      'august': 8,
+      'september': 9,
+      'october': 10,
+      'november': 11,
+      'december': 12,
     };
     final lower = clean.toLowerCase();
     for (final entry in monthNames.entries) {
       if (lower.contains(entry.key)) {
         if (entry.value != now.month) return false;
         // Check if current day appears as a number token in the date string
-        final dayMatch = RegExp(r'\b0?([1-9]|[12][0-9]|3[01])\b').allMatches(lower);
+        final dayMatch = RegExp(
+          r'\b0?([1-9]|[12][0-9]|3[01])\b',
+        ).allMatches(lower);
         for (final m in dayMatch) {
           final val = int.tryParse(m.group(0)!);
           if (val == now.day) return true;
@@ -1376,16 +1409,22 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   Future<void> _cleanupPastCelebrationsFromFirebase(DateTime now) async {
-    final stale = _companyNotifications.where((n) =>
-        (n.type == CompanyNotificationType.birthday ||
-         n.type == CompanyNotificationType.anniversary) &&
-        (n.timestamp.year != now.year ||
-         n.timestamp.month != now.month ||
-         n.timestamp.day != now.day)).toList();
+    final stale = _companyNotifications
+        .where(
+          (n) =>
+              (n.type == CompanyNotificationType.birthday ||
+                  n.type == CompanyNotificationType.anniversary) &&
+              (n.timestamp.year != now.year ||
+                  n.timestamp.month != now.month ||
+                  n.timestamp.day != now.day),
+        )
+        .toList();
 
     for (final oldNotif in stale) {
       _companyNotifications.removeWhere((item) => item.id == oldNotif.id);
-      _firebaseEmployeeService.deleteCompanyNotification(oldNotif.id).catchError((_) {});
+      _firebaseEmployeeService
+          .deleteCompanyNotification(oldNotif.id)
+          .catchError((_) {});
     }
   }
 
@@ -1402,8 +1441,10 @@ class EcosystemProvider extends ChangeNotifier {
     final todayStr = '${now.year}_${now.month}_${now.day}';
 
     for (final event in events) {
-      final broadcastId = 'NOTIF-CELEB-${event.type}-${event.employeeId}-$todayStr';
-      final personalId = 'NOTIF-MYCELEB-${event.type}-${event.employeeId}-$todayStr';
+      final broadcastId =
+          'NOTIF-CELEB-${event.type}-${event.employeeId}-$todayStr';
+      final personalId =
+          'NOTIF-MYCELEB-${event.type}-${event.employeeId}-$todayStr';
 
       final notifTitle = event.type == 'birthday'
           ? '🎂 Birthday Celebration Today!'
@@ -1447,26 +1488,43 @@ class EcosystemProvider extends ChangeNotifier {
       }
 
       // Sync to Firebase Cloud Firestore (guarded per day)
-      final firestoreSavedKey = 'celebration_firestore_saved_${event.type}_${event.employeeId}_$todayStr';
+      final firestoreSavedKey =
+          'celebration_firestore_saved_${event.type}_${event.employeeId}_$todayStr';
       if (!(prefs.getBool(firestoreSavedKey) ?? false)) {
-        _firebaseEmployeeService.saveCompanyNotification(broadcastNotif).catchError((err) {
-          debugPrint('Firestore broadcast celebration notification error: $err');
-        });
-        _firebaseEmployeeService.saveCompanyNotification(personalNotif).catchError((err) {
-          debugPrint('Firestore personal celebration notification error: $err');
-        });
+        _firebaseEmployeeService
+            .saveCompanyNotification(broadcastNotif)
+            .catchError((err) {
+              debugPrint(
+                'Firestore broadcast celebration notification error: $err',
+              );
+            });
+        _firebaseEmployeeService
+            .saveCompanyNotification(personalNotif)
+            .catchError((err) {
+              debugPrint(
+                'Firestore personal celebration notification error: $err',
+              );
+            });
         await prefs.setBool(firestoreSavedKey, true);
       }
 
       // 3. Deliver native push notifications to this device for active user (once per employee per day)
-      final localPushKey = 'celeb_push_shown_${_activeEmpId}_${event.type}_${event.employeeId}_$todayStr';
+      final localPushKey =
+          'celeb_push_shown_${_activeEmpId}_${event.type}_${event.employeeId}_$todayStr';
       final bool alreadyPushedToDevice = prefs.getBool(localPushKey) ?? false;
 
       if (!alreadyPushedToDevice) {
-        final isSelf = _activeEmpId == event.employeeId ||
-            currentEmployee.name.toLowerCase().contains(event.employeeName.toLowerCase()) ||
-            (isCeo && (event.employeeId == 'MN-CEO01' || event.employeeName.toLowerCase().contains('naveenraaj'))) ||
-            (isHr && (event.employeeId == 'MN-HR001' || event.employeeName.toLowerCase().contains('mohankumar')));
+        final isSelf =
+            _activeEmpId == event.employeeId ||
+            currentEmployee.name.toLowerCase().contains(
+              event.employeeName.toLowerCase(),
+            ) ||
+            (isCeo &&
+                (event.employeeId == 'MN-CEO01' ||
+                    event.employeeName.toLowerCase().contains('naveenraaj'))) ||
+            (isHr &&
+                (event.employeeId == 'MN-HR001' ||
+                    event.employeeName.toLowerCase().contains('mohankumar')));
 
         if (isSelf) {
           await PushNotificationService().showNotification(
@@ -3056,13 +3114,14 @@ class EcosystemProvider extends ChangeNotifier {
 
   // Live Official KONAR Books Engine
   List<KonarBookModel> _konarBooks = [];
-  List<KonarBookModel> get konarBooks =>
-      _konarBooks.isNotEmpty ? _konarBooks : [KonarBookModel.defaultOnlineDepartment()];
+  List<KonarBookModel> get konarBooks => _konarBooks.isNotEmpty
+      ? _konarBooks
+      : [KonarBookModel.defaultOnlineDepartment()];
 
   KonarBookModel get onlineDeptKonarBook => _konarBooks.firstWhere(
-        (b) => b.id == 'online_department',
-        orElse: () => KonarBookModel.defaultOnlineDepartment(),
-      );
+    (b) => b.id == 'online_department',
+    orElse: () => KonarBookModel.defaultOnlineDepartment(),
+  );
 
   // Online Orders Workflow Engine (OS1 & OS2 Handler)
   List<OnlineOrderModel> _onlineOrders = [];
@@ -3321,12 +3380,6 @@ class EcosystemProvider extends ChangeNotifier {
             _firebaseSyncActive = true;
             notifyListeners();
             checkAndDispatchCelebrations();
-
-            // Auto-trigger floating celebration window if active user is celebrating today
-            final navContext = PushNotificationService.navigatorKey.currentContext;
-            if (navContext != null && navContext.mounted) {
-              BirthdayCelebrationDialog.showIfNeeded(navContext);
-            }
           }
         },
         onError: (err) {
@@ -3408,7 +3461,9 @@ class EcosystemProvider extends ChangeNotifier {
               }
 
               // Dispatch instant push notifications for new incoming company announcements & notices
-              _syncAndPushIncomingNotifications(remoteNotifs.where((n) => n.isValid).toList());
+              _syncAndPushIncomingNotifications(
+                remoteNotifs.where((n) => n.isValid).toList(),
+              );
 
               notifyListeners();
             },
@@ -3458,63 +3513,72 @@ class EcosystemProvider extends ChangeNotifier {
     }
 
     try {
-      _chatMessagesSubscription = _firebaseEmployeeService
-          .streamChatMessages()
-          .listen(
-            (remoteMsgs) {
-              if (remoteMsgs.isNotEmpty) {
-                final filteredRemote = remoteMsgs.where((m) =>
-                    !m.id.startsWith('SEED-MSG') &&
-                    !m.text.contains('Online Department is active')
-                ).toList();
-                final remoteIds = filteredRemote.map((m) => m.id).toSet();
-                final localOnly = _chatMessages
-                    .where((m) =>
-                        !remoteIds.contains(m.id) &&
-                        !m.id.startsWith('SEED-MSG') &&
-                        !m.text.contains('Online Department is active'))
-                    .toList();
-                final merged = [...filteredRemote, ...localOnly];
-                merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-                _chatMessages = merged;
+      _chatMessagesSubscription = _firebaseEmployeeService.streamChatMessages().listen(
+        (remoteMsgs) {
+          if (remoteMsgs.isNotEmpty) {
+            final filteredRemote = remoteMsgs
+                .where(
+                  (m) =>
+                      !m.id.startsWith('SEED-MSG') &&
+                      !m.text.contains('Online Department is active'),
+                )
+                .toList();
+            final remoteIds = filteredRemote.map((m) => m.id).toSet();
+            final localOnly = _chatMessages
+                .where(
+                  (m) =>
+                      !remoteIds.contains(m.id) &&
+                      !m.id.startsWith('SEED-MSG') &&
+                      !m.text.contains('Online Department is active'),
+                )
+                .toList();
+            final merged = [...filteredRemote, ...localOnly];
+            merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+            _chatMessages = merged;
 
-                // Push notifications for incoming chat messages like WhatsApp outside the app
-                if (!_initialChatsStreamLoaded) {
-                  for (final m in filteredRemote) {
-                    _notifiedChatMessageIds.add(m.id);
-                  }
-                  _initialChatsStreamLoaded = true;
-                } else {
-                  for (final m in filteredRemote) {
-                    if (!_notifiedChatMessageIds.contains(m.id)) {
-                      _notifiedChatMessageIds.add(m.id);
-                      final isForMe = m.isAllHands ||
-                          m.receiverId.toLowerCase() == _activeEmpId.toLowerCase();
-                      if (m.senderId.toLowerCase() != _activeEmpId.toLowerCase() && isForMe) {
-                        final payload = m.isAllHands
-                            ? 'chat:ALL_HANDS|MN All-Hands Workforce|All Employees|true'
-                            : 'chat:${m.senderId}|${m.senderName}|${m.senderRole}|false';
-                        PushNotificationService().showChatNotification(
+            // Push notifications for incoming chat messages like WhatsApp outside the app
+            if (!_initialChatsStreamLoaded) {
+              for (final m in filteredRemote) {
+                _notifiedChatMessageIds.add(m.id);
+              }
+              _initialChatsStreamLoaded = true;
+            } else {
+              for (final m in filteredRemote) {
+                if (!_notifiedChatMessageIds.contains(m.id)) {
+                  _notifiedChatMessageIds.add(m.id);
+                  final isForMe =
+                      m.isAllHands ||
+                      m.receiverId.toLowerCase() == _activeEmpId.toLowerCase();
+                  if (m.senderId.toLowerCase() != _activeEmpId.toLowerCase() &&
+                      isForMe) {
+                    final payload = m.isAllHands
+                        ? 'chat:ALL_HANDS|MN All-Hands Workforce|All Employees|true'
+                        : 'chat:${m.senderId}|${m.senderName}|${m.senderRole}|false';
+                    PushNotificationService()
+                        .showChatNotification(
                           id: m.id,
                           senderName: m.senderName,
                           message: m.text,
                           isGroup: m.isAllHands,
                           payload: payload,
-                        ).catchError((err) {
-                          debugPrint('Push notification incoming chat stream error: $err');
+                        )
+                        .catchError((err) {
+                          debugPrint(
+                            'Push notification incoming chat stream error: $err',
+                          );
                         });
-                      }
-                    }
                   }
                 }
-
-                notifyListeners();
               }
-            },
-            onError: (err) {
-              debugPrint('Firestore chat stream note: $err');
-            },
-          );
+            }
+
+            notifyListeners();
+          }
+        },
+        onError: (err) {
+          debugPrint('Firestore chat stream note: $err');
+        },
+      );
     } catch (e) {
       debugPrint('Firestore chat stream error: $e');
     }
@@ -5087,13 +5151,18 @@ class EcosystemProvider extends ChangeNotifier {
     }
     loadEmployeeFourPillars(empId);
     try {
-      PushNotificationService().syncActiveUserToNative(empId, currentEmployee.name);
+      PushNotificationService().syncActiveUserToNative(
+        empId,
+        currentEmployee.name,
+      );
     } catch (_) {}
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setString('saved_emp_id', _activeEmpId);
-      prefs.setString('saved_role', _activeRole);
-      prefs.setString('saved_email', currentEmployee.email);
-    }).catchError((_) {});
+    SharedPreferences.getInstance()
+        .then((prefs) {
+          prefs.setString('saved_emp_id', _activeEmpId);
+          prefs.setString('saved_role', _activeRole);
+          prefs.setString('saved_email', currentEmployee.email);
+        })
+        .catchError((_) {});
     checkAndDispatchCelebrations();
     notifyListeners();
   }
@@ -5523,7 +5592,9 @@ class EcosystemProvider extends ChangeNotifier {
 
         if (roleType == 'hr') {
           _activeRole = 'hr';
-          _activeEmpId = (empId.isNotEmpty && empId != 'MN-CEO01') ? empId : '7';
+          _activeEmpId = (empId.isNotEmpty && empId != 'MN-CEO01')
+              ? empId
+              : '7';
         } else if (roleType == 'team_lead' || roleType == 'dept_head') {
           _activeRole = 'dept_head';
           _activeEmpId = empId.isNotEmpty ? empId : 'MN-TL1002';
@@ -5594,6 +5665,7 @@ class EcosystemProvider extends ChangeNotifier {
         gender: updatedGender,
       );
       notifyListeners();
+      checkAndDispatchCelebrations();
 
       try {
         await _firebaseEmployeeService.updateEmployeeProfileFields(
@@ -7307,12 +7379,14 @@ class EcosystemProvider extends ChangeNotifier {
     _firebaseEmployeeService
         .updateCompanyNotificationComments(notifId, updatedComments)
         .catchError((err) {
-      debugPrint('Firestore updateCompanyNotificationComments note: $err');
-    });
+          debugPrint('Firestore updateCompanyNotificationComments note: $err');
+        });
   }
 
   Future<void> toggleNotificationCommentLike(
-      String notifId, String commentId) async {
+    String notifId,
+    String commentId,
+  ) async {
     final notifIdx = _companyNotifications.indexWhere((n) => n.id == notifId);
     if (notifIdx == -1) return;
 
@@ -7322,10 +7396,12 @@ class EcosystemProvider extends ChangeNotifier {
 
     final comment = notif.comments[commentIdx];
     final updatedLikes = List<String>.from(comment.likedStaffIds);
-    if (updatedLikes
-        .any((id) => id.toLowerCase() == _activeEmpId.toLowerCase())) {
-      updatedLikes
-          .removeWhere((id) => id.toLowerCase() == _activeEmpId.toLowerCase());
+    if (updatedLikes.any(
+      (id) => id.toLowerCase() == _activeEmpId.toLowerCase(),
+    )) {
+      updatedLikes.removeWhere(
+        (id) => id.toLowerCase() == _activeEmpId.toLowerCase(),
+      );
     } else {
       updatedLikes.add(_activeEmpId);
     }
@@ -7342,8 +7418,8 @@ class EcosystemProvider extends ChangeNotifier {
     _firebaseEmployeeService
         .updateCompanyNotificationComments(notifId, updatedComments)
         .catchError((err) {
-      debugPrint('Firestore toggleCommentLike note: $err');
-    });
+          debugPrint('Firestore toggleCommentLike note: $err');
+        });
   }
 
   // --- Real-time Team Chat Actions & Storage ---
@@ -7354,8 +7430,9 @@ class EcosystemProvider extends ChangeNotifier {
   /// Returns messages for a specific conversation thread (either 'ALL_HANDS' or a peer empId)
   List<ChatMessage> getConversation(String peerId) {
     if (peerId == 'ALL_HANDS') {
-      final msgs =
-          _chatMessages.where((m) => m.receiverId == 'ALL_HANDS').toList();
+      final msgs = _chatMessages
+          .where((m) => m.receiverId == 'ALL_HANDS')
+          .toList();
       msgs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       return msgs;
     }
@@ -7384,17 +7461,21 @@ class EcosystemProvider extends ChangeNotifier {
     final cleanActive = _activeEmpId.trim().toLowerCase();
     if (peerId == 'ALL_HANDS') {
       return _chatMessages
-          .where((m) =>
-              m.receiverId == 'ALL_HANDS' &&
-              m.senderId.toLowerCase() != cleanActive &&
-              !m.isReadBy(_activeEmpId))
+          .where(
+            (m) =>
+                m.receiverId == 'ALL_HANDS' &&
+                m.senderId.toLowerCase() != cleanActive &&
+                !m.isReadBy(_activeEmpId),
+          )
           .length;
     }
     return _chatMessages
-        .where((m) =>
-            m.senderId.toLowerCase() == cleanPeer &&
-            m.receiverId.toLowerCase() == cleanActive &&
-            !m.isReadBy(_activeEmpId))
+        .where(
+          (m) =>
+              m.senderId.toLowerCase() == cleanPeer &&
+              m.receiverId.toLowerCase() == cleanActive &&
+              !m.isReadBy(_activeEmpId),
+        )
         .length;
   }
 
@@ -7424,7 +7505,8 @@ class EcosystemProvider extends ChangeNotifier {
     String? replyToText,
   }) async {
     var cleanText = text.trim();
-    if (cleanText.isEmpty && (attachmentUrl == null || attachmentUrl.isEmpty)) return;
+    if (cleanText.isEmpty && (attachmentUrl == null || attachmentUrl.isEmpty))
+      return;
     if (cleanText.isEmpty) {
       cleanText = attachmentType == 'image'
           ? '📷 Photo'
@@ -7469,9 +7551,9 @@ class EcosystemProvider extends ChangeNotifier {
       final m = _chatMessages[i];
       final isTarget = peerId == 'ALL_HANDS'
           ? (m.receiverId == 'ALL_HANDS' &&
-              m.senderId.toLowerCase() != cleanActive)
+                m.senderId.toLowerCase() != cleanActive)
           : (m.senderId.toLowerCase() == cleanPeer &&
-              m.receiverId.toLowerCase() == cleanActive);
+                m.receiverId.toLowerCase() == cleanActive);
 
       if (isTarget && !m.isReadBy(_activeEmpId)) {
         final updatedReadBy = List<String>.from(m.readBy)..add(_activeEmpId);
@@ -7493,10 +7575,12 @@ class EcosystemProvider extends ChangeNotifier {
 
     final msg = _chatMessages[idx];
     final updatedLikes = List<String>.from(msg.likedBy);
-    if (updatedLikes
-        .any((id) => id.toLowerCase() == _activeEmpId.toLowerCase())) {
-      updatedLikes
-          .removeWhere((id) => id.toLowerCase() == _activeEmpId.toLowerCase());
+    if (updatedLikes.any(
+      (id) => id.toLowerCase() == _activeEmpId.toLowerCase(),
+    )) {
+      updatedLikes.removeWhere(
+        (id) => id.toLowerCase() == _activeEmpId.toLowerCase(),
+      );
     } else {
       updatedLikes.add(_activeEmpId);
     }
@@ -7508,12 +7592,15 @@ class EcosystemProvider extends ChangeNotifier {
     _firebaseEmployeeService
         .toggleChatMessageLike(messageId, _activeEmpId)
         .catchError((err) {
-      debugPrint('Firestore toggleChatMessageLike note: $err');
-    });
+          debugPrint('Firestore toggleChatMessageLike note: $err');
+        });
   }
 
   /// Pin a chat message for a specific duration ('8_hours', '1_week', '1_month', 'forever')
-  Future<void> pinChatMessage(String messageId, {required String duration}) async {
+  Future<void> pinChatMessage(
+    String messageId, {
+    required String duration,
+  }) async {
     DateTime? until;
     final now = DateTime.now();
     switch (duration) {
@@ -7540,8 +7627,10 @@ class EcosystemProvider extends ChangeNotifier {
         final m = _chatMessages[i];
         final isSameConvo = target.isAllHands
             ? m.isAllHands
-            : ((m.senderId == target.senderId && m.receiverId == target.receiverId) ||
-                (m.senderId == target.receiverId && m.receiverId == target.senderId));
+            : ((m.senderId == target.senderId &&
+                      m.receiverId == target.receiverId) ||
+                  (m.senderId == target.receiverId &&
+                      m.receiverId == target.senderId));
         if (isSameConvo && m.isPinned && m.id != messageId) {
           _chatMessages[i] = m.copyWith(isPinned: false, pinnedUntil: null);
           _firebaseEmployeeService.unpinChatMessage(m.id);
@@ -7564,8 +7653,8 @@ class EcosystemProvider extends ChangeNotifier {
             pinnedBy: currentEmployee.name,
           )
           .catchError((err) {
-        debugPrint('Firestore pinChatMessage error: $err');
-      });
+            debugPrint('Firestore pinChatMessage error: $err');
+          });
     }
   }
 
@@ -7605,8 +7694,10 @@ class EcosystemProvider extends ChangeNotifier {
     }).toList();
 
     if (matches.isEmpty) return null;
-    matches.sort((a, b) =>
-        (b.pinnedAt ?? b.timestamp).compareTo(a.pinnedAt ?? a.timestamp));
+    matches.sort(
+      (a, b) =>
+          (b.pinnedAt ?? b.timestamp).compareTo(a.pinnedAt ?? a.timestamp),
+    );
     return matches.first;
   }
 
@@ -7619,7 +7710,7 @@ class EcosystemProvider extends ChangeNotifier {
       final matchesPeer = peerId == 'ALL_HANDS'
           ? m.isAllHands
           : (m.senderId.toLowerCase() == cleanPeer &&
-              m.receiverId.toLowerCase() == _activeEmpId.toLowerCase());
+                m.receiverId.toLowerCase() == _activeEmpId.toLowerCase());
       if (!matchesPeer) return false;
       if (m.isReadBy(_activeEmpId)) return false;
       return m.mentionsUser(_activeEmpId, currentName);
@@ -7638,11 +7729,15 @@ class EcosystemProvider extends ChangeNotifier {
         final decoded = jsonDecode(chatsRaw) as List?;
         if (decoded != null && decoded.isNotEmpty) {
           final loaded = decoded
-              .map((e) =>
-                  ChatMessage.fromJson(Map<String, dynamic>.from(e as Map)))
-              .where((m) =>
-                  !m.id.startsWith('SEED-MSG') &&
-                  !m.text.contains('Online Department is active'))
+              .map(
+                (e) =>
+                    ChatMessage.fromJson(Map<String, dynamic>.from(e as Map)),
+              )
+              .where(
+                (m) =>
+                    !m.id.startsWith('SEED-MSG') &&
+                    !m.text.contains('Online Department is active'),
+              )
               .toList();
           _chatMessages = loaded;
           notifyListeners();
@@ -7657,12 +7752,13 @@ class EcosystemProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cleanMsgs = _chatMessages
-          .where((m) =>
-              !m.id.startsWith('SEED-MSG') &&
-              !m.text.contains('Online Department is active'))
+          .where(
+            (m) =>
+                !m.id.startsWith('SEED-MSG') &&
+                !m.text.contains('Online Department is active'),
+          )
           .toList();
-      final encoded =
-          jsonEncode(cleanMsgs.map((m) => m.toJson()).toList());
+      final encoded = jsonEncode(cleanMsgs.map((m) => m.toJson()).toList());
       await prefs.setString(_chatsStorageKey, encoded);
     } catch (e) {
       debugPrint('Error saving chats: $e');
@@ -8563,7 +8659,10 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
 
     // 1. Save directly into Cloud Firestore with automatic chunking for PDFs
-    await _firebaseEmployeeService.saveKonarBook(updatedBook, onProgress: onProgress);
+    await _firebaseEmployeeService.saveKonarBook(
+      updatedBook,
+      onProgress: onProgress,
+    );
 
     // 2. Targeted Push Notification Routing:
     // Dynamic rule for Online Team or ANY future department added:
@@ -8573,7 +8672,9 @@ class EcosystemProvider extends ChangeNotifier {
     // - All employees of that specific department receive push notification (unless that employee was the updater)
     // - Never send push notification to other unrelated departments
     // - Never send push notification to the updater / sender themselves
-    final String activeId = (updaterEmpId != null && updaterEmpId.isNotEmpty) ? updaterEmpId : _activeEmpId;
+    final String activeId = (updaterEmpId != null && updaterEmpId.isNotEmpty)
+        ? updaterEmpId
+        : _activeEmpId;
     final String deptName = updatedBook.department.trim().toLowerCase();
 
     final targetIds = <String>{};
@@ -8587,7 +8688,11 @@ class EcosystemProvider extends ChangeNotifier {
 
     // HR
     for (final e in _employees) {
-      if (e.isHr || e.roleType.toLowerCase() == 'hr' || e.id == 'MN-HR001' || e.id == 'MN-HR1001' || e.id == '7') {
+      if (e.isHr ||
+          e.roleType.toLowerCase() == 'hr' ||
+          e.id == 'MN-HR001' ||
+          e.id == 'MN-HR1001' ||
+          e.id == '7') {
         targetIds.add(e.id);
         targetIds.add('MN-HR001');
       }
@@ -8596,10 +8701,12 @@ class EcosystemProvider extends ChangeNotifier {
     // Department Team Leader(s) & Department Employees
     for (final e in _employees) {
       final empDept = e.dept.trim().toLowerCase();
-      final isMatchingDept = empDept == deptName ||
+      final isMatchingDept =
+          empDept == deptName ||
           deptName.contains(empDept) ||
           empDept.contains(deptName) ||
-          (deptName.contains('online') && (e.id == 'MN-TL1002' || e.isOtm || empDept.contains('online')));
+          (deptName.contains('online') &&
+              (e.id == 'MN-TL1002' || e.isOtm || empDept.contains('online')));
 
       if (isMatchingDept) {
         targetIds.add(e.id);
@@ -8627,8 +8734,12 @@ class EcosystemProvider extends ChangeNotifier {
     if (activeId == 'MN-CEO01' || _activeEmpId == 'MN-CEO01') {
       targetIds.remove('MN-CEO01');
     }
-    if (activeId == 'MN-HR001' || activeId == 'MN-HR1001' || activeId == '7' ||
-        _activeEmpId == 'MN-HR001' || _activeEmpId == 'MN-HR1001' || _activeEmpId == '7') {
+    if (activeId == 'MN-HR001' ||
+        activeId == 'MN-HR1001' ||
+        activeId == '7' ||
+        _activeEmpId == 'MN-HR001' ||
+        _activeEmpId == 'MN-HR1001' ||
+        _activeEmpId == '7') {
       targetIds.removeAll({'MN-HR001', 'MN-HR1001', '7'});
     }
     if (activeId == 'MN-TL1002' || _activeEmpId == 'MN-TL1002') {
@@ -8637,7 +8748,8 @@ class EcosystemProvider extends ChangeNotifier {
 
     final notifId = 'NOTIF-KONAR-${DateTime.now().millisecondsSinceEpoch}';
     final notifTitle = '📘 ${updatedBook.department} KONAR Book Updated';
-    final notifContent = '$updaterName ($updaterRole) updated the official ${updatedBook.department} KONAR Book (${updatedBook.version}). Tap to view and download latest standard operating procedures.';
+    final notifContent =
+        '$updaterName ($updaterRole) updated the official ${updatedBook.department} KONAR Book (${updatedBook.version}). Tap to view and download latest standard operating procedures.';
 
     final newNotif = CompanyNotification(
       id: notifId,
@@ -8652,18 +8764,22 @@ class EcosystemProvider extends ChangeNotifier {
     );
 
     _companyNotifications.insert(0, newNotif);
-    _firebaseEmployeeService.saveCompanyNotification(newNotif).catchError((err) {
+    _firebaseEmployeeService.saveCompanyNotification(newNotif).catchError((
+      err,
+    ) {
       debugPrint('Firestore save konar notification note: $err');
     });
 
     // If active employee is one of the target recipients, dispatch instant native push notification
     if (targetIds.contains(_activeEmpId) && _activeEmpId != activeId) {
-      PushNotificationService().showNotification(
-        id: notifId,
-        title: notifTitle,
-        body: notifContent,
-        payload: 'konar_book:${updatedBook.department}',
-      ).catchError((_) {});
+      PushNotificationService()
+          .showNotification(
+            id: notifId,
+            title: notifTitle,
+            body: notifContent,
+            payload: 'konar_book:${updatedBook.department}',
+          )
+          .catchError((_) {});
     }
   }
 
@@ -8678,7 +8794,8 @@ class EcosystemProvider extends ChangeNotifier {
 
   bool get isFamilyLoggedToday {
     final now = DateTime.now();
-    return getFamilyActivitiesForDate(now).isNotEmpty || totalFamilyHoursToday > 0;
+    return getFamilyActivitiesForDate(now).isNotEmpty ||
+        totalFamilyHoursToday > 0;
   }
 
   int get todayPendingTodosCount {
@@ -8692,7 +8809,8 @@ class EcosystemProvider extends ChangeNotifier {
   int get healthPillarBadgeCount => isHealthLoggedToday ? 0 : 1;
   int get familyPillarBadgeCount => isFamilyLoggedToday ? 0 : 1;
   int get workPillarBadgeCount => todayPendingTodosCount;
-  int get socialCausePillarBadgeCount => (isCeo || isHr) ? pendingSocialCausesCount : 0;
+  int get socialCausePillarBadgeCount =>
+      (isCeo || isHr) ? pendingSocialCausesCount : 0;
 
   @override
   void dispose() {

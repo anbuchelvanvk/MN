@@ -45,6 +45,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
         );
         return;
       }
+      context.read<EcosystemProvider>().setLoggedIn(true);
       await BirthdayCelebrationDialog.showIfNeeded(context);
       if (mounted) {
         await PillarsPopupDialog.show(context);

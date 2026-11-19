@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -29,9 +30,9 @@ class _ActiveCelebrationMarquee extends StatefulWidget {
   State<_ActiveCelebrationMarquee> createState() => _ActiveCelebrationMarqueeState();
 }
 
-class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> with SingleTickerProviderStateMixin {
-  late ScrollController _scrollController;
-  AnimationController? _animController;
+class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> {
+  int _currentIndex = 0;
+  Timer? _cycleTimer;
 
   bool get _isTestEnvironment =>
       WidgetsBinding.instance.runtimeType.toString().contains('Test');
@@ -39,40 +40,20 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-
-    if (!_isTestEnvironment) {
-      _animController = AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 24),
-      )..addListener(() {
-          if (_scrollController.hasClients) {
-            final maxScroll = _scrollController.position.maxScrollExtent;
-            if (maxScroll > 15 && _animController != null) {
-              final val = _animController!.value;
-              // Hold at beginning for 45% of the cycle so users can read the start with zero motion
-              if (val < 0.45) {
-                _scrollController.jumpTo(0);
-              } else if (val > 0.90) {
-                // Hold at end
-                _scrollController.jumpTo(maxScroll);
-              } else {
-                final progress = (val - 0.45) / 0.45;
-                _scrollController.jumpTo(progress * maxScroll);
-              }
-            } else if (_scrollController.hasClients && _scrollController.offset != 0) {
-              _scrollController.jumpTo(0);
-            }
-          }
-        });
-      _animController!.repeat();
+    if (widget.celebrations.length > 1 && !_isTestEnvironment) {
+      _cycleTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+        if (mounted) {
+          setState(() {
+            _currentIndex = (_currentIndex + 1) % widget.celebrations.length;
+          });
+        }
+      });
     }
   }
 
   @override
   void dispose() {
-    _animController?.dispose();
-    _scrollController.dispose();
+    _cycleTimer?.cancel();
     super.dispose();
   }
 
@@ -81,18 +62,17 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
     final eco = context.watch<EcosystemProvider>();
     final activeId = eco.activeEmpId;
     final activeName = eco.currentEmployee.name;
-    final message = widget.celebrations
-        .map((c) => c.displayMessage(activeId, activeName))
-        .join('    ✨    ');
 
-    final firstCelebration = widget.celebrations.isNotEmpty ? widget.celebrations.first : null;
+    final activeCelebration = widget.celebrations[_currentIndex % widget.celebrations.length];
+    final message = activeCelebration.displayMessage(activeId, activeName);
+    final isSelf = activeId == activeCelebration.employeeId ||
+        activeName.toLowerCase().contains(activeCelebration.employeeName.toLowerCase());
+
     String greetingText = 'Congratulations to our celebrating team members! 🥳';
-    if (firstCelebration != null) {
-      if (firstCelebration.type == 'birthday') {
-        greetingText = 'Happy Birthday @${firstCelebration.employeeName} 🥳';
-      } else {
-        greetingText = 'Happy Wedding Anniversary @${firstCelebration.employeeName} 💍';
-      }
+    if (activeCelebration.type == 'birthday') {
+      greetingText = 'Happy Birthday @${activeCelebration.employeeName} 🥳🎂 Wishing you the very best!';
+    } else {
+      greetingText = 'Happy Wedding Anniversary @${activeCelebration.employeeName} 💍💐 Wishing you lifelong happiness!';
     }
 
     return Material(
@@ -109,7 +89,7 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
                 peerRole: 'CEO, HR, TL & All Employees',
                 peerInitials: 'MN',
                 isGroup: true,
-                initialText: greetingText,
+                initialText: isSelf ? 'Thank you all for the wonderful wishes! 🎉❤️' : greetingText,
               ),
             ),
           );
@@ -117,12 +97,12 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
         child: Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8.5),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF831843), // Rich festive magenta / berry
-                Color(0xFFB45309), // Warm gold / amber
+                Color(0xFF831843), // Rich festive berry
+                Color(0xFFB45309), // Warm celebratory amber/gold
                 Color(0xFF831843),
               ],
               begin: Alignment.centerLeft,
@@ -141,53 +121,57 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: const Icon(Icons.celebration_rounded, color: Color(0xFFFDE68A), size: 18),
+                padding: const EdgeInsets.only(left: 2, right: 8),
+                child: const Icon(
+                  Icons.celebration_rounded,
+                  color: Color(0xFFFDE68A),
+                  size: 20,
+                ),
               ),
               Expanded(
-                child: ShaderMask(
-                  shaderCallback: (Rect bounds) {
-                    return const LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        Colors.white,
-                        Colors.white,
-                        Colors.transparent,
-                      ],
-                      stops: [0.0, 0.03, 0.97, 1.0],
-                    ).createShader(bounds);
-                  },
-                  blendMode: BlendMode.dstIn,
-                  child: ClipRect(
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      child: Row(
-                        children: [
-                          Text(
-                            message,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          const SizedBox(width: 80),
-                          Text(
-                            message,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: SizedBox(
+                    key: ValueKey('celeb_${activeCelebration.employeeId}_${activeCelebration.type}_$_currentIndex'),
+                    width: double.infinity,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        message,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                     ),
                   ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFDE68A).withOpacity(0.6), width: 0.8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isSelf ? 'Celebrate' : 'Wish',
+                      style: const TextStyle(
+                        color: Color(0xFFFEF08A),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFFEF08A), size: 9),
+                  ],
                 ),
               ),
             ],
@@ -197,3 +181,4 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
     );
   }
 }
+

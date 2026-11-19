@@ -33,6 +33,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
+        context.read<EcosystemProvider>().setLoggedIn(true);
         await BirthdayCelebrationDialog.showIfNeeded(context);
         if (mounted) {
           await PillarsPopupDialog.show(context);

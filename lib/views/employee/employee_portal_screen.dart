@@ -41,6 +41,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     // Display the 4-button closable popup once the user is logged in, followed by pending actions floating dialog
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
+        context.read<EcosystemProvider>().setLoggedIn(true);
         await BirthdayCelebrationDialog.showIfNeeded(context);
         if (mounted) {
           await PillarsPopupDialog.show(context);

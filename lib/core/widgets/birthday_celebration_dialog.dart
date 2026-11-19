@@ -13,37 +13,64 @@ import '../../providers/ecosystem_provider.dart';
 class BirthdayCelebrationDialog extends StatelessWidget {
   final CelebrationEvent event;
 
-  const BirthdayCelebrationDialog({
-    super.key,
-    required this.event,
-  });
+  const BirthdayCelebrationDialog({super.key, required this.event});
 
   static bool _isShowing = false;
 
   /// Evaluates whether the currently logged-in user is celebrating their Birthday or Anniversary today,
-  /// and displays the celebration popup ONCE per day before any other dialogs.
+  /// and displays the celebration popup ONCE per day inside THEIR account before any other dialogs.
+  /// Strictly blocked before login and blocked for non-celebrating users.
   static Future<void> showIfNeeded(BuildContext context) async {
     if (_isShowing) return;
     final eco = Provider.of<EcosystemProvider>(context, listen: false);
+
+    // 1. Strictly enforce: User must be authenticated and logged into their account
+    if (!eco.isLoggedIn) return;
+
     final now = DateTime.now();
 
-    // Check if any of today's celebrations belong to the active employee
-    final activeName = eco.currentEmployee.name.toLowerCase();
+    // 2. Check if the currently logged-in workforce member matches the celebrating person
+    final currentEmp = eco.currentEmployee;
+    final activeId = eco.activeEmpId.trim().toLowerCase();
+    final activeName = currentEmp.name.trim().toLowerCase();
+
+    // If active employee name or id is empty, do not trigger
+    if (activeId.isEmpty && activeName.isEmpty) return;
+
     final myCelebration = eco.todayCelebrations.where(
       (c) {
-        final cName = c.employeeName.toLowerCase();
-        return c.employeeId == eco.activeEmpId ||
-            (eco.isCeo && (c.employeeId == 'MN-CEO01' || cName.contains('naveenraaj'))) ||
-            (eco.isHr && (c.employeeId == 'MN-HR001' || c.employeeId == '7' || cName.contains('mohankumar'))) ||
-            (activeName.isNotEmpty && (activeName.contains(cName) || cName.contains(activeName)));
+        final celebEmpId = c.employeeId.trim().toLowerCase();
+        final celebName = c.employeeName.trim().toLowerCase();
+
+        // Direct Employee ID match (e.g. MN-CEO01, MN-TL1002, etc.)
+        if (activeId.isNotEmpty && celebEmpId.isNotEmpty && activeId == celebEmpId) {
+          return true;
+        }
+
+        // Direct Name match between currently logged in user and celebrant
+        if (activeName.isNotEmpty && celebName.isNotEmpty) {
+          if (activeName == celebName) return true;
+          // Substring matching for multi-word names (e.g. "M N Naveenraaj" contains "naveenraaj")
+          final activeParts = activeName.split(RegExp(r'[\s._-]+')).where((p) => p.length >= 3);
+          final celebParts = celebName.split(RegExp(r'[\s._-]+')).where((p) => p.length >= 3);
+          for (final ap in activeParts) {
+            for (final cp in celebParts) {
+              if (ap == cp) return true;
+            }
+          }
+        }
+
+        return false;
       },
     ).toList();
 
+    // 3. If the logged-in user is NOT the celebrating person, exit immediately (no popup for others)
     if (myCelebration.isEmpty) return;
 
     final event = myCelebration.first;
     final todayStr = '${now.year}_${now.month}_${now.day}';
-    final storageKey = 'celebration_modal_shown_${eco.activeEmpId}_${event.type}_$todayStr';
+    final storageKey =
+        'celebration_modal_shown_${eco.activeEmpId}_${event.type}_$todayStr';
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -72,9 +99,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isBirthday = event.type == 'birthday';
-    final title = isBirthday
-        ? 'Happy Birthday!'
-        : 'Happy Wedding Anniversary!';
+    final title = isBirthday ? 'Happy Birthday!' : 'Happy Wedding Anniversary!';
     final greeting = isBirthday
         ? '🎉 Wishing You A Wonderful Birthday! 🎂'
         : '💍 Wishing You A Joyful Anniversary! 💐';
@@ -112,14 +137,23 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                   // Top Festive Header Ribbon
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 20,
+                      horizontal: 16,
+                    ),
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Color(0xFF831843), Color(0xFFBE185D), Color(0xFFB45309)],
+                        colors: [
+                          Color(0xFF831843),
+                          Color(0xFFBE185D),
+                          Color(0xFFB45309),
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(26),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -168,7 +202,10 @@ class BirthdayCelebrationDialog extends StatelessWidget {
 
                   // Greeting Content Body
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
                     child: Column(
                       children: [
                         Text(

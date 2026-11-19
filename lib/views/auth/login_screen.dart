@@ -22,6 +22,8 @@ class LoginScreen extends StatefulWidget {
 class SessionManager {
   static Future<void> logout(BuildContext context) async {
     try {
+      final eco = context.read<EcosystemProvider>();
+      eco.setLoggedIn(false);
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('saved_role');
       await prefs.remove('saved_emp_id');
@@ -61,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (savedEmpId != null && savedEmpId.isNotEmpty && mounted) {
         final eco = context.read<EcosystemProvider>();
+        eco.setLoggedIn(true);
         eco.setActiveEmpId(savedEmpId);
         await eco.loadEmployeeFourPillars(savedEmpId);
 
@@ -139,6 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
         email: email,
         password: password,
       );
+      eco.setLoggedIn(true);
 
       // Category 3, Item 12: Persist session to local storage
       try {

@@ -54,8 +54,11 @@ void main() async {
 
   final ecoProvider = EcosystemProvider();
   if (initialEmpId != null && initialEmpId.isNotEmpty) {
+    ecoProvider.setLoggedIn(true);
     ecoProvider.setActiveEmpId(initialEmpId);
     ecoProvider.loadEmployeeFourPillars(initialEmpId);
+  } else {
+    ecoProvider.setLoggedIn(false);
   }
 
   runApp(

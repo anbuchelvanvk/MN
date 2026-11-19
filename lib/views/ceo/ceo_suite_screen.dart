@@ -73,6 +73,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final eco = context.read<EcosystemProvider>();
+      eco.setLoggedIn(true);
       if (eco.activeEmpId != 'MN-CEO01') {
         eco.setActiveEmpId('MN-CEO01');
       }

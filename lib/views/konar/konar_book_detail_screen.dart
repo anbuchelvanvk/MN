@@ -28,6 +28,7 @@ class KonarBookDetailScreen extends StatefulWidget {
 class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
   bool _isProcessing = false;
   String? _processingMessage;
+  bool _allExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -284,19 +285,38 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             ],
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFDF2F8),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFFBCFE8)),
-                          ),
-                          child: Text(
-                            '${book.sections.length} Summaries',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5,
-                              color: const Color(0xFF831843),
-                              fontWeight: FontWeight.bold,
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _allExpanded = !_allExpanded;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFDF2F8),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xFFFBCFE8)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${book.sections.length} Summaries',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    color: const Color(0xFF831843),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  _allExpanded ? Icons.unfold_less_rounded : Icons.unfold_more_rounded,
+                                  size: 14,
+                                  color: const Color(0xFF831843),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -305,8 +325,10 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Chapters / Summaries List
-                  ...book.sections.map((section) => _buildChapterCard(section)),
+                  // Chapters / Summaries List (Default Chapter 1 open, others collapsed for clean aesthetic)
+                  ...book.sections.asMap().entries.map(
+                    (entry) => _buildChapterCard(entry.value, entry.key),
+                  ),
 
                   const SizedBox(height: 18),
 
@@ -346,22 +368,22 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        // Lined Action Row: View Full Book, Download Book, Share (FittedBox - zero truncation)
+                        // Primary Actions Row: View Full Book & Download Book (Equal width, 100% immune to truncation)
                         Row(
                           children: [
                             // View Full Book Button
                             Expanded(
-                              flex: 5,
                               child: SizedBox(
-                                height: 44,
+                                height: 46,
                                 child: OutlinedButton.icon(
                                   onPressed: () => _handlePrintPdf(book),
-                                  icon: const Icon(Icons.visibility_rounded, size: 16, color: Color(0xFF831843)),
-                                  label: const FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      'View Full Book',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                  icon: const Icon(Icons.visibility_rounded, size: 18, color: Color(0xFF831843)),
+                                  label: Text(
+                                    'View Full Book',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.5,
+                                      color: const Color(0xFF831843),
                                     ),
                                   ),
                                   style: OutlinedButton.styleFrom(
@@ -369,54 +391,61 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                     backgroundColor: const Color(0xFFFDF2F8),
                                     foregroundColor: const Color(0xFF831843),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             // Download Book Button
                             Expanded(
-                              flex: 5,
                               child: SizedBox(
-                                height: 44,
+                                height: 46,
                                 child: ElevatedButton.icon(
                                   onPressed: () => _handleDownloadPdf(book),
-                                  icon: const Icon(Icons.file_download_rounded, size: 16, color: Colors.white),
-                                  label: const FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      'Download Book',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Colors.white),
+                                  icon: const Icon(Icons.file_download_rounded, size: 18, color: Colors.white),
+                                  label: Text(
+                                    'Download Book',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.5,
+                                      color: Colors.white,
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF0F766E),
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
                                     elevation: 0,
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            // Share Button
-                            SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: OutlinedButton(
-                                onPressed: () => _handleSharePdf(book),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
-                                  backgroundColor: const Color(0xFFF8FAFC),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  padding: EdgeInsets.zero,
-                                ),
-                                child: const Icon(Icons.share_rounded, size: 18, color: Color(0xFF334155)),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        // Dedicated Share Button (Full width with clear descriptive label)
+                        SizedBox(
+                          height: 42,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _handleSharePdf(book),
+                            icon: const Icon(Icons.share_rounded, size: 17, color: Color(0xFF334155)),
+                            label: Text(
+                              'Share Official KONAR Book (PDF)',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.5,
+                                color: const Color(0xFF334155),
                               ),
                             ),
-                          ],
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                              backgroundColor: const Color(0xFFF8FAFC),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -429,8 +458,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
     );
   }
 
-  Widget _buildChapterCard(KonarSection section) {
+  Widget _buildChapterCard(KonarSection section, int index) {
     return Container(
+      key: ValueKey('chapter_${section.title}_$_allExpanded'),
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -447,7 +477,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          initiallyExpanded: true,
+          initiallyExpanded: _allExpanded || index == 0,
           tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           leading: Container(
             padding: const EdgeInsets.all(8),
