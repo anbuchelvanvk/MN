@@ -793,58 +793,125 @@ class KonarTaskCatalog {
     }
   }
 
-  /// Resolves the role code ('VPE', 'ASS.VPE', 'OTM', 'OSH', 'OS1', 'OS2', 'ECE', 'AC', 'OSS', 'DVP', 'CC')
-  /// from an employee's role string, email, or id.
+  /// Resolves the role code ('VPE', 'ASS.VPE', 'OTM', 'OSH', 'OS1', 'OS2', 'ECE', 'AC', 'OSS', 'DVP', 'CC', 'HR', 'CEO')
+  /// from an employee's role string, email, or id with strict unambiguous matching.
   static String resolveRoleCode(String role, String email, String id) {
-    final r = role.toLowerCase();
-    final e = email.toLowerCase();
-    final i = id.toUpperCase();
+    final r = role.toLowerCase().trim();
+    final e = email.toLowerCase().trim();
+    final i = id.toUpperCase().trim();
 
-    // Check CEO and HR first so they never get mistakenly assigned department roles!
-    if (e.contains('ceoofmn') || e.contains('ceo') || r.contains('ceo') || i.contains('CEO')) {
+    // 1. CEO (Managing Director & CEO - M N Naveenraaj)
+    if (e == 'ceoofmn@mnjpark.com' ||
+        e.startsWith('ceo@') ||
+        i == 'MN-CEO01' ||
+        r == 'ceo' ||
+        r.contains('managing director') ||
+        r.contains('chief executive') ||
+        r.contains('executive ceo')) {
       return 'CEO';
     }
-    if (e.contains('mohankumar') || e.contains('hr') || r.contains('hr') || i.contains('HR')) {
+
+    // 2. HR Management (HR Manager & Operations Custodian - Mohankumar G)
+    if (e == 'hr@mnj.com' ||
+        e.contains('mohankumar') ||
+        i == '7' ||
+        i == 'MN-HR001' ||
+        i == 'MN-HR1001' ||
+        r == 'hr' ||
+        r.contains('hr manager') ||
+        r.contains('operations custodian')) {
       return 'HR';
     }
 
-    // OTM is strictly for Praveen Kumar (praveenkumarotm@mnj.com / MN-TL1002)
+    // 3. OTM (Online Team Manager & Team Lead - Praveenkumar M)
     if (e == 'praveenkumarotm@mnj.com' ||
         e.contains('praveen') ||
         i == 'MN-TL1002' ||
         r.contains('online team manager') ||
+        r.contains('team lead') ||
         (r.contains('otm') && !r.contains('photographer'))) {
       return 'OTM';
     }
-    if (e.contains('gokul') || e.contains('osh') || r.contains('osh') || r.contains('sale head')) {
+
+    // 4. OSH (Online Sales Head - Gokul)
+    if (e.contains('gokul') ||
+        i == '6' ||
+        r.contains('sale head') ||
+        r.contains('sales head') ||
+        r == 'osh') {
       return 'OSH';
     }
-    if (e.contains('mithra') || e.contains('assvpe') || r.contains('ass.vpe') || r.contains('assistant photographer')) {
+
+    // 5. ASS.VPE (Assistant Photographer - Mithra M)
+    if (e.contains('mithra') ||
+        e.contains('assvpe') ||
+        i == '33' ||
+        r.contains('ass.vpe') ||
+        r.contains('assistant photographer')) {
       return 'ASS.VPE';
     }
-    if (e.contains('aravind') || e.contains('vpe') || r.contains('vpe') || r.contains('chief photographer')) {
+
+    // 6. VPE (Chief Photographer & Video Editor - Y. Aravinda Samy)
+    if (e.contains('aravind') ||
+        i == 'EXT-VPE' ||
+        r.contains('chief photographer') ||
+        (r.contains('vpe') && !r.contains('ass'))) {
       return 'VPE';
     }
-    if (e.contains('ece') || r.contains('ece') || r.contains('commerce')) {
-      return 'ECE';
-    }
-    if (e.contains('kaaviya') || e.contains('os1') || r.contains('os1') || r.contains('person 1')) {
+
+    // 7. OS1 (Online Sales Person 1 - Kaaviya)
+    if (e.contains('kaaviya') ||
+        i == '65' ||
+        r.contains('sales person 1') ||
+        r.contains('person 1') ||
+        r == 'os1') {
       return 'OS1';
     }
-    if (e.contains('nisha') || e.contains('os2') || r.contains('os2') || r.contains('person 2')) {
+
+    // 8. OS2 (Online Sales Person 2 - Nisha)
+    if (e.contains('nisha') ||
+        i == '67' ||
+        r.contains('sales person 2') ||
+        r.contains('person 2') ||
+        r == 'os2') {
       return 'OS2';
     }
-    if (e.contains('midhun') || e.contains('ac') || r.contains('analytical')) {
+
+    // 9. AC (Analytical Consultant - Midhun)
+    if (e.contains('midhun') ||
+        i == 'EXT-AC' ||
+        r.contains('analytical consultant') ||
+        r == 'ac') {
       return 'AC';
     }
-    if (e.contains('subash') || e.contains('oss') || r.contains('strategist')) {
+
+    // 10. OSS (Online Support and Strategist - Subash)
+    if (e.contains('subash') ||
+        i == 'EXT-OSS' ||
+        r.contains('support and strategist') ||
+        r == 'oss') {
       return 'OSS';
     }
-    if (e.contains('eshwar') || e.contains('dvp') || r.contains('developer')) {
+
+    // 11. DVP (Developer - Eshwar)
+    if (e.contains('eshwar') ||
+        i == 'EXT-DVP' ||
+        r.contains('developer') ||
+        r == 'dvp') {
       return 'DVP';
     }
-    if (e.contains('samroy') || e.contains('cc') || r.contains('content creator')) {
+
+    // 12. CC (Content Creator / Customer Care - Sam Roy)
+    if (e.contains('samroy') ||
+        i == 'EXT-CC' ||
+        r.contains('content creator') ||
+        r == 'cc') {
       return 'CC';
+    }
+
+    // ECE fallback
+    if (e.contains('ece') || r.contains('commerce')) {
+      return 'ECE';
     }
 
     return 'GEN';

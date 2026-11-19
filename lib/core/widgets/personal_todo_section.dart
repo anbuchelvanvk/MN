@@ -30,7 +30,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final targetEmpId = widget.empId ?? eco.activeEmpId;
-    final allUserTasks = eco.tasks.where((t) => t.empId == targetEmpId).toList();
+    final allUserTasks = eco.getTasksForEmployee(targetEmpId);
     final categories = ['All', ...allUserTasks.map((t) => t.category).toSet()];
 
     final filteredTasks = allUserTasks.where((t) {

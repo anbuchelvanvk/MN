@@ -819,12 +819,30 @@ class EcosystemProvider extends ChangeNotifier {
             .map((s) => s.name.trim().toLowerCase())
             .toSet();
 
-        // Core protected leadership: CEO and Praveenkumar M (who are exempt from sheets)
+        // Core protected leadership & staff: CEO, HR, TL, and all 12 registered workforce accounts
+        const coreWorkforceIds = {
+          'MN-CEO01',
+          '7',
+          'MN-HR001',
+          'MN-HR1001',
+          'MN-TL1002',
+          '6',
+          '33',
+          '65',
+          '67',
+          'EXT-VPE',
+          'EXT-AC',
+          'EXT-OSS',
+          'EXT-DVP',
+          'EXT-CC',
+        };
         final relievedFromSheet = _employees.where((e) {
-          if (e.id == 'MN-CEO01' ||
-              e.roleType == 'ceo' ||
-              e.isOtm ||
-              e.id == 'MN-TL1002') {
+          if (coreWorkforceIds.contains(e.id) ||
+              coreWorkforceIds.contains(e.empNo) ||
+              e.isCeo ||
+              e.isHr ||
+              e.isTeamLead ||
+              e.isOtm) {
             return false;
           }
           if (e.empNo.isEmpty) return false;
@@ -3083,8 +3101,111 @@ class EcosystemProvider extends ChangeNotifier {
     );
   }
 
+  /// Ensures standard KONAR SOP tasks exist for the specified employee
+  void ensureEmployeeStandardTasks(String empId) {
+    Employee emp;
+    try {
+      emp = _employees.firstWhere(
+        (e) =>
+            e.id == empId ||
+            (e.empNo.isNotEmpty && e.empNo == empId) ||
+            e.email.toLowerCase() == empId.toLowerCase() ||
+            ((e.isHr || e.id == '7') &&
+                (empId == 'MN-HR1001' ||
+                    empId == 'MN-HR001' ||
+                    empId.toLowerCase() == 'hr')) ||
+            (e.isCeo &&
+                (empId == 'MN-CEO01' || empId.toLowerCase() == 'ceo')) ||
+            ((e.isTeamLead || e.isOtm) &&
+                (empId == 'MN-TL1002' || empId.toLowerCase() == 'otm')),
+        orElse: () => currentEmployee,
+      );
+    } catch (_) {
+      emp = currentEmployee;
+    }
+
+    final possibleIds = <String>{
+      empId,
+      emp.id,
+      if (emp.empNo.isNotEmpty) emp.empNo,
+      emp.email.toLowerCase(),
+      if (emp.isCeo) ...{'MN-CEO01', 'ceo'},
+      if (emp.isHr) ...{'7', 'MN-HR001', 'MN-HR1001', 'hr'},
+      if (emp.isTeamLead || emp.isOtm) ...{'MN-TL1002', '2', 'otm'},
+    };
+
+    final hasStandardSops = _tasks.any(
+      (t) =>
+          t.isDefaultSop &&
+          (possibleIds.contains(t.empId) || t.empId == emp.id),
+    );
+
+    if (!hasStandardSops) {
+      final code = KonarTaskCatalog.resolveRoleCode(
+        emp.role,
+        emp.email,
+        emp.id,
+      );
+      final standardTasks = KonarTaskCatalog.getStandardTasksForEmployee(
+        emp.id,
+        code,
+        emp.name,
+      );
+      _tasks.addAll(standardTasks);
+    }
+  }
+
+  /// Ensures that all employees across the workforce have their primary KONAR SOP tasks
+  void ensureAllWorkforceStandardTasks() {
+    for (final emp in _employees) {
+      ensureEmployeeStandardTasks(emp.id);
+    }
+  }
+
+  /// Retrieves tasks for any employee, with flexible ID matching and standard task guarantee
+  List<TaskItem> getTasksForEmployee(String empId) {
+    Employee emp;
+    try {
+      emp = _employees.firstWhere(
+        (e) =>
+            e.id == empId ||
+            (e.empNo.isNotEmpty && e.empNo == empId) ||
+            e.email.toLowerCase() == empId.toLowerCase() ||
+            ((e.isHr || e.id == '7') &&
+                (empId == 'MN-HR1001' ||
+                    empId == 'MN-HR001' ||
+                    empId.toLowerCase() == 'hr')) ||
+            (e.isCeo &&
+                (empId == 'MN-CEO01' || empId.toLowerCase() == 'ceo')) ||
+            ((e.isTeamLead || e.isOtm) &&
+                (empId == 'MN-TL1002' || empId.toLowerCase() == 'otm')),
+        orElse: () => currentEmployee,
+      );
+    } catch (_) {
+      emp = currentEmployee;
+    }
+
+    final possibleIds = <String>{
+      empId,
+      emp.id,
+      if (emp.empNo.isNotEmpty) emp.empNo,
+      emp.email.toLowerCase(),
+      if (emp.isCeo) ...{'MN-CEO01', 'ceo'},
+      if (emp.isHr) ...{'7', 'MN-HR001', 'MN-HR1001', 'hr'},
+      if (emp.isTeamLead || emp.isOtm) ...{'MN-TL1002', '2', 'otm'},
+    };
+
+    ensureEmployeeStandardTasks(emp.id);
+
+    return _tasks
+        .where(
+          (t) => possibleIds.contains(t.empId) || t.empId == emp.id,
+        )
+        .toList();
+  }
+
   List<TaskItem> get currentEmployeeTasks {
-    return _tasks.where((t) => t.empId == _activeEmpId).toList();
+    return getTasksForEmployee(_activeEmpId);
   }
 
   List<TaskItem> get operationsDeptTasks {
@@ -3483,6 +3604,7 @@ class EcosystemProvider extends ChangeNotifier {
               // Keep only default SOP tasks and merge cloud personal todos
               final defaultSops = _tasks.where((t) => t.isDefaultSop).toList();
               _tasks = [...remoteTodos, ...defaultSops];
+              ensureAllWorkforceStandardTasks();
               notifyListeners();
             },
             onError: (err) {
@@ -6807,6 +6929,7 @@ class EcosystemProvider extends ChangeNotifier {
 
   /// Category 2, Item 8: Automatic Midnight Rollover Reset for standard SOP tasks
   void checkAndResetDailySops() {
+    ensureAllWorkforceStandardTasks();
     final now = DateTime.now();
     final todayStr =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -7505,8 +7628,9 @@ class EcosystemProvider extends ChangeNotifier {
     String? replyToText,
   }) async {
     var cleanText = text.trim();
-    if (cleanText.isEmpty && (attachmentUrl == null || attachmentUrl.isEmpty))
+    if (cleanText.isEmpty && (attachmentUrl == null || attachmentUrl.isEmpty)) {
       return;
+    }
     if (cleanText.isEmpty) {
       cleanText = attachmentType == 'image'
           ? '📷 Photo'
@@ -8799,8 +8923,8 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   int get todayPendingTodosCount {
-    return _tasks
-        .where((t) => t.empId == _activeEmpId && t.status != 'completed')
+    return currentEmployeeTasks
+        .where((t) => t.status != 'completed')
         .length;
   }
 
