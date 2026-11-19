@@ -216,32 +216,75 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                   const SizedBox(height: 18),
 
                   // Quick Summary of KONAR Book Header
-                  Row(
-                    children: [
-                      const Icon(Icons.summarize_rounded, size: 18, color: AppColors.magentaPrimary),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Quick Summary of KONAR Book',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFF1F5F9)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x06000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
                         ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFDF2F8),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFFBCFE8)),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDF2F8),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFFCE7F3)),
+                          ),
+                          child: const Icon(Icons.summarize_rounded, size: 20, color: AppColors.magentaPrimary),
                         ),
-                        child: Text(
-                          '${book.sections.length} Summaries',
-                          style: const TextStyle(fontSize: 10.5, color: Color(0xFF831843), fontWeight: FontWeight.bold),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Quick Summary of KONAR Book',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Operational highlights & standard protocols',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  color: const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDF2F8),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFFBCFE8)),
+                          ),
+                          child: Text(
+                            '${book.sections.length} Summaries',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              color: const Color(0xFF831843),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
 
@@ -286,66 +329,69 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
+                        // Primary Full-Width Download Button (Zero truncation)
+                        SizedBox(
+                          width: double.infinity,
+                          height: 46,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _handleDownloadPdf(book),
+                            icon: const Icon(Icons.file_download_rounded, size: 19),
+                            label: const Text(
+                              'Download Full Book (PDF)',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0F766E),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        // Row of View Full Book & Share Book
                         Row(
                           children: [
                             // View Full Book Button
                             Expanded(
-                              flex: 3,
-                              child: OutlinedButton.icon(
-                                onPressed: () => _handlePrintPdf(book),
-                                icon: const Icon(Icons.visibility_rounded, size: 16, color: Color(0xFF831843)),
-                                label: const Text(
-                                  'View Full Book',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
-                                  backgroundColor: const Color(0xFFFDF2F8),
-                                  foregroundColor: const Color(0xFF831843),
-                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-
-                            // Download Full Book Button
-                            Expanded(
-                              flex: 4,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _handleDownloadPdf(book),
-                                icon: const Icon(Icons.file_download_rounded, size: 17),
-                                label: const Text(
-                                  'Download Full Book',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0F766E),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  elevation: 0,
+                              child: SizedBox(
+                                height: 42,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _handlePrintPdf(book),
+                                  icon: const Icon(Icons.visibility_rounded, size: 16, color: Color(0xFF831843)),
+                                  label: const Text(
+                                    'View Full Book',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
+                                    backgroundColor: const Color(0xFFFDF2F8),
+                                    foregroundColor: const Color(0xFF831843),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-
+                            const SizedBox(width: 10),
                             // Share Button
-                            Container(
-                              height: 44,
-                              width: 44,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFCBD5E1)),
-                              ),
-                              child: IconButton(
-                                tooltip: 'Share Book',
-                                onPressed: () => _handleSharePdf(book),
-                                icon: const Icon(Icons.share_rounded, size: 18, color: Color(0xFF334155)),
-                                padding: EdgeInsets.zero,
+                            Expanded(
+                              child: SizedBox(
+                                height: 42,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _handleSharePdf(book),
+                                  icon: const Icon(Icons.share_rounded, size: 16, color: Color(0xFF334155)),
+                                  label: const Text(
+                                    'Share Book',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                                    backgroundColor: const Color(0xFFF8FAFC),
+                                    foregroundColor: const Color(0xFF334155),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                ),
                               ),
                             ),
                           ],

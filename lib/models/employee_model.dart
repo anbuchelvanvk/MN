@@ -275,8 +275,8 @@ class Employee {
 
   String get mobile => phone;
   String get department => dept;
-  bool get isCeo => roleType.toLowerCase() == 'ceo' || id == 'MN-CEO01';
-  bool get isHr => roleType.toLowerCase() == 'hr' || id == '7' || id == 'MN-HR1001';
+  bool get isCeo => roleType.toLowerCase() == 'ceo' || id == 'MN-CEO01' || name.toLowerCase().contains('naveenraaj');
+  bool get isHr => (roleType.toLowerCase() == 'hr' || id == '7' || id == 'MN-HR1001') && !isCeo;
   bool get isTeamLead => roleType.toLowerCase() == 'team_lead' || roleType.toLowerCase() == 'dept_head' || id == 'MN-TL1002';
   bool get isDeptHead => isTeamLead;
 
@@ -287,8 +287,8 @@ class Employee {
     final e = email.toLowerCase();
     final i = id.toUpperCase();
 
-    if (rt == 'ceo' || i == 'MN-CEO01' || r.contains('ceo') || e.contains('ceoofmn')) return 'CEO';
-    if (rt == 'hr' || i == '7' || i == 'MN-HR1001' || r.contains('hr') || e.contains('hr@')) return 'HR';
+    if (rt == 'ceo' || i == 'MN-CEO01' || r.contains('ceo') || e.contains('ceoofmn') || name.toLowerCase().contains('naveenraaj')) return 'CEO';
+    if ((rt == 'hr' || i == '7' || i == 'MN-HR1001' || r.contains('hr') || e.contains('hr@')) && !name.toLowerCase().contains('naveenraaj')) return 'HR';
     if (i == 'MN-TL1002' || e.contains('praveenkumarotm') || r.contains('team manager') || r.contains('otm')) return 'OTM';
     if (e.contains('gokul') || r.contains('sale head') || r.contains('osh')) return 'OSH';
     if (e.contains('mithra') || r.contains('assistant photographer') || r.contains('ass.vpe')) return 'Ass.VPE';

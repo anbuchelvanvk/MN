@@ -1239,6 +1239,27 @@ class EcosystemProvider extends ChangeNotifier {
     if (dt != null) {
       return dt.month == now.month && dt.day == now.day;
     }
+
+    // Support month names: e.g. "19-Nov-1988", "19 November 1988", "Nov 19 1988"
+    const monthNames = {
+      'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
+      'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+      'january': 1, 'february': 2, 'march': 3, 'april': 4, 'june': 6,
+      'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12,
+    };
+    final lower = clean.toLowerCase();
+    for (final entry in monthNames.entries) {
+      if (lower.contains(entry.key)) {
+        if (entry.value != now.month) return false;
+        // Check if current day appears as a number token in the date string
+        final dayMatch = RegExp(r'\b0?([1-9]|[12][0-9]|3[01])\b').allMatches(lower);
+        for (final m in dayMatch) {
+          final val = int.tryParse(m.group(0)!);
+          if (val == now.day) return true;
+        }
+      }
+    }
+
     final parts = clean.split(RegExp(r'[-/.]'));
     if (parts.length >= 3) {
       final p0 = int.tryParse(parts[0]);
@@ -1295,47 +1316,108 @@ class EcosystemProvider extends ChangeNotifier {
     return events;
   }
 
+  Future<void> _cleanupPastCelebrationsFromFirebase(DateTime now) async {
+    final stale = _companyNotifications.where((n) =>
+        (n.type == CompanyNotificationType.birthday ||
+         n.type == CompanyNotificationType.anniversary) &&
+        (n.timestamp.year != now.year ||
+         n.timestamp.month != now.month ||
+         n.timestamp.day != now.day)).toList();
+
+    for (final oldNotif in stale) {
+      _companyNotifications.removeWhere((item) => item.id == oldNotif.id);
+      _firebaseEmployeeService.deleteCompanyNotification(oldNotif.id).catchError((_) {});
+    }
+  }
+
   Future<void> checkAndDispatchCelebrations() async {
     final events = todayCelebrations;
+    final now = DateTime.now();
+
+    // Clean up outdated celebration notifications from prior days in background
+    await _cleanupPastCelebrationsFromFirebase(now);
+
     if (events.isEmpty) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final todayKey =
-        'celebration_dispatched_${DateTime.now().year}_${DateTime.now().month}_${DateTime.now().day}';
-    final alreadyDispatched = prefs.getBool(todayKey) ?? false;
-    if (alreadyDispatched) return;
 
     for (final event in events) {
+      // Use per-event per-day tracking key so every celebration is reliably dispatched
+      final eventKey =
+          'celebration_dispatched_${event.type}_${event.employeeId}_${now.year}_${now.month}_${now.day}';
+      final alreadyDispatched = prefs.getBool(eventKey) ?? false;
+      if (alreadyDispatched) continue;
+
       final notifTitle = event.type == 'birthday'
           ? '🎂 Birthday Celebration Today!'
           : '💐 Wedding Anniversary Celebration Today!';
 
-      PushNotificationService().showNotification(
-        id: 'CELEB-${event.type}-${event.employeeName.hashCode}',
-        title: notifTitle,
-        body: event.othersMessage,
-        payload: 'celebration_event',
-      );
-
-      final newNotif = CompanyNotification(
-        id: 'NOTIF-CELEB-${DateTime.now().millisecondsSinceEpoch}-${event.employeeName.hashCode}',
+      // 1. Broadcast notification for all workforce members
+      final broadcastNotif = CompanyNotification(
+        id: 'NOTIF-CELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}',
         title: notifTitle,
         content: event.othersMessage,
         type: event.type == 'birthday'
             ? CompanyNotificationType.birthday
             : CompanyNotificationType.anniversary,
-        timestamp: DateTime.now(),
+        timestamp: now,
         senderName: 'M N Naveenraaj',
         senderRole: 'Managing Director & CEO',
       );
-      _companyNotifications.insert(0, newNotif);
-      _firebaseEmployeeService.saveCompanyNotification(newNotif).catchError((
-        err,
-      ) {
-        debugPrint('Firestore celebration notification sync note: $err');
+
+      // 2. Personal celebration notification for the celebrating employee
+      final personalNotifTitle = event.type == 'birthday'
+          ? '🎉 Happy Birthday ${event.employeeName}! 🎂'
+          : '💍 Happy Wedding Anniversary ${event.employeeName}! 💐';
+      final personalNotif = CompanyNotification(
+        id: 'NOTIF-MYCELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}',
+        title: personalNotifTitle,
+        content: event.message,
+        type: event.type == 'birthday'
+            ? CompanyNotificationType.birthday
+            : CompanyNotificationType.anniversary,
+        timestamp: now,
+        senderName: 'M N Naveenraaj',
+        senderRole: 'Managing Director & CEO',
+        targetEmpIds: [event.employeeId],
+      );
+
+      if (!_companyNotifications.any((n) => n.id == broadcastNotif.id)) {
+        _companyNotifications.insert(0, broadcastNotif);
+      }
+      if (!_companyNotifications.any((n) => n.id == personalNotif.id)) {
+        _companyNotifications.insert(0, personalNotif);
+      }
+
+      _firebaseEmployeeService.saveCompanyNotification(broadcastNotif).catchError((err) {
+        debugPrint('Firestore broadcast celebration notification error: $err');
       });
+      _firebaseEmployeeService.saveCompanyNotification(personalNotif).catchError((err) {
+        debugPrint('Firestore personal celebration notification error: $err');
+      });
+
+      // 3. Deliver native push notifications
+      final isSelf = _activeEmpId == event.employeeId ||
+          currentEmployee.name.toLowerCase().contains(event.employeeName.toLowerCase());
+      if (isSelf) {
+        PushNotificationService().showNotification(
+          id: 'CELEB-ME-${event.type}-${event.employeeId}',
+          title: personalNotifTitle,
+          body: event.message,
+          payload: 'celebration_event',
+        );
+      } else {
+        PushNotificationService().showNotification(
+          id: 'CELEB-${event.type}-${event.employeeId}',
+          title: notifTitle,
+          body: event.othersMessage,
+          payload: 'celebration_event',
+        );
+      }
+
+      await prefs.setBool(eventKey, true);
     }
-    await prefs.setBool(todayKey, true);
+
     notifyListeners();
   }
 
@@ -3169,6 +3251,7 @@ class EcosystemProvider extends ChangeNotifier {
             _employees = updatedList;
             _firebaseSyncActive = true;
             notifyListeners();
+            checkAndDispatchCelebrations();
           }
         },
         onError: (err) {
@@ -3305,22 +3388,29 @@ class EcosystemProvider extends ChangeNotifier {
           .listen(
             (remoteMsgs) {
               if (remoteMsgs.isNotEmpty) {
-                final remoteIds = remoteMsgs.map((m) => m.id).toSet();
+                final filteredRemote = remoteMsgs.where((m) =>
+                    !m.id.startsWith('SEED-MSG') &&
+                    !m.text.contains('Online Department is active')
+                ).toList();
+                final remoteIds = filteredRemote.map((m) => m.id).toSet();
                 final localOnly = _chatMessages
-                    .where((m) => !remoteIds.contains(m.id))
+                    .where((m) =>
+                        !remoteIds.contains(m.id) &&
+                        !m.id.startsWith('SEED-MSG') &&
+                        !m.text.contains('Online Department is active'))
                     .toList();
-                final merged = [...remoteMsgs, ...localOnly];
+                final merged = [...filteredRemote, ...localOnly];
                 merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
                 _chatMessages = merged;
 
                 // Push notifications for incoming chat messages like WhatsApp outside the app
                 if (!_initialChatsStreamLoaded) {
-                  for (final m in remoteMsgs) {
+                  for (final m in filteredRemote) {
                     _notifiedChatMessageIds.add(m.id);
                   }
                   _initialChatsStreamLoaded = true;
                 } else {
-                  for (final m in remoteMsgs) {
+                  for (final m in filteredRemote) {
                     if (!_notifiedChatMessageIds.contains(m.id)) {
                       _notifiedChatMessageIds.add(m.id);
                       final isForMe = m.isAllHands ||
@@ -4929,6 +5019,7 @@ class EcosystemProvider extends ChangeNotifier {
       prefs.setString('saved_role', _activeRole);
       prefs.setString('saved_email', currentEmployee.email);
     }).catchError((_) {});
+    checkAndDispatchCelebrations();
     notifyListeners();
   }
 

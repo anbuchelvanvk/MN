@@ -44,12 +44,24 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> wi
     if (!_isTestEnvironment) {
       _animController = AnimationController(
         vsync: this,
-        duration: const Duration(seconds: 14),
+        duration: const Duration(seconds: 18),
       )..addListener(() {
           if (_scrollController.hasClients) {
             final maxScroll = _scrollController.position.maxScrollExtent;
-            if (maxScroll > 0 && _animController != null) {
-              _scrollController.jumpTo(_animController!.value * maxScroll);
+            if (maxScroll > 15 && _animController != null) {
+              final val = _animController!.value;
+              // Hold at beginning for 25% of the cycle so users can read the start clearly
+              if (val < 0.25) {
+                _scrollController.jumpTo(0);
+              } else if (val > 0.85) {
+                // Hold briefly at end
+                _scrollController.jumpTo(maxScroll);
+              } else {
+                final progress = (val - 0.25) / 0.60;
+                _scrollController.jumpTo(progress * maxScroll);
+              }
+            } else if (_scrollController.hasClients && _scrollController.offset != 0) {
+              _scrollController.jumpTo(0);
             }
           }
         });

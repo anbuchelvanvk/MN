@@ -28,6 +28,7 @@ import '../notes/personal_notes_screen.dart';
 import '../dept_head/monthly_scorecard_screen.dart';
 import '../chat/chat_hub_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
+import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_books_directory_screen.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
@@ -76,9 +77,12 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         eco.setActiveEmpId('MN-CEO01');
       }
       if (mounted) {
-        await PillarsPopupDialog.show(context);
+        await BirthdayCelebrationDialog.showIfNeeded(context);
         if (mounted) {
-          await DailyPendingActionsDialog.showIfNeeded(context);
+          await PillarsPopupDialog.show(context);
+          if (mounted) {
+            await DailyPendingActionsDialog.showIfNeeded(context);
+          }
         }
       }
     });

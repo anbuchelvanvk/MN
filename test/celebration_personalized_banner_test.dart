@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mn_family_app/models/company_notification_models.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 import 'package:mn_family_app/core/widgets/celebration_marquee_banner.dart';
+import 'package:mn_family_app/core/widgets/birthday_celebration_dialog.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -119,6 +120,50 @@ void main() {
         expect(find.textContaining("Happy Birthday M N Naveenraaj! May all your dreams come true!"), findsWidgets);
         expect(find.textContaining("wish him the best!"), findsNothing);
       }
+    });
+
+    testWidgets('BirthdayCelebrationDialog displays festive card with Thank You button', (tester) async {
+      final bdayEvent = CelebrationEvent(
+        employeeId: 'MN-CEO01',
+        employeeName: 'M N Naveenraaj',
+        isFemale: false,
+        type: 'birthday',
+        message: '🎉 Happy Birthday M N Naveenraaj! May all your dreams come true! 🎂',
+        othersMessage: "🎉 Today is M N Naveenraaj's Birthday, wish him the best! 🎂",
+        date: '19/11',
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => BirthdayCelebrationDialog(event: bdayEvent),
+                  );
+                },
+                child: const Text('Open Modal'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Open the celebration modal
+      await tester.tap(find.text('Open Modal'));
+      await tester.pumpAndSettle();
+
+      // Verify festive elements
+      expect(find.text('Happy Birthday!'), findsOneWidget);
+      expect(find.text('M N Naveenraaj'), findsOneWidget);
+      expect(find.text('Thank You! 🎊'), findsOneWidget);
+
+      // Dismiss the dialog
+      await tester.tap(find.text('Thank You! 🎊'));
+      await tester.pumpAndSettle();
+      expect(find.text('Happy Birthday!'), findsNothing);
     });
   });
 }

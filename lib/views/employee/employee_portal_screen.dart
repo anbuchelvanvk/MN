@@ -21,6 +21,7 @@ import '../orders/online_orders_handler_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../chat/chat_hub_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
+import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_book_detail_screen.dart';
 
 class EmployeePortalScreen extends StatefulWidget {
@@ -40,9 +41,12 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     // Display the 4-button closable popup once the user is logged in, followed by pending actions floating dialog
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        await PillarsPopupDialog.show(context);
+        await BirthdayCelebrationDialog.showIfNeeded(context);
         if (mounted) {
-          await DailyPendingActionsDialog.showIfNeeded(context);
+          await PillarsPopupDialog.show(context);
+          if (mounted) {
+            await DailyPendingActionsDialog.showIfNeeded(context);
+          }
         }
       }
     });

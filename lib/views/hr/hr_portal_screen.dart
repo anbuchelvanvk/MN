@@ -18,6 +18,7 @@ import '../notes/personal_notes_screen.dart';
 import '../chat/chat_hub_screen.dart';
 import '../ceo/ceo_suite_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
+import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_books_directory_screen.dart';
 
 class HrPortalScreen extends StatefulWidget {
@@ -36,16 +37,20 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
       final eco = context.read<EcosystemProvider>();
       // M N Naveenraaj is the Managing Director & CEO, strictly not HR.
       // If CEO credentials are active, seamlessly redirect to the Executive CEO Suite.
-      if (eco.activeEmpId == 'MN-CEO01' && (eco.activeRole == 'ceo' || eco.isCeo)) {
+      if ((eco.activeEmpId == 'MN-CEO01' || eco.currentEmployee.isCeo || eco.currentEmployee.name.toLowerCase().contains('naveenraaj')) &&
+          (eco.activeRole == 'ceo' || eco.isCeo)) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const CeoSuiteScreen()),
         );
         return;
       }
-      await PillarsPopupDialog.show(context);
+      await BirthdayCelebrationDialog.showIfNeeded(context);
       if (mounted) {
-        await DailyPendingActionsDialog.showIfNeeded(context);
+        await PillarsPopupDialog.show(context);
+        if (mounted) {
+          await DailyPendingActionsDialog.showIfNeeded(context);
+        }
       }
     });
   }
@@ -53,13 +58,14 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final isCeo = eco.currentEmployee.isCeo || eco.activeRole == 'ceo' || eco.activeEmpId == 'MN-CEO01';
-    final hrEmp = isCeo
-        ? eco.employees.firstWhere(
-            (e) => e.roleType == 'hr' || e.id == '7' || e.id == 'MN-HR1001',
-            orElse: () => eco.currentEmployee,
-          )
-        : eco.currentEmployee;
+    final isCeo = eco.currentEmployee.isCeo || eco.activeRole == 'ceo' || eco.activeEmpId == 'MN-CEO01' || eco.currentEmployee.name.toLowerCase().contains('naveenraaj');
+    final hrEmp = eco.employees.firstWhere(
+      (e) => (e.roleType == 'hr' || e.id == '7' || e.id == 'MN-HR1001' || e.name.toLowerCase().contains('mohankumar')) && !e.isCeo,
+      orElse: () => eco.employees.firstWhere(
+        (e) => !e.isCeo,
+        orElse: () => eco.currentEmployee,
+      ),
+    );
 
     final allEmployees = eco.employees;
     final totalStaff = allEmployees.length;
