@@ -706,11 +706,12 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     final dobController = TextEditingController();
-    final customDeptController = TextEditingController(text: 'Online Department');
+    final customDeptController = TextEditingController();
     DateTime? selectedDob;
     String selectedGender = 'Male';
     String roleHierarchy = 'Employee';
     String selectedDept = 'Online Department';
+    bool isCustomDept = false;
 
     // Live search and sync state
     bool isSyncingSheets = false;
@@ -1251,49 +1252,36 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
 
                     // Department & Role
                     Builder(builder: (_) {
-                      final appointedTlDepts = eco.employees
-                          .where((e) => e.roleType == 'team_lead' || e.isTeamLead)
-                          .map((e) => e.dept.trim())
-                          .where((d) => d.isNotEmpty)
-                          .toSet()
-                          .toList();
-                      if (appointedTlDepts.isEmpty) {
-                        appointedTlDepts.add('Online Department');
-                      }
+                      final allDepts = eco.availableDepartments;
+                      final effectiveSelected = isCustomDept
+                          ? '__NEW__'
+                          : (allDepts.contains(selectedDept) ? selectedDept : allDepts.first);
 
-                      return Row(
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  roleHierarchy == 'Team Lead' ? 'New Department:' : 'Team Department:',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                if (roleHierarchy == 'Team Lead')
-                                  TextField(
-                                    controller: customDeptController,
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
-                                    decoration: InputDecoration(
-                                      hintText: 'e.g. Online Dept, Logistics...',
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Department:',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  )
-                                else
-                                  DropdownButtonFormField<String>(
-                                    value: appointedTlDepts.contains(selectedDept) ? selectedDept : appointedTlDepts.first,
-                                    isExpanded: true,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                    ),
-                                    items: appointedTlDepts
-                                        .map((d) => DropdownMenuItem(
+                                    const SizedBox(height: 4),
+                                    DropdownButtonFormField<String>(
+                                      value: effectiveSelected,
+                                      isExpanded: true,
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                      ),
+                                      items: [
+                                        ...allDepts.map((d) => DropdownMenuItem(
                                               value: d,
                                               child: Text(
                                                 d,
@@ -1301,32 +1289,67 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 1,
                                               ),
-                                            ))
-                                        .toList(),
-                                    onChanged: (v) => setModalState(() => selectedDept = v ?? appointedTlDepts.first),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Role Title:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-                                const SizedBox(height: 4),
-                                TextField(
-                                  controller: roleController,
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
-                                  decoration: InputDecoration(
-                                    hintText: 'e.g. Sales Executive',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                  ),
+                                            )),
+                                        const DropdownMenuItem(
+                                          value: '__NEW__',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.add_circle_outline, size: 14, color: AppColors.magentaPrimary),
+                                              SizedBox(width: 6),
+                                              Text('+ Create New Department...', style: TextStyle(color: AppColors.magentaPrimary, fontWeight: FontWeight.bold, fontSize: 11.5)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (v) {
+                                        setModalState(() {
+                                          if (v == '__NEW__') {
+                                            isCustomDept = true;
+                                          } else {
+                                            isCustomDept = false;
+                                            selectedDept = v ?? 'Online Department';
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Role Title:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                                    const SizedBox(height: 4),
+                                    TextField(
+                                      controller: roleController,
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                                      decoration: InputDecoration(
+                                        hintText: 'e.g. Sales Executive',
+                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
+                          if (isCustomDept) ...[
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: customDeptController,
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                              decoration: InputDecoration(
+                                labelText: 'New Department Name',
+                                hintText: 'e.g. Logistics, Retail Store, Manufacturing...',
+                                hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                              ),
+                            ),
+                          ],
                         ],
                       );
                     }),
@@ -1447,9 +1470,14 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           final cleanRole = roleController.text.trim().isNotEmpty ? roleController.text.trim() : 'Operations Staff';
                           final cleanPhone = phoneController.text.trim().isNotEmpty ? phoneController.text.trim() : '+91 98450 00000';
 
-                          final effectiveDept = roleHierarchy == 'Team Lead'
-                              ? (customDeptController.text.trim().isNotEmpty ? customDeptController.text.trim() : 'Online Department')
-                              : selectedDept;
+                          final cleanDept = isCustomDept
+                              ? customDeptController.text.trim()
+                              : selectedDept.trim();
+                          final effectiveDept = cleanDept.isNotEmpty ? cleanDept : 'Online Department';
+
+                          if (isCustomDept && cleanDept.isNotEmpty) {
+                            eco.createNewDepartment(cleanDept);
+                          }
 
                           eco.addNewEmployee(
                             name: nameController.text.trim(),

@@ -187,4 +187,52 @@ void main() {
       );
     });
   });
+
+  group('Dynamic Department Allocation & Creation', () {
+    test('routes arbitrary new department to dedicated collection and assigns tailored SOPs', () {
+      const newDept = 'Quality Control & Hallmarking';
+      final colName = FirebaseEmployeeService.getDepartmentCollectionName(newDept);
+      expect(colName, equals('quality_control_hallmarking_employees'));
+
+      final qcStaff = Employee(
+        id: '88',
+        name: 'Suresh Kumar',
+        dept: newDept,
+        role: 'Senior Hallmarking Inspector',
+        roleType: 'employee',
+        empNo: '88',
+        email: 'suresh.qc@mnj.com',
+        phone: '9845012345',
+        avatar: 'https://example.com/avatar.png',
+        initials: 'SK',
+        doj: 'Today',
+        experienceYears: '5+ yrs Hallmarking',
+        experienceCategory: 'expert',
+        profileCompletion: _mockCompletion(),
+        status: 'Active',
+        ragStatus: 'Green',
+        lastActive: 'Just now',
+      );
+
+      expect(qcStaff.dept, equals('Quality Control & Hallmarking'));
+      expect(qcStaff.isTeamLead, isFalse);
+
+      final roleCode = KonarTaskCatalog.resolveRoleCode(
+        qcStaff.role,
+        qcStaff.email,
+        qcStaff.id,
+        qcStaff.dept,
+      );
+      final tasks = KonarTaskCatalog.getStandardTasksForEmployee(
+        qcStaff.id,
+        roleCode,
+        qcStaff.name,
+        qcStaff.role,
+        qcStaff.dept,
+      );
+
+      expect(tasks, isNotEmpty);
+      expect(tasks.any((t) => t.title.contains('Senior Hallmarking Inspector')), isTrue);
+    });
+  });
 }

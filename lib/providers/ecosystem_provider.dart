@@ -3227,6 +3227,7 @@ class EcosystemProvider extends ChangeNotifier {
   final FirebaseEmployeeService _firebaseEmployeeService =
       FirebaseEmployeeService();
   StreamSubscription<List<Employee>>? _employeeSubscription;
+  StreamSubscription<List<String>>? _departmentsSubscription;
   StreamSubscription<List<SocialCauseItem>>? _socialCausesSubscription;
   StreamSubscription<List<CompanyNotification>>? _notificationsSubscription;
   StreamSubscription<List<TaskItem>>? _personalTodosSubscription;
@@ -3235,6 +3236,41 @@ class EcosystemProvider extends ChangeNotifier {
   StreamSubscription<List<KonarBookModel>>? _konarBooksSubscription;
   bool _firebaseSyncActive = false;
   bool get firebaseSyncActive => _firebaseSyncActive;
+
+  // Real-time Departments Registry
+  final List<String> _registeredDepartments = [
+    'Online Department',
+    'Offline Department',
+    'HR & Administration',
+  ];
+  List<String> get availableDepartments {
+    final set = <String>{'Online Department', 'Offline Department', 'HR & Administration'};
+    set.addAll(_registeredDepartments);
+    for (final e in _employees) {
+      final d = e.dept.trim();
+      if (d.isNotEmpty) set.add(d);
+    }
+    return set.toList();
+  }
+
+  Future<bool> createNewDepartment(String name) async {
+    final clean = name.trim();
+    if (clean.isEmpty) return false;
+    if (!_registeredDepartments.contains(clean)) {
+      _registeredDepartments.add(clean);
+      notifyListeners();
+    }
+    try {
+      await _firebaseEmployeeService.createDepartment(
+        name: clean,
+        requesterRole: _activeRole,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Error creating department in Firestore: $e');
+      return true;
+    }
+  }
 
   // Real-time Workforce Chat Engine
   List<ChatMessage> _chatMessages = [];
@@ -3495,6 +3531,26 @@ class EcosystemProvider extends ChangeNotifier {
       );
     } catch (e) {
       debugPrint('Firestore offline or awaiting initial sync: $e');
+    }
+
+    try {
+      _departmentsSubscription = _firebaseEmployeeService
+          .streamDepartmentNames()
+          .listen(
+            (remoteDepts) {
+              for (final d in remoteDepts) {
+                if (!_registeredDepartments.contains(d)) {
+                  _registeredDepartments.add(d);
+                }
+              }
+              notifyListeners();
+            },
+            onError: (err) {
+              debugPrint('Firestore departments sync listener note: $err');
+            },
+          );
+    } catch (e) {
+      debugPrint('Firestore departments stream error: $e');
     }
 
     try {
@@ -8927,6 +8983,7 @@ class EcosystemProvider extends ChangeNotifier {
   void dispose() {
     _midnightCelebrationTimer?.cancel();
     _employeeSubscription?.cancel();
+    _departmentsSubscription?.cancel();
     _socialCausesSubscription?.cancel();
     _notificationsSubscription?.cancel();
     _personalTodosSubscription?.cancel();

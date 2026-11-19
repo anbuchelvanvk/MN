@@ -888,6 +888,45 @@ class FirebaseEmployeeService {
     }
   }
 
+  /// Explicitly registers a new department in Cloud Firestore (Exclusively allowed for HR and CEO)
+  Future<String> createDepartment({
+    required String name,
+    required String requesterRole,
+  }) async {
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) {
+      throw Exception('Department name cannot be empty.');
+    }
+    final role = requesterRole.toLowerCase();
+    if (role != 'hr' && role != 'ceo') {
+      throw Exception('Permission Denied: Only HR and CEO are authorized to create new departments.');
+    }
+
+    final deptColName = getDepartmentCollectionName(cleanName);
+    await _departmentsCollection.doc(deptColName).set({
+      'name': cleanName,
+      'collection': deptColName,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    return deptColName;
+  }
+
+  /// Streams registered department names from Cloud Firestore
+  Stream<List<String>> streamDepartmentNames() {
+    return _departmentsCollection.snapshots().map((snap) {
+      final names = <String>{'Online Department', 'Offline Department', 'HR & Administration'};
+      for (final doc in snap.docs) {
+        final dName = doc.data()['name']?.toString().trim();
+        if (dName != null && dName.isNotEmpty) {
+          names.add(dName);
+        }
+      }
+      return names.toList();
+    });
+  }
+
   /// Remove employee (Exclusively allowed for HR and CEO)
   Future<void> removeEmployee({
     required String employeeId,

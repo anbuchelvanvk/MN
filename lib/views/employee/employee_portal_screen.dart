@@ -340,11 +340,15 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                     _verticalActionTile(
                       'KONAR Book',
                       Icons.menu_book_rounded,
-                      'OTM',
+                      eco.currentEmployee.dept.toLowerCase().contains('online') ? 'OTM' : 'SOP',
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const KonarBookDetailScreen(department: 'Online Department'),
+                          builder: (_) => KonarBookDetailScreen(
+                            department: eco.currentEmployee.dept.isNotEmpty
+                                ? eco.currentEmployee.dept
+                                : 'Online Department',
+                          ),
                         ),
                       ),
                     ),

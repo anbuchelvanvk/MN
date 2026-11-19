@@ -3556,9 +3556,12 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     final dobController = TextEditingController();
+    final customDeptController = TextEditingController();
     DateTime? selectedDob;
     String selectedGender = 'Male';
     String roleHierarchy = 'HR Management'; // 'HR Management', 'Team Lead', 'Employee'
+    String selectedDept = 'Online Department';
+    bool isCustomDept = false;
 
     // Live search and sync state
     bool isSyncingSheets = false;
@@ -3859,6 +3862,86 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+
+                    // Department Allocation
+                    Text(
+                      'Department Allocation:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Builder(builder: (_) {
+                      final allDepts = eco.availableDepartments;
+                      final effectiveSelected = isCustomDept
+                          ? '__NEW__'
+                          : (allDepts.contains(selectedDept) ? selectedDept : allDepts.first);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.burgundyBg,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: AppColors.sandBorder),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: effectiveSelected,
+                                isExpanded: true,
+                                dropdownColor: AppColors.burgundySurface,
+                                icon: const Icon(Icons.arrow_drop_down, color: AppColors.sandGold),
+                                style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                                items: [
+                                  ...allDepts.map(
+                                    (d) => DropdownMenuItem(
+                                      value: d,
+                                      child: Text(d),
+                                    ),
+                                  ),
+                                  const DropdownMenuItem(
+                                    value: '__NEW__',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.add_circle_outline, size: 14, color: AppColors.sandGold),
+                                        SizedBox(width: 6),
+                                        Text('+ Create New Department...', style: TextStyle(color: AppColors.sandGold, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                onChanged: (val) {
+                                  setModalState(() {
+                                    if (val == '__NEW__') {
+                                      isCustomDept = true;
+                                    } else {
+                                      isCustomDept = false;
+                                      selectedDept = val ?? 'Online Department';
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          if (isCustomDept) ...[
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: customDeptController,
+                              style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                              decoration: InputDecoration(
+                                hintText: 'Enter new department name (e.g. Offline Department)',
+                                hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
+                                filled: true,
+                                fillColor: AppColors.burgundyBg,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandGold)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandGold)),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    }),
                     const SizedBox(height: 12),
 
                     // Gender Selection (Attire & Grooming Segregation)
@@ -4439,7 +4522,18 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         final assignedRoleType = roleHierarchy == 'HR Management'
                             ? 'hr'
                             : (roleHierarchy == 'Team Lead' ? 'team_lead' : 'employee');
-                        final assignedDept = roleHierarchy == 'HR Management' ? 'HR & Admin' : 'Online Department';
+
+                        final cleanDept = isCustomDept
+                            ? customDeptController.text.trim()
+                            : selectedDept.trim();
+                        final assignedDept = cleanDept.isNotEmpty
+                            ? cleanDept
+                            : (roleHierarchy == 'HR Management' ? 'HR & Administration' : 'Online Department');
+
+                        if (isCustomDept && cleanDept.isNotEmpty) {
+                          eco.createNewDepartment(cleanDept);
+                        }
+
                         final staffEmail = emailController.text.trim().isNotEmpty
                             ? emailController.text.trim()
                             : '${nameController.text.trim().toLowerCase().replaceAll(' ', '.')}@mnjewelpark.com';
