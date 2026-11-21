@@ -498,25 +498,27 @@ class _CreativeMediaReviewBoardScreenState
                 ),
                 const SizedBox(width: 6),
 
-                // Collection Tag
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                        color: const Color(0xFFFDE68A), width: 0.8),
-                  ),
-                  child: Text(
-                    asset.collectionTag,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF92400E),
+                // Collection Tag (if specified)
+                if (asset.collectionTag.trim().isNotEmpty) ...[
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                          color: const Color(0xFFFDE68A), width: 0.8),
+                    ),
+                    child: Text(
+                      asset.collectionTag,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF92400E),
+                      ),
                     ),
                   ),
-                ),
+                ],
                 const Spacer(),
 
                 // Status Badge
@@ -1054,7 +1056,7 @@ class _CreativeMediaReviewBoardScreenState
     final driveController = TextEditingController();
     final captionController = TextEditingController();
     String category = 'Reel';
-    String collectionTag = 'Antique & Bridal';
+    String collectionTag = '';
     List<String> targetChannels = ['Instagram'];
     bool isUploadingToDrive = false;
     String? uploadedDriveFileName;
@@ -1144,96 +1146,37 @@ class _CreativeMediaReviewBoardScreenState
                   ),
                   const SizedBox(height: 12),
 
-                  // Category & Collection
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('CATEGORY',
-                                style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF475569))),
-                            const SizedBox(height: 4),
-                            DropdownButtonFormField<String>(
-                              value: category,
-                              style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12, color: AppColors.textDark),
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder()),
-                              items: ['Reel', 'Photoshoot', 'Catalog Banner', 'Story']
-                                  .map((c) => DropdownMenuItem(
-                                      value: c, child: Text(c)))
-                                  .toList(),
-                              onChanged: (v) {
-                                if (v != null) setSheetState(() => category = v);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('COLLECTION',
-                                style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF475569))),
-                            const SizedBox(height: 4),
-                            DropdownButtonFormField<String>(
-                              value: collectionTag,
-                              style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12, color: AppColors.textDark),
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder()),
-                              items: [
-                                'Antique & Bridal',
-                                'Diamond & Polki',
-                                '22K Gold',
-                                'Silver Collection',
-                                'Daily Wear',
-                              ]
-                                  .map((c) => DropdownMenuItem(
-                                      value: c, child: Text(c)))
-                                  .toList(),
-                              onChanged: (v) {
-                                if (v != null) {
-                                  setSheetState(() => collectionTag = v);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  // Category
+                  Text('CATEGORY',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF475569))),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12, color: AppColors.textDark),
+                    decoration: const InputDecoration(
+                        border: OutlineInputBorder()),
+                    items: ['Reel', 'Photoshoot', 'Catalog Banner', 'Story']
+                        .map((c) => DropdownMenuItem(
+                            value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) setSheetState(() => category = v);
+                    },
                   ),
                   const SizedBox(height: 12),
 
-                  // Google Drive Direct Upload or Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'GOOGLE DRIVE MEDIA ASSET *',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF475569),
-                        ),
-                      ),
-                      Text(
-                        'Drive Folder: 1zfY6b6x...',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
-                          color: const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
+                  // Media Asset File Upload Header
+                  Text(
+                    'UPLOAD MEDIA FILE *',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF475569),
+                    ),
                   ),
                   const SizedBox(height: 6),
 
@@ -1316,7 +1259,7 @@ class _CreativeMediaReviewBoardScreenState
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  'Uploading to Google Drive Folder...',
+                                  'Uploading Media File...',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
@@ -1328,14 +1271,14 @@ class _CreativeMediaReviewBoardScreenState
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.add_to_drive_rounded,
+                                const Icon(Icons.cloud_upload_outlined,
                                     size: 18, color: Color(0xFF16A34A)),
                                 const SizedBox(width: 8),
                                 Flexible(
                                   child: Text(
                                     uploadedDriveFileName != null
                                         ? 'Uploaded: $uploadedDriveFileName (Tap to replace)'
-                                        : 'Upload Video / Photo Directly to Google Drive',
+                                        : 'Upload Media File',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
@@ -1359,7 +1302,7 @@ class _CreativeMediaReviewBoardScreenState
 
                   // Option B: Or paste Google Drive Link manually
                   Text(
-                    'OR PASTE GOOGLE DRIVE SHARING URL',
+                    'OR PASTE MEDIA LINK / SHARING URL',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w600,
@@ -1434,7 +1377,7 @@ class _CreativeMediaReviewBoardScreenState
                             driveController.text.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Please enter Title and Google Drive link!'),
+                              content: Text('Please enter Title and select or paste a Media File!'),
                             ),
                           );
                           return;
