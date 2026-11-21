@@ -9,6 +9,9 @@ import '../../views/auth/login_screen.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../views/pillars/profile_pillar_screen.dart';
 import '../../views/chat/chat_hub_screen.dart';
+import '../../views/ceo/admin_role_access_management_screen.dart';
+import '../../views/copilot/mn_assistant_sheet.dart';
+import '../../views/media/creative_media_review_board_screen.dart';
 
 class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String roleName;
@@ -259,10 +262,51 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 4),
 
-                  // Chat Hub Action Button
+                  // MN Assistant AI Copilot Button (Vibrant Gold Theme)
+                  SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        key: const ValueKey('role_app_bar_copilot_button'),
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => MnAssistantSheet.show(context),
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFF59E0B).withOpacity(0.35),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.auto_awesome,
+                              size: 17,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+
+                  // Notification Section Button (Replaces Chat Icon)
                   Consumer<EcosystemProvider>(
                     builder: (context, eco, _) {
-                      final unreadChats = eco.unreadTotalChatCount;
+                      final unreadNotifications = eco.unreadNotificationCount;
                       return SizedBox(
                         width: 36,
                         height: 36,
@@ -272,13 +316,14 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                key: const ValueKey('role_app_bar_chat_button'),
+                                key: const ValueKey('role_app_bar_notification_button'),
                                 borderRadius: BorderRadius.circular(10),
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const ChatHubScreen()),
-                                  );
+                                  if (onBellPressed != null) {
+                                    onBellPressed!();
+                                  } else {
+                                    CompanyNotificationSheet.show(context);
+                                  }
                                 },
                                 child: Container(
                                   width: 34,
@@ -287,14 +332,14 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                     color: AppColors.pureWhite,
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                      color: unreadChats > 0
-                                          ? const Color(0xFF6366F1)
-                                          : const Color(0xFF6366F1).withOpacity(0.35),
+                                      color: unreadNotifications > 0
+                                          ? AppColors.magentaPrimary
+                                          : const Color(0xFFE2E8F0),
                                       width: 1.1,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF6366F1).withOpacity(0.12),
+                                        color: AppColors.magentaPrimary.withOpacity(0.08),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
@@ -302,15 +347,15 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   ),
                                   child: const Center(
                                     child: Icon(
-                                      Icons.chat_bubble_outline_rounded,
-                                      size: 18,
-                                      color: Color(0xFF4F46E5),
+                                      Icons.notifications_none_rounded,
+                                      size: 19,
+                                      color: Color(0xFF0F172A),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                            if (unreadChats > 0)
+                            if (unreadNotifications > 0)
                               Positioned(
                                 top: 1,
                                 right: 1,
@@ -323,7 +368,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   ),
                                   constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                                   child: Text(
-                                    unreadChats > 99 ? '99+' : '$unreadChats',
+                                    unreadNotifications > 99 ? '99+' : '$unreadNotifications',
                                     style: const TextStyle(
                                       fontSize: 8.5,
                                       color: Colors.white,
@@ -530,6 +575,47 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const Divider(color: AppColors.sandBorder, height: 1),
                 const SizedBox(height: 10),
 
+                // 0. MN Assistant AI Copilot
+                _menuItemTile(
+                  icon: Icons.auto_awesome,
+                  iconColor: const Color(0xFFE11D48),
+                  title: 'MN Assistant (AI Copilot)',
+                  subtitle: 'Live SOP & Policy Q&A',
+                  badgeText: 'AI',
+                  badgeColor: const Color(0xFFE11D48),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    MnAssistantSheet.show(context);
+                  },
+                ),
+
+                // Creative & Media Review Board (DAM Pipeline)
+                Consumer<EcosystemProvider>(
+                  builder: (context, eco, _) {
+                    final pendingMedia = eco.pendingMediaApprovalsCount;
+                    return _menuItemTile(
+                      icon: Icons.video_collection_outlined,
+                      iconColor: const Color(0xFFD97706),
+                      title: 'Media Review Board',
+                      subtitle: 'Reels, photoshoots & social sign-off',
+                      badgeText: pendingMedia > 0 ? '$pendingMedia' : 'DAM',
+                      badgeColor: pendingMedia > 0
+                          ? const Color(0xFFD97706)
+                          : const Color(0xFF475569),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const CreativeMediaReviewBoardScreen(),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+
                 // Team Chat Hub
                 Consumer<EcosystemProvider>(
                   builder: (context, eco, _) {
@@ -642,6 +728,32 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                     },
                   ),
 
+                // Role & Access Management (RBAC Admin)
+                Consumer<EcosystemProvider>(
+                  builder: (context, eco, _) {
+                    if (!eco.currentEmployee.canManageRoles && !eco.isCeo) {
+                      return const SizedBox.shrink();
+                    }
+                    return _menuItemTile(
+                      icon: Icons.admin_panel_settings_outlined,
+                      iconColor: AppColors.sandGold,
+                      title: 'Role & Access Control',
+                      subtitle: 'Manage RBAC permissions & role assignments',
+                      badgeText: 'RBAC',
+                      badgeColor: AppColors.sandGold,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AdminRoleAccessManagementScreen(),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+
                 // 5. Switch Role
                 _menuItemTile(
                   icon: Icons.swap_horiz_rounded,
@@ -741,12 +853,16 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              title,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                                color: isDestructive ? const Color(0xFFEF4444) : AppColors.textDark,
+                            Flexible(
+                              child: Text(
+                                title,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDestructive ? const Color(0xFFEF4444) : AppColors.textDark,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             if (badgeText != null) ...[

@@ -50,6 +50,7 @@ class KonarBookModel {
   final bool hasPdfAttachment;
   final int? totalPdfChunks;
   final int? pdfFileSize;
+  final bool isVisible;
 
   KonarBookModel({
     required this.id,
@@ -69,6 +70,7 @@ class KonarBookModel {
     this.hasPdfAttachment = false,
     this.totalPdfChunks,
     this.pdfFileSize,
+    this.isVisible = true,
   });
 
   KonarBookModel copyWith({
@@ -89,6 +91,7 @@ class KonarBookModel {
     bool? hasPdfAttachment,
     int? totalPdfChunks,
     int? pdfFileSize,
+    bool? isVisible,
   }) {
     return KonarBookModel(
       id: id ?? this.id,
@@ -108,6 +111,7 @@ class KonarBookModel {
       hasPdfAttachment: hasPdfAttachment ?? this.hasPdfAttachment,
       totalPdfChunks: totalPdfChunks ?? this.totalPdfChunks,
       pdfFileSize: pdfFileSize ?? this.pdfFileSize,
+      isVisible: isVisible ?? this.isVisible,
     );
   }
 
@@ -128,6 +132,7 @@ class KonarBookModel {
     'hasPdfAttachment': hasPdfAttachment,
     'totalPdfChunks': totalPdfChunks,
     'pdfFileSize': pdfFileSize,
+    'isVisible': isVisible,
     if (includePdfBase64 && pdfBase64 != null && pdfBase64!.length < 350000)
       'pdfBase64': pdfBase64,
   };
@@ -161,6 +166,7 @@ class KonarBookModel {
       hasPdfAttachment: hasChunks,
       totalPdfChunks: (json['totalPdfChunks'] as num?)?.toInt(),
       pdfFileSize: (json['pdfFileSize'] as num?)?.toInt(),
+      isVisible: json['isVisible'] as bool? ?? true,
     );
   }
 
@@ -181,73 +187,71 @@ class KonarBookModel {
       sections: [
         KonarSection(
           id: 'sec_1',
-          title: 'Chapter 1: Department Mission & Role Hierarchy',
-          subtitle: 'Leadership, Core Objectives & Chain of Command',
-          content: 'The MN Jewel Park Online Department manages global client outreach, digital catalog presentations, high-value jewelry sales, and omnichannel customer satisfaction. Every staff member represents the MN brand integrity.',
+          title: '01 PURPOSE',
+          subtitle: 'Global Platform, Doorstep Delivery & Bespoke Jewelry Craftsmanship',
+          content: 'A global platform that connects customers worldwide with our fine jewelry and provides convenient, secure doorstep delivery. Customers choose our platform for customized and personalized jewelry carrying profound emotional value. Our online team serves as a high-velocity sales funnel, driving company growth, customer engagement, brand presence, and loyal community building. Our purpose is to deliver exceptional designs that exceed customer expectations and turn dreams into reality through advanced technology, expert craftsmanship, and human creativity.',
           keyRules: [
-            'Team Leader: Mr. M. Praveen Kumar (OTM) oversees daily SLAs, content publishing, and escalation workflows.',
-            'Executive Management: MD & CEO (Mr. M N Naveenraaj) and HR Manager (Mr. Mohankumar G) maintain final administrative authority.',
-            'Daily shift check-ins and evening task reviews are mandatory for all team members.',
+            'Global Reach: Provide reliable worldwide doorstep delivery for certified 916 BIS hallmark gold, silver, and diamond jewelry.',
+            'Emotional Customization: Deliver bespoke, personalized jewelry pieces carrying personal stories and deep family sentiment.',
+            'Core Sales Funnel: Serve as the primary digital sales funnel driving high-volume inquiries and sustainable company growth.',
+            'Brand & Community: Cultivate trust and active engagement across Instagram, WhatsApp Business, YouTube, and digital channels.',
+            'Creative Harmony: Combine Artificial Intelligence, Photoshop, CAD modeling, and master goldsmith craftsmanship.',
           ],
         ),
         KonarSection(
           id: 'sec_2',
-          title: 'Chapter 2: Photography & Videography Master Protocols (VPE & Ass.VPE)',
-          subtitle: 'Studio Staging, Lighting, Counter Selection & Reel Production',
-          content: 'Visual fidelity is our primary sales catalyst. Photography and reels must highlight purity, 916 BIS hallmark stamps, intricate craftsmanship, and natural gemstone luster.',
+          title: '02 GOALS',
+          subtitle: '12-Month Omnichannel Key Results, Platform Targets & 24-Hour Design SLA',
+          content: 'Strategic 12-month measurable objectives established for the Online & Design Department across social channels, e-commerce portals, mobile apps, search engines, and custom design production.',
           keyRules: [
-            'Daily product selections must occur before 11:30 AM across Ground Floor, 1st Floor, 2nd Floor, and Diamond Counters.',
-            'Minimum weekly target: 7 high-production content reels and 21 catalog asset shoots.',
-            'All reels and product media require final sign-off from OTM and CEO before publishing.',
-            'Ass.VPE coordinates floor salespersons (Sandhiya, Suganya, Lakshmipriya) for live model shoots.',
+            'Instagram Goal: Scale followers from 58K to 100K within 12 months via 7 content reels/week, 3 daily stories, 5 carousels/week, and 4 monthly influencer collaborations.',
+            'Websites (MN & Vadivam): Grow online sales by 50% and achieve min 100 online orders/month with min 400 monthly asset updates.',
+            'WhatsApp Business: Acquire 1,000 new contacts, 300 qualified inquiries/month, 20% conversion (60 sales/month), and 25 monthly scheme enrollments.',
+            'Mobile App Adoption: Attain 25,000 downloads, 10,000 monthly active users (MAU), 100 scheme conversions/month, and 500 app orders/month.',
+            'Google Visibility: Achieve Top 5 ranking in jewelry search terms, 500 qualified leads/month, 50% organic growth, and 5 monthly SEO blogs.',
+            'Alternative Platforms: Gain 10,000 followers across YouTube, LinkedIn, X, and Snapchat (28 shorts + 4 videos/month, 5 LinkedIn posts/week, 3 X posts/week).',
+            '24-Hour Custom Design SLA: Deliver personalized concept designs within 24 hours of receiving an inquiry; refresh offline banners every 90 days.',
           ],
         ),
         KonarSection(
           id: 'sec_3',
-          title: 'Chapter 3: Online Sales Engagement & Inquiry SLAs (OSH, OS1, OS2)',
-          subtitle: 'WhatsApp Business, Instagram DMs, Client Calls & Conversions',
-          content: 'Rapid, polite, and authoritative customer engagement converts inquiries into lifelong patrons. Never delay customer responses during business hours.',
+          title: '03 PROCESS',
+          subtitle: '5-Stage Content Pipeline, Lead Funnels, 11-Stage Labelling & Offline Design Flow',
+          content: 'End-to-end standard operating workflows governing content creation, incoming lead qualification, order processing, and custom design generation.',
           keyRules: [
-            'Inquiry First Response Time SLA: Strictly under 3 minutes during working hours.',
-            'Always send authentic certificate cards, exact weight breakdowns, and making charges clearly.',
-            'Maintain personalized client follow-up logs on WhatsApp without aggressive sales pressure.',
-            'Confirm payment gateway verification before marking orders as confirmed.',
+            '5-Stage Content Pipeline: Product Selection -> Brainstorming (FIFO product pipeline) -> Spot/Day/Time scheduling -> Production (Shoot/Edit) -> Dual Sign-off (OSH/VPE internal, CEO final).',
+            'Lead Qualification SLA: Strict under 3-minute first response time for all digital inquiries during showroom operating hours.',
+            '11-Stage Labelling Workflow: New Lead -> Scheme/Direct Sale Discussion -> Estimation Sent -> Order Confirmation -> CADD Confirmation -> Internal QC -> Billing & Payment Check -> Secure Packing -> Dispatch -> Delivery Confirmation -> Happy Customer.',
+            'Ready Stock vs Against Order: Immediate billing and dispatch for ready stock; structured CAD/CAM modeling, casting, and QC for custom against-order pieces.',
+            'Offline Design Workflow: Designer availability check -> 1-on-1 briefing -> WhatsApp group output -> mandatory star rating before processing next design.',
           ],
         ),
         KonarSection(
           id: 'sec_4',
-          title: 'Chapter 4: Secure Packaging, Dispatch & Delivery (AC & DVP)',
-          subtitle: 'Invoicing, Tamper-Evident Packaging, Insurance & Transit Tracking',
-          content: 'Every jewelry dispatch must follow tamper-proof security protocols. Customer trust depends on flawless, secure parcel handovers.',
+          title: '04 STRUCTURE',
+          subtitle: 'Multi-Floor Sourcing, Cross-Functional Approvals & Platform Roles',
+          content: 'Organizational governance defining how floor salespersons, creative specialists, digital marketers, billing officers, and packaging heads interact seamlessly.',
           keyRules: [
-            'Accountant (Mr. Midhun Kumar) must verify 100% payment receipt before invoice generation.',
-            'Parcels must use dual-layer tamper-evident envelopes with serial-numbered holographic security tape.',
-            'Delivery Person (Mr. Vimal) must verify OTP and physical signature upon final parcel handover.',
-            'Real-time tracking links must be communicated to customers immediately after courier dispatch.',
+            'Showroom Counter Coordination: VPE/Ass.VPE coordinate with ground floor, 1st floor chain/haram, 2nd floor silver, and diamond counter salespersons; 3-day stock audits by OTM.',
+            'Website Listing Protocol: 7-stage gate (Asset Master -> Stock Active/Inactive Filter -> Product Attributes & MC/VA Check -> OSH Verification -> Listing -> Organic Promotion -> Paid Retargeting).',
+            'WhatsApp Network: Simultaneous asset broadcasting across official numbers (80567 36999 / 89258 68077), internal office groups, and staff personal WhatsApp status.',
+            'Mobile App Scheme Operations: Unified scheme promotions, in-app catalog updates, Gallabox re-estimation verification, and OTP/push notification delivery.',
+            'Google Search & Local SEO: Active Google Business Profile maintenance, keyword optimization (Planner/Trends), PMax campaigns, and mandatory QR-code review collection at checkout counters.',
+            'Designing Requirement Box: Dedicated WhatsApp Design Group; requests captured via Google Forms/internal briefing with zero unapproved rework.',
           ],
         ),
         KonarSection(
           id: 'sec_5',
-          title: 'Chapter 5: Post-Sales Care & Feedback Management (CC & OSS)',
-          subtitle: 'Order Tracking, Customer Feedback Calls & Exchange Protocols',
-          content: 'Post-sales care defines the MN Jewel Park family culture. Customer satisfaction is our highest metric.',
+          title: '05 SYSTEM',
+          subtitle: 'Monthly Cadence, Budget Allocations, Retargeting & Rating Matrices',
+          content: 'Continuous accountability mechanisms, SLA enforcement, advertising budget governance, and customer satisfaction audits.',
           keyRules: [
-            'Customer Care (Mr. Sam Roy) conducts courtesy calls within 48 hours of product delivery.',
-            'Record ring sizing, polish requests, and maintenance feedback in the client dossier.',
-            'Resolve all return, exchange, or sizing queries within a 24-hour SLA window.',
-          ],
-        ),
-        KonarSection(
-          id: 'sec_6',
-          title: 'Chapter 6: Social Media Publishing Schedules & Handover (OTM)',
-          subtitle: 'Timetable, Platform SLAs & Shift Close Protocols',
-          content: 'Strict adherence to publishing hours maximizes organic reach across Instagram, YouTube, X, and Pinterest.',
-          keyRules: [
-            '08:00 AM: Morning gold carousel and multi-platform distribution.',
-            '10:00 AM & 03:00 PM: Daily Instagram Stories featuring trending designs.',
-            '02:00 PM: Gold product showcase reel.',
-            '04:00 PM: Silver jewelry reel and Vadivam collection showcase.',
-            '07:00 PM: Prime evening brand reel and final daily metric review.',
+            'Instagram System: Daily ad budget monitoring, lead conversion tracking, and monthly review reports submitted by AC to CEO.',
+            'Website Cadence: 400 new asset listings/month for MN Jewel Park + 200 for Vadivam; 4 retargeting ad campaigns/month; bi-daily gold rate updates (10:30 AM & 4:00 PM).',
+            'WhatsApp Metrics: 1,000 new contacts, 25,000 broadcast reach, 90 channel updates, and min 2 monthly automated broadcast campaigns.',
+            'Mobile App System: 400 MN assets + 200 Vadivam assets/month, 90 push notifications, and 2 active scheme acquisition campaigns.',
+            'Google System: 30 new Google/GMB listings/month, 500 qualified leads/month, weekly performance scorecards submitted by AC.',
+            'Designing Rating System: 5-star customer rating and 5-star concerned team rating (On-Time Delivery, Communication, Design Perfection); no new design initiated without previous rating.',
           ],
         ),
       ],

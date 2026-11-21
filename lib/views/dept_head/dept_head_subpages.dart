@@ -512,14 +512,15 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
     final eco = context.watch<EcosystemProvider>();
     final isTuesday = DateTime.now().weekday == DateTime.tuesday;
     final curDept = eco.currentEmployee.dept.trim().toLowerCase();
+    final isOnlineOrOps = curDept.contains('online') ||
+        curDept.contains('operation') ||
+        eco.currentEmployee.isOtm ||
+        eco.currentEmployee.roleCode == 'OTM';
     final teamMembers = eco.employees.where((e) {
       if (!e.hasAttendanceAndGrooming) return false;
       if (e.id == eco.currentEmployee.id) return false;
-      if (curDept.isEmpty) return true;
+      if (curDept.isEmpty || isOnlineOrOps) return true;
       final eDept = e.dept.trim().toLowerCase();
-      if (curDept.contains('online')) {
-        return eDept.contains('online') || eDept.contains('operation');
-      }
       return eDept == curDept;
     }).toList();
     final teamAbsentees = teamMembers.where((e) => eco.isEmployeeAbsent(e.id)).toList();

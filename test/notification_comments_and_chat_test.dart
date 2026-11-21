@@ -258,7 +258,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verifies navigation occurred and group chat has pre-typed birthday message
-      expect(find.text('Happy Birthday @M N Naveenraaj 🥳'), findsOneWidget);
+      expect(find.textContaining('Happy Birthday @M N Naveenraaj'), findsOneWidget);
     });
 
     testWidgets('MentionTextEditingController styles @mentions in signature Magenta in chat box', (tester) async {

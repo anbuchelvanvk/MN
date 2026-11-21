@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/employee_model.dart';
 import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/company_notification_sheet.dart';
 import '../../core/widgets/export_audit_modal.dart';
@@ -65,10 +66,41 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
     final isCeo = eco.currentEmployee.isCeo || eco.activeRole == 'ceo' || eco.activeEmpId == 'MN-CEO01' || eco.currentEmployee.name.toLowerCase().contains('naveenraaj');
     final hrEmp = eco.employees.firstWhere(
       (e) => (e.roleType == 'hr' || e.id == '7' || e.id == 'MN-HR1001' || e.name.toLowerCase().contains('mohankumar')) && !e.isCeo,
-      orElse: () => eco.employees.firstWhere(
-        (e) => !e.isCeo,
-        orElse: () => eco.currentEmployee,
-      ),
+      orElse: () {
+        if (eco.currentEmployee.isHr || eco.currentEmployee.id == '7' || eco.currentEmployee.name.toLowerCase().contains('mohankumar')) {
+          return eco.currentEmployee;
+        }
+        return Employee(
+          id: '7',
+          empNo: '7',
+          name: 'Mohankumar G',
+          role: 'HR Manager & Operations Custodian',
+          roleType: 'hr',
+          dept: 'Administration',
+          phone: '+91 94433 11000',
+          email: 'hr@mnj.com',
+          avatar: '',
+          initials: 'MG',
+          doj: '2021-03-10',
+          experienceYears: '8 yrs in HR Management',
+          experienceCategory: 'experienced',
+          probationWeeks: 0,
+          probationStatus: 'cleared',
+          probationEndDate: 'Completed',
+          status: 'active',
+          ragStatus: 'green',
+          password: 'hr@mnj123',
+          lastActive: 'Active now',
+          profileCompletion: ProfileCompletion(
+            percentage: 100,
+            isAuthorized: true,
+            photoVerified: true,
+            addressVerified: true,
+            kycVerified: true,
+            sopRolesAcknowledged: true,
+          ),
+        );
+      },
     );
 
     final allEmployees = eco.employees;

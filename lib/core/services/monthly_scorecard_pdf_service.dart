@@ -55,23 +55,15 @@ class MonthlyScorecardPdfService {
       final boldData = await rootBundle.load('assets/fonts/GoogleSans-Bold.ttf');
       ttfBold = pw.Font.ttf(boldData);
     } catch (_) {
-      try {
-        final regFile = File('assets/fonts/GoogleSans-Regular.ttf');
-        final boldFile = File('assets/fonts/GoogleSans-Bold.ttf');
-        if (regFile.existsSync() && boldFile.existsSync()) {
-          ttfRegular = pw.Font.ttf(regFile.readAsBytesSync().buffer.asByteData());
-          ttfBold = pw.Font.ttf(boldFile.readAsBytesSync().buffer.asByteData());
-        }
-      } catch (_) {}
+      ttfRegular = pw.Font.helvetica();
+      ttfBold = pw.Font.helveticaBold();
     }
 
     final pdf = pw.Document(
-      theme: (ttfRegular != null && ttfBold != null)
-          ? pw.ThemeData.withFont(
-              base: ttfRegular,
-              bold: ttfBold,
-            )
-          : null,
+      theme: pw.ThemeData.withFont(
+        base: ttfRegular,
+        bold: ttfBold,
+      ),
     );
     final customFormat = const PdfPageFormat(595.276, 2229.74, marginAll: 0);
 

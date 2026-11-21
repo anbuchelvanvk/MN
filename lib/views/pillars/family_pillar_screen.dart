@@ -4,9 +4,33 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/image_preview_dialog.dart';
 import '../../models/family_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../services/image_optimization_service.dart';
+
+/// User-friendly duration formatter:
+/// - Under 1 hour (e.g. 0.8 hrs): represented as minutes (48 mins)
+/// - Whole hours: 1 hr, 2 hrs
+/// - Fractional hours: 1 hr 30 mins
+String formatDuration(double hours, {bool showPlus = false, bool isCompact = false}) {
+  if (hours <= 0) return isCompact ? '0m' : '0 mins';
+  final totalMinutes = (hours * 60).round();
+  final prefix = showPlus ? '+' : '';
+  if (totalMinutes < 60) {
+    return isCompact ? '$prefix${totalMinutes}m' : '$prefix$totalMinutes mins';
+  }
+  final wholeHours = totalMinutes ~/ 60;
+  final remainingMinutes = totalMinutes % 60;
+  if (remainingMinutes == 0) {
+    if (isCompact) return '$prefix${wholeHours}h';
+    return wholeHours == 1 ? '$prefix$wholeHours hr' : '$prefix$wholeHours hrs';
+  }
+  if (isCompact) return '$prefix${wholeHours}h ${remainingMinutes}m';
+  return wholeHours == 1
+      ? '$prefix$wholeHours hr $remainingMinutes mins'
+      : '$prefix$wholeHours hrs $remainingMinutes mins';
+}
 
 class FamilyPillarScreen extends StatefulWidget {
   const FamilyPillarScreen({super.key});
@@ -204,7 +228,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     const Icon(Icons.family_restroom, size: 14, color: AppColors.sandGold),
                     const SizedBox(width: 5),
                     Text(
-                      '${eco.getTotalSocialHoursForDate(_selectedDate).toStringAsFixed(1)}h Total',
+                      '${formatDuration(eco.getTotalSocialHoursForDate(_selectedDate))} Total',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -514,7 +538,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               index: 0,
               title: 'Family Time',
               emoji: '👨‍👩‍👧‍👦',
-              metric: '${familyHours.toStringAsFixed(1)} hrs',
+              metric: formatDuration(familyHours),
               subtitle: 'Cherished moments',
               badge: familyHours > 0 ? 'Cherished' : 'Log Time',
               badgeColor: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
@@ -523,7 +547,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               index: 1,
               title: 'Friends & Peers',
               emoji: '🤝',
-              metric: '${friendsHours.toStringAsFixed(1)} hrs',
+              metric: formatDuration(friendsHours),
               subtitle: 'Peer camaraderie',
               badge: friendsHours > 0 ? 'Connected' : 'Log Time',
               badgeColor: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
@@ -542,7 +566,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               title: 'Activity Diary',
               emoji: '📋',
               metric: '$totalActivities Entries',
-              subtitle: '${eco.totalOverallSocialHoursToday.toStringAsFixed(1)} hrs total',
+              subtitle: '${formatDuration(eco.totalOverallSocialHoursToday)} total',
               badge: 'History',
               badgeColor: const Color(0xFFA855F7),
             ),
@@ -1680,6 +1704,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       ),
                       onPressed: () async {
                         final res = await ImageOptimizationService.pickAndCompressImage(source: ImageSource.camera);
+                        if (!mounted) return;
                         if (res != null) {
                           setState(() {
                             _activityPhotoUrl = res.dataUrl;
@@ -1699,6 +1724,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       ),
                       onPressed: () async {
                         final res = await ImageOptimizationService.pickAndCompressImage(source: ImageSource.gallery);
+                        if (!mounted) return;
                         if (res != null) {
                           setState(() {
                             _activityPhotoUrl = res.dataUrl;
@@ -1760,7 +1786,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
                     ),
                     child: Text(
-                      '${_loggedHours.toStringAsFixed(1)}h (${(_loggedHours * 60).toInt()}m)',
+                      formatDuration(_loggedHours),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
@@ -2112,7 +2138,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                     ),
                     Text(
-                      'Total: ${totalHours.toStringAsFixed(1)} hrs',
+                      'Total: ${formatDuration(totalHours)}',
                       style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                     ),
                   ],
@@ -2137,31 +2163,57 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
 
-                // Legend
+                // Clean Structured Legend
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Row(
-                      children: [
-                        Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFA855F7))),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Family: ${familyHours.toStringAsFixed(1)}h (${((familyHours / totalHours) * 100).toInt()}%)',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFA855F7).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.3)),
                         ),
-                      ],
+                        child: Row(
+                          children: [
+                            Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFA855F7))),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Family: ${formatDuration(familyHours)} (${totalHours > 0 ? ((familyHours / totalHours) * 100).toInt() : 0}%)',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    Row(
-                      children: [
-                        Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.sandGold)),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Friends/Colleagues: ${friendsHours.toStringAsFixed(1)}h (${((friendsHours / totalHours) * 100).toInt()}%)',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.sandGold.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.sandGold.withOpacity(0.3)),
                         ),
-                      ],
+                        child: Row(
+                          children: [
+                            Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.sandGold)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Friends: ${formatDuration(friendsHours)} (${totalHours > 0 ? ((friendsHours / totalHours) * 100).toInt() : 0}%)',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -2290,7 +2342,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         ],
                       ),
                       Text(
-                        '${dayLogs.length} entries • ${dayHours.toStringAsFixed(1)} hrs',
+                        '${dayLogs.length} ${dayLogs.length == 1 ? "entry" : "entries"} • ${formatDuration(dayHours)}',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9.5,
                           fontWeight: FontWeight.bold,
@@ -2398,13 +2450,42 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 if (log.imageUrl != null && log.imageUrl!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: ImageOptimizationService.buildImageWidget(
-                        log.imageUrl!,
-                        height: 90,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                    child: GestureDetector(
+                      onTap: () => ImagePreviewDialog.show(
+                        context,
+                        imageUrl: log.imageUrl!,
+                        title: log.activityName,
+                        subtitle: '${log.category} • ${log.timeString}',
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            ImageOptimizationService.buildImageWidget(
+                              log.imageUrl!,
+                              height: 100,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                            Container(
+                              margin: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.fullscreen, size: 11, color: AppColors.sandGold),
+                                  SizedBox(width: 3),
+                                  Text('Preview', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -2417,19 +2498,30 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                 decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                  color: const Color(0xFFFFF1F4),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFBCFE8)),
                 ),
-                child: Text(
-                  '+${log.hoursSpent.toStringAsFixed(1)} hrs',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandGold,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.access_time_rounded,
+                      size: 10.5,
+                      color: Color(0xFFBE185D),
+                    ),
+                    const SizedBox(width: 3.5),
+                    Text(
+                      formatDuration(log.hoursSpent),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFBE185D),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               IconButton(
@@ -2664,6 +2756,18 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
     final double friendsHoursToday = (family['totalFriendsHoursToday'] as num?)?.toDouble() ?? 0.0;
     final double totalSocialHours = (family['totalSocialHoursToday'] as num?)?.toDouble() ?? 0.0;
 
+    final double allFamilyHours = activities
+        .where((a) => a.category == 'Family')
+        .fold(0.0, (sum, a) => sum + a.hoursSpent);
+    final double allFriendsHours = activities
+        .where((a) => a.category != 'Family')
+        .fold(0.0, (sum, a) => sum + a.hoursSpent);
+    final double allTotalHours = allFamilyHours + allFriendsHours;
+
+    final double displayFamilyHours = allFamilyHours > 0 ? allFamilyHours : familyHoursToday;
+    final double displayFriendsHours = allFriendsHours > 0 ? allFriendsHours : friendsHoursToday;
+    final double displayTotalHours = allTotalHours > 0 ? allTotalHours : totalSocialHours;
+
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
       appBar: AppBar(
@@ -2807,7 +2911,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                             border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
                           ),
                           child: Text(
-                            '${totalSocialHours.toStringAsFixed(1)}h Total',
+                            '${formatDuration(displayTotalHours)} Total',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -2823,7 +2927,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                         Expanded(
                           child: _staffFamilyMetricBox(
                             title: 'FAMILY TIME',
-                            value: '${familyHoursToday.toStringAsFixed(1)} hrs',
+                            value: formatDuration(displayFamilyHours),
                             subText: 'Bonding & Care',
                             icon: Icons.family_restroom,
                             accentColor: const Color(0xFFA855F7),
@@ -2833,7 +2937,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                         Expanded(
                           child: _staffFamilyMetricBox(
                             title: 'FRIENDS TIME',
-                            value: '${friendsHoursToday.toStringAsFixed(1)} hrs',
+                            value: formatDuration(displayFriendsHours),
                             subText: 'Peer Camaraderie',
                             icon: Icons.people_outline,
                             accentColor: AppColors.sandGold,
@@ -2955,7 +3059,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    '${dayLogs.length} entries • ${dayHours.toStringAsFixed(1)} hrs',
+                                    '${dayLogs.length} ${dayLogs.length == 1 ? "entry" : "entries"} • ${formatDuration(dayHours)}',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -2969,65 +3073,204 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                             ...dayLogs.map((a) {
                               final isFam = a.category == 'Family';
                               return Container(
-                                margin: const EdgeInsets.only(bottom: 6),
-                                padding: const EdgeInsets.all(10),
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: AppColors.burgundySurface,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(a.iconEmoji, style: const TextStyle(fontSize: 18)),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            a.activityName,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.sandLight,
-                                            ),
-                                          ),
-                                          Text(
-                                            '${a.category} • ${a.subCategory}',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 9.5,
-                                              color: isFam ? const Color(0xFFA855F7) : AppColors.sandGold,
-                                            ),
-                                          ),
-                                          if (a.notes != null && a.notes!.isNotEmpty) ...[
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              a.notes!,
-                                              style: GoogleFonts.plusJakartaSans(
-                                                fontSize: 9.5,
-                                                color: AppColors.textMuted,
-                                                fontStyle: FontStyle.italic,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x06000000),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 2),
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.sandGold.withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        '+${a.hoursSpent.toStringAsFixed(1)}h',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.sandGold,
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          width: 34,
+                                          height: 34,
+                                          decoration: BoxDecoration(
+                                            color: isFam
+                                                ? const Color(0xFFFAF5FF)
+                                                : const Color(0xFFFFF1F4),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(
+                                              color: isFam
+                                                  ? const Color(0xFFE9D5FF)
+                                                  : const Color(0xFFFCE7F3),
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(a.iconEmoji,
+                                                style: const TextStyle(fontSize: 18)),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      a.activityName,
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 12.5,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: const Color(0xFF0F172A),
+                                                        height: 1.25,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  // Refined, elegant duration pill
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 8, vertical: 3.5),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFFFFF1F4),
+                                                      borderRadius: BorderRadius.circular(16),
+                                                      border: Border.all(
+                                                          color: const Color(0xFFFBCFE8)),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        const Icon(
+                                                          Icons.access_time_rounded,
+                                                          size: 10.5,
+                                                          color: Color(0xFFBE185D),
+                                                        ),
+                                                        const SizedBox(width: 3.5),
+                                                        Text(
+                                                          formatDuration(a.hoursSpent),
+                                                          style: GoogleFonts.plusJakartaSans(
+                                                            fontSize: 10.5,
+                                                            fontWeight: FontWeight.w700,
+                                                            color: const Color(0xFFBE185D),
+                                                            letterSpacing: 0.2,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 3),
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    width: 5,
+                                                    height: 5,
+                                                    decoration: BoxDecoration(
+                                                      color: isFam
+                                                          ? const Color(0xFFA855F7)
+                                                          : const Color(0xFFBE185D),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Expanded(
+                                                    child: Text(
+                                                      '${a.category} • ${a.subCategory}',
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: isFam
+                                                            ? const Color(0xFFA855F7)
+                                                            : const Color(0xFFBE185D),
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (a.notes != null && a.notes!.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 7),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8FAFC),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                              color: const Color(0xFFF1F5F9)),
+                                        ),
+                                        child: Text(
+                                          a.notes!,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            color: const Color(0xFF475569),
+                                            fontStyle: FontStyle.normal,
+                                            height: 1.35,
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                    ],
+                                    if (a.imageUrl != null && a.imageUrl!.isNotEmpty) ...[
+                                      const SizedBox(height: 10),
+                                      GestureDetector(
+                                        onTap: () => ImagePreviewDialog.show(
+                                          context,
+                                          imageUrl: a.imageUrl!,
+                                          title: a.activityName,
+                                          subtitle: '${a.category} • ${a.timeString}',
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Stack(
+                                            alignment: Alignment.bottomRight,
+                                            children: [
+                                              ImageOptimizationService.buildImageWidget(
+                                                a.imageUrl!,
+                                                height: 130,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              Container(
+                                                margin: const EdgeInsets.all(8),
+                                                padding: const EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black.withOpacity(0.72),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(Icons.fullscreen_rounded,
+                                                        size: 13,
+                                                        color: AppColors.sandGold),
+                                                    SizedBox(width: 4),
+                                                    Text('Preview Photo',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 10,
+                                                            fontWeight: FontWeight.bold)),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               );
@@ -3055,7 +3298,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
     required Color accentColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.burgundySurface,
         borderRadius: BorderRadius.circular(14),
@@ -3069,36 +3312,43 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
               Icon(icon, size: 13, color: accentColor),
               const SizedBox(width: 4),
               Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.sandPrimary,
-                    letterSpacing: 0.4,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    title,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.sandPrimary,
+                      letterSpacing: 0.4,
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 5),
-          Text(
-            value,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              fontWeight: FontWeight.bold,
-              color: AppColors.sandLight,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandLight,
+              ),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
-          Text(
-            subText,
-            style: GoogleFonts.plusJakartaSans(fontSize: 8.5, color: accentColor),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              subText,
+              style: GoogleFonts.plusJakartaSans(fontSize: 8.5, color: accentColor),
+            ),
           ),
         ],
       ),

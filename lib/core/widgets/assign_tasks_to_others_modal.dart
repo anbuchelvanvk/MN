@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -1054,10 +1055,11 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                                   authorizedByName: activeEmp.name,
                                   authorizedByRole: activeEmp.role,
                                 );
-                                final targetEmp = eco.employees.firstWhere((e) => e.id == targetId);
+                                final targetEmp = eco.employees.firstWhereOrNull((e) => e.id == targetId);
+                                final targetName = targetEmp?.name ?? 'colleague';
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('All tasks reassigned to ${targetEmp.name}!'),
+                                    content: Text('All tasks reassigned to $targetName!'),
                                     backgroundColor: AppColors.ragGreen,
                                   ),
                                 );
@@ -1242,10 +1244,11 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                                         assignedByName: activeEmp.name,
                                         assignedByRole: activeEmp.role,
                                       );
-                                      final newEmp = eco.employees.firstWhere((e) => e.id == newEmpId);
+                                      final newEmp = eco.employees.firstWhereOrNull((e) => e.id == newEmpId);
+                                      final newEmpName = newEmp?.name ?? 'colleague';
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                          content: Text('Task "${task.title}" reassigned to ${newEmp.name}!'),
+                                          content: Text('Task "${task.title}" reassigned to $newEmpName!'),
                                           backgroundColor: AppColors.ragGreen,
                                         ),
                                       );
@@ -1504,11 +1507,13 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                 assignedByRole: activeEmp.role,
                 assignedByName: '${activeEmp.name} (${activeEmp.straightCutRole})',
               );
+              final messenger = ScaffoldMessenger.of(context);
+              final assignee = eco.employees.firstWhereOrNull((e) => e.id == _newAssigneeId);
+              final assigneeName = assignee?.name ?? 'colleague';
               Navigator.pop(context);
-              final assignee = eco.employees.firstWhere((e) => e.id == _newAssigneeId);
-              ScaffoldMessenger.of(context).showSnackBar(
+              messenger.showSnackBar(
                 SnackBar(
-                  content: Text('Task dispatched to ${assignee.name}!'),
+                  content: Text('Task dispatched to $assigneeName!'),
                   backgroundColor: AppColors.ragGreen,
                 ),
               );

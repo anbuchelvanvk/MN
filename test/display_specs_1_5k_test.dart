@@ -54,9 +54,7 @@ void main() {
 
       expect(find.byType(LoginScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -71,9 +69,7 @@ void main() {
 
       expect(find.byType(CeoSuiteScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -88,9 +84,7 @@ void main() {
 
       expect(find.byType(DeptHeadPortalScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -105,9 +99,7 @@ void main() {
 
       expect(find.byType(HrPortalScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -122,24 +114,21 @@ void main() {
 
       expect(find.byType(EmployeePortalScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
     testWidgets('EmployeeProfileScreen renders without overflow on 1.5K display', (tester) async {
       configureDisplay(tester);
       final eco = EcosystemProvider();
+      eco.setActiveRole('employee');
+      eco.setActiveEmployee('MN-1007');
 
       await tester.pumpWidget(createTestApp(const EmployeeProfileScreen(), eco));
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(EmployeeProfileScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
       expect(err, isNull);
     });
 
@@ -152,9 +141,7 @@ void main() {
 
       expect(find.byType(OnlineOrdersHandlerScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -167,9 +154,7 @@ void main() {
 
       expect(find.byType(ExportAuditModal), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -188,9 +173,7 @@ void main() {
         expect(find.text('Save BMI'), findsOneWidget);
       }
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -214,9 +197,7 @@ void main() {
 
       expect(find.byType(AttendancePillarScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -229,9 +210,7 @@ void main() {
 
       expect(find.byType(ProfilePillarScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -244,9 +223,7 @@ void main() {
 
       expect(find.byType(SocialCausePillarScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -279,9 +256,7 @@ void main() {
 
       expect(find.byType(WorkPillarScreen), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
 
@@ -294,9 +269,7 @@ void main() {
 
       expect(find.byType(PillarsPopupDialog), findsOneWidget);
       final err = tester.takeException();
-      if (err is FlutterError) {
-        debugPrint(err.toStringDeep());
-      }
+
       expect(err, isNull);
     });
   });

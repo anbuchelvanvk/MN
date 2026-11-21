@@ -231,14 +231,21 @@ class MonthlyScorecardModel {
     return val.toString();
   }
 
-  static double _subCategoryScore(num actual, num target) {
-    if (target <= 0) return 1.0;
+  static double? _subCategoryScore(num actual, num target) {
+    if (target <= 0) return actual > 0 ? 1.0 : null;
     return (actual / target).clamp(0.0, 1.0);
+  }
+
+  static int _calculateAveragePercentage(List<double?> metrics) {
+    final active = metrics.whereType<double>().toList();
+    if (active.isEmpty) return 0;
+    final avg = (active.reduce((a, b) => a + b) / active.length) * 100;
+    return avg.clamp(0, 100).round();
   }
 
   // Category percentage calculations:
   // Each sub-category is considered out of 100% (max 1.0).
-  // The average of all sub-categories gives the overall section percentage out of 100%.
+  // The average of all active sub-categories gives the overall section percentage out of 100%.
   int get instaPercentage {
     final metrics = [
       _subCategoryScore(instaContentReelActual, instaContentReelTarget),
@@ -248,8 +255,7 @@ class MonthlyScorecardModel {
       _subCategoryScore(instaCampaignActual, instaCampaignTarget),
       _subCategoryScore(instaInfluencerActual, instaInfluencerTarget),
     ];
-    final avg = (metrics.reduce((a, b) => a + b) / metrics.length) * 100;
-    return avg.clamp(0, 100).round();
+    return _calculateAveragePercentage(metrics);
   }
 
   int get webPercentage {
@@ -258,8 +264,7 @@ class MonthlyScorecardModel {
       _subCategoryScore(webVadivamListingActual, webVadivamListingTarget),
       _subCategoryScore(webCampaignActual, webCampaignTarget),
     ];
-    final avg = (metrics.reduce((a, b) => a + b) / metrics.length) * 100;
-    return avg.clamp(0, 100).round();
+    return _calculateAveragePercentage(metrics);
   }
 
   int get waPercentage {
@@ -269,8 +274,7 @@ class MonthlyScorecardModel {
       _subCategoryScore(waCampaignActual, waCampaignTarget),
       _subCategoryScore(waBroadcastActual, waBroadcastTarget),
     ];
-    final avg = (metrics.reduce((a, b) => a + b) / metrics.length) * 100;
-    return avg.clamp(0, 100).round();
+    return _calculateAveragePercentage(metrics);
   }
 
   int get appPercentage {
@@ -280,8 +284,7 @@ class MonthlyScorecardModel {
       _subCategoryScore(appCampaignActual, appCampaignTarget),
       _subCategoryScore(appNotificationActual, appNotificationTarget),
     ];
-    final avg = (metrics.reduce((a, b) => a + b) / metrics.length) * 100;
-    return avg.clamp(0, 100).round();
+    return _calculateAveragePercentage(metrics);
   }
 
   int get googlePercentage {
@@ -290,8 +293,7 @@ class MonthlyScorecardModel {
       _subCategoryScore(googleListingActual, googleListingTarget),
       _subCategoryScore(googleCampaignActual, googleCampaignTarget),
     ];
-    final avg = (metrics.reduce((a, b) => a + b) / metrics.length) * 100;
-    return avg.clamp(0, 100).round();
+    return _calculateAveragePercentage(metrics);
   }
 
   int get osmPercentage {
@@ -302,8 +304,7 @@ class MonthlyScorecardModel {
       _subCategoryScore(osmLinkedinActual, osmLinkedinTarget),
       _subCategoryScore(osmXPostActual, osmXPostTarget),
     ];
-    final avg = (metrics.reduce((a, b) => a + b) / metrics.length) * 100;
-    return avg.clamp(0, 100).round();
+    return _calculateAveragePercentage(metrics);
   }
 
   Map<String, dynamic> toJson() => {

@@ -15,6 +15,7 @@ import '../../providers/ecosystem_provider.dart';
 import '../../services/ceo_excel_backup_service.dart';
 import '../hr/hr_management_widgets.dart';
 import '../hr/hr_employee_inspection_screen.dart';
+import '../hr/hr_portal_subpages.dart';
 
 /// Reusable Luxury Executive Scaffold for CEO Subpages (Executive Burgundy & Sand Gold theme with top-left back button)
 class CeoSubpageScaffold extends StatelessWidget {
@@ -571,7 +572,491 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
             ),
           ),
           const SizedBox(height: 24),
+
+          // Corporate Departments & Divisions Management
+          Text(
+            'ORGANIZATIONAL DEPARTMENTS (${eco.availableDepartments.length})',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.sandGold,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.sandBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.apartment_rounded, color: AppColors.sandGold, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Department Master Governance',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandLight,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Manage organization divisions. Deleting a department prompts you to either delete or reallocate its assigned workforce.',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight.withOpacity(0.75)),
+                ),
+                const SizedBox(height: 14),
+                ...eco.availableDepartments.map((dept) {
+                  final deptStaff = eco.employees
+                      .where((e) => e.dept.trim().toLowerCase() == dept.trim().toLowerCase())
+                      .toList();
+                  final isProtected = dept.toLowerCase() == 'administration' || dept.toLowerCase() == 'executive board' || dept.toLowerCase() == 'hr & administration' || dept.toLowerCase() == 'online department';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundySurface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.sandBorder.withOpacity(0.5)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.burgundyBg,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.business_center_outlined, color: AppColors.sandGold, size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                dept,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.sandLight,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${deptStaff.length} workforce member(s)',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: AppColors.sandLight.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (!isProtected)
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFF87171),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            icon: const Icon(Icons.delete_forever_rounded, size: 16),
+                            label: const Text('Delete', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                            onPressed: () => _startDeleteDepartmentWorkflow(context, eco, dept),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.sandGold.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'CORE',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandGold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  void _startDeleteDepartmentWorkflow(BuildContext context, EcosystemProvider eco, String deptName) {
+    showDialog(
+      context: context,
+      builder: (ctx1) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: AppColors.sandGold, size: 24),
+            SizedBox(width: 8),
+            Text('Delete Department?', style: TextStyle(color: AppColors.sandLight)),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete the department "$deptName" completely from MN Jewel Park?',
+          style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.sandLight),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx1),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.sandLight)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF991B1B),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx1);
+              _promptAlongWithEmployees(context, eco, deptName);
+            },
+            child: const Text('Proceed'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _promptAlongWithEmployees(BuildContext context, EcosystemProvider eco, String deptName) {
+    final deptEmployees = eco.employees
+        .where((e) => e.dept.trim().toLowerCase() == deptName.trim().toLowerCase())
+        .toList();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx2) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.people_outline_rounded, color: AppColors.sandGold, size: 24),
+            SizedBox(width: 8),
+            Flexible(child: Text('Staff Disposition', style: TextStyle(color: AppColors.sandLight))),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Along with the employees?',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.sandGold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Department "$deptName" currently has ${deptEmployees.length} staff member(s).\n\n• Select "Yes" to delete all employees along with the department.\n• Select "No" to reallocate the department members to another department.',
+              style: const TextStyle(fontSize: 12.5, color: AppColors.sandLight, height: 1.4),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx2),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.sandLight)),
+          ),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.sandGold,
+              side: const BorderSide(color: AppColors.sandGold),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx2);
+              _openReallocationScreen(context, eco, deptName, deptEmployees);
+            },
+            child: const Text('No (Reallocate)'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx2);
+              await _confirmAndDeleteWithEmployees(context, eco, deptName, deptEmployees.length);
+            },
+            child: const Text('Yes (Delete All)'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmAndDeleteWithEmployees(
+    BuildContext context,
+    EcosystemProvider eco,
+    String deptName,
+    int employeeCount,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Confirm Total Deletion', style: TextStyle(color: AppColors.sandLight)),
+        content: Text(
+          'Are you absolutely sure you want to permanently delete department "$deptName" along with all $employeeCount employee accounts and documents?',
+          style: const TextStyle(fontSize: 13, color: AppColors.sandLight),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.sandLight)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete Everything'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await eco.deleteDepartmentWithWorkflow(deptName: deptName, deleteEmployees: true);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFDC2626),
+            content: Text('Department "$deptName" and $employeeCount employee accounts were permanently deleted.'),
+          ),
+        );
+      }
+    }
+  }
+
+  void _openReallocationScreen(
+    BuildContext context,
+    EcosystemProvider eco,
+    String deptName,
+    List<dynamic> deptEmployees,
+  ) {
+    final availableTargets = eco.availableDepartments
+        .where((d) => d.trim().toLowerCase() != deptName.trim().toLowerCase())
+        .toList();
+
+    String selectedTarget = availableTargets.isNotEmpty ? availableTargets.first : 'Online Department';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctxSheet) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColors.burgundyCard,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.sandBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.burgundySurface,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.swap_horiz_rounded, color: AppColors.sandGold, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Reallocate Department Staff',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.sandLight,
+                            ),
+                          ),
+                          Text(
+                            'Reassigning ${deptEmployees.length} member(s) from "$deptName"',
+                            style: const TextStyle(fontSize: 11.5, color: AppColors.sandBorder),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'SELECT TARGET DEPARTMENT',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandGold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundySurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.sandBorder),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedTarget,
+                      isExpanded: true,
+                      dropdownColor: AppColors.burgundySurface,
+                      icon: const Icon(Icons.arrow_drop_down, color: AppColors.sandGold),
+                      items: availableTargets.map((d) {
+                        return DropdownMenuItem<String>(
+                          value: d,
+                          child: Text(
+                            d,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.sandLight,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setSheetState(() => selectedTarget = val);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'STAFF MEMBERS BEING TRANSFERRED (${deptEmployees.length})',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.sandGold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: deptEmployees.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.burgundySurface),
+                    itemBuilder: (context, index) {
+                      final emp = deptEmployees[index];
+                      return ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppColors.burgundySurface,
+                          child: Text(
+                            emp.initials.toString().isNotEmpty ? emp.initials.toString() : 'MN',
+                            style: const TextStyle(fontSize: 11, color: AppColors.sandGold, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        title: Text(
+                          emp.name.toString(),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                        ),
+                        subtitle: Text(
+                          '${emp.role} • ID: ${emp.id}',
+                          style: const TextStyle(fontSize: 10.5, color: AppColors.sandBorder),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.sandGold),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.sandGold,
+                      foregroundColor: AppColors.burgundyCard,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 2,
+                    ),
+                    onPressed: () async {
+                      Navigator.pop(ctxSheet);
+                      await eco.deleteDepartmentWithWorkflow(
+                        deptName: deptName,
+                        deleteEmployees: false,
+                        reallocateToDept: selectedTarget,
+                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: const Color(0xFF10B981),
+                            content: Text(
+                              'Successfully transferred ${deptEmployees.length} employee(s) to "$selectedTarget" and deleted "$deptName".',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text(
+                      'Reallocate to $selectedTarget & Delete Dept',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -681,56 +1166,69 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.burgundyCard,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.search, size: 20, color: AppColors.sandGold),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextField(
-                    controller: _searchCtrl,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.sandLight),
-                    decoration: InputDecoration(
-                      hintText: 'Search staff by name, role, ID, phone, or department...',
-                      hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12.5),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    onChanged: (val) => setState(() => _searchQuery = val.trim()),
-                  ),
-                ),
-                if (_searchCtrl.text.isNotEmpty)
-                  GestureDetector(
-                    onTap: () => setState(() {
-                      _searchCtrl.clear();
-                      _searchQuery = '';
-                    }),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: AppColors.sandGold.withOpacity(0.12),
-                        shape: BoxShape.circle,
+          // Search Bar & New Hire Button Row
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.burgundyCard,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      child: const Icon(Icons.close, size: 14, color: AppColors.sandGold),
-                    ),
+                    ],
                   ),
-              ],
-            ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, size: 20, color: AppColors.sandGold),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchCtrl,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.sandLight),
+                          decoration: InputDecoration(
+                            hintText: 'Search staff by name, role, ID, phone...',
+                            hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                        ),
+                      ),
+                      if (_searchCtrl.text.isNotEmpty)
+                        GestureDetector(
+                          onTap: () => setState(() {
+                            _searchCtrl.clear();
+                            _searchQuery = '';
+                          }),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.sandGold.withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close, size: 14, color: AppColors.sandGold),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              LiquidGlassButton(
+                label: 'New Hire',
+                icon: Icons.person_add_alt_1,
+                height: 42,
+                onPressed: () => HrStaffDirectoryScreen.openAddHireDialog(context, eco),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
 
@@ -918,7 +1416,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
             ),
           ),
 
-          // Inline Password & Reset Bar
+          // Inline Password & Action Buttons
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -926,91 +1424,188 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
               border: Border(top: BorderSide(color: AppColors.sandBorder)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.lock_outline, size: 13, color: AppColors.sandGold),
-                const SizedBox(width: 6),
-                Text(
-                  'Password: ',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandGold,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    isPasswordRevealed ? empPassword : '••••••••',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isPasswordRevealed ? AppColors.sandLight : AppColors.textSecondary,
-                      letterSpacing: isPasswordRevealed ? 0 : 1.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                InkWell(
-                  onTap: () => setState(() => _revealedPasswords[emp.id] = !isPasswordRevealed),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
-                      size: 15,
-                      color: AppColors.sandGold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                InkWell(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: empPassword));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Password for ${emp.name} copied to clipboard!'),
-                        backgroundColor: const Color(0xFF10B981),
-                        duration: const Duration(seconds: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.lock_outline, size: 13, color: AppColors.sandGold),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Password: ',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
                       ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(Icons.copy_rounded, size: 14, color: AppColors.sandLight),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                InkWell(
-                  onTap: () => _openResetPasswordDialog(context, eco, emp),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                    decoration: BoxDecoration(
-                      color: AppColors.sandGold.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.lock_reset, size: 11, color: AppColors.sandGold),
-                        const SizedBox(width: 3),
-                        Text(
-                          'Reset',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandGold,
+                    Expanded(
+                      child: Text(
+                        isPasswordRevealed ? empPassword : '••••••••',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isPasswordRevealed ? AppColors.sandLight : AppColors.textSecondary,
+                          letterSpacing: isPasswordRevealed ? 0 : 1.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: () => setState(() => _revealedPasswords[emp.id] = !isPasswordRevealed),
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
+                          size: 15,
+                          color: AppColors.sandGold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: empPassword));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Password for ${emp.name} copied to clipboard!'),
+                            backgroundColor: const Color(0xFF10B981),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.copy_rounded, size: 14, color: AppColors.sandLight),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    InkWell(
+                      onTap: () => _openResetPasswordDialog(context, eco, emp),
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.sandGold.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.lock_reset, size: 11, color: AppColors.sandGold),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Reset Password',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandGold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (!emp.isCeo)
+                      InkWell(
+                        onTap: () => _confirmRelieveEmployee(context, eco, emp),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDC2626).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFDC2626).withOpacity(0.4)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.person_remove_outlined, size: 11, color: Color(0xFFEF4444)),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Relieve Staff',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEF4444),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                  ],
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmRelieveEmployee(BuildContext context, EcosystemProvider eco, Employee emp) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFDC2626), width: 1.2),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Relieve Staff Member',
+              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to officially relieve ${emp.name} (EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id}) from MN Jewel Park?\n\n'
+          'This will revoke app login credentials, relieve them from duties, and remove them from active workforce rosters.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              final name = emp.name;
+              final idStr = emp.empNo.isNotEmpty ? 'EMP #${emp.empNo}' : emp.id;
+              final success = eco.relieveEmployee(emp.id);
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFFDC2626),
+                    content: Text('$name ($idStr) has been officially relieved from the company.'),
+                  ),
+                );
+              }
+            },
+            child: const Text('Relieve from Company'),
           ),
         ],
       ),
@@ -1218,6 +1813,11 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
       title: 'Workforce Attendance',
       subtitle: _activeViewTab == 0 ? 'HR Google Sheets Master Ledger' : 'Live Biometrics & Shift Punches',
       actions: [
+        IconButton(
+          icon: const Icon(Icons.campaign_outlined, color: AppColors.sandGold),
+          tooltip: 'Broadcast Update to Staff',
+          onPressed: () => _showBroadcastUpdateDialog(context, eco),
+        ),
         IconButton(
           icon: isSyncing
               ? const SizedBox(
@@ -1694,9 +2294,15 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        LiquidGlassPill(
-                          label: isEmpAbsent ? 'ABSENT' : s.statusBadgeText.toUpperCase(),
-                          color: isEmpAbsent ? AppColors.ragRed : s.statusBadgeColor,
+                        InkWell(
+                          onTap: () {
+                            eco.toggleEmployeeAbsent(s.employeeId);
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: LiquidGlassPill(
+                            label: isEmpAbsent ? 'ABSENT' : s.statusBadgeText.toUpperCase(),
+                            color: isEmpAbsent ? AppColors.ragRed : s.statusBadgeColor,
+                          ),
                         ),
                       ],
                     ),
@@ -1710,6 +2316,87 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
     ),
   );
 }
+
+  void _showBroadcastUpdateDialog(BuildContext context, EcosystemProvider eco) {
+    final recordedDay = eco.hrAttendanceSheet?.latestRecordedDay ?? DateTime.now().day;
+    final defaultDate = '$recordedDay Nov';
+    final controller = TextEditingController(text: defaultDate);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.sandGold.withOpacity(0.4)),
+        ),
+        title: Row(
+          children: const [
+            Icon(Icons.campaign_rounded, color: AppColors.sandGold, size: 24),
+            SizedBox(width: 8),
+            Text(
+              'Broadcast Attendance Update',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Notify all employees that their attendance for a specific date has been officially recorded or reviewed by Executive Management.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'DATE / DATES UPDATED',
+              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: controller,
+              style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13, fontWeight: FontWeight.w600),
+              decoration: InputDecoration(
+                hintText: 'e.g. 14 Nov or 12 Nov, 13 Nov',
+                hintStyle: TextStyle(color: AppColors.textMuted.withOpacity(0.6)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.sandBorder)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.sandGold,
+              foregroundColor: AppColors.burgundyBg,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              final dateText = controller.text.trim();
+              if (dateText.isNotEmpty) {
+                eco.broadcastAttendanceUpdateNotification(dateText);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFF10B981),
+                    content: Text('Attendance notification sent to all staff for $dateText!'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text('Send Notification to All Staff', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _ceoMetricChip(String label, String value, Color bg, Color text) {
     return Container(

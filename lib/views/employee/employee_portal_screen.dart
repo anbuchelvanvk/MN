@@ -23,6 +23,7 @@ import '../chat/chat_hub_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_book_detail_screen.dart';
+import '../media/creative_media_review_board_screen.dart';
 
 class EmployeePortalScreen extends StatefulWidget {
   const EmployeePortalScreen({super.key});
@@ -435,6 +436,73 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
             ),
           ),
           const SizedBox(height: 14),
+
+          // Creative & Media Review Board (Dedicated Quick Access for VPE, Ass.VPE, CC, OTM & Media Team)
+          if (emp.roleCode == 'VPE' || emp.roleCode == 'Ass.VPE' || emp.roleCode == 'CC' || emp.roleCode == 'OTM' || emp.role.toLowerCase().contains('photo') || emp.role.toLowerCase().contains('creator') || emp.role.toLowerCase().contains('video')) ...[
+            LiquidGlassCard(
+              padding: const EdgeInsets.all(14),
+              borderRadius: 16,
+              borderColor: const Color(0xFFF1F5F9),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF66001F).withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.video_collection_outlined, color: Color(0xFF66001F), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'Media Review Board',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                            ),
+                            if (eco.pendingMediaApprovalsCount > 0) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFFDE68A)),
+                                ),
+                                child: Text(
+                                  '${eco.pendingMediaApprovalsCount} Drafts',
+                                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFB45309)),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Upload photoshoot & reel drafts for CEO sign-off',
+                          style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.magentaPrimary),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CreativeMediaReviewBoardScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
 
           // Online Orders Handler (Dedicated Quick Access for OS1, OS2 & Sales Team)
           if (emp.id == '65' || emp.id == '67' || emp.role.toLowerCase().contains('sales') || emp.role.toLowerCase().contains('online')) ...[

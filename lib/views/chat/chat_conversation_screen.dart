@@ -229,7 +229,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 60,
+          _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
@@ -249,19 +249,30 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       _showMentionSuggestions = false;
     });
 
-    await eco.sendChatMessage(
-      receiverId: widget.peerId,
-      text: text,
-      replyToId: reply?.id,
-      replyToSenderName: reply?.senderName,
-      replyToText: reply?.text,
-    );
+    try {
+      await eco.sendChatMessage(
+        receiverId: widget.peerId,
+        text: text,
+        replyToId: reply?.id,
+        replyToSenderName: reply?.senderName,
+        replyToText: reply?.text,
+      );
 
-    if (presetText == null) {
-      _textController.clear();
+      if (presetText == null) {
+        _textController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send message: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSending = false);
+        _scrollToBottom();
+      }
     }
-    setState(() => _isSending = false);
-    _scrollToBottom();
   }
 
   void _showAttachmentOptionsSheet(BuildContext context, EcosystemProvider eco) {
@@ -418,18 +429,22 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         attachmentType: 'image',
       );
 
-      _textController.clear();
-      setState(() {
-        _replyingTo = null;
-        _isSending = false;
-      });
-      _scrollToBottom();
+      if (mounted) {
+        _textController.clear();
+        setState(() {
+          _replyingTo = null;
+        });
+        _scrollToBottom();
+      }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSending = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to send image: $e')),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSending = false);
       }
     }
   }
@@ -1652,8 +1667,20 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   title: const Text('Reply', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
                   onTap: () {
                     Navigator.pop(ctx);
+                    final wasNearBottom = _scrollController.hasClients &&
+                        (_scrollController.position.maxScrollExtent - _scrollController.offset) < 100;
+                    final prevOffset = _scrollController.hasClients ? _scrollController.offset : null;
                     setState(() => _replyingTo = msg);
                     _focusNode.requestFocus();
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scrollController.hasClients) {
+                        if (wasNearBottom) {
+                          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                        } else if (prevOffset != null) {
+                          _scrollController.jumpTo((prevOffset + 48.0).clamp(0.0, _scrollController.position.maxScrollExtent));
+                        }
+                      }
+                    });
                   },
                 ),
                 ListTile(
@@ -1678,7 +1705,18 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(ctx);
+                    final currentOffset = _scrollController.hasClients ? _scrollController.offset : null;
                     eco.toggleChatMessageLike(msg.id);
+                    if (currentOffset != null) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients &&
+                            (_scrollController.offset - currentOffset).abs() > 2) {
+                          _scrollController.jumpTo(
+                            currentOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+                          );
+                        }
+                      });
+                    }
                   },
                 ),
               ],
@@ -2068,6 +2106,14 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   )
                 : ListView.builder(
                     controller: _scrollController,
+                    findChildIndexCallback: (Key key) {
+                      if (key is ValueKey<String>) {
+                        final id = key.value;
+                        final idx = messages.indexWhere((m) => m.id == id);
+                        return idx != -1 ? idx : null;
+                      }
+                      return null;
+                    },
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
@@ -2077,6 +2123,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       final isMentioned = msg.mentionsUser(activeEmpId, eco.currentEmployee.name);
 
                       return Padding(
+                        key: ValueKey(msg.id),
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           mainAxisAlignment:
@@ -2105,11 +2152,18 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               // Quick pin/unpin action button
                               InkWell(
                                 onTap: () {
+                                  final wasNearBottom = _scrollController.hasClients &&
+                                      (_scrollController.position.maxScrollExtent - _scrollController.offset) < 100;
                                   if (msg.isCurrentlyPinned) {
                                     _showUnpinDialog(context, eco, msg);
                                   } else {
                                     _showPinDurationDialog(context, eco, msg);
                                   }
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    if (_scrollController.hasClients && wasNearBottom) {
+                                      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                                    }
+                                  });
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: Padding(
@@ -2124,8 +2178,20 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               // Reply action button
                               InkWell(
                                 onTap: () {
+                                  final wasNearBottom = _scrollController.hasClients &&
+                                      (_scrollController.position.maxScrollExtent - _scrollController.offset) < 100;
+                                  final prevOffset = _scrollController.hasClients ? _scrollController.offset : null;
                                   setState(() => _replyingTo = msg);
                                   _focusNode.requestFocus();
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    if (_scrollController.hasClients) {
+                                      if (wasNearBottom) {
+                                        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                                      } else if (prevOffset != null) {
+                                        _scrollController.jumpTo((prevOffset + 48.0).clamp(0.0, _scrollController.position.maxScrollExtent));
+                                      }
+                                    }
+                                  });
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: const Padding(
@@ -2362,8 +2428,20 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               // Reply action button
                               InkWell(
                                 onTap: () {
+                                  final wasNearBottom = _scrollController.hasClients &&
+                                      (_scrollController.position.maxScrollExtent - _scrollController.offset) < 100;
+                                  final prevOffset = _scrollController.hasClients ? _scrollController.offset : null;
                                   setState(() => _replyingTo = msg);
                                   _focusNode.requestFocus();
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    if (_scrollController.hasClients) {
+                                      if (wasNearBottom) {
+                                        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                                      } else if (prevOffset != null) {
+                                        _scrollController.jumpTo((prevOffset + 48.0).clamp(0.0, _scrollController.position.maxScrollExtent));
+                                      }
+                                    }
+                                  });
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: const Padding(
@@ -2377,7 +2455,20 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               ),
                               // Quick like button on peer message
                               InkWell(
-                                onTap: () => eco.toggleChatMessageLike(msg.id),
+                                onTap: () {
+                                  final currentOffset = _scrollController.hasClients ? _scrollController.offset : null;
+                                  eco.toggleChatMessageLike(msg.id);
+                                  if (currentOffset != null) {
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      if (_scrollController.hasClients &&
+                                          (_scrollController.offset - currentOffset).abs() > 2) {
+                                        _scrollController.jumpTo(
+                                          currentOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+                                        );
+                                      }
+                                    });
+                                  }
+                                },
                                 borderRadius: BorderRadius.circular(12),
                                 child: Padding(
                                   padding: const EdgeInsets.all(4),
@@ -2393,11 +2484,18 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                               // Quick pin/unpin action button
                               InkWell(
                                 onTap: () {
+                                  final wasNearBottom = _scrollController.hasClients &&
+                                      (_scrollController.position.maxScrollExtent - _scrollController.offset) < 100;
                                   if (msg.isCurrentlyPinned) {
                                     _showUnpinDialog(context, eco, msg);
                                   } else {
                                     _showPinDurationDialog(context, eco, msg);
                                   }
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    if (_scrollController.hasClients && wasNearBottom) {
+                                      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+                                    }
+                                  });
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: Padding(

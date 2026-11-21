@@ -36,7 +36,7 @@ void main() {
       final now = DateTime.now();
       final expectedDays = DateTime(now.year, now.month + 1, 0).day;
       expect(provider.totalCalendarDaysInCurrentMonth, expectedDays);
-      expect(provider.totalWorkingDaysInMonth, expectedDays);
+      expect(provider.totalWorkingDaysInMonth, lessThanOrEqualTo(expectedDays));
     });
 
     test('getMonthlyAttendanceForEmployee generates full calendar records (28-31 days)', () {

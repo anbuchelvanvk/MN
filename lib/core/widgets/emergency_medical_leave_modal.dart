@@ -63,6 +63,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
 
     try {
       final result = await ImageOptimizationService.pickAndCompressImage(source: source);
+      if (!mounted) return;
       if (result != null) {
         setState(() {
           _prescriptionBytes = result.bytes;
@@ -71,13 +72,17 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
         });
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to capture or compress prescription: $e';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to capture or compress prescription: $e';
+        });
+      }
     } finally {
-      setState(() {
-        _isCompressing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isCompressing = false;
+        });
+      }
     }
   }
 

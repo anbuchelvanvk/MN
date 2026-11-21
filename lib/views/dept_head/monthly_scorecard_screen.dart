@@ -193,7 +193,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
 
       Directory? dir;
       try {
-        if (Platform.isAndroid) {
+        if (!kIsWeb && Platform.isAndroid) {
           dir = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
         } else {
           dir = await getApplicationDocumentsDirectory();

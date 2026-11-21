@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,7 +24,10 @@ class SessionManager {
   static Future<void> logout(BuildContext context) async {
     try {
       final eco = context.read<EcosystemProvider>();
-      eco.setLoggedIn(false);
+      eco.resetSession();
+      try {
+        await FirebaseAuth.instance.signOut();
+      } catch (_) {}
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('saved_role');
       await prefs.remove('saved_emp_id');
@@ -56,6 +60,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _checkSavedSession() async {
     if (widget.isSwitchAccount) return;
     try {
+      // S-08: Ensure Firebase Auth token is authentic before trusting saved session
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('saved_role');
+        await prefs.remove('saved_emp_id');
+        await prefs.remove('saved_email');
+        return;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final savedEmail = prefs.getString('saved_email');
       final savedRole = prefs.getString('saved_role');
@@ -118,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    final password = _passwordController.text; // Preserve exact characters without stripping (E-11)
 
     if (email.isEmpty) {
       setState(() => _errorMessage = 'Please enter your email or staff ID');
@@ -178,22 +192,35 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
 
+      final messenger = ScaffoldMessenger.of(context);
+      final employeeName = eco.currentEmployee.name;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => targetScreen),
         (route) => false,
       );
       if (widget.isSwitchAccount) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
-            content: Text('Switched account to ${eco.currentEmployee.name}'),
+            content: Text('Switched account to $employeeName'),
             backgroundColor: AppColors.ragGreen,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'Email / Password incorrect');
+        String msg = 'Email / Password incorrect';
+        final errStr = e.toString().toLowerCase();
+        if (errStr.contains('network') || errStr.contains('socket') || errStr.contains('timeout')) {
+          msg = 'Network connection error. Please check your internet connectivity.';
+        } else if (errStr.contains('user-not-found')) {
+          msg = 'No staff account registered for this email / ID.';
+        } else if (errStr.contains('wrong-password') || errStr.contains('invalid-credential')) {
+          msg = 'Incorrect password. Please verify your credentials.';
+        } else if (errStr.contains('too-many-requests')) {
+          msg = 'Access temporarily locked due to repeated failed attempts. Please try again later.';
+        }
+        setState(() => _errorMessage = msg);
       }
     } finally {
       if (mounted) {

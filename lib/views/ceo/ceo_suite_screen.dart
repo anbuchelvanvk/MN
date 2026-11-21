@@ -22,6 +22,7 @@ import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/cross_dept_blocker_section.dart';
 
 import '../hr/hr_employee_inspection_screen.dart';
+import '../hr/hr_portal_subpages.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'ceo_subpages.dart';
 import '../notes/personal_notes_screen.dart';
@@ -30,6 +31,11 @@ import '../chat/chat_hub_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_books_directory_screen.dart';
+import '../../core/widgets/image_preview_dialog.dart';
+import '../../services/image_optimization_service.dart';
+import '../pillars/family_pillar_screen.dart';
+import 'admin_role_access_management_screen.dart';
+import '../media/creative_media_review_board_screen.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   const CeoSuiteScreen({super.key});
@@ -358,6 +364,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       _verticalCeoTabTile(
                         context: context,
                         eco: eco,
+                        label: 'Media Review Board',
+                        icon: Icons.video_collection_outlined,
+                        badge: eco.pendingMediaApprovalsCount > 0 ? '${eco.pendingMediaApprovalsCount}' : 'DAM',
+                        destination: const CreativeMediaReviewBoardScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
                         label: 'KONAR Books',
                         icon: Icons.menu_book_rounded,
                         badge: 'SOP',
@@ -431,6 +446,24 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       _verticalCeoTabTile(
                         context: context,
                         eco: eco,
+                        label: 'Grooming Audit',
+                        icon: Icons.dry_cleaning_outlined,
+                        badge: '',
+                        destination: const HrGroomingAuditScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Blocker Tickets',
+                        icon: Icons.shield_outlined,
+                        badge: '',
+                        destination: const HrBlockerTicketsScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
                         label: 'Personal Notes',
                         icon: Icons.lock_outline_rounded,
                         badge: 'Private',
@@ -445,10 +478,43 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         badge: 'Admin',
                         destination: const CeoDataVaultAndResetScreen(),
                       ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Role & Access Control',
+                        icon: Icons.admin_panel_settings_outlined,
+                        badge: 'RBAC',
+                        destination: const AdminRoleAccessManagementScreen(),
+                      ),
                     ],
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 12),
+
+            // CEO Quick Action Controls: Assign Tasks to Others & Onboard New Hire
+            Row(
+              children: [
+                Expanded(
+                  child: LiquidGlassButton(
+                    label: DateTime.now().weekday == DateTime.tuesday
+                        ? 'Assign Tasks (Tue Week-off)'
+                        : 'Assign Tasks to Others',
+                    icon: Icons.assignment_ind_outlined,
+                    height: 40,
+                    onPressed: () => AssignTasksToOthersModal.show(context),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                LiquidGlassButton(
+                  label: 'New Hire',
+                  icon: Icons.person_add_alt_1,
+                  height: 40,
+                  onPressed: () => HrStaffDirectoryScreen.openAddHireDialog(context, eco),
+                ),
+              ],
             ),
             const SizedBox(height: 14),
 
@@ -2520,50 +2586,159 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.volunteer_activism_outlined, size: 16, color: Color(0xFFEC4899)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Social Cause & CSR Deeds',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                Row(
+                  children: [
+                    const Icon(Icons.volunteer_activism_outlined, size: 16, color: Color(0xFFEC4899)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Social Cause & CSR Deeds',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                          ),
+                          Text(
+                            deeds.isNotEmpty
+                                ? '${deeds.length} deeds registered • Latest: "${deeds.first.title}"'
+                                : 'No community deeds submitted yet',
+                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      Text(
-                        deeds.isNotEmpty
-                            ? '${deeds.length} deeds registered • Latest: "${deeds.first.title}"'
-                            : 'No community deeds submitted yet',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: deeds.isNotEmpty ? const Color(0xFFFCE7F3) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    ],
-                  ),
+                      child: Text(
+                        '${deeds.length} Deeds',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: deeds.isNotEmpty ? const Color(0xFFBE185D) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: deeds.isNotEmpty ? const Color(0xFFFCE7F3) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '${deeds.length} Deeds',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: deeds.isNotEmpty ? const Color(0xFFBE185D) : const Color(0xFF64748B),
+                if (deeds.isNotEmpty && deeds.first.imageUrl != null && deeds.first.imageUrl!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => ImagePreviewDialog.show(
+                      context,
+                      imageUrl: deeds.first.imageUrl!,
+                      title: '${selectedEmp.name} - ${deeds.first.title}',
+                      subtitle: '₹${deeds.first.amountSpent.toStringAsFixed(0)} • ${deeds.first.causeType}',
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          ImageOptimizationService.buildImageWidget(
+                            deeds.first.imageUrl!,
+                            height: 95,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                          Container(
+                            margin: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.fullscreen, size: 12, color: Colors.white),
+                                SizedBox(width: 4),
+                                Text('Preview Deed Photo', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
           const SizedBox(height: 8),
 
-          // 4. Personal Achievement & Health
+          // 4. Family & Social Harmony Inspection Link
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EmployeeFamilyActivitiesScreen()),
+              );
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.family_restroom, size: 16, color: Color(0xFFA855F7)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Family & Social Activity Diary',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        ),
+                        Text(
+                          'Inspect ${selectedEmp.name}\'s logged moments & photo proofs',
+                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3E8FF),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Inspect Photos',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF7C3AED),
+                          ),
+                        ),
+                        SizedBox(width: 3),
+                        Icon(Icons.arrow_forward_ios, size: 9, color: Color(0xFF7C3AED)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 5. Personal Achievement & Health
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -3334,7 +3509,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             ),
           ),
 
-          // Inline Password & Reset Bar
+          // Inline Password & Action Buttons
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -3342,91 +3517,188 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
               border: Border(top: BorderSide(color: AppColors.sandBorder)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.lock_outline, size: 13, color: AppColors.sandGold),
-                const SizedBox(width: 6),
-                Text(
-                  'Password: ',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandGold,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    isPasswordRevealed ? empPassword : '••••••••',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isPasswordRevealed ? AppColors.sandLight : AppColors.textSecondary,
-                      letterSpacing: isPasswordRevealed ? 0 : 1.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                InkWell(
-                  onTap: () => setState(() => _revealedPasswords[emp.id] = !isPasswordRevealed),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
-                      size: 15,
-                      color: AppColors.sandGold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                InkWell(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: empPassword));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Password for ${emp.name} copied to clipboard!'),
-                        backgroundColor: const Color(0xFF10B981),
-                        duration: const Duration(seconds: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.lock_outline, size: 13, color: AppColors.sandGold),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Password: ',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.sandGold,
                       ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(6),
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(Icons.copy_rounded, size: 14, color: AppColors.sandLight),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                InkWell(
-                  onTap: () => _openResetPasswordDialog(context, eco, emp),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                    decoration: BoxDecoration(
-                      color: AppColors.sandGold.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.lock_reset, size: 11, color: AppColors.sandGold),
-                        const SizedBox(width: 3),
-                        Text(
-                          'Reset',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandGold,
+                    Expanded(
+                      child: Text(
+                        isPasswordRevealed ? empPassword : '••••••••',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isPasswordRevealed ? AppColors.sandLight : AppColors.textSecondary,
+                          letterSpacing: isPasswordRevealed ? 0 : 1.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: () => setState(() => _revealedPasswords[emp.id] = !isPasswordRevealed),
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
+                          size: 15,
+                          color: AppColors.sandGold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: empPassword));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Password for ${emp.name} copied to clipboard!'),
+                            backgroundColor: const Color(0xFF10B981),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.copy_rounded, size: 14, color: AppColors.sandLight),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    InkWell(
+                      onTap: () => _openResetPasswordDialog(context, eco, emp),
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.sandGold.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.lock_reset, size: 11, color: AppColors.sandGold),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Reset Password',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.sandGold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (!emp.isCeo)
+                      InkWell(
+                        onTap: () => _confirmRelieveEmployee(context, eco, emp),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDC2626).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFDC2626).withOpacity(0.4)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.person_remove_outlined, size: 11, color: Color(0xFFEF4444)),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Relieve Staff',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFEF4444),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                  ],
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmRelieveEmployee(BuildContext context, EcosystemProvider eco, Employee emp) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.burgundyCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFDC2626), width: 1.2),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Relieve Staff Member',
+              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to officially relieve ${emp.name} (EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id}) from MN Jewel Park?\n\n'
+          'This will revoke app login credentials, relieve them from duties, and remove them from active workforce rosters.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              final name = emp.name;
+              final idStr = emp.empNo.isNotEmpty ? 'EMP #${emp.empNo}' : emp.id;
+              final success = eco.relieveEmployee(emp.id);
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: const Color(0xFFDC2626),
+                    content: Text('$name ($idStr) has been officially relieved from the company.'),
+                  ),
+                );
+              }
+            },
+            child: const Text('Relieve from Company'),
           ),
         ],
       ),
@@ -3935,7 +4207,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               controller: customDeptController,
                               style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
                               decoration: InputDecoration(
-                                hintText: 'Enter new department name (e.g. Offline Department)',
+                                hintText: 'Enter new department name',
                                 hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
                                 filled: true,
                                 fillColor: AppColors.burgundyBg,

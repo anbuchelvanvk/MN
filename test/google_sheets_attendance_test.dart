@@ -236,9 +236,9 @@ void main() {
       expect(nisha.displayEmpId, equals('67'));
 
       // In-house corporate staff count is strictly 7 (Naveenraaj, Mohankumar, Praveenkumar, Gokulakrishnan, Mithra, Kaaviya, Nisha)
-      // Plus 5 External Support Staff [Online] (Aravinda Samy, Midhun Kumar, Subash, K B Eshwar, Sam Roy)
+      // Plus External Support Staff [Online] (Aravinda Samy, Midhun Kumar, Subash, K B Eshwar, Sam Roy, and E-Commerce Executive)
       expect(eco.employees.where((e) => !e.isExternalSupport).length, equals(7));
-      expect(eco.employees.length, equals(12));
+      expect(eco.employees.length, equals(13));
     });
 
     test('Total permission quota is 4.0 Hours in EcosystemProvider', () {

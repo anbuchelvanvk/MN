@@ -822,24 +822,27 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Daily Grooming Score',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$dailyPoints / 50 Points',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.sandGold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Daily Grooming Score',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      Text(
+                        '$dailyPoints / 50 Points',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandGold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
@@ -974,20 +977,26 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.sandGold),
-                  const SizedBox(width: 8),
-                  Text(
-                    dateLabel,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.sandLight,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.sandGold),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        dateLabel,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.sandLight,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(

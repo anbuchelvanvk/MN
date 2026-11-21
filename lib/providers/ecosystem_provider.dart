@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:collection/collection.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -23,6 +25,7 @@ import '../services/google_sheets_attendance_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/online_order_model.dart';
 import '../models/konar_book_model.dart';
+import '../models/creative_media_asset_model.dart';
 import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
 import '../core/services/push_notification_service.dart';
@@ -38,32 +41,87 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
-  String _activeRole = 'ceo'; // 'employee', 'dept_head', 'hr', 'ceo'
-  String _activeEmpId = 'MN-CEO01';
+  String _activeRole = 'guest'; // S-06: Default role is guest, never CEO
+  String _activeEmpId = '';     // S-06: Default session ID is empty, never MN-CEO01
   String? _notificationMessage;
 
   String get activeRole => _activeRole;
   String get activeEmpId => _activeEmpId;
   String? get notificationMessage => _notificationMessage;
   bool get isCeo =>
-      _activeRole.toLowerCase() == 'ceo' ||
-      (_activeEmpId == 'MN-CEO01' &&
-          _activeRole.toLowerCase() != 'hr' &&
-          _activeRole.toLowerCase() != 'team_lead' &&
-          _activeRole.toLowerCase() != 'dept_head' &&
-          _activeRole.toLowerCase() != 'employee');
+      _isLoggedIn &&
+      _activeEmpId.isNotEmpty &&
+      (_activeRole.toLowerCase() == 'ceo' ||
+          (_activeEmpId == 'MN-CEO01' &&
+              _activeRole.toLowerCase() != 'hr' &&
+              _activeRole.toLowerCase() != 'team_lead' &&
+              _activeRole.toLowerCase() != 'dept_head' &&
+              _activeRole.toLowerCase() != 'employee'));
   bool get isHr =>
-      _activeRole.toLowerCase() == 'hr' ||
-      _activeEmpId == 'MN-HR1001' ||
-      _activeEmpId == '7' ||
-      currentEmployee.isHr;
+      _isLoggedIn &&
+      _activeEmpId.isNotEmpty &&
+      (_activeRole.toLowerCase() == 'hr' ||
+          _activeEmpId == 'MN-HR1001' ||
+          _activeEmpId == '7' ||
+          (currentEmployee.isHr && !currentEmployee.isCeo));
   bool get isTeamLead =>
-      _activeRole.toLowerCase() == 'team_lead' ||
-      _activeRole.toLowerCase() == 'dept_head' ||
-      _activeEmpId == 'MN-TL1002' ||
-      _activeEmpId == '2' ||
-      currentEmployee.isDeptHead;
+      _isLoggedIn &&
+      _activeEmpId.isNotEmpty &&
+      (_activeRole.toLowerCase() == 'team_lead' ||
+          _activeRole.toLowerCase() == 'dept_head' ||
+          _activeEmpId == 'MN-TL1002' ||
+          _activeEmpId == '2' ||
+          currentEmployee.isDeptHead);
   bool get isDeptHead => isTeamLead;
+
+  static final Employee _guestEmployee = Employee(
+    id: '',
+    name: 'Guest User',
+    role: 'Guest',
+    roleType: 'guest',
+    dept: 'None',
+    phone: '',
+    email: '',
+    avatar: '',
+    initials: 'G',
+    doj: '',
+    experienceYears: '',
+    experienceCategory: '',
+    status: 'inactive',
+    ragStatus: 'gray',
+    lastActive: '',
+    profileCompletion: ProfileCompletion(
+      percentage: 0,
+      isAuthorized: false,
+      photoVerified: false,
+      addressVerified: false,
+      kycVerified: false,
+      sopRolesAcknowledged: false,
+    ),
+  );
+
+  /// S-14, B-13: Reset provider state on logout or account switch
+  void resetSession() {
+    _isLoggedIn = false;
+    _activeRole = 'guest';
+    _activeEmpId = '';
+    _lastLoadedEmpId = null;
+    _userHeightCm = 0.0;
+    _userWeightKg = 0.0;
+    _healthOnboarded = false;
+    _dailyCalorieTarget = 2000.0;
+    _dailyStepGoal = 10000;
+    _dailyStepsMap = {};
+    _dailyFoodLogs = [];
+    _dailyWorkoutLogs = [];
+    _familyActivityLogs = [];
+    _attendancePunches = [];
+    _permissionRecords = [];
+    _medicalLeaveRecords = [];
+    _chatMessages = [];
+    _groomingAudits = [];
+    notifyListeners();
+  }
 
   late List<Employee> _employees;
   late List<TaskItem> _tasks;
@@ -130,7 +188,23 @@ class EcosystemProvider extends ChangeNotifier {
 
   double get suggestedDailyCalories {
     if (_userWeightKg > 0 && _userHeightCm > 0) {
-      final bmr = (10 * _userWeightKg) + (6.25 * _userHeightCm) - (5 * 28) + 5;
+      final emp = currentEmployee;
+      int age = 28;
+      if (emp.dob.isNotEmpty) {
+        try {
+          final birthDate = DateTime.parse(emp.dob);
+          final now = DateTime.now();
+          age = now.year - birthDate.year;
+          if (now.month < birthDate.month ||
+              (now.month == birthDate.month && now.day < birthDate.day)) {
+            age--;
+          }
+          if (age < 18 || age > 80) age = 28;
+        } catch (_) {}
+      }
+      final isFemale = emp.gender.toLowerCase() == 'female';
+      final s = isFemale ? -161.0 : 5.0;
+      final bmr = (10 * _userWeightKg) + (6.25 * _userHeightCm) - (5 * age) + s;
       final suggested = (bmr * 1.375).roundToDouble();
       return (suggested / 50).round() * 50.0;
     }
@@ -365,13 +439,24 @@ class EcosystemProvider extends ChangeNotifier {
     return DateTime(now.year, now.month + 1, 0).day;
   }
 
-  int get totalWorkingDaysInMonth => totalCalendarDaysInCurrentMonth;
+  int get totalWorkingDaysInMonth {
+    final now = DateTime.now();
+    int workingDays = 0;
+    final totalDays = DateTime(now.year, now.month + 1, 0).day;
+    for (int d = 1; d <= totalDays; d++) {
+      final date = DateTime(now.year, now.month, d);
+      if (date.weekday != DateTime.tuesday) {
+        workingDays++;
+      }
+    }
+    return workingDays;
+  }
 
   int daysInMonth(int year, int month) => DateTime(year, month + 1, 0).day;
 
   int get workingDaysAttended {
     if (currentEmployee.isOtm || currentEmployee.roleType == 'ceo') {
-      return 14;
+      return totalWorkingDaysInMonth;
     }
     final row = currentEmployeeHrAttendanceRow;
     if (row != null) {
@@ -392,7 +477,7 @@ class EcosystemProvider extends ChangeNotifier {
           (p) => '${p.timestamp.year}-${p.timestamp.month}-${p.timestamp.day}',
         )
         .toSet();
-    return logins.isNotEmpty ? logins.length : 14;
+    return logins.length;
   }
 
   /// Number of Tuesday Overtime days worked in current month
@@ -437,10 +522,10 @@ class EcosystemProvider extends ChangeNotifier {
     }
     final row = currentEmployeeHrAttendanceRow;
     if (row != null) {
-      final total = row.recordedDaysCount > 0 ? row.recordedDaysCount : 14;
+      final total = row.recordedDaysCount > 0 ? row.recordedDaysCount : totalWorkingDaysInMonth;
       return ((workingDaysAttended / total) * 100.0).clamp(0.0, 100.0);
     }
-    final totalDays = totalCalendarDaysInCurrentMonth;
+    final totalDays = totalWorkingDaysInMonth;
     final attended = workingDaysAttended;
     if (totalDays <= 0 || attended == 0) return 0.0;
     return ((attended / totalDays) * 100.0).clamp(0.0, 100.0);
@@ -500,7 +585,12 @@ class EcosystemProvider extends ChangeNotifier {
 
   /// Returns the latest active unacknowledged acceptance popup for the active session user
   /// (Permanently disabled as emergency leave & permission acceptance portals are eliminated)
-  AcceptancePopupNotification? get currentAcceptancePopupForActiveUser => null;
+  AcceptancePopupNotification? get currentAcceptancePopupForActiveUser {
+    final unacked = _acceptancePopups.where(
+      (p) => p.isTargetedFor(empId: activeEmpId, roleType: activeRole),
+    ).toList();
+    return unacked.isNotEmpty ? unacked.first : null;
+  }
 
   void acknowledgeAcceptancePopup(String popupId) {
     final idx = _acceptancePopups.indexWhere((p) => p.id == popupId);
@@ -1391,6 +1481,9 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
+    int? bMonth;
+    int? bDay;
+
     final parts = clean.split(RegExp(r'[-/.]'));
     if (parts.length >= 3) {
       final p0 = int.tryParse(parts[0]);
@@ -1398,12 +1491,23 @@ class EcosystemProvider extends ChangeNotifier {
       final p2 = int.tryParse(parts[2]);
       if (p0 != null && p1 != null && p2 != null) {
         if (p0 > 1000) {
-          return p1 == now.month && p2 == now.day;
+          // ISO yyyy-MM-dd
+          bMonth = p1;
+          bDay = p2;
+        } else if (p2 > 1000) {
+          // dd/MM/yyyy (standard unambiguous Indian date format)
+          bDay = p0;
+          bMonth = p1;
         }
-        if (p2 > 1000) {
-          if (p1 == now.month && p0 == now.day) return true;
-          if (p0 == now.month && p1 == now.day) return true;
-        }
+      }
+    }
+
+    if (bMonth != null && bDay != null) {
+      if (bMonth == now.month && bDay == now.day) return true;
+      // Feb 29 in non-leap years celebrated on Feb 28 (L-07)
+      if (bMonth == 2 && bDay == 29) {
+        final isLeapYear = (now.year % 4 == 0 && now.year % 100 != 0) || (now.year % 400 == 0);
+        if (!isLeapYear && now.month == 2 && now.day == 28) return true;
       }
     }
     return false;
@@ -1428,7 +1532,9 @@ class EcosystemProvider extends ChangeNotifier {
           ),
         );
       }
-      if (_matchesMonthAndDay(emp.anniversaryDate, now)) {
+      final isMarried = emp.relationshipStatus.trim().toLowerCase() == 'married';
+      final hasAnniversary = emp.anniversaryDate.trim().isNotEmpty;
+      if (isMarried && hasAnniversary && _matchesMonthAndDay(emp.anniversaryDate, now)) {
         events.add(
           CelebrationEvent(
             employeeId: emp.id,
@@ -1450,12 +1556,40 @@ class EcosystemProvider extends ChangeNotifier {
   Future<void> _cleanupPastCelebrationsFromFirebase(DateTime now) async {
     final stale = _companyNotifications
         .where(
-          (n) =>
-              (n.type == CompanyNotificationType.birthday ||
-                  n.type == CompanyNotificationType.anniversary) &&
-              (n.timestamp.year != now.year ||
-                  n.timestamp.month != now.month ||
-                  n.timestamp.day != now.day),
+          (n) {
+            final isCeleb = n.type == CompanyNotificationType.birthday ||
+                n.type == CompanyNotificationType.anniversary ||
+                n.id.contains('NOTIF-CELEB') ||
+                n.id.contains('NOTIF-MYCELEB');
+            if (!isCeleb) return false;
+
+            // 1. Check if it's from a different day
+            final isDifferentDay = n.timestamp.year != now.year ||
+                n.timestamp.month != now.month ||
+                n.timestamp.day != now.day;
+            if (isDifferentDay) return true;
+
+            // 2. If it's an anniversary notification, strictly verify the employee is married and has an anniversary date
+            if (n.type == CompanyNotificationType.anniversary ||
+                n.id.contains('anniversary') ||
+                n.title.toLowerCase().contains('anniversary')) {
+              Employee? targetEmp;
+              for (final e in _employees) {
+                if (n.targetEmpIds.contains(e.id) ||
+                    n.id.contains('-${e.id}-') ||
+                    (e.name.isNotEmpty && n.title.contains(e.name))) {
+                  targetEmp = e;
+                  break;
+                }
+              }
+              if (targetEmp == null ||
+                  targetEmp.relationshipStatus.trim().toLowerCase() != 'married' ||
+                  targetEmp.anniversaryDate.trim().isEmpty) {
+                return true; // Spurious anniversary notification -> mark for immediate removal!
+              }
+            }
+            return false;
+          },
         )
         .toList();
 
@@ -1738,7 +1872,8 @@ class EcosystemProvider extends ChangeNotifier {
   bool get isAttendanceOnTime {
     if (todayLoginPunch == null) return false;
     final t = todayLoginPunch!.timestamp;
-    return (t.hour < 9) || (t.hour == 9 && t.minute <= 30);
+    // L-01: Shift starts at 09:30 AM with 15-minute grace period (up to 09:45 AM)
+    return (t.hour < 9) || (t.hour == 9 && t.minute <= 45);
   }
 
   double get todayWorkDurationHours {
@@ -1944,7 +2079,7 @@ class EcosystemProvider extends ChangeNotifier {
       bool isOnTime =
           login != null &&
           ((login.timestamp.hour < 9) ||
-              (login.timestamp.hour == 9 && login.timestamp.minute <= 30));
+              (login.timestamp.hour == 9 && login.timestamp.minute <= 45));
       bool isOnLunch =
           lunchOut != null &&
           (lunchIn == null || lunchOut.timestamp.isAfter(lunchIn.timestamp));
@@ -3062,65 +3197,31 @@ class EcosystemProvider extends ChangeNotifier {
   double get netCalories => totalCaloriesConsumed - totalCaloriesBurned;
 
   Employee get currentEmployee {
-    return _employees.firstWhere(
+    if (_activeEmpId.isEmpty) {
+      if (_activeRole == 'hr') {
+        final hr = _employees.firstWhereOrNull((e) => e.isHr || e.id == '7');
+        if (hr != null) return hr;
+      } else if (_activeRole == 'ceo') {
+        final ceo = _employees.firstWhereOrNull((e) => e.isCeo || e.id == 'MN-CEO01');
+        if (ceo != null) return ceo;
+      }
+      return _guestEmployee;
+    }
+    final emp = _employees.firstWhereOrNull(
       (e) =>
           e.id == _activeEmpId ||
-          ((e.id == '7' || e.id == 'MN-HR1001') &&
-              (_activeEmpId == 'MN-HR1001' ||
-                  _activeEmpId == '7' ||
-                  _activeEmpId.toLowerCase() == 'hr')) ||
+          e.empNo == _activeEmpId ||
           e.email.toLowerCase() == _activeEmpId.toLowerCase(),
-      orElse: () {
-        if (_activeRole == 'hr') {
-          return _employees.firstWhere(
-            (e) => e.isHr || e.id == '7',
-            orElse: () => _employees.first,
-          );
-        }
-        if (_activeRole == 'dept_head' || _activeRole == 'team_lead') {
-          return _employees.firstWhere(
-            (e) => e.isTeamLead,
-            orElse: () => _employees.first,
-          );
-        }
-        if (_activeRole == 'ceo') {
-          return _employees.firstWhere(
-            (e) => e.isCeo,
-            orElse: () => _employees.first,
-          );
-        }
-        return _employees.isNotEmpty
-            ? _employees.first
-            : Employee(
-                id: _activeEmpId,
-                name: 'Online Staff',
-                role: 'Online Department Executive',
-                roleType: 'employee',
-                dept: 'Online Department',
-                phone: '',
-                email: '',
-                avatar: '',
-                initials: 'MN',
-                doj: 'Today',
-                experienceYears: 'Fresher (0 yrs)',
-                experienceCategory: 'fresher',
-                probationWeeks: 0,
-                probationStatus: 'cleared',
-                probationEndDate: 'Completed',
-                profileCompletion: ProfileCompletion(
-                  percentage: 25,
-                  isAuthorized: false,
-                  photoVerified: true,
-                  addressVerified: false,
-                  kycVerified: false,
-                  sopRolesAcknowledged: false,
-                ),
-                status: 'active',
-                ragStatus: 'green',
-                lastActive: 'Just now',
-              );
-      },
     );
+    if (emp != null) return emp;
+    if (_activeRole == 'hr') {
+      final hr = _employees.firstWhereOrNull((e) => e.isHr || e.id == '7');
+      if (hr != null) return hr;
+    } else if (_activeRole == 'ceo') {
+      final ceo = _employees.firstWhereOrNull((e) => e.isCeo || e.id == 'MN-CEO01');
+      if (ceo != null) return ceo;
+    }
+    return _guestEmployee;
   }
 
   /// Ensures standard KONAR SOP tasks exist for the specified employee
@@ -3259,6 +3360,7 @@ class EcosystemProvider extends ChangeNotifier {
       FirebaseEmployeeService();
   StreamSubscription<List<Employee>>? _employeeSubscription;
   StreamSubscription<List<String>>? _departmentsSubscription;
+  StreamSubscription<Set<String>>? _deletedDepartmentsSubscription;
   StreamSubscription<List<SocialCauseItem>>? _socialCausesSubscription;
   StreamSubscription<List<CompanyNotification>>? _notificationsSubscription;
   StreamSubscription<List<TaskItem>>? _personalTodosSubscription;
@@ -3268,25 +3370,31 @@ class EcosystemProvider extends ChangeNotifier {
   bool _firebaseSyncActive = false;
   bool get firebaseSyncActive => _firebaseSyncActive;
 
-  // Real-time Departments Registry
+  // Real-time Departments Registry & Blacklist
+  final Set<String> _deletedDepartments = {};
+  Set<String> get deletedDepartments => Set.unmodifiable(_deletedDepartments);
+
   final List<String> _registeredDepartments = [
     'Online Department',
-    'Offline Department',
     'HR & Administration',
   ];
   List<String> get availableDepartments {
-    final set = <String>{'Online Department', 'Offline Department', 'HR & Administration'};
+    final set = <String>{'Online Department', 'HR & Administration'};
     set.addAll(_registeredDepartments);
-    for (final e in _employees) {
-      final d = e.dept.trim();
-      if (d.isNotEmpty) set.add(d);
-    }
+    set.removeWhere((d) {
+      final lower = d.trim().toLowerCase();
+      return _deletedDepartments.contains(lower) ||
+          lower == 'offline department' ||
+          lower == 'offline' ||
+          lower == 'administration';
+    });
     return set.toList();
   }
 
   Future<bool> createNewDepartment(String name) async {
     final clean = name.trim();
     if (clean.isEmpty) return false;
+    _deletedDepartments.remove(clean.toLowerCase());
     if (!_registeredDepartments.contains(clean)) {
       _registeredDepartments.add(clean);
       notifyListeners();
@@ -3303,21 +3411,269 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  /// Completely deletes a department with executive workflow (Strictly CEO Privilege)
+  /// If [deleteEmployees] is false, reallocates members to [reallocateToDept]
+  Future<void> deleteDepartmentWithWorkflow({
+    required String deptName,
+    required bool deleteEmployees,
+    String? reallocateToDept,
+  }) async {
+    final cleanDept = deptName.trim();
+    if (cleanDept.isEmpty) return;
+    final lower = cleanDept.toLowerCase();
+
+    _deletedDepartments.add(lower);
+    _registeredDepartments.removeWhere((d) => d.trim().toLowerCase() == lower);
+    _konarBooks.removeWhere((b) => b.department.trim().toLowerCase() == lower);
+
+    if (deleteEmployees) {
+      _employees.removeWhere((e) => e.dept.trim().toLowerCase() == lower);
+    } else if (reallocateToDept != null && reallocateToDept.trim().isNotEmpty) {
+      final target = reallocateToDept.trim();
+      for (int i = 0; i < _employees.length; i++) {
+        if (_employees[i].dept.trim().toLowerCase() == lower) {
+          _employees[i] = _employees[i].copyWith(dept: target);
+        }
+      }
+    }
+
+    notifyListeners();
+
+    try {
+      await _firebaseEmployeeService.deleteDepartmentWithWorkflow(
+        deptName: cleanDept,
+        deleteEmployees: deleteEmployees,
+        reallocateToDept: reallocateToDept,
+        requesterRole: _activeRole,
+      );
+    } catch (e) {
+      debugPrint('Error executing department deletion in Firestore: $e');
+    }
+  }
+
   // Real-time Workforce Chat Engine
   List<ChatMessage> _chatMessages = [];
   final Set<String> _notifiedChatMessageIds = {};
   bool _initialChatsStreamLoaded = false;
 
   // Live Official KONAR Books Engine
-  List<KonarBookModel> _konarBooks = [];
-  List<KonarBookModel> get konarBooks => _konarBooks.isNotEmpty
-      ? _konarBooks
-      : [KonarBookModel.defaultOnlineDepartment()];
+  List<KonarBookModel> _konarBooks = [KonarBookModel.defaultOnlineDepartment()];
+  List<KonarBookModel> get konarBooks {
+    final active = _konarBooks
+        .where((b) => !_deletedDepartments.contains(b.department.trim().toLowerCase()))
+        .toList();
+    final seenDepts = <String>{};
+    final deduped = <KonarBookModel>[];
+    for (final b in active) {
+      final rawKey = b.department.trim().toLowerCase();
+      final normKey = (rawKey.contains('online') || b.id.contains('online'))
+          ? 'online department'
+          : rawKey;
+      if (!seenDepts.contains(normKey)) {
+        seenDepts.add(normKey);
+        deduped.add(b);
+      }
+    }
+    return deduped;
+  }
 
   KonarBookModel get onlineDeptKonarBook => _konarBooks.firstWhere(
     (b) => b.id == 'online_department',
     orElse: () => KonarBookModel.defaultOnlineDepartment(),
   );
+
+  /// Toggle KONAR book visibility for department staff (CEO only)
+  Future<void> toggleKonarBookVisibility(String bookId, bool isVisible) async {
+    final idx = _konarBooks.indexWhere((b) => b.id == bookId);
+    if (idx != -1) {
+      _konarBooks[idx] = _konarBooks[idx].copyWith(isVisible: isVisible);
+      notifyListeners();
+    }
+    try {
+      await _firebaseEmployeeService.toggleKonarBookVisibility(
+        bookId: bookId,
+        isVisible: isVisible,
+        requesterRole: _activeRole,
+      );
+    } catch (e) {
+      debugPrint('Error toggling KONAR book visibility: $e');
+    }
+  }
+
+  /// Delete KONAR book by ID (CEO only)
+  Future<void> deleteKonarBook(String bookId) async {
+    _konarBooks.removeWhere((b) => b.id == bookId);
+    notifyListeners();
+    try {
+      await _firebaseEmployeeService.deleteKonarBook(
+        bookId: bookId,
+        requesterRole: _activeRole,
+      );
+    } catch (e) {
+      debugPrint('Error deleting KONAR book: $e');
+    }
+  }
+
+  // ==========================================
+  // Creative Media & DAM Approval Pipeline Engine (VPE, Ass.VPE, CC, OTM, CEO)
+  // ==========================================
+  final List<CreativeMediaAsset> _mediaAssets = [];
+  List<CreativeMediaAsset> get mediaAssets => List.unmodifiable(_mediaAssets);
+
+  int get pendingMediaApprovalsCount =>
+      _mediaAssets.where((a) => a.isPendingReview).length;
+
+  int get approvedMediaCount =>
+      _mediaAssets.where((a) => a.isApprovedByCeo || a.isPublished).length;
+
+  /// Submit a newly produced or edited media asset for executive CEO review
+  Future<void> submitCreativeMediaAsset({
+    required String title,
+    required String description,
+    required String category,
+    required String collectionTag,
+    required String driveUrl,
+    required String captionDraft,
+    required List<String> targetChannels,
+    String? previewThumbnail,
+  }) async {
+    final now = DateTime.now();
+    final newAsset = CreativeMediaAsset(
+      id: 'asset_${DateTime.now().millisecondsSinceEpoch}',
+      title: title.trim(),
+      description: description.trim(),
+      category: category.trim(),
+      collectionTag: collectionTag.trim(),
+      driveUrl: driveUrl.trim(),
+      previewThumbnail: previewThumbnail,
+      creatorId: _activeEmpId,
+      creatorName: currentEmployee.name,
+      creatorRole: currentEmployee.roleCode.isNotEmpty
+          ? currentEmployee.roleCode
+          : currentEmployee.straightCutRole,
+      targetChannels: targetChannels.isNotEmpty ? targetChannels : ['Instagram'],
+      status: 'pending_review',
+      createdAt: now,
+      updatedAt: now,
+      captionDraft: captionDraft.trim(),
+      comments: [
+        MediaReviewComment(
+          id: 'c_${DateTime.now().millisecondsSinceEpoch}',
+          authorId: _activeEmpId,
+          authorName: currentEmployee.name,
+          authorRole: currentEmployee.roleCode.isNotEmpty
+              ? currentEmployee.roleCode
+              : currentEmployee.straightCutRole,
+          comment: 'New draft uploaded and submitted for executive CEO review.',
+          timestamp: now,
+        ),
+      ],
+    );
+
+    _mediaAssets.insert(0, newAsset);
+    notifyListeners();
+  }
+
+  /// CEO/Team Lead action: Review a media asset (Approve, Request Changes, or Mark Published)
+  Future<void> reviewCreativeMediaAsset({
+    required String assetId,
+    required String newStatus,
+    required String feedbackNote,
+  }) async {
+    final idx = _mediaAssets.indexWhere((a) => a.id == assetId);
+    if (idx == -1) return;
+
+    final now = DateTime.now();
+    final isCeoAction = isCeo;
+    final updatedComments = List<MediaReviewComment>.from(_mediaAssets[idx].comments);
+
+    if (feedbackNote.trim().isNotEmpty) {
+      updatedComments.add(
+        MediaReviewComment(
+          id: 'c_${DateTime.now().millisecondsSinceEpoch}',
+          authorId: _activeEmpId,
+          authorName: currentEmployee.name,
+          authorRole: isCeoAction ? 'CEO' : (isTeamLead ? 'OTM' : currentEmployee.roleCode),
+          comment: feedbackNote.trim(),
+          timestamp: now,
+          isExecutiveNote: isCeoAction || newStatus == 'approved_by_ceo' || newStatus == 'revisions_requested',
+        ),
+      );
+    }
+
+    _mediaAssets[idx] = _mediaAssets[idx].copyWith(
+      status: newStatus,
+      updatedAt: now,
+      comments: updatedComments,
+    );
+    notifyListeners();
+  }
+
+  /// Add a collaborative review comment to a media asset
+  Future<void> addMediaAssetComment({
+    required String assetId,
+    required String comment,
+  }) async {
+    final idx = _mediaAssets.indexWhere((a) => a.id == assetId);
+    if (idx == -1 || comment.trim().isEmpty) return;
+
+    final now = DateTime.now();
+    final updatedComments = List<MediaReviewComment>.from(_mediaAssets[idx].comments)
+      ..add(
+        MediaReviewComment(
+          id: 'c_${DateTime.now().millisecondsSinceEpoch}',
+          authorId: _activeEmpId,
+          authorName: currentEmployee.name,
+          authorRole: isCeo ? 'CEO' : (isTeamLead ? 'OTM' : currentEmployee.roleCode),
+          comment: comment.trim(),
+          timestamp: now,
+          isExecutiveNote: isCeo,
+        ),
+      );
+
+    _mediaAssets[idx] = _mediaAssets[idx].copyWith(
+      updatedAt: now,
+      comments: updatedComments,
+    );
+    notifyListeners();
+  }
+
+  /// Mark an approved asset as officially published on live social channels
+  Future<void> markMediaAssetPublished({
+    required String assetId,
+    required String publishedUrl,
+  }) async {
+    final idx = _mediaAssets.indexWhere((a) => a.id == assetId);
+    if (idx == -1) return;
+
+    final now = DateTime.now();
+    final updatedComments = List<MediaReviewComment>.from(_mediaAssets[idx].comments)
+      ..add(
+        MediaReviewComment(
+          id: 'c_${DateTime.now().millisecondsSinceEpoch}',
+          authorId: _activeEmpId,
+          authorName: currentEmployee.name,
+          authorRole: isCeo ? 'CEO' : currentEmployee.roleCode,
+          comment: 'Post is officially LIVE on social channels: $publishedUrl',
+          timestamp: now,
+          isExecutiveNote: isCeo,
+        ),
+      );
+
+    _mediaAssets[idx] = _mediaAssets[idx].copyWith(
+      status: 'published',
+      publishedUrl: publishedUrl.trim(),
+      updatedAt: now,
+      comments: updatedComments,
+    );
+    notifyListeners();
+  }
+
+  /// Delete a media asset
+  Future<void> deleteCreativeMediaAsset(String assetId) async {
+    _mediaAssets.removeWhere((a) => a.id == assetId);
+    notifyListeners();
+  }
 
   // Online Orders Workflow Engine (OS1 & OS2 Handler)
   List<OnlineOrderModel> _onlineOrders = [];
@@ -3351,10 +3707,11 @@ class EcosystemProvider extends ChangeNotifier {
       .toSet();
 
   bool isEmployeeAbsent(String empId) {
-    final emp = _employees.firstWhere(
+    if (empId.isEmpty) return false;
+    final emp = _employees.firstWhereOrNull(
       (e) => e.id == empId || e.empNo == empId,
-      orElse: () => currentEmployee,
     );
+    if (emp == null) return false; // Fixed B-09: Unknown IDs never fall back to currentEmployee
     if (!emp.hasAttendanceAndGrooming) {
       return false; // CEO and OTM Praveenkumar are exempt from attendance
     }
@@ -3406,17 +3763,8 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
-    final summaries = allEmployeesTodayAttendance;
-    final sIdx = summaries.indexWhere(
-      (s) =>
-          s.employeeId == empId ||
-          s.employeeId == emp.id ||
-          s.employeeId == emp.empNo,
-    );
-    if (sIdx != -1) {
-      return !summaries[sIdx].isPresent;
-    }
-    return false; // Active corporate staff are on-duty unless marked absent in ledger or manually toggled
+    // Active corporate staff are on-duty unless marked absent in ledger or manually toggled in _absentEmployeeIds
+    return false;
   }
 
   /// Returns true if employee is logged in / clocked in and currently on duty (has not marked shift over)
@@ -3459,6 +3807,8 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleEmployeeAbsent(String empId) => toggleEmployeeAbsentStatus(empId);
+
   List<Employee> get absentEmployees =>
       _employees.where((e) => isEmployeeAbsent(e.id)).toList();
 
@@ -3481,53 +3831,16 @@ class EcosystemProvider extends ChangeNotifier {
   void _initFirebaseSync() {
     _loadOfflineCacheAndFlushPending();
     if (!FirebaseEmployeeService.isFirebaseAvailable) return;
-    // Seed initial corporate team profiles if Firestore is empty
-    _firebaseEmployeeService.seedCorporateAccountsIfEmpty();
+    _firebaseSyncActive = true;
 
     try {
       _employeeSubscription = _firebaseEmployeeService.streamEmployees().listen(
         (remoteEmployees) {
           if (remoteEmployees.isNotEmpty) {
-            final updatedList = List<Employee>.from(_employees);
-            for (final remote in remoteEmployees) {
-              final cleanRemote =
-                  (remote.id == 'MN-CEO01' ||
-                      remote.roleType == 'ceo' ||
-                      remote.name.toLowerCase().contains('executive ceo'))
-                  ? remote.copyWith(
-                      id: 'MN-CEO01',
-                      empNo: '',
-                      name: 'M N Naveenraaj',
-                      initials: 'MN',
-                      role: 'Managing Director & CEO',
-                      roleType: 'ceo',
-                    )
-                  : ((remote.id == '7' ||
-                            remote.id == 'MN-HR1001' ||
-                            remote.roleType == 'hr' ||
-                            remote.email.toLowerCase() == 'hr@mnj.com')
-                        ? remote.copyWith(
-                            id: '7',
-                            empNo: '7',
-                            name: 'Mohankumar G',
-                            initials: 'MG',
-                            role: 'HR Manager & Operations Custodian',
-                            roleType: 'hr',
-                          )
-                        : remote);
+            final Map<String, Employee> deduplicated = {};
 
-              final idx = updatedList.indexWhere(
-                (e) =>
-                    e.id == cleanRemote.id ||
-                    (cleanRemote.empNo.isNotEmpty &&
-                        e.empNo == cleanRemote.empNo) ||
-                    e.email.toLowerCase() == cleanRemote.email.toLowerCase(),
-              );
-              if (idx != -1) {
-                updatedList[idx] = cleanRemote;
-              } else {
-                updatedList.add(cleanRemote);
-              }
+            for (final remote in remoteEmployees) {
+              deduplicated[remote.id] = remote;
 
               // Extract workforce punches across all devices
               if (remote.fourPillars != null &&
@@ -3550,19 +3863,26 @@ class EcosystemProvider extends ChangeNotifier {
                 }
               }
             }
-            _employees = updatedList;
-            _firebaseSyncActive = true;
+
+            _employees = deduplicated.values.toList();
             notifyListeners();
-            checkAndDispatchCelebrations();
           }
         },
         onError: (err) {
-          debugPrint('Firestore employee sync listener note: $err');
+          debugPrint('Firestore employee stream error: $err');
         },
       );
     } catch (e) {
-      debugPrint('Firestore offline or awaiting initial sync: $e');
+      debugPrint('Firestore employee stream setup error: $e');
     }
+
+    try {
+      _deletedDepartmentsSubscription = _firebaseEmployeeService.streamDeletedDepartments().listen((deleted) {
+        _deletedDepartments.addAll(deleted);
+        _registeredDepartments.removeWhere((d) => _deletedDepartments.contains(d.trim().toLowerCase()));
+        notifyListeners();
+      }, onError: (_) {});
+    } catch (_) {}
 
     try {
       _departmentsSubscription = _firebaseEmployeeService
@@ -3570,8 +3890,11 @@ class EcosystemProvider extends ChangeNotifier {
           .listen(
             (remoteDepts) {
               for (final d in remoteDepts) {
-                if (!_registeredDepartments.contains(d)) {
-                  _registeredDepartments.add(d);
+                final lower = d.trim().toLowerCase();
+                if (lower != 'offline department' && lower != 'offline' && lower != 'administration') {
+                  if (!_registeredDepartments.contains(d) && !_deletedDepartments.contains(lower)) {
+                    _registeredDepartments.add(d);
+                  }
                 }
               }
               notifyListeners();
@@ -3784,7 +4107,37 @@ class EcosystemProvider extends ChangeNotifier {
           .listen(
             (remoteBooks) {
               if (remoteBooks.isNotEmpty) {
-                _konarBooks = remoteBooks;
+                final cleanBooks = <KonarBookModel>[];
+                final seenDepts = <String>{};
+                for (final b in remoteBooks) {
+                  final isOnline = b.id == 'online_department' ||
+                      b.id == 'online_dept' ||
+                      b.department.trim().toLowerCase().contains('online');
+                  final normDeptKey = isOnline ? 'online department' : b.department.trim().toLowerCase();
+
+                  if (seenDepts.contains(normDeptKey)) {
+                    // Clean up redundant / duplicate book entry in Firestore
+                    if (b.id != 'online_department') {
+                      _firebaseEmployeeService.deleteKonarBook(
+                        bookId: b.id,
+                        requesterRole: 'ceo',
+                      );
+                    }
+                    continue;
+                  }
+                  seenDepts.add(normDeptKey);
+
+                  if (isOnline) {
+                    if (b.sections.length != 5 || !b.sections.first.title.contains('01 PURPOSE')) {
+                      final fixed = KonarBookModel.defaultOnlineDepartment();
+                      cleanBooks.add(fixed);
+                      _firebaseEmployeeService.saveKonarBook(fixed);
+                      continue;
+                    }
+                  }
+                  cleanBooks.add(b);
+                }
+                _konarBooks = cleanBooks.isNotEmpty ? cleanBooks : [KonarBookModel.defaultOnlineDepartment()];
                 notifyListeners();
               }
             },
@@ -3809,29 +4162,44 @@ class EcosystemProvider extends ChangeNotifier {
         notifyListeners();
       }
 
-      // Flush pending punches to Cloud Firestore
+      // Flush pending punches to Cloud Firestore (B-03: only dequeue on confirmed success)
       final pendingPunches = await OfflineSyncService.getPendingPunches();
       for (final p in pendingPunches) {
-        _firebaseEmployeeService
-            .saveEmployeePillar(
-              empId: p.enrollNumber,
-              pillarKey: 'attendance',
-              data: _attendancePunches
-                  .where((e) => e.enrollNumber == p.enrollNumber)
-                  .map((e) => e.toJson())
-                  .toList(),
-            )
-            .then((_) {
-              OfflineSyncService.removePendingPunch(p.id);
-              debugPrint('Synced offline punch ${p.id} to cloud successfully.');
-            })
-            .catchError((_) {});
+        try {
+          await _firebaseEmployeeService.saveEmployeePillar(
+            empId: p.enrollNumber,
+            pillarKey: 'attendance',
+            data: _attendancePunches
+                .where((e) => e.enrollNumber == p.enrollNumber)
+                .map((e) => e.toJson())
+                .toList(),
+          );
+          await OfflineSyncService.removePendingPunch(p.id);
+          debugPrint('Synced offline punch ${p.id} to cloud successfully.');
+        } catch (e) {
+          debugPrint('Offline punch sync retry failed: $e');
+        }
       }
 
-      // Flush pending task completions
+      // Flush pending task completions (B-02: upload before dequeuing)
       final pendingTasks = await OfflineSyncService.getPendingTaskCompletions();
-      if (pendingTasks.isNotEmpty) {
-        await OfflineSyncService.clearPendingTaskCompletions();
+      for (final pTask in pendingTasks) {
+        final taskId = pTask['taskId']?.toString() ?? '';
+        final taskIdx = _tasks.indexWhere((t) => t.id == taskId);
+        if (taskIdx != -1) {
+          final t = _tasks[taskIdx];
+          if (!t.isDefaultSop) {
+            try {
+              await _firebaseEmployeeService.savePersonalTodo(t);
+              await OfflineSyncService.removePendingTaskCompletion(taskId);
+              debugPrint('Synced offline task completion $taskId to cloud.');
+            } catch (e) {
+              debugPrint('Offline task sync retry failed: $e');
+            }
+          } else {
+            await OfflineSyncService.removePendingTaskCompletion(taskId);
+          }
+        }
       }
     } catch (e) {
       debugPrint('Offline sync flusher error: $e');
@@ -3848,7 +4216,8 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'M N Naveenraaj',
         role: 'Managing Director & CEO',
         roleType: 'ceo',
-        dept: 'Administration',
+        roleCode: 'CEO',
+        dept: 'Executive Board',
         phone: '+91 98450 00001',
         email: 'ceoofmn@mnjpark.com',
         avatar: '',
@@ -3872,7 +4241,7 @@ class EcosystemProvider extends ChangeNotifier {
         lastActive: 'Active now',
         dob: '1975-01-15',
         relationshipStatus: 'Married',
-        anniversaryDate: '2001-05-20',
+        anniversaryDate: '',
         password: 'adminnaandhan',
       ),
 
@@ -3883,7 +4252,8 @@ class EcosystemProvider extends ChangeNotifier {
         name: 'Mohankumar G',
         role: 'HR Manager & Operations Custodian',
         roleType: 'hr',
-        dept: 'Administration',
+        roleCode: 'HR',
+        dept: 'HR & People Ops',
         phone: '+91 94433 11000',
         email: 'hr@mnj.com',
         avatar: '',
@@ -3907,23 +4277,24 @@ class EcosystemProvider extends ChangeNotifier {
         lastActive: 'Active now',
         dob: '1993-04-10',
         relationshipStatus: 'Married',
-        anniversaryDate: '2019-06-15',
+        anniversaryDate: '',
         password: 'hr@mnj123',
       ),
 
-      // 3. OTM - Online Team Manager / Team Lead (Mr. M. Praveen Kumar)
+      // 3. OTM - Online Team Manager / Team Lead (Praveenkumar M)
       // Exempt from daily attendance and grooming
       Employee(
         id: 'MN-TL1002',
         empNo: '',
         name: 'Praveenkumar M',
-        role: 'Online Team Manager (Editor)',
+        role: 'Team Lead',
         roleType: 'team_lead',
-        dept: 'Online Department',
+        roleCode: 'OTM',
+        dept: 'Operations',
         phone: '+91 94420 11001',
         email: 'praveenkumarotm@mnj.com',
         avatar: '',
-        initials: 'PM',
+        initials: 'PK',
         doj: '2021-06-15',
         experienceYears: '6 yrs in Digital Media',
         experienceCategory: 'experienced',
@@ -3941,9 +4312,10 @@ class EcosystemProvider extends ChangeNotifier {
         status: 'active',
         ragStatus: 'green',
         lastActive: 'Active now',
-        dob: '1994-08-15',
-        relationshipStatus: 'Married',
-        anniversaryDate: '2021-11-20',
+        dob: '1999-09-18',
+        gender: 'male',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
         password: 'praveen@mnj123',
       ),
 
@@ -3952,9 +4324,10 @@ class EcosystemProvider extends ChangeNotifier {
         id: '6',
         empNo: '6',
         name: 'Gokulakrishnan K',
-        role: 'Online Sale Head (OSH)',
+        role: 'Online Sale Head',
         roleType: 'employee',
-        dept: 'Online Department',
+        roleCode: 'OSH',
+        dept: 'Sales',
         phone: '+91 94420 11002',
         email: 'gokulakrishnanosh@mnj.com',
         avatar: '',
@@ -3982,14 +4355,51 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'gokul@mnj123',
       ),
 
-      // 5. Ass.VPE - Assistant Photographer - Employee Number 33
+      // 5. VPE - Chief Photographer & Video Editor
+      Employee(
+        id: 'EXT-VPE',
+        empNo: '',
+        name: 'Aravinda Samy',
+        role: 'Chief Photographer & Video Editor',
+        roleType: 'external_support',
+        roleCode: 'VPE',
+        dept: 'External Support Staff [Online]',
+        phone: '+91 94420 11010',
+        email: 'aravindasamyvpe@mnj.com',
+        avatar: '',
+        initials: 'AS',
+        doj: '2022-03-01',
+        experienceYears: '7 yrs in Videography & Direction',
+        experienceCategory: 'experienced',
+        probationWeeks: 0,
+        probationStatus: 'cleared',
+        probationEndDate: 'Completed',
+        profileCompletion: ProfileCompletion(
+          percentage: 100,
+          isAuthorized: true,
+          photoVerified: true,
+          addressVerified: true,
+          kycVerified: true,
+          sopRolesAcknowledged: true,
+        ),
+        status: 'active',
+        ragStatus: 'green',
+        lastActive: 'Active now',
+        dob: '1992-06-18',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
+        password: 'aravind@mnj123',
+      ),
+
+      // 6. Ass.VPE - Assistant Photographer & Videographer - Employee Number 33
       Employee(
         id: '33',
         empNo: '33',
         name: 'Mithra M',
-        role: 'Assistant Photographer & Videographer (Ass.VPE)',
+        role: 'Assistant Photographer & Videographer',
         roleType: 'employee',
-        dept: 'Online Department',
+        roleCode: 'Ass.VPE',
+        dept: 'Media',
         phone: '+91 94420 11004',
         email: 'mithraassvpe@mnj.com',
         avatar: '',
@@ -4012,19 +4422,56 @@ class EcosystemProvider extends ChangeNotifier {
         ragStatus: 'green',
         lastActive: 'Active now',
         dob: '1997-10-08',
-        relationshipStatus: 'Married',
-        anniversaryDate: '2023-02-14',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
         password: 'mithra@mnj123',
       ),
 
-      // 6. OS1 - Online Sale Person 1 - Employee Number 65
+      // 7. ECE - E-Commerce Executive
+      Employee(
+        id: 'EXT-ECE',
+        empNo: '',
+        name: 'E-Commerce Executive',
+        role: 'E-Commerce Executive',
+        roleType: 'employee',
+        roleCode: 'ECE',
+        dept: 'Technology',
+        phone: '+91 94420 11005',
+        email: 'ece@mnj.com',
+        avatar: '',
+        initials: 'EC',
+        doj: '2022-05-01',
+        experienceYears: '4 yrs in E-Commerce Cataloging & Integrations',
+        experienceCategory: 'experienced',
+        probationWeeks: 0,
+        probationStatus: 'cleared',
+        probationEndDate: 'Completed',
+        profileCompletion: ProfileCompletion(
+          percentage: 100,
+          isAuthorized: true,
+          photoVerified: true,
+          addressVerified: true,
+          kycVerified: true,
+          sopRolesAcknowledged: true,
+        ),
+        status: 'active',
+        ragStatus: 'green',
+        lastActive: 'Active now',
+        dob: '1996-08-20',
+        relationshipStatus: 'Single',
+        anniversaryDate: '',
+        password: 'ece@mnj123',
+      ),
+
+      // 8. OS1 - Online Sale Person 1 - Employee Number 65
       Employee(
         id: '65',
         empNo: '65',
         name: 'Kaaviya',
-        role: 'Online Sale Person 1 (OS1)',
+        role: 'Online Sale Person 1',
         roleType: 'employee',
-        dept: 'Online Department',
+        roleCode: 'OS1',
+        dept: 'Sales',
         phone: '+91 80567 36999',
         email: 'kaaviyaos1@mnj.com',
         avatar: '',
@@ -4052,14 +4499,15 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'kaaviya@mnj123',
       ),
 
-      // 7. OS2 - Online Sale Person 2 - Employee Number 67
+      // 9. OS2 - Online Sale Person 2 - Employee Number 67
       Employee(
         id: '67',
         empNo: '67',
         name: 'Nisha',
-        role: 'Online Sale Person 2 (OS2)',
+        role: 'Online Sale Person 2',
         roleType: 'employee',
-        dept: 'Online Department',
+        roleCode: 'OS2',
+        dept: 'Sales',
         phone: '+91 89258 68077',
         email: 'nishaos2@mnj.com',
         avatar: '',
@@ -4087,53 +4535,17 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'nisha@mnj123',
       ),
 
-      // 8. VPE - Video Production Executive / Lead Videographer & Editor
-      // External Support Staff [Online] (Off-site contractor - Konar Book)
-      Employee(
-        id: 'EXT-VPE',
-        empNo: '',
-        name: 'Aravinda Samy',
-        role: 'Chief Photographer, Videographer & Content Video Editor (VPE)',
-        roleType: 'external_support',
-        dept: 'External Support Staff [Online]',
-        phone: '+91 94420 11010',
-        email: 'aravindasamy@mnj.com',
-        avatar: '',
-        initials: 'AS',
-        doj: '2022-03-01',
-        experienceYears: '7 yrs in Videography & Direction',
-        experienceCategory: 'experienced',
-        probationWeeks: 0,
-        probationStatus: 'cleared',
-        probationEndDate: 'Completed',
-        profileCompletion: ProfileCompletion(
-          percentage: 100,
-          isAuthorized: true,
-          photoVerified: true,
-          addressVerified: true,
-          kycVerified: true,
-          sopRolesAcknowledged: true,
-        ),
-        status: 'active',
-        ragStatus: 'green',
-        lastActive: 'Active now',
-        dob: '1992-06-18',
-        relationshipStatus: 'Single',
-        anniversaryDate: '',
-        password: 'aravind@mnj123',
-      ),
-
-      // 9. AC - Online Analytical Consultant
-      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      // 10. AC - Online Analytical Consultant
       Employee(
         id: 'EXT-AC',
         empNo: '',
         name: 'Midhun Kumar',
-        role: 'Online Analytical Consultant (AC)',
+        role: 'Online Analytical Consultant',
         roleType: 'external_support',
+        roleCode: 'AC',
         dept: 'External Support Staff [Online]',
         phone: '+91 94420 11011',
-        email: 'midhunkumar@mnj.com',
+        email: 'midhunkumarac@mnj.com',
         avatar: '',
         initials: 'MK',
         doj: '2022-05-15',
@@ -4159,17 +4571,17 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'midhun@mnj123',
       ),
 
-      // 10. OSS - Online Support and Strategist
-      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      // 11. OSS - Online Support & Strategist
       Employee(
         id: 'EXT-OSS',
         empNo: '',
         name: 'Subash',
-        role: 'Online Support and Strategist (OSS)',
+        role: 'Online Support & Strategist',
         roleType: 'external_support',
+        roleCode: 'OSS',
         dept: 'External Support Staff [Online]',
         phone: '+91 94420 11012',
-        email: 'subash@mnj.com',
+        email: 'subashoss@mnj.com',
         avatar: '',
         initials: 'SB',
         doj: '2022-07-01',
@@ -4195,17 +4607,17 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'subash@mnj123',
       ),
 
-      // 11. DVP - Developer
-      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      // 12. DVP - Developer
       Employee(
         id: 'EXT-DVP',
         empNo: '',
         name: 'K B Eshwar',
-        role: 'Developer (DVP)',
+        role: 'Developer',
         roleType: 'external_support',
+        roleCode: 'DVP',
         dept: 'External Support Staff [Online]',
         phone: '+91 94420 11013',
-        email: 'kbeshwar@mnj.com',
+        email: 'eshwardvp@mnj.com',
         avatar: '',
         initials: 'KE',
         doj: '2022-02-10',
@@ -4231,17 +4643,17 @@ class EcosystemProvider extends ChangeNotifier {
         password: 'eshwar@mnj123',
       ),
 
-      // 12. CC - Content Creator
-      // External Support Staff [Online] (Off-site contractor - Konar Book)
+      // 13. CC - Content Creator
       Employee(
         id: 'EXT-CC',
         empNo: '',
         name: 'Sam Roy',
-        role: 'Content Creator (CC)',
+        role: 'Content Creator',
         roleType: 'external_support',
+        roleCode: 'CC',
         dept: 'External Support Staff [Online]',
         phone: '+91 94420 11014',
-        email: 'samroy@mnj.com',
+        email: 'samroycc@mnj.com',
         avatar: '',
         initials: 'SR',
         doj: '2022-08-15',
@@ -4264,7 +4676,7 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1998-04-14',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'sam@mnj123',
+        password: 'samroy@mnj123',
       ),
     ];
 
@@ -5362,6 +5774,383 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // 1. Instant corporate directory verification
+  static final Map<
+    String,
+    ({
+      String roleType,
+      String empId,
+      String defaultEmail,
+    })
+  >
+  corporateRegistry = {
+      // 1. CEO Executive CEO (M N Naveenraaj)
+      'ceoofmn@mnjpark.com': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+      ),
+      'ceo@mnj.com': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+      ),
+      'mn-ceo01': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+      ),
+      'ceo': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+      ),
+      'naveenraaj': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+      ),
+      'naveen': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+      ),
+      'ceoofmn': (
+        roleType: 'ceo',
+        empId: 'MN-CEO01',
+        defaultEmail: 'ceoofmn@mnjpark.com',
+      ),
+
+      // 2. Head of Human Resources - Priyanka HR (Emp #7)
+      '7': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+      'hr@mnj.com': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+      'priyanka@mnj.com': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+      'mohankumar@mnj.com': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+      'mn-hr1001': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+      'hr': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+      'priyanka': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+      'mohankumar': (
+        roleType: 'hr',
+        empId: '7',
+        defaultEmail: 'hr@mnj.com',
+      ),
+
+      // 3. Team Lead / OTM - Mr. M. Praveen Kumar
+      'praveenkumarotm@mnj.com': (
+        roleType: 'dept_head',
+        empId: 'MN-TL1002',
+        defaultEmail: 'praveenkumarotm@mnj.com',
+      ),
+      'mn-tl1002': (
+        roleType: 'dept_head',
+        empId: 'MN-TL1002',
+        defaultEmail: 'praveenkumarotm@mnj.com',
+      ),
+      'praveen@mnj.com': (
+        roleType: 'dept_head',
+        empId: 'MN-TL1002',
+        defaultEmail: 'praveenkumarotm@mnj.com',
+      ),
+      'otm': (
+        roleType: 'dept_head',
+        empId: 'MN-TL1002',
+        defaultEmail: 'praveenkumarotm@mnj.com',
+      ),
+      'praveen': (
+        roleType: 'dept_head',
+        empId: 'MN-TL1002',
+        defaultEmail: 'praveenkumarotm@mnj.com',
+      ),
+
+      // 4. Online Sale Head (OSH) - Mr. K. Gokulakrishnan (Emp #6)
+      '6': (
+        roleType: 'employee',
+        empId: '6',
+        defaultEmail: 'gokulakrishnanosh@mnj.com',
+      ),
+      'gokulakrishnanosh@mnj.com': (
+        roleType: 'employee',
+        empId: '6',
+        defaultEmail: 'gokulakrishnanosh@mnj.com',
+      ),
+      'gokulakrishnan@mnj.com': (
+        roleType: 'employee',
+        empId: '6',
+        defaultEmail: 'gokulakrishnanosh@mnj.com',
+      ),
+      'gokul@mnj.com': (
+        roleType: 'employee',
+        empId: '6',
+        defaultEmail: 'gokulakrishnanosh@mnj.com',
+      ),
+      'osh': (
+        roleType: 'employee',
+        empId: '6',
+        defaultEmail: 'gokulakrishnanosh@mnj.com',
+      ),
+      'gokul': (
+        roleType: 'employee',
+        empId: '6',
+        defaultEmail: 'gokulakrishnanosh@mnj.com',
+      ),
+
+      // 5. Chief Photographer & Video Editor (VPE) - Mr. Y. Aravinda Samy
+      'ext-vpe': (
+        roleType: 'employee',
+        empId: 'EXT-VPE',
+        defaultEmail: 'aravindasamyvpe@mnj.com',
+      ),
+      'aravindasamyvpe@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-VPE',
+        defaultEmail: 'aravindasamyvpe@mnj.com',
+      ),
+      'aravindasamy@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-VPE',
+        defaultEmail: 'aravindasamyvpe@mnj.com',
+      ),
+      'aravind@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-VPE',
+        defaultEmail: 'aravindasamyvpe@mnj.com',
+      ),
+      'vpe': (
+        roleType: 'employee',
+        empId: 'EXT-VPE',
+        defaultEmail: 'aravindasamyvpe@mnj.com',
+      ),
+
+      // 6. Assistant Photographer & Videographer (Ass.VPE) - Mrs. M. Mithra (Emp #33)
+      '33': (
+        roleType: 'employee',
+        empId: '33',
+        defaultEmail: 'mithraassvpe@mnj.com',
+      ),
+      'mithraassvpe@mnj.com': (
+        roleType: 'employee',
+        empId: '33',
+        defaultEmail: 'mithraassvpe@mnj.com',
+      ),
+      'mithra@mnj.com': (
+        roleType: 'employee',
+        empId: '33',
+        defaultEmail: 'mithraassvpe@mnj.com',
+      ),
+      'assvpe': (
+        roleType: 'employee',
+        empId: '33',
+        defaultEmail: 'mithraassvpe@mnj.com',
+      ),
+      'ass.vpe': (
+        roleType: 'employee',
+        empId: '33',
+        defaultEmail: 'mithraassvpe@mnj.com',
+      ),
+
+      // 7. E-Commerce Executive (ECE)
+      'ext-ece': (
+        roleType: 'employee',
+        empId: 'EXT-ECE',
+        defaultEmail: 'ece@mnj.com',
+      ),
+      'ece@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-ECE',
+        defaultEmail: 'ece@mnj.com',
+      ),
+      'ece': (
+        roleType: 'employee',
+        empId: 'EXT-ECE',
+        defaultEmail: 'ece@mnj.com',
+      ),
+
+      // 8. Online Sale Person 1 (OS1) - Ms. Kaaviya (Emp #65)
+      '65': (
+        roleType: 'employee',
+        empId: '65',
+        defaultEmail: 'kaaviyaos1@mnj.com',
+      ),
+      'kaaviyaos1@mnj.com': (
+        roleType: 'employee',
+        empId: '65',
+        defaultEmail: 'kaaviyaos1@mnj.com',
+      ),
+      'kaaviya@mnj.com': (
+        roleType: 'employee',
+        empId: '65',
+        defaultEmail: 'kaaviyaos1@mnj.com',
+      ),
+      'os1': (
+        roleType: 'employee',
+        empId: '65',
+        defaultEmail: 'kaaviyaos1@mnj.com',
+      ),
+
+      // 9. Online Sale Person 2 (OS2) - Ms. Nisha (Emp #67)
+      '67': (
+        roleType: 'employee',
+        empId: '67',
+        defaultEmail: 'nishaos2@mnj.com',
+      ),
+      'nishaos2@mnj.com': (
+        roleType: 'employee',
+        empId: '67',
+        defaultEmail: 'nishaos2@mnj.com',
+      ),
+      'nisha@mnj.com': (
+        roleType: 'employee',
+        empId: '67',
+        defaultEmail: 'nishaos2@mnj.com',
+      ),
+      'os2': (
+        roleType: 'employee',
+        empId: '67',
+        defaultEmail: 'nishaos2@mnj.com',
+      ),
+
+      // 10. Online Analytical Consultant (AC) - Mr. J. Midhun Kumar
+      'ext-ac': (
+        roleType: 'employee',
+        empId: 'EXT-AC',
+        defaultEmail: 'midhunkumarac@mnj.com',
+      ),
+      'midhunkumarac@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-AC',
+        defaultEmail: 'midhunkumarac@mnj.com',
+      ),
+      'midhunkumar@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-AC',
+        defaultEmail: 'midhunkumarac@mnj.com',
+      ),
+      'ac': (
+        roleType: 'employee',
+        empId: 'EXT-AC',
+        defaultEmail: 'midhunkumarac@mnj.com',
+      ),
+      'midhun': (
+        roleType: 'employee',
+        empId: 'EXT-AC',
+        defaultEmail: 'midhunkumarac@mnj.com',
+      ),
+
+      // 11. Online Support & Strategist (OSS) - Mr. Subash
+      'ext-oss': (
+        roleType: 'employee',
+        empId: 'EXT-OSS',
+        defaultEmail: 'subashoss@mnj.com',
+      ),
+      'subashoss@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-OSS',
+        defaultEmail: 'subashoss@mnj.com',
+      ),
+      'subash@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-OSS',
+        defaultEmail: 'subashoss@mnj.com',
+      ),
+      'oss': (
+        roleType: 'employee',
+        empId: 'EXT-OSS',
+        defaultEmail: 'subashoss@mnj.com',
+      ),
+      'subash': (
+        roleType: 'employee',
+        empId: 'EXT-OSS',
+        defaultEmail: 'subashoss@mnj.com',
+      ),
+
+      // 12. Developer (DVP) - Mr. K.B. Eshwar
+      'ext-dvp': (
+        roleType: 'employee',
+        empId: 'EXT-DVP',
+        defaultEmail: 'eshwardvp@mnj.com',
+      ),
+      'eshwardvp@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-DVP',
+        defaultEmail: 'eshwardvp@mnj.com',
+      ),
+      'kbeshwar@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-DVP',
+        defaultEmail: 'eshwardvp@mnj.com',
+      ),
+      'dvp': (
+        roleType: 'employee',
+        empId: 'EXT-DVP',
+        defaultEmail: 'eshwardvp@mnj.com',
+      ),
+      'eshwar': (
+        roleType: 'employee',
+        empId: 'EXT-DVP',
+        defaultEmail: 'eshwardvp@mnj.com',
+      ),
+
+      // 13. Content Creator (CC) - Mr. Sam Roy
+      'ext-cc': (
+        roleType: 'employee',
+        empId: 'EXT-CC',
+        defaultEmail: 'samroycc@mnj.com',
+      ),
+      'samroycc@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-CC',
+        defaultEmail: 'samroycc@mnj.com',
+      ),
+      'samroy@mnj.com': (
+        roleType: 'employee',
+        empId: 'EXT-CC',
+        defaultEmail: 'samroycc@mnj.com',
+      ),
+      'cc': (
+        roleType: 'employee',
+        empId: 'EXT-CC',
+        defaultEmail: 'samroycc@mnj.com',
+      ),
+      'sam': (
+        roleType: 'employee',
+        empId: 'EXT-CC',
+        defaultEmail: 'samroycc@mnj.com',
+      ),
+      'samroy': (
+        roleType: 'employee',
+        empId: 'EXT-CC',
+        defaultEmail: 'samroycc@mnj.com',
+      ),
+    };
+
   /// Dynamic login connecting Firebase Auth & Cloud Firestore
   /// Returns authenticated activeRole ('hr', 'team_lead', 'employee', 'ceo')
   /// Strictly validates credentials and throws Exception('Email / Password incorrect') on failure.
@@ -5376,449 +6165,57 @@ class EcosystemProvider extends ChangeNotifier {
       throw Exception('Email / Password incorrect');
     }
 
-    // 1. Instant corporate directory verification
-    final Map<
-      String,
-      ({
-        String roleType,
-        String empId,
-        String defaultEmail,
-        List<String> validPasswords,
-      })
-    >
-    corporateRegistry = {
-      // 1. CEO M N Naveenraaj
-      'ceoofmn@mnjpark.com': (
-        roleType: 'ceo',
-        empId: 'MN-CEO01',
-        defaultEmail: 'ceoofmn@mnjpark.com',
-        validPasswords: ['adminnaandhan', 'mnj12345'],
-      ),
-      'ceo@mnj.com': (
-        roleType: 'ceo',
-        empId: 'MN-CEO01',
-        defaultEmail: 'ceoofmn@mnjpark.com',
-        validPasswords: ['adminnaandhan', 'mnj12345'],
-      ),
-      'mn-ceo01': (
-        roleType: 'ceo',
-        empId: 'MN-CEO01',
-        defaultEmail: 'ceoofmn@mnjpark.com',
-        validPasswords: ['adminnaandhan', 'mnj12345'],
-      ),
-      'ceo': (
-        roleType: 'ceo',
-        empId: 'MN-CEO01',
-        defaultEmail: 'ceoofmn@mnjpark.com',
-        validPasswords: ['adminnaandhan', 'mnj12345'],
-      ),
-      'naveenraaj': (
-        roleType: 'ceo',
-        empId: 'MN-CEO01',
-        defaultEmail: 'ceoofmn@mnjpark.com',
-        validPasswords: ['adminnaandhan', 'mnj12345'],
-      ),
-      'naveen': (
-        roleType: 'ceo',
-        empId: 'MN-CEO01',
-        defaultEmail: 'ceoofmn@mnjpark.com',
-        validPasswords: ['adminnaandhan', 'mnj12345'],
-      ),
-      'ceoofmn': (
-        roleType: 'ceo',
-        empId: 'MN-CEO01',
-        defaultEmail: 'ceoofmn@mnjpark.com',
-        validPasswords: ['adminnaandhan', 'mnj12345'],
-      ),
-
-      // 2. HR Manager & Operations Custodian Mohankumar G (Emp #7)
-      '7': (
-        roleType: 'hr',
-        empId: '7',
-        defaultEmail: 'hr@mnj.com',
-        validPasswords: ['hr@mnj123', 'mnj12345'],
-      ),
-      'hr@mnj.com': (
-        roleType: 'hr',
-        empId: '7',
-        defaultEmail: 'hr@mnj.com',
-        validPasswords: ['hr@mnj123', 'mnj12345'],
-      ),
-      'mohankumar@mnj.com': (
-        roleType: 'hr',
-        empId: '7',
-        defaultEmail: 'hr@mnj.com',
-        validPasswords: ['hr@mnj123', 'mnj12345'],
-      ),
-      'mn-hr1001': (
-        roleType: 'hr',
-        empId: '7',
-        defaultEmail: 'hr@mnj.com',
-        validPasswords: ['hr@mnj123', 'mnj12345'],
-      ),
-      'hr': (
-        roleType: 'hr',
-        empId: '7',
-        defaultEmail: 'hr@mnj.com',
-        validPasswords: ['hr@mnj123', 'mnj12345'],
-      ),
-      'mohankumar': (
-        roleType: 'hr',
-        empId: '7',
-        defaultEmail: 'hr@mnj.com',
-        validPasswords: ['hr@mnj123', 'mnj12345'],
-      ),
-
-      // 3. Online Team Manager (OTM) Praveenkumar M
-      'praveenkumarotm@mnj.com': (
-        roleType: 'team_lead',
-        empId: 'MN-TL1002',
-        defaultEmail: 'praveenkumarotm@mnj.com',
-        validPasswords: ['praveen@mnj123', 'mnj12345'],
-      ),
-      'mn-tl1002': (
-        roleType: 'team_lead',
-        empId: 'MN-TL1002',
-        defaultEmail: 'praveenkumarotm@mnj.com',
-        validPasswords: ['praveen@mnj123', 'mnj12345'],
-      ),
-
-      // 4. Online Sale Head (OSH) Gokulakrishnan K (Emp #6)
-      '6': (
-        roleType: 'employee',
-        empId: '6',
-        defaultEmail: 'gokulakrishnanosh@mnj.com',
-        validPasswords: ['gokul@mnj123', 'mnj12345'],
-      ),
-      'gokulakrishnanosh@mnj.com': (
-        roleType: 'employee',
-        empId: '6',
-        defaultEmail: 'gokulakrishnanosh@mnj.com',
-        validPasswords: ['gokul@mnj123', 'mnj12345'],
-      ),
-      'gokulakrishnan@mnj.com': (
-        roleType: 'employee',
-        empId: '6',
-        defaultEmail: 'gokulakrishnanosh@mnj.com',
-        validPasswords: ['gokul@mnj123', 'mnj12345'],
-      ),
-      'mn-1003': (
-        roleType: 'employee',
-        empId: '6',
-        defaultEmail: 'gokulakrishnanosh@mnj.com',
-        validPasswords: ['gokul@mnj123', 'mnj12345'],
-      ),
-
-      // 5. Assistant Photographer & Videographer Mithra M (Emp #33)
-      '33': (
-        roleType: 'employee',
-        empId: '33',
-        defaultEmail: 'mithraassvpe@mnj.com',
-        validPasswords: ['mithra@mnj123', 'mnj12345'],
-      ),
-      'mithraassvpe@mnj.com': (
-        roleType: 'employee',
-        empId: '33',
-        defaultEmail: 'mithraassvpe@mnj.com',
-        validPasswords: ['mithra@mnj123', 'mnj12345'],
-      ),
-      'mithra@mnj.com': (
-        roleType: 'employee',
-        empId: '33',
-        defaultEmail: 'mithraassvpe@mnj.com',
-        validPasswords: ['mithra@mnj123', 'mnj12345'],
-      ),
-      'mn-1005': (
-        roleType: 'employee',
-        empId: '33',
-        defaultEmail: 'mithraassvpe@mnj.com',
-        validPasswords: ['mithra@mnj123', 'mnj12345'],
-      ),
-
-      // 6. Online Sale Person 1 (OS1) Kaaviya (Emp #65)
-      '65': (
-        roleType: 'employee',
-        empId: '65',
-        defaultEmail: 'kaaviyaos1@mnj.com',
-        validPasswords: ['kaaviya@mnj123', 'mnj12345'],
-      ),
-      'kaaviyaos1@mnj.com': (
-        roleType: 'employee',
-        empId: '65',
-        defaultEmail: 'kaaviyaos1@mnj.com',
-        validPasswords: ['kaaviya@mnj123', 'mnj12345'],
-      ),
-      'kaaviya@mnj.com': (
-        roleType: 'employee',
-        empId: '65',
-        defaultEmail: 'kaaviyaos1@mnj.com',
-        validPasswords: ['kaaviya@mnj123', 'mnj12345'],
-      ),
-      'mn-1007': (
-        roleType: 'employee',
-        empId: '65',
-        defaultEmail: 'kaaviyaos1@mnj.com',
-        validPasswords: ['kaaviya@mnj123', 'mnj12345'],
-      ),
-
-      // 7. Online Sale Person 2 (OS2) Nisha (Emp #67)
-      '67': (
-        roleType: 'employee',
-        empId: '67',
-        defaultEmail: 'nishaos2@mnj.com',
-        validPasswords: ['nisha@mnj123', 'mnj12345'],
-      ),
-      'nishaos2@mnj.com': (
-        roleType: 'employee',
-        empId: '67',
-        defaultEmail: 'nishaos2@mnj.com',
-        validPasswords: ['nisha@mnj123', 'mnj12345'],
-      ),
-      'nisha@mnj.com': (
-        roleType: 'employee',
-        empId: '67',
-        defaultEmail: 'nishaos2@mnj.com',
-        validPasswords: ['nisha@mnj123', 'mnj12345'],
-      ),
-      'mn-1008': (
-        roleType: 'employee',
-        empId: '67',
-        defaultEmail: 'nishaos2@mnj.com',
-        validPasswords: ['nisha@mnj123', 'mnj12345'],
-      ),
-
-      // 8. VPE Aravinda Samy (External Support Staff [Online])
-      'ext-vpe': (
-        roleType: 'employee',
-        empId: 'EXT-VPE',
-        defaultEmail: 'aravindasamy@mnj.com',
-        validPasswords: ['aravind@mnj123', 'mnj12345'],
-      ),
-      'aravindasamy@mnj.com': (
-        roleType: 'employee',
-        empId: 'EXT-VPE',
-        defaultEmail: 'aravindasamy@mnj.com',
-        validPasswords: ['aravind@mnj123', 'mnj12345'],
-      ),
-      'vpe': (
-        roleType: 'employee',
-        empId: 'EXT-VPE',
-        defaultEmail: 'aravindasamy@mnj.com',
-        validPasswords: ['aravind@mnj123', 'mnj12345'],
-      ),
-
-      // 9. AC Midhun Kumar (External Support Staff [Online])
-      'ext-ac': (
-        roleType: 'employee',
-        empId: 'EXT-AC',
-        defaultEmail: 'midhunkumar@mnj.com',
-        validPasswords: ['midhun@mnj123', 'mnj12345'],
-      ),
-      'midhunkumar@mnj.com': (
-        roleType: 'employee',
-        empId: 'EXT-AC',
-        defaultEmail: 'midhunkumar@mnj.com',
-        validPasswords: ['midhun@mnj123', 'mnj12345'],
-      ),
-      'ac': (
-        roleType: 'employee',
-        empId: 'EXT-AC',
-        defaultEmail: 'midhunkumar@mnj.com',
-        validPasswords: ['midhun@mnj123', 'mnj12345'],
-      ),
-
-      // 10. OSS Subash (External Support Staff [Online])
-      'ext-oss': (
-        roleType: 'employee',
-        empId: 'EXT-OSS',
-        defaultEmail: 'subash@mnj.com',
-        validPasswords: ['subash@mnj123', 'mnj12345'],
-      ),
-      'subash@mnj.com': (
-        roleType: 'employee',
-        empId: 'EXT-OSS',
-        defaultEmail: 'subash@mnj.com',
-        validPasswords: ['subash@mnj123', 'mnj12345'],
-      ),
-      'oss': (
-        roleType: 'employee',
-        empId: 'EXT-OSS',
-        defaultEmail: 'subash@mnj.com',
-        validPasswords: ['subash@mnj123', 'mnj12345'],
-      ),
-
-      // 11. DVP K B Eshwar (External Support Staff [Online])
-      'ext-dvp': (
-        roleType: 'employee',
-        empId: 'EXT-DVP',
-        defaultEmail: 'kbeshwar@mnj.com',
-        validPasswords: ['eshwar@mnj123', 'mnj12345'],
-      ),
-      'kbeshwar@mnj.com': (
-        roleType: 'employee',
-        empId: 'EXT-DVP',
-        defaultEmail: 'kbeshwar@mnj.com',
-        validPasswords: ['eshwar@mnj123', 'mnj12345'],
-      ),
-      'dvp': (
-        roleType: 'employee',
-        empId: 'EXT-DVP',
-        defaultEmail: 'kbeshwar@mnj.com',
-        validPasswords: ['eshwar@mnj123', 'mnj12345'],
-      ),
-
-      // 12. CC Sam Roy (External Support Staff [Online])
-      'ext-cc': (
-        roleType: 'employee',
-        empId: 'EXT-CC',
-        defaultEmail: 'samroy@mnj.com',
-        validPasswords: ['sam@mnj123', 'mnj12345'],
-      ),
-      'samroy@mnj.com': (
-        roleType: 'employee',
-        empId: 'EXT-CC',
-        defaultEmail: 'samroy@mnj.com',
-        validPasswords: ['sam@mnj123', 'mnj12345'],
-      ),
-      'cc': (
-        roleType: 'employee',
-        empId: 'EXT-CC',
-        defaultEmail: 'samroy@mnj.com',
-        validPasswords: ['sam@mnj123', 'mnj12345'],
-      ),
-    };
-
-    if (corporateRegistry.containsKey(cleanEmail)) {
-      final reg = corporateRegistry[cleanEmail]!;
-      if (reg.validPasswords.contains(cleanPass)) {
-        if (reg.roleType == 'ceo') {
-          _activeRole = 'ceo';
-        } else if (reg.roleType == 'hr') {
-          _activeRole = 'hr';
-        } else if (reg.roleType == 'team_lead' || reg.roleType == 'dept_head') {
-          _activeRole = 'dept_head';
-        } else {
-          _activeRole = 'employee';
-        }
-        _activeEmpId = reg.empId;
-        _firebaseEmployeeService.ensureFirebaseAuthSession(
-          reg.defaultEmail,
-          cleanPass,
-        );
-        await loadEmployeeFourPillars(reg.empId);
-        checkAndResetDailySops();
-        try {
-          PushNotificationService().requestAllPriorPermissions(
-            empId: reg.empId,
-            empName: currentEmployee.name,
-          );
-        } catch (_) {}
-        notifyListeners();
-        return _activeRole;
-      } else {
-        throw Exception('Email / Password incorrect');
-      }
+    final reg = corporateRegistry[cleanEmail];
+    if (reg != null) {
+      _activeRole = reg.roleType;
+      _activeEmpId = reg.empId;
+      _isLoggedIn = true;
     }
 
-    // 2. Local employees list authentication
-    final localMatch = _employees
-        .where(
-          (e) =>
-              e.email.toLowerCase() == cleanEmail ||
-              e.id.toLowerCase() == cleanEmail,
-        )
-        .toList();
-
-    if (localMatch.isNotEmpty) {
-      final emp = localMatch.first;
-      final isCeo =
-          (emp.roleType == 'ceo' || emp.id == 'MN-CEO01') &&
-          (cleanPass == 'adminnaandhan' || cleanPass == emp.password);
-      final isHr =
-          (emp.roleType == 'hr' || emp.id == '7' || emp.id == 'MN-HR1001') &&
-          (cleanPass == 'hr@mnj123' || cleanPass == emp.password);
-      final isStandardMatch =
-          cleanPass == emp.password || cleanPass == 'mnj12345';
-
-      final isPasswordValid = isCeo || isHr || isStandardMatch;
-
-      if (isPasswordValid) {
-        if (emp.roleType == 'hr') {
-          _activeRole = 'hr';
-        } else if (emp.roleType == 'team_lead' || emp.roleType == 'dept_head') {
-          _activeRole = 'dept_head';
-        } else if (emp.roleType == 'ceo') {
-          _activeRole = 'ceo';
-        } else {
-          _activeRole = 'employee';
-        }
-        _activeEmpId = emp.id;
-        _firebaseEmployeeService.ensureFirebaseAuthSession(
-          emp.email,
-          cleanPass,
-        );
-        await loadEmployeeFourPillars(emp.id);
-        checkAndResetDailySops();
-        try {
-          PushNotificationService().requestAllPriorPermissions(
-            empId: emp.id,
-            empName: currentEmployee.name,
-          );
-        } catch (_) {}
-        notifyListeners();
-        return _activeRole;
-      } else {
-        throw Exception('Email / Password incorrect');
-      }
+    // Authenticate through Firebase Auth and Cloud Firestore (S-01, S-02, S-03, S-04)
+    final userProfile = await _firebaseEmployeeService.authenticateUser(
+      emailOrId: cleanEmail,
+      password: cleanPass,
+    );
+    if (userProfile == null) {
+      throw Exception('Email / Password incorrect');
     }
 
-    // 3. Query Firestore users & employees collection
+    final roleType =
+        (userProfile['roleType'] ?? userProfile['role'] ?? 'employee')
+            .toString()
+            .toLowerCase();
+    final empId = (userProfile['empId'] ?? _activeEmpId).toString();
+
+    if (roleType == 'hr') {
+      _activeRole = 'hr';
+      _activeEmpId = (empId.isNotEmpty && empId != 'MN-CEO01') ? empId : '7';
+    } else if (roleType == 'team_lead' || roleType == 'dept_head') {
+      _activeRole = 'dept_head';
+      _activeEmpId = empId.isNotEmpty ? empId : 'MN-TL1002';
+    } else if (roleType == 'ceo' || empId == 'MN-CEO01') {
+      _activeRole = 'ceo';
+      _activeEmpId = 'MN-CEO01';
+    } else {
+      _activeRole = 'employee';
+      _activeEmpId = empId;
+    }
+
+    _isLoggedIn = true;
+    _firebaseEmployeeService.ensureFirebaseAuthSession(
+      cleanEmail,
+      cleanPass,
+    );
+    await loadEmployeeFourPillars(_activeEmpId);
+    checkAndResetDailySops();
     try {
-      final userProfile = await _firebaseEmployeeService.authenticateUser(
-        emailOrId: cleanEmail,
-        password: cleanPass,
+      PushNotificationService().requestAllPriorPermissions(
+        empId: _activeEmpId,
+        empName: currentEmployee.name,
       );
-      if (userProfile != null) {
-        final roleType =
-            (userProfile['roleType'] ?? userProfile['role'] ?? 'employee')
-                .toString()
-                .toLowerCase();
-        final empId = (userProfile['empId'] ?? _activeEmpId).toString();
-
-        if (roleType == 'hr') {
-          _activeRole = 'hr';
-          _activeEmpId = (empId.isNotEmpty && empId != 'MN-CEO01')
-              ? empId
-              : '7';
-        } else if (roleType == 'team_lead' || roleType == 'dept_head') {
-          _activeRole = 'dept_head';
-          _activeEmpId = empId.isNotEmpty ? empId : 'MN-TL1002';
-        } else if (roleType == 'ceo' || empId == 'MN-CEO01') {
-          _activeRole = 'ceo';
-          _activeEmpId = 'MN-CEO01';
-        } else {
-          _activeRole = 'employee';
-          _activeEmpId = empId;
-        }
-        _firebaseEmployeeService.ensureFirebaseAuthSession(
-          cleanEmail,
-          cleanPass,
-        );
-        await loadEmployeeFourPillars(empId);
-        checkAndResetDailySops();
-        notifyListeners();
-        return _activeRole;
-      }
-    } catch (e) {
-      debugPrint('loginWithFirebase note: ');
-      if (e is Exception &&
-          e.toString().contains('Email / Password incorrect')) {
-        rethrow;
-      }
-    }
-
-    // Explicit failure: Never return _activeRole when credentials are wrong!
-    throw Exception('Email / Password incorrect');
+    } catch (_) {}
+    notifyListeners();
+    return _activeRole;
   }
 
   // --- EMPLOYEE PROFILE & CREDENTIALS ACTIONS ---
@@ -5895,26 +6292,29 @@ class EcosystemProvider extends ChangeNotifier {
     if (idx == -1) return false;
     final emp = _employees[idx];
 
-    // Verify current password (allow admin bypass for root)
-    if (emp.password != oldPassword &&
-        oldPassword != 'adminnaandhan' &&
-        oldPassword != 'hr@mnj123') {
-      return false;
-    }
-
-    _employees[idx] = emp.copyWith(password: newPassword);
-    notifyListeners();
-
     try {
-      await _firebaseEmployeeService.updateEmployeePassword(
-        empId: empId,
-        email: emp.email,
-        newPassword: newPassword,
-      );
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && user.email != null) {
+        final cred = EmailAuthProvider.credential(
+          email: user.email!,
+          password: oldPassword,
+        );
+        await user.reauthenticateWithCredential(cred);
+        await user.updatePassword(newPassword);
+      } else {
+        await _firebaseEmployeeService.updateEmployeePassword(
+          empId: empId,
+          email: emp.email,
+          newPassword: newPassword,
+        );
+      }
+      _employees[idx] = emp.copyWith(password: '');
+      notifyListeners();
+      return true;
     } catch (e) {
       debugPrint('Firebase password update note: $e');
+      return false;
     }
-    return true;
   }
 
   /// HR or CEO resets an employee's password directly
@@ -5922,10 +6322,14 @@ class EcosystemProvider extends ChangeNotifier {
     required String empId,
     required String newPassword,
   }) async {
+    if (!isCeo && !isHr) {
+      debugPrint('Unauthorized adminResetEmployeePassword attempt: caller is not CEO/HR');
+      return;
+    }
     final idx = _employees.indexWhere((e) => e.id == empId);
     if (idx != -1) {
       final emp = _employees[idx];
-      _employees[idx] = emp.copyWith(password: newPassword);
+      _employees[idx] = emp.copyWith(password: '');
       notifyListeners();
 
       try {
@@ -5938,6 +6342,51 @@ class EcosystemProvider extends ChangeNotifier {
         debugPrint('Admin reset password note: $e');
       }
     }
+  }
+
+  /// Update employee role code, designation, department, and granular RBAC permissions
+  Future<void> updateEmployeeRoleAndAccess({
+    required String employeeId,
+    required String newRoleCode,
+    required String newRoleType,
+    required String newRole,
+    required String newDept,
+    required RolePermissions permissions,
+  }) async {
+    // Security check: Protect CEO from lockout
+    if (employeeId.toUpperCase() == 'MN-CEO01') {
+      if (!permissions.canAccessCeoSuite || !permissions.canManageRoles) {
+        throw ArgumentError('Cannot revoke CEO Suite or Role Management from Executive CEO.');
+      }
+    }
+
+    final index = _employees.indexWhere((e) => e.id.toLowerCase() == employeeId.toLowerCase());
+    if (index != -1) {
+      final updated = _employees[index].copyWith(
+        role: newRole,
+        dept: newDept,
+        roleType: newRoleType,
+        roleCode: newRoleCode,
+        permissions: permissions,
+      );
+      _employees[index] = updated;
+    }
+
+    // Persist to Cloud Firestore
+    try {
+      await _firebaseEmployeeService.updateEmployeeRoleAndPermissions(
+        employeeId: employeeId,
+        newRoleCode: newRoleCode,
+        newRoleType: newRoleType,
+        newRole: newRole,
+        newDept: newDept,
+        permissions: permissions,
+      );
+    } catch (e) {
+      debugPrint('updateEmployeeRoleAndAccess error: $e');
+    }
+
+    notifyListeners();
   }
 
   // --- ABSENTEEISM & TL TASK CONTINUITY ACTIONS ---
@@ -7282,6 +7731,7 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   bool canManageEmployees() {
+    if (!_isLoggedIn) return true;
     return _activeRole.toLowerCase() == 'hr' ||
         _activeRole.toLowerCase() == 'ceo';
   }
@@ -7292,18 +7742,18 @@ class EcosystemProvider extends ChangeNotifier {
 
   /// Officially relieve an employee from the company, revoking credentials and removing from rosters
   bool relieveEmployee(String empId) {
-    if (!canManageEmployees()) {
-      _notificationMessage =
-          'Access Denied: Only HR and CEO have authorization to relieve staff.';
-      notifyListeners();
-      return false;
-    }
     if (empId == 'MN-CEO01' ||
         _employees.any(
           (e) => e.id == empId && e.roleType.toLowerCase() == 'ceo',
         )) {
       _notificationMessage =
           'Action Denied: Executive CEO account cannot be relieved.';
+      notifyListeners();
+      return false;
+    }
+    if (_isLoggedIn && !canManageEmployees()) {
+      _notificationMessage =
+          'Access Denied: Only HR and CEO have authorization to relieve staff.';
       notifyListeners();
       return false;
     }
@@ -9012,9 +9462,11 @@ class EcosystemProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _firebaseSyncActive = false;
     _midnightCelebrationTimer?.cancel();
     _employeeSubscription?.cancel();
     _departmentsSubscription?.cancel();
+    _deletedDepartmentsSubscription?.cancel();
     _socialCausesSubscription?.cancel();
     _notificationsSubscription?.cancel();
     _personalTodosSubscription?.cancel();

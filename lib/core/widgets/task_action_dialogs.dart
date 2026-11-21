@@ -836,6 +836,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                           ),
                           onPressed: () async {
                             final res = await ImageOptimizationService.pickAndCompressImage(source: ImageSource.camera);
+                            if (!mounted) return;
                             if (res != null) {
                               setState(() => _attachedImage = res);
                             }
@@ -857,6 +858,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                           ),
                           onPressed: () async {
                             final res = await ImageOptimizationService.pickAndCompressImage(source: ImageSource.gallery);
+                            if (!mounted) return;
                             if (res != null) {
                               setState(() => _attachedImage = res);
                             }

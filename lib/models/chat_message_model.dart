@@ -126,7 +126,7 @@ class ChatMessage {
     'senderRole': senderRole,
     'receiverId': receiverId,
     'text': text,
-    'timestamp': timestamp.toIso8601String(),
+    'timestamp': timestamp.toUtc().toIso8601String(),
     'isRead': isRead,
     'readBy': readBy,
     'likedBy': likedBy,
@@ -150,8 +150,8 @@ class ChatMessage {
       receiverId: json['receiverId']?.toString() ?? 'ALL_HANDS',
       text: json['text']?.toString() ?? '',
       timestamp: json['timestamp'] != null
-          ? DateTime.tryParse(json['timestamp'].toString()) ?? DateTime.now()
-          : DateTime.now(),
+          ? (DateTime.tryParse(json['timestamp'].toString())?.toLocal() ?? DateTime.fromMillisecondsSinceEpoch(0))
+          : DateTime.fromMillisecondsSinceEpoch(0),
       isRead: json['isRead'] == true,
       readBy: (json['readBy'] as List?)?.map((e) => e.toString()).toList() ?? [],
       likedBy: (json['likedBy'] as List?)?.map((e) => e.toString()).toList() ?? [],

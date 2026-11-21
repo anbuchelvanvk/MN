@@ -33,10 +33,14 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final book = eco.konarBooks.firstWhere(
+    final rawBook = eco.konarBooks.firstWhere(
       (b) => b.department.toLowerCase() == widget.department.toLowerCase(),
       orElse: () => eco.onlineDeptKonarBook,
     );
+    final book = (rawBook.id == 'online_department' || rawBook.id == 'online_dept' || rawBook.department.toLowerCase().contains('online')) &&
+            (rawBook.sections.length != 5 || !rawBook.sections.first.title.contains('01 PURPOSE'))
+        ? KonarBookModel.defaultOnlineDepartment()
+        : rawBook;
 
     final isCeo = eco.isCeo;
     final isHr = eco.isHr;
@@ -58,6 +62,54 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
     // Only CEO, HR, and Department TL (for their specific department) can update or upload.
     // Regular employees have read-only access (view and download).
     final bool canEdit = isCeo || isHr || isTlForThisDept;
+
+    if (!book.isVisible && !isCeo) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF0F172A),
+          elevation: 0,
+          title: Text(
+            'KONAR Book • ${book.department}',
+            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFEE2E2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.visibility_off_rounded, size: 40, color: Color(0xFFDC2626)),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Access Restricted',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'The KONAR Book for this department is currently disabled for staff by Executive Management.\n\nPlease contact HR or the CEO for access.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B), height: 1.4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -83,6 +135,28 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
           ],
         ),
         actions: [
+          if (isCeo)
+            IconButton(
+              icon: Icon(
+                book.isVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                color: book.isVisible ? const Color(0xFF059669) : const Color(0xFFDC2626),
+              ),
+              tooltip: book.isVisible ? 'Hide from Staff' : 'Show to Staff',
+              onPressed: () {
+                final next = !book.isVisible;
+                eco.toggleKonarBookVisibility(book.id, next);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: next ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                    content: Text(
+                      next
+                          ? 'Staff can now view this KONAR book.'
+                          : 'This KONAR book is now hidden from staff.',
+                    ),
+                  ),
+                );
+              },
+            ),
           if (canEdit)
             IconButton(
               icon: const Icon(Icons.edit_note_rounded, color: AppColors.magentaPrimary, size: 24),
@@ -266,7 +340,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Quick Summary of KONAR Book',
+                                'Department Core Architecture',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.bold,
@@ -275,7 +349,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Operational highlights & standard protocols',
+                                '5 Operational Pillars: Purpose, Goals, Process, Structure, System',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 10.5,
                                   color: const Color(0xFF64748B),
@@ -303,7 +377,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  '${book.sections.length} Summaries',
+                                  '${book.sections.length} Architectures',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 10.5,
                                     color: const Color(0xFF831843),

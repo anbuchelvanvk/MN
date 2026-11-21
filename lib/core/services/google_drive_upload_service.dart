@@ -12,7 +12,14 @@ class GoogleDriveUploadService {
   /// Default Google Drive Folder ID provided for MN Jewel Park KONAR Books
   static const String targetFolderId = '125XQXutoTwVnedJBf03qenUXn88BniCx';
 
-  /// Official Deployed Google Apps Script Webhook URL for MN Jewel Park
+  /// Target Google Drive Folder ID for Creative Media Review Board & Video Drafts
+  static const String mediaFolderId = '1zfY6b6xuI8GOT1cfUOw3DpXa2u81-BX2';
+
+  /// Official Deployed Google Apps Script Webhook URL for Creative Media Sharing & Review Board
+  static const String mediaWebhookUrl =
+      'https://script.google.com/macros/s/AKfycbzCv4GGti_wzFZy5vilJjiuh-FxDRNQY0c7ENpkV9JYwzaLjDBh65MDbNhvFJl43jYw/exec';
+
+  /// Official Deployed Google Apps Script Webhook URL for MN Jewel Park KONAR Books
   static const String defaultWebhookUrl =
       'https://script.google.com/macros/s/AKfycbwoN_OHTZDTXK_Q97I5Kn3DxlGQyuQSvdSleZ_kjcGA82t53tdrFGDrXxCYW9axbiSvxQ/exec';
 
@@ -64,6 +71,51 @@ class GoogleDriveUploadService {
           'secretToken': secretToken,
           'folderId': folderId ?? targetFolderId,
           'filename': fileName,
+          'base64': base64String,
+        });
+
+      final streamedResponse = await client.send(request);
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode >= 200 && response.statusCode < 400) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        if (decoded['status'] == 'success') {
+          return decoded;
+        } else {
+          throw Exception(decoded['message'] ?? 'Upload failed on Google Drive script');
+        }
+      } else {
+        throw Exception('Google Drive webhook error (${response.statusCode}): ${response.body}');
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  /// Uploads video or photo files to Google Drive folder for media drafts review
+  static Future<Map<String, dynamic>> uploadMediaToDrive({
+    required Uint8List fileBytes,
+    required String fileName,
+    String? mimeType,
+    String? webhookUrl,
+    String? folderId,
+  }) async {
+    final client = http.Client();
+    try {
+      final base64String = base64Encode(fileBytes);
+      final targetUrl = (webhookUrl != null && webhookUrl.trim().isNotEmpty)
+          ? webhookUrl.trim()
+          : mediaWebhookUrl;
+
+      final request = http.Request('POST', Uri.parse(targetUrl))
+        ..followRedirects = true
+        ..maxRedirects = 5
+        ..headers['Content-Type'] = 'application/json'
+        ..body = jsonEncode({
+          'secretToken': secretToken,
+          'folderId': folderId ?? mediaFolderId,
+          'filename': fileName,
+          'mimeType': mimeType ?? 'application/octet-stream',
           'base64': base64String,
         });
 

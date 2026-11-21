@@ -58,10 +58,23 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
     if (text.isEmpty || _isSending) return;
 
     setState(() => _isSending = true);
-    await eco.addNotificationComment(widget.notification.id, text);
-    _commentController.clear();
-    setState(() => _isSending = false);
-    _scrollToBottom();
+    try {
+      await eco.addNotificationComment(widget.notification.id, text);
+      if (mounted) {
+        _commentController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to post comment: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSending = false);
+        _scrollToBottom();
+      }
+    }
   }
 
   String _formatTimeAgo(DateTime dt) {

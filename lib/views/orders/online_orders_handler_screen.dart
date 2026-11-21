@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -37,18 +38,11 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
     final eco = context.watch<EcosystemProvider>();
     final orders = eco.onlineOrders;
 
-    if (_selectedOrderId == null && orders.isNotEmpty) {
-      _selectedOrderId = orders.first.orderId;
-    } else if (orders.isNotEmpty && !orders.any((o) => o.orderId == _selectedOrderId)) {
-      _selectedOrderId = orders.first.orderId;
-    }
+    final effectiveOrderId = (_selectedOrderId != null && orders.any((o) => o.orderId == _selectedOrderId))
+        ? _selectedOrderId
+        : (orders.isNotEmpty ? orders.first.orderId : null);
 
-    final currentOrder = orders.isNotEmpty
-        ? orders.firstWhere(
-            (o) => o.orderId == _selectedOrderId,
-            orElse: () => orders.first,
-          )
-        : null;
+    final currentOrder = orders.firstWhereOrNull((o) => o.orderId == effectiveOrderId);
 
     final isOS1Absent = eco.isEmployeeAbsent('65');
     final isOS2Absent = eco.isEmployeeAbsent('67');
@@ -977,16 +971,21 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
     OnlineOrderModel order,
     OrderStageInfo stage,
   ) async {
-    DateTime initial = DateTime.now();
+    final now = DateTime.now();
+    DateTime initial = now;
     try {
       if (stage.dueDate.isNotEmpty) initial = DateTime.parse(stage.dueDate);
     } catch (_) {}
+    final firstDate = now.subtract(const Duration(days: 365));
+    final lastDate = now.add(const Duration(days: 365 * 5));
+    if (initial.isBefore(firstDate)) initial = firstDate;
+    if (initial.isAfter(lastDate)) initial = lastDate;
 
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: DateTime(2025),
-      lastDate: DateTime(2030),
+      firstDate: firstDate,
+      lastDate: lastDate,
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -1956,7 +1955,9 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () {
-                final newEmp = eco.employees.firstWhere((e) => e.id == selectedEmp, orElse: () => eco.employees.first);
+                final newEmp = eco.employees.firstWhereOrNull((e) => e.id == selectedEmp);
+                if (newEmp == null) return;
+                final messenger = ScaffoldMessenger.of(context);
                 eco.reassignOnlineOrder(
                   orderId: order.orderId,
                   newEmpId: newEmp.id,
@@ -1964,7 +1965,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                   authorizedBy: eco.currentEmployee.name,
                 );
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
                     backgroundColor: AppColors.ragGreen,
                     content: Text('Order #${order.orderId} reallocated to ${newEmp.name}!'),

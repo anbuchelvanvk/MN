@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/image_preview_dialog.dart';
+import '../../services/image_optimization_service.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../models/social_cause_models.dart';
 import '../../models/employee_model.dart';
@@ -529,6 +531,47 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
             Text(
               cause.description,
               style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+            ),
+          ],
+          if (cause.imageUrl != null && cause.imageUrl!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => ImagePreviewDialog.show(
+                context,
+                imageUrl: cause.imageUrl!,
+                title: '${cause.employeeName} - ${cause.title}',
+                subtitle: '₹${cause.amountSpent.toStringAsFixed(0)} Spent • ${cause.causeType}',
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    ImageOptimizationService.buildImageWidget(
+                      cause.imageUrl!,
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    Container(
+                      margin: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.fullscreen, size: 14, color: Colors.white),
+                          SizedBox(width: 4),
+                          Text('Preview Proof Photo', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
           const SizedBox(height: 12),

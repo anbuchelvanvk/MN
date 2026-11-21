@@ -349,14 +349,8 @@ class RoleAllocationConfig {
   });
 
   static const List<String> availableDepartments = [
-    'Gold Jewellery',
-    'Diamond & Polki',
-    'Antique & Bridal',
-    'Billing & Cash Vault',
-    'Inventory & Hallmarking',
-    'HR & Admin',
-    'Executive CEO Office',
-    'Sales Operations'
+    'Online Department',
+    'HR & Administration',
   ];
 
   static const List<String> standardRoles = [

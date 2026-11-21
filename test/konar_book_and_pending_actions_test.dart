@@ -10,15 +10,14 @@ void main() {
     test('defaultOnlineDepartment generates correct SOP sections for Online Team', () {
       final book = KonarBookModel.defaultOnlineDepartment();
       expect(book.department, 'Online Department');
-      expect(book.sections.length, 6);
+      expect(book.sections.length, 5);
 
       final titles = book.sections.map((s) => s.title).toList();
-      expect(titles.any((t) => t.contains('Chapter 1')), isTrue);
-      expect(titles.any((t) => t.contains('Chapter 2')), isTrue);
-      expect(titles.any((t) => t.contains('Chapter 3')), isTrue);
-      expect(titles.any((t) => t.contains('Chapter 4')), isTrue);
-      expect(titles.any((t) => t.contains('Chapter 5')), isTrue);
-      expect(titles.any((t) => t.contains('Chapter 6')), isTrue);
+      expect(titles.any((t) => t.contains('01 PURPOSE')), isTrue);
+      expect(titles.any((t) => t.contains('02 GOALS')), isTrue);
+      expect(titles.any((t) => t.contains('03 PROCESS')), isTrue);
+      expect(titles.any((t) => t.contains('04 STRUCTURE')), isTrue);
+      expect(titles.any((t) => t.contains('05 SYSTEM')), isTrue);
     });
 
     test('KonarBookModel serialization to and from JSON works seamlessly', () {

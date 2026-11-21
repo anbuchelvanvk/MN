@@ -37,32 +37,36 @@ class BirthdayCelebrationDialog extends StatelessWidget {
     // If active employee name or id is empty, do not trigger
     if (activeId.isEmpty && activeName.isEmpty) return;
 
-    final myCelebration = eco.todayCelebrations.where(
-      (c) {
-        final celebEmpId = c.employeeId.trim().toLowerCase();
-        final celebName = c.employeeName.trim().toLowerCase();
+    final myCelebration = eco.todayCelebrations.where((c) {
+      final celebEmpId = c.employeeId.trim().toLowerCase();
+      final celebName = c.employeeName.trim().toLowerCase();
 
-        // Direct Employee ID match (e.g. MN-CEO01, MN-TL1002, etc.)
-        if (activeId.isNotEmpty && celebEmpId.isNotEmpty && activeId == celebEmpId) {
-          return true;
-        }
+      // Direct Employee ID match (e.g. MN-CEO01, MN-TL1002, etc.)
+      if (activeId.isNotEmpty &&
+          celebEmpId.isNotEmpty &&
+          activeId == celebEmpId) {
+        return true;
+      }
 
-        // Direct Name match between currently logged in user and celebrant
-        if (activeName.isNotEmpty && celebName.isNotEmpty) {
-          if (activeName == celebName) return true;
-          // Substring matching for multi-word names (e.g. "M N Naveenraaj" contains "naveenraaj")
-          final activeParts = activeName.split(RegExp(r'[\s._-]+')).where((p) => p.length >= 3);
-          final celebParts = celebName.split(RegExp(r'[\s._-]+')).where((p) => p.length >= 3);
-          for (final ap in activeParts) {
-            for (final cp in celebParts) {
-              if (ap == cp) return true;
-            }
+      // Direct Name match between currently logged in user and celebrant
+      if (activeName.isNotEmpty && celebName.isNotEmpty) {
+        if (activeName == celebName) return true;
+        // Substring matching for multi-word names (e.g. "M N Naveenraaj" contains "naveenraaj")
+        final activeParts = activeName
+            .split(RegExp(r'[\s._-]+'))
+            .where((p) => p.length >= 3);
+        final celebParts = celebName
+            .split(RegExp(r'[\s._-]+'))
+            .where((p) => p.length >= 3);
+        for (final ap in activeParts) {
+          for (final cp in celebParts) {
+            if (ap == cp) return true;
           }
         }
+      }
 
-        return false;
-      },
-    ).toList();
+      return false;
+    }).toList();
 
     // 3. If the logged-in user is NOT the celebrating person, exit immediately (no popup for others)
     if (myCelebration.isEmpty) return;

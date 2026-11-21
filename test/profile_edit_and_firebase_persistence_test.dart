@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 
 void main() {
@@ -8,6 +9,7 @@ void main() {
     late EcosystemProvider eco;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       eco = EcosystemProvider();
     });
 

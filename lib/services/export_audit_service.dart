@@ -32,7 +32,11 @@ class ExportAuditService {
 
   static String formatCsvCell(dynamic value) {
     if (value == null) return '""';
-    final str = value.toString().replaceAll('"', '""');
+    var str = value.toString();
+    if (str.isNotEmpty && (str.startsWith('=') || str.startsWith('+') || str.startsWith('-') || str.startsWith('@'))) {
+      str = "'$str";
+    }
+    str = str.replaceAll('"', '""');
     return '"$str"';
   }
 

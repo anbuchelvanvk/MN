@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -31,17 +32,23 @@ void main() async {
   // Initialize Network Connectivity Monitoring
   NetworkConnectivityService().initialize();
 
-  // Read saved session to keep user permanently logged in across app closes
+  // S-08: Only restore session if Firebase Auth has an authentic active user session
   String? initialEmpId;
   String? initialRole;
   try {
-    final prefs = await SharedPreferences.getInstance();
-    initialEmpId = prefs.getString('saved_emp_id');
-    initialRole = prefs.getString('saved_role');
+    if (FirebaseAuth.instance.currentUser != null) {
+      final prefs = await SharedPreferences.getInstance();
+      initialEmpId = prefs.getString('saved_emp_id');
+      initialRole = prefs.getString('saved_role');
+    }
   } catch (_) {}
 
   // Initialize Native Push Notifications & Request 24/7 Background Exemption Permissions
-  await PushNotificationService().requestAllPriorPermissions(empId: initialEmpId);
+  try {
+    await PushNotificationService()
+        .requestAllPriorPermissions(empId: initialEmpId)
+        .timeout(const Duration(seconds: 3));
+  } catch (_) {}
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -72,7 +79,7 @@ void main() async {
   );
 }
 
-class MnFamilyApp extends StatelessWidget {
+class MnFamilyApp extends StatefulWidget {
   final String? initialEmpId;
   final String? initialRole;
 
@@ -82,14 +89,40 @@ class MnFamilyApp extends StatelessWidget {
     this.initialRole,
   });
 
+  @override
+  State<MnFamilyApp> createState() => _MnFamilyAppState();
+}
+
+class _MnFamilyAppState extends State<MnFamilyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final eco = Provider.of<EcosystemProvider>(context, listen: false);
+      eco.checkAndResetDailySops();
+      eco.checkAndDispatchCelebrations();
+    }
+  }
+
   Widget _resolveHomeScreen() {
-    if (initialEmpId == null || initialEmpId!.isEmpty) {
+    if (widget.initialEmpId == null || widget.initialEmpId!.isEmpty) {
       return const LoginScreen();
     }
-    if (initialEmpId == 'MN-CEO01' || initialRole == 'ceo') {
+    if (widget.initialEmpId == 'MN-CEO01' || widget.initialRole == 'ceo') {
       return const CeoSuiteScreen();
     }
-    switch (initialRole) {
+    switch (widget.initialRole) {
       case 'hr':
         return const HrPortalScreen();
       case 'dept_head':

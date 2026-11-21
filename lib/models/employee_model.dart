@@ -1,3 +1,5 @@
+import 'konar_tasks_catalog.dart';
+
 class ProfileCompletion {
   int percentage;
   bool isAuthorized;
@@ -52,6 +54,211 @@ class ProfileCompletion {
       kycVerified: map['kycVerified'] ?? false,
       sopRolesAcknowledged: map['sopRolesAcknowledged'] ?? false,
       authorizedDate: map['authorizedDate'],
+    );
+  }
+}
+
+/// Granular Feature & Module Access Permissions for Role-Based Access Control (RBAC)
+class RolePermissions {
+  final bool canAccessCeoSuite;
+  final bool canAccessHrPortal;
+  final bool canAccessDeptHeadPortal;
+  final bool canManageOrders;
+  final bool canAccessKonarBooks;
+  final bool canAssignTasksToOthers;
+  final bool canExportAudit;
+  final bool canManageRoles;
+
+  // 7 Pillars Access
+  final bool canAccessAttendancePillar;
+  final bool canAccessHealthPillar;
+  final bool canAccessFamilyPillar;
+  final bool canAccessProfilePillar;
+  final bool canAccessSocialCausePillar;
+  final bool canAccessTierPillar;
+  final bool canAccessWorkPillar;
+
+  const RolePermissions({
+    this.canAccessCeoSuite = false,
+    this.canAccessHrPortal = false,
+    this.canAccessDeptHeadPortal = false,
+    this.canManageOrders = false,
+    this.canAccessKonarBooks = true,
+    this.canAssignTasksToOthers = false,
+    this.canExportAudit = false,
+    this.canManageRoles = false,
+    this.canAccessAttendancePillar = true,
+    this.canAccessHealthPillar = true,
+    this.canAccessFamilyPillar = true,
+    this.canAccessProfilePillar = true,
+    this.canAccessSocialCausePillar = true,
+    this.canAccessTierPillar = true,
+    this.canAccessWorkPillar = true,
+  });
+
+  RolePermissions copyWith({
+    bool? canAccessCeoSuite,
+    bool? canAccessHrPortal,
+    bool? canAccessDeptHeadPortal,
+    bool? canManageOrders,
+    bool? canAccessKonarBooks,
+    bool? canAssignTasksToOthers,
+    bool? canExportAudit,
+    bool? canManageRoles,
+    bool? canAccessAttendancePillar,
+    bool? canAccessHealthPillar,
+    bool? canAccessFamilyPillar,
+    bool? canAccessProfilePillar,
+    bool? canAccessSocialCausePillar,
+    bool? canAccessTierPillar,
+    bool? canAccessWorkPillar,
+  }) {
+    return RolePermissions(
+      canAccessCeoSuite: canAccessCeoSuite ?? this.canAccessCeoSuite,
+      canAccessHrPortal: canAccessHrPortal ?? this.canAccessHrPortal,
+      canAccessDeptHeadPortal: canAccessDeptHeadPortal ?? this.canAccessDeptHeadPortal,
+      canManageOrders: canManageOrders ?? this.canManageOrders,
+      canAccessKonarBooks: canAccessKonarBooks ?? this.canAccessKonarBooks,
+      canAssignTasksToOthers: canAssignTasksToOthers ?? this.canAssignTasksToOthers,
+      canExportAudit: canExportAudit ?? this.canExportAudit,
+      canManageRoles: canManageRoles ?? this.canManageRoles,
+      canAccessAttendancePillar: canAccessAttendancePillar ?? this.canAccessAttendancePillar,
+      canAccessHealthPillar: canAccessHealthPillar ?? this.canAccessHealthPillar,
+      canAccessFamilyPillar: canAccessFamilyPillar ?? this.canAccessFamilyPillar,
+      canAccessProfilePillar: canAccessProfilePillar ?? this.canAccessProfilePillar,
+      canAccessSocialCausePillar: canAccessSocialCausePillar ?? this.canAccessSocialCausePillar,
+      canAccessTierPillar: canAccessTierPillar ?? this.canAccessTierPillar,
+      canAccessWorkPillar: canAccessWorkPillar ?? this.canAccessWorkPillar,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'canAccessCeoSuite': canAccessCeoSuite,
+      'canAccessHrPortal': canAccessHrPortal,
+      'canAccessDeptHeadPortal': canAccessDeptHeadPortal,
+      'canManageOrders': canManageOrders,
+      'canAccessKonarBooks': canAccessKonarBooks,
+      'canAssignTasksToOthers': canAssignTasksToOthers,
+      'canExportAudit': canExportAudit,
+      'canManageRoles': canManageRoles,
+      'canAccessAttendancePillar': canAccessAttendancePillar,
+      'canAccessHealthPillar': canAccessHealthPillar,
+      'canAccessFamilyPillar': canAccessFamilyPillar,
+      'canAccessProfilePillar': canAccessProfilePillar,
+      'canAccessSocialCausePillar': canAccessSocialCausePillar,
+      'canAccessTierPillar': canAccessTierPillar,
+      'canAccessWorkPillar': canAccessWorkPillar,
+    };
+  }
+
+  factory RolePermissions.fromMap(Map<String, dynamic>? map, {String roleType = 'employee', String roleCode = 'GEN'}) {
+    if (map == null || map.isEmpty) {
+      return RolePermissions.defaultForRole(roleType: roleType, roleCode: roleCode);
+    }
+    return RolePermissions(
+      canAccessCeoSuite: map['canAccessCeoSuite'] ?? (roleType == 'ceo' || roleCode == 'CEO'),
+      canAccessHrPortal: map['canAccessHrPortal'] ?? (roleType == 'hr' || roleCode == 'HR'),
+      canAccessDeptHeadPortal: map['canAccessDeptHeadPortal'] ??
+          (roleType == 'team_lead' || roleType == 'dept_head' || roleCode == 'OTM' || roleCode == 'TL'),
+      canManageOrders: map['canManageOrders'] ?? (['OSH', 'OS1', 'OS2', 'ECE', 'OTM', 'TL', 'CEO'].contains(roleCode)),
+      canAccessKonarBooks: map['canAccessKonarBooks'] ?? true,
+      canAssignTasksToOthers: map['canAssignTasksToOthers'] ??
+          (roleType == 'ceo' || roleType == 'hr' || roleType == 'team_lead' || roleCode == 'OTM' || roleCode == 'TL'),
+      canExportAudit: map['canExportAudit'] ??
+          (roleType == 'ceo' || roleType == 'hr' || roleType == 'team_lead' || roleCode == 'OTM' || roleCode == 'TL'),
+      canManageRoles: map['canManageRoles'] ?? (roleType == 'ceo' || roleCode == 'CEO'),
+      canAccessAttendancePillar: map['canAccessAttendancePillar'] ?? true,
+      canAccessHealthPillar: map['canAccessHealthPillar'] ?? true,
+      canAccessFamilyPillar: map['canAccessFamilyPillar'] ?? true,
+      canAccessProfilePillar: map['canAccessProfilePillar'] ?? true,
+      canAccessSocialCausePillar: map['canAccessSocialCausePillar'] ?? true,
+      canAccessTierPillar: map['canAccessTierPillar'] ?? true,
+      canAccessWorkPillar: map['canAccessWorkPillar'] ?? true,
+    );
+  }
+
+  factory RolePermissions.defaultForRole({required String roleType, required String roleCode}) {
+    final rt = roleType.toLowerCase().trim();
+    final rc = roleCode.toUpperCase().trim();
+
+    if (rt == 'ceo' || rc == 'CEO') {
+      return const RolePermissions(
+        canAccessCeoSuite: true,
+        canAccessHrPortal: true,
+        canAccessDeptHeadPortal: true,
+        canManageOrders: true,
+        canAccessKonarBooks: true,
+        canAssignTasksToOthers: true,
+        canExportAudit: true,
+        canManageRoles: true,
+        canAccessAttendancePillar: true,
+        canAccessHealthPillar: true,
+        canAccessFamilyPillar: true,
+        canAccessProfilePillar: true,
+        canAccessSocialCausePillar: true,
+        canAccessTierPillar: true,
+        canAccessWorkPillar: true,
+      );
+    }
+
+    if (rt == 'hr' || rc == 'HR') {
+      return const RolePermissions(
+        canAccessCeoSuite: false,
+        canAccessHrPortal: true,
+        canAccessDeptHeadPortal: false,
+        canManageOrders: false,
+        canAccessKonarBooks: true,
+        canAssignTasksToOthers: true,
+        canExportAudit: true,
+        canManageRoles: false,
+        canAccessAttendancePillar: true,
+        canAccessHealthPillar: true,
+        canAccessFamilyPillar: true,
+        canAccessProfilePillar: true,
+        canAccessSocialCausePillar: true,
+        canAccessTierPillar: true,
+        canAccessWorkPillar: true,
+      );
+    }
+
+    if (rt == 'team_lead' || rt == 'dept_head' || rc == 'OTM' || rc == 'TL') {
+      return const RolePermissions(
+        canAccessCeoSuite: false,
+        canAccessHrPortal: false,
+        canAccessDeptHeadPortal: true,
+        canManageOrders: true,
+        canAccessKonarBooks: true,
+        canAssignTasksToOthers: true,
+        canExportAudit: true,
+        canManageRoles: false,
+        canAccessAttendancePillar: true,
+        canAccessHealthPillar: true,
+        canAccessFamilyPillar: true,
+        canAccessProfilePillar: true,
+        canAccessSocialCausePillar: true,
+        canAccessTierPillar: true,
+        canAccessWorkPillar: true,
+      );
+    }
+
+    final isOrderManager = ['OSH', 'OS1', 'OS2', 'ECE'].contains(rc);
+    return RolePermissions(
+      canAccessCeoSuite: false,
+      canAccessHrPortal: false,
+      canAccessDeptHeadPortal: false,
+      canManageOrders: isOrderManager,
+      canAccessKonarBooks: true,
+      canAssignTasksToOthers: false,
+      canExportAudit: false,
+      canManageRoles: false,
+      canAccessAttendancePillar: true,
+      canAccessHealthPillar: true,
+      canAccessFamilyPillar: true,
+      canAccessProfilePillar: true,
+      canAccessSocialCausePillar: true,
+      canAccessTierPillar: true,
+      canAccessWorkPillar: true,
     );
   }
 }
@@ -152,16 +359,11 @@ class Employee {
   String dob;
   String relationshipStatus;
   String anniversaryDate;
-  String _password;
-  String get password {
-    if (_password.isNotEmpty && _password != 'mnj12345') {
-      return _password;
-    }
-    return officialCorporatePasswords[id.toUpperCase()] ?? (_password.isNotEmpty ? _password : 'staff@mnj123');
-  }
-  set password(String val) => _password = val;
+  String password;
   final String gender; // 'male' | 'female'
   final String empNo; // Employee number from attendance roster (e.g. '7', '6', '33', etc.)
+  String roleCode;
+  RolePermissions permissions;
 
   Employee({
     required this.id,
@@ -191,11 +393,22 @@ class Employee {
     this.dob = '',
     this.relationshipStatus = 'Single',
     this.anniversaryDate = '',
-    String password = '',
+    this.password = '',
     this.gender = '',
     this.empNo = '',
+    String? roleCode,
+    RolePermissions? permissions,
   })  : _dept = dept,
-        _password = password,
+        roleCode = (roleCode != null && roleCode.isNotEmpty)
+            ? roleCode
+            : KonarTaskCatalog.resolveRoleCode(role, email, id, dept),
+        permissions = permissions ??
+            RolePermissions.defaultForRole(
+              roleType: roleType,
+              roleCode: (roleCode != null && roleCode.isNotEmpty)
+                  ? roleCode
+                  : KonarTaskCatalog.resolveRoleCode(role, email, id, dept),
+            ),
         trainingAgenda = trainingAgenda ?? [],
         dailyReviews = dailyReviews ?? [];
 
@@ -288,6 +501,25 @@ class Employee {
       id == 'MN-TL1002';
   bool get isDeptHead => isTeamLead;
 
+  // Granular Access Getters backed by RolePermissions
+  bool get canAccessCeoSuite => permissions.canAccessCeoSuite;
+  bool get canAccessHrPortal => permissions.canAccessHrPortal;
+  bool get canAccessDeptHeadPortal => permissions.canAccessDeptHeadPortal;
+  bool get canManageOrders => permissions.canManageOrders;
+  bool get canAccessKonarBooks => permissions.canAccessKonarBooks;
+  bool get canAssignTasksToOthers => permissions.canAssignTasksToOthers;
+  bool get canExportAudit => permissions.canExportAudit;
+  bool get canManageRoles => permissions.canManageRoles;
+
+  // 7 Pillars Access Getters
+  bool get canAccessAttendancePillar => permissions.canAccessAttendancePillar;
+  bool get canAccessHealthPillar => permissions.canAccessHealthPillar;
+  bool get canAccessFamilyPillar => permissions.canAccessFamilyPillar;
+  bool get canAccessProfilePillar => permissions.canAccessProfilePillar;
+  bool get canAccessSocialCausePillar => permissions.canAccessSocialCausePillar;
+  bool get canAccessTierPillar => permissions.canAccessTierPillar;
+  bool get canAccessWorkPillar => permissions.canAccessWorkPillar;
+
   /// Straight-cut short role acronym (e.g. 'CEO', 'HR', 'OTM', 'OSH', 'OS1', 'OS2', 'VPE', 'Ass.VPE', 'AC', 'OSS', 'DVP', 'CC')
   String get roleAcronym {
     final rt = roleType.toLowerCase();
@@ -328,8 +560,11 @@ class Employee {
     if (rt == 'team_lead' || rt == 'dept_head' || id == 'MN-TL1002' || r.contains('lead') || r.contains('manager')) {
       return 'Team Lead';
     }
+    if (roleCode.isNotEmpty && ['VPE', 'AC', 'OSS', 'DVP', 'CC', 'ECE', 'OSH', 'OS1', 'OS2', 'Ass.VPE'].contains(roleCode)) {
+      return roleCode;
+    }
     if (isExternalSupport) {
-      if (r.contains('vpe') || r.contains('videographer')) return 'VPE';
+      if (r.contains('vpe') || r.contains('videographer') || r.contains('video') || r.contains('photographer')) return 'VPE';
       if (r.contains('ac') || r.contains('analytical')) return 'AC';
       if (r.contains('oss') || r.contains('strategist')) return 'OSS';
       if (r.contains('dvp') || r.contains('developer')) return 'DVP';
@@ -388,6 +623,8 @@ class Employee {
     String? password,
     String? gender,
     String? empNo,
+    String? roleCode,
+    RolePermissions? permissions,
   }) {
     return Employee(
       id: id ?? this.id,
@@ -420,6 +657,8 @@ class Employee {
       password: password ?? this.password,
       gender: gender ?? this.gender,
       empNo: empNo ?? this.empNo,
+      roleCode: roleCode ?? this.roleCode,
+      permissions: permissions ?? this.permissions,
     );
   }
 
@@ -452,48 +691,27 @@ class Employee {
       'dob': dob,
       'relationshipStatus': relationshipStatus,
       'anniversaryDate': anniversaryDate,
-      'password': password,
       'gender': gender,
       'empNo': empNo,
+      'roleCode': roleCode,
+      'permissions': permissions.toMap(),
     };
   }
-
-  static const Map<String, String> officialCorporatePasswords = {
-    'MN-CEO01': 'adminnaandhan',
-    '7': 'hr@mnj123',
-    'MN-TL1002': 'praveen@mnj123',
-    '6': 'gokul@mnj123',
-    '33': 'mithra@mnj123',
-    '65': 'kaaviya@mnj123',
-    '67': 'nisha@mnj123',
-    'EXT-VPE': 'aravind@mnj123',
-    'EXT-AC': 'midhun@mnj123',
-    'EXT-OSS': 'subash@mnj123',
-    'EXT-DVP': 'eshwar@mnj123',
-    'EXT-CC': 'sam@mnj123',
-  };
 
   factory Employee.fromMap(Map<String, dynamic> map, [String? docId]) {
     final docOrId = (docId ?? map['id']?.toString() ?? '').trim().toUpperCase();
     final email = (map['email']?.toString() ?? '').trim().toLowerCase();
-    final rawName = map['name'] as String? ?? '';
-    final rawRole = (map['role'] as String? ?? 'Online Team Member');
+    final rawName = (map['name'] as String? ?? '').trim();
+    final rawRole = (map['role'] as String? ?? 'Online Team Member').trim();
 
     final isCeo = docOrId == 'MN-CEO01' ||
         email == 'ceoofmn@mnjpark.com' ||
-        map['roleType'] == 'ceo' ||
-        rawRole.toLowerCase().contains('managing director') ||
-        rawRole.toLowerCase().contains('ceo') ||
-        rawName.toLowerCase().contains('executive ceo') ||
-        rawName.toLowerCase().contains('senthil');
+        map['roleType'] == 'ceo';
 
     final isHr = docOrId == '7' ||
         docOrId == 'MN-HR1001' ||
         email == 'hr@mnj.com' ||
-        map['roleType'] == 'hr' ||
-        rawRole.toLowerCase().contains('hr manager') ||
-        rawName.toLowerCase().contains('mohankumar') ||
-        rawName.toLowerCase().contains('priyanka');
+        map['roleType'] == 'hr';
 
     final detectedRoleType = isCeo
         ? 'ceo'
@@ -504,15 +722,18 @@ class Employee {
                     ? 'team_lead'
                     : 'employee')));
 
-    final resolvedId = isCeo ? 'MN-CEO01' : (isHr ? '7' : (docId ?? (map['id'] as String? ?? '')));
-    final resolvedName = isCeo ? 'M N Naveenraaj' : (isHr ? 'Mohankumar G' : rawName);
+    final resolvedId = docId ?? (map['id'] as String? ?? (isCeo ? 'MN-CEO01' : (isHr ? '7' : '')));
+    final resolvedName = rawName.isNotEmpty
+        ? rawName
+        : (isCeo ? 'M N Naveenraaj' : (isHr ? 'Mohankumar G' : 'Online Staff'));
+
     final resolvedRole = isCeo
         ? 'Managing Director & CEO'
         : (isHr ? 'HR Manager & Operations Custodian' : rawRole);
     final rawDept = (map['dept'] as String?)?.trim() ?? '';
     final resolvedDept = rawDept.isNotEmpty
         ? rawDept
-        : ((isCeo || isHr) ? 'Administration' : 'Online Department');
+        : (isCeo ? 'Executive Board' : (isHr ? 'HR & Administration' : 'Online Department'));
     final resolvedInitials = isCeo
         ? 'MN'
         : (isHr
@@ -520,10 +741,15 @@ class Employee {
             : (map['initials'] as String? ??
                 (resolvedName.isNotEmpty ? resolvedName.substring(0, 1).toUpperCase() : 'MN')));
 
-    final rawPassword = map['password'] as String?;
-    final resolvedPassword = (rawPassword != null && rawPassword.isNotEmpty && rawPassword != 'mnj12345')
-        ? rawPassword
-        : (officialCorporatePasswords[resolvedId.toUpperCase()] ?? (rawPassword?.isNotEmpty == true ? rawPassword! : 'mnj12345'));
+    final roleCode = (map['roleCode'] as String? ?? '').isNotEmpty
+        ? (map['roleCode'] as String)
+        : KonarTaskCatalog.resolveRoleCode(resolvedRole, email, resolvedId, resolvedDept);
+
+    final permissions = RolePermissions.fromMap(
+      map['permissions'] is Map ? Map<String, dynamic>.from(map['permissions'] as Map) : null,
+      roleType: detectedRoleType,
+      roleCode: roleCode,
+    );
 
     return Employee(
       id: resolvedId,
@@ -568,9 +794,11 @@ class Employee {
       dob: map['dob'] as String? ?? '',
       relationshipStatus: map['relationshipStatus'] as String? ?? 'Single',
       anniversaryDate: map['anniversaryDate'] as String? ?? '',
-      password: resolvedPassword,
+      password: '',
       gender: map['gender'] as String? ?? '',
       empNo: map['empNo'] as String? ?? '',
+      roleCode: roleCode,
+      permissions: permissions,
     );
   }
 }

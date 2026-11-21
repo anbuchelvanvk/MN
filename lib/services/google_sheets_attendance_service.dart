@@ -133,8 +133,10 @@ class GoogleSheetsAttendanceService {
   static Future<({HrMonthlyAttendanceSheet sheet, List<int> updatedDays})> fetchAttendanceSheet({
     String? customUrl,
     int month = 11,
+    int? year,
     bool forceRefresh = false,
   }) async {
+    final currentYear = year ?? DateTime.now().year;
     final prefs = await SharedPreferences.getInstance();
     final baseUrl = formatToCsvExportUrl(
       customUrl ?? prefs.getString(_prefCustomUrlKey) ?? defaultSheetUrl,
@@ -180,7 +182,8 @@ class GoogleSheetsAttendanceService {
       }
     }
 
-    final previousCsv = prefs.getString(_prefCachedCsvKey);
+    final cacheKey = '${_prefCachedCsvKey}_${currentYear}_$month';
+    final previousCsv = prefs.getString(cacheKey);
     // Ensure we don't use stale cache that lacks newer embedded staff entries (e.g. 77 Anbu)
     final shouldUseSeed = month == 11 && (previousCsv == null || previousCsv.split('\n').length < _embeddedNovemberSeedCsv.split('\n').length || !previousCsv.contains('Anbu'));
     final effectivePrevious = shouldUseSeed ? _embeddedNovemberSeedCsv : previousCsv;
@@ -197,7 +200,7 @@ class GoogleSheetsAttendanceService {
     }
 
     if (newCsv != null) {
-      await prefs.setString(_prefCachedCsvKey, newCsv);
+      await prefs.setString(cacheKey, newCsv);
       await prefs.setString(_prefLastSyncTimeKey, DateTime.now().toIso8601String());
     }
 
@@ -285,8 +288,32 @@ class GoogleSheetsAttendanceService {
       }
     }
 
-    // Pre-detect Tuesday & Company Holiday columns (e.g. days 3, 10, 17, 24 in November)
-    final Set<int> holidayDays = {3, 10, 17, 24};
+    // Dynamically detect Tuesday week-offs for the actual month/year (L-06)
+    int targetMonth = 11;
+    final titleUpper = monthTitle.toUpperCase();
+    const monthNames = [
+      'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+      'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+    ];
+    for (int m = 0; m < monthNames.length; m++) {
+      if (titleUpper.contains(monthNames[m])) {
+        targetMonth = m + 1;
+        break;
+      }
+    }
+    int targetYear = DateTime.now().year;
+    final yearMatch = RegExp(r'20\d\d').firstMatch(titleUpper);
+    if (yearMatch != null) {
+      targetYear = int.tryParse(yearMatch.group(0)!) ?? targetYear;
+    }
+
+    final Set<int> holidayDays = {};
+    final daysInMonth = DateTime(targetYear, targetMonth + 1, 0).day;
+    for (int d = 1; d <= daysInMonth; d++) {
+      if (DateTime(targetYear, targetMonth, d).weekday == DateTime.tuesday) {
+        holidayDays.add(d);
+      }
+    }
     final Map<int, int> holidayLetterCounts = {};
     for (int i = headerLineIdx + 1; i < lines.length; i++) {
       final cells = _parseCsvRow(lines[i]);
