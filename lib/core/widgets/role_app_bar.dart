@@ -10,7 +10,6 @@ import '../../providers/ecosystem_provider.dart';
 import '../../views/pillars/profile_pillar_screen.dart';
 import '../../views/chat/chat_hub_screen.dart';
 import '../../views/ceo/admin_role_access_management_screen.dart';
-import '../../views/copilot/mn_assistant_sheet.dart';
 import '../../views/media/creative_media_review_board_screen.dart';
 
 class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -260,47 +259,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 4),
 
-                  // MN Assistant AI Copilot Button (Vibrant Gold Theme)
-                  SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        key: const ValueKey('role_app_bar_copilot_button'),
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => MnAssistantSheet.show(context),
-                        child: Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFF59E0B).withOpacity(0.35),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.auto_awesome,
-                              size: 17,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                   const SizedBox(width: 4),
 
                   // Notification Section Button (Replaces Chat Icon)
@@ -574,20 +533,6 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const SizedBox(height: 12),
                 const Divider(color: AppColors.sandBorder, height: 1),
                 const SizedBox(height: 10),
-
-                // 0. MN Assistant AI Copilot
-                _menuItemTile(
-                  icon: Icons.auto_awesome,
-                  iconColor: const Color(0xFFE11D48),
-                  title: 'MN Assistant (AI Copilot)',
-                  subtitle: 'Live SOP & Policy Q&A',
-                  badgeText: 'AI',
-                  badgeColor: const Color(0xFFE11D48),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    MnAssistantSheet.show(context);
-                  },
-                ),
 
                 // Creative & Media Review Board (DAM Pipeline)
                 Consumer<EcosystemProvider>(

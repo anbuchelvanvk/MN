@@ -2,8 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/core/services/google_drive_upload_service.dart';
 import 'package:mn_family_app/models/family_models.dart';
-import 'package:mn_family_app/providers/ecosystem_provider.dart';
-import 'package:mn_family_app/services/mn_ai_copilot_service.dart';
 import 'package:mn_family_app/views/pillars/family_pillar_screen.dart';
 
 void main() {
@@ -13,7 +11,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  group('Drive Upload, Chat Scroll, Copilot & Family Activity Clean UI Tests', () {
+  group('Drive Upload, Chat Scroll & Family Activity Clean UI Tests', () {
     test('1. GoogleDriveUploadService mediaFolderId and mediaWebhookUrl match user configuration', () {
       expect(GoogleDriveUploadService.mediaFolderId, '1zfY6b6xuI8GOT1cfUOw3DpXa2u81-BX2');
       expect(
@@ -22,25 +20,7 @@ void main() {
       );
     });
 
-    test('2. AI Copilot welcome message is clean, professional, and free of 5 Konar Books & personalized banner', () {
-      final eco = EcosystemProvider();
-      final welcome = MnAiCopilotService.buildWelcomeMessage(eco);
-
-      // Verifies clean greeting with employee first name
-      final firstName = MnAiCopilotService.extractFirstName(eco.currentEmployee.name);
-      expect(welcome, contains('Hello **$firstName**!'));
-      expect(welcome, contains("Today's Attendance:"));
-      expect(welcome, contains('Active Tasks / To-Dos:'));
-      expect(welcome, contains('Emergency Permissions:'));
-
-      // Verifies removal of bulky preamble & 5 Konar Books
-      expect(welcome, isNot(contains('5 Konar Books')));
-      expect(welcome, isNot(contains('5 Official KONAR Books')));
-      expect(welcome, isNot(contains('Personalized Copilot for')));
-      expect(welcome, isNot(contains('I have analyzed your live employee profile')));
-    });
-
-    test('3. Family Pillar formatDuration produces clean duration strings without awkward plus signs', () {
+    test('2. Family Pillar formatDuration produces clean duration strings without awkward plus signs', () {
       expect(formatDuration(0.75), equals('45 mins'));
       expect(formatDuration(1.25), equals('1 hr 15 mins'));
       expect(formatDuration(0.5), equals('30 mins'));
@@ -48,7 +28,7 @@ void main() {
       expect(formatDuration(1.0), equals('1 hr'));
     });
 
-    test('4. Family Activity metrics calculation sums all logged activities across dates accurately', () {
+    test('3. Family Activity metrics calculation sums all logged activities across dates accurately', () {
       final activities = [
         FamilyActivityItem(
           id: 'act-1',
