@@ -751,7 +751,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                     separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                     itemBuilder: (context, index) {
                       final emp = deptEmployees[index];
-                      return ListTile(
+                      return Material(type: MaterialType.transparency, child: ListTile(
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
@@ -771,7 +771,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                           style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
                         ),
                         trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF9D174D)),
-                      );
+                      ));
                     },
                   ),
                 ),

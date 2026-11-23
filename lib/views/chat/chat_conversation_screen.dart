@@ -873,7 +873,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                ListTile(
+                Material(type: MaterialType.transparency, child: ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -888,8 +888,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     Navigator.pop(ctx);
                     await Printing.layoutPdf(onLayout: (_) async => nonNullBytes, name: fileName);
                   },
-                ),
-                ListTile(
+                )),
+                Material(type: MaterialType.transparency, child: ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -904,8 +904,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     Navigator.pop(ctx);
                     await _savePdfLocally(context, nonNullBytes, fileName);
                   },
-                ),
-                ListTile(
+                )),
+                Material(type: MaterialType.transparency, child: ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -923,7 +923,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     await tempFile.writeAsBytes(nonNullBytes);
                     await Share.shareXFiles([XFile(tempFile.path)]);
                   },
-                ),
+                )),
               ],
             ),
           ),
@@ -1635,7 +1635,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ListTile(
+                Material(type: MaterialType.transparency, child: ListTile(
                   leading: Icon(
                     isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
                     color: const Color(0xFF0D9488),
@@ -1661,8 +1661,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       _showPinDurationDialog(context, eco, msg);
                     }
                   },
-                ),
-                ListTile(
+                )),
+                Material(type: MaterialType.transparency, child: ListTile(
                   leading: const Icon(Icons.reply_rounded, color: AppColors.magentaPrimary),
                   title: const Text('Reply', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
                   onTap: () {
@@ -1682,8 +1682,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       }
                     });
                   },
-                ),
-                ListTile(
+                )),
+                Material(type: MaterialType.transparency, child: ListTile(
                   leading: const Icon(Icons.copy_rounded, color: Color(0xFF475569)),
                   title: const Text('Copy Text', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
                   onTap: () {
@@ -1693,8 +1693,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       const SnackBar(content: Text('Message copied to clipboard')),
                     );
                   },
-                ),
-                ListTile(
+                )),
+                Material(type: MaterialType.transparency, child: ListTile(
                   leading: Icon(
                     msg.isLikedBy(eco.activeEmpId) ? Icons.favorite : Icons.favorite_border,
                     color: const Color(0xFFEF4444),
@@ -1718,7 +1718,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       });
                     }
                   },
-                ),
+                )),
               ],
             ),
           ),
@@ -1848,7 +1848,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: ListTile(
+      child: Material(type: MaterialType.transparency, child: ListTile(
         dense: true,
         onTap: onTap,
         leading: Container(
@@ -1868,7 +1868,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
         ),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
-      ),
+      )),
     );
   }
 

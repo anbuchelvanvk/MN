@@ -3026,7 +3026,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 const SizedBox(height: 10),
 
                 // Mandatory Switch
-                SwitchListTile(
+                Material(type: MaterialType.transparency, child: SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   activeColor: AppColors.magentaPrimary,
                   title: Text(
@@ -3035,7 +3035,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   ),
                   value: isMandatory,
                   onChanged: (v) => setDlgState(() => isMandatory = v),
-                ),
+                )),
 
                 // Emoji Picker
                 Text(

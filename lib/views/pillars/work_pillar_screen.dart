@@ -222,7 +222,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.sandBorder),
                     ),
-                    child: CheckboxListTile(
+                    child: Material(type: MaterialType.transparency, child: CheckboxListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       activeColor: AppColors.magentaPrimary,
                       checkColor: Colors.white,
@@ -240,7 +240,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       ),
                       value: _scaleCalibrated,
                       onChanged: (v) => setState(() => _scaleCalibrated = v ?? false),
-                    ),
+                    )),
                   ),
                   const SizedBox(height: 10),
 
@@ -250,7 +250,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.sandBorder),
                     ),
-                    child: CheckboxListTile(
+                    child: Material(type: MaterialType.transparency, child: CheckboxListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                       activeColor: AppColors.magentaPrimary,
                       checkColor: Colors.white,
@@ -268,7 +268,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       ),
                       value: _sopAcknowledged,
                       onChanged: (v) => setState(() => _sopAcknowledged = v ?? false),
-                    ),
+                    )),
                   ),
                   const SizedBox(height: 14),
 

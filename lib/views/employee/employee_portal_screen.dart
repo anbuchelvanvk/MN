@@ -1311,7 +1311,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   ),
                   Text('Progress: ${pc.percentage}% • ${pc.isAuthorized ? "VERIFIED" : "ACTION REQUIRED"}', style: const TextStyle(fontSize: 11.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  CheckboxListTile(
+                  Material(type: MaterialType.transparency, child: CheckboxListTile(
                     title: const Text('1. Photo Identity Verified', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
                     subtitle: const Text('Biometric pass verified', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.photoVerified,
@@ -1320,8 +1320,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                       eco.verifyProfileStep(emp.id, photo: v);
                       setModalState(() {});
                     },
-                  ),
-                  CheckboxListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: CheckboxListTile(
                     title: const Text('2. Residential Address Proof', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
                     subtitle: const Text('Utility bill & Aadhaar copy verified', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.addressVerified,
@@ -1330,8 +1330,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                       eco.verifyProfileStep(emp.id, address: v);
                       setModalState(() {});
                     },
-                  ),
-                  CheckboxListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: CheckboxListTile(
                     title: const Text('3. Government Tax KYC & PAN Card', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
                     subtitle: const Text('PAN linked to payroll portal', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.kycVerified,
@@ -1340,8 +1340,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                       eco.verifyProfileStep(emp.id, kyc: v);
                       setModalState(() {});
                     },
-                  ),
-                  CheckboxListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: CheckboxListTile(
                     title: const Text('4. Predefined Daily SOP Responsibilities', style: TextStyle(color: AppColors.textDark, fontSize: 12.5)),
                     subtitle: const Text('Digitally signed and acknowledged', style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
                     value: pc.sopRolesAcknowledged,
@@ -1350,7 +1350,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                       eco.verifyProfileStep(emp.id, sop: v);
                       setModalState(() {});
                     },
-                  ),
+                  )),
                   const SizedBox(height: 14),
                   LiquidGlassButton(
                     label: 'Save & Close Wizard',

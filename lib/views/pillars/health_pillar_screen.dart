@@ -1844,7 +1844,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         separatorBuilder: (_, __) => const Divider(color: AppColors.sandBorder, height: 1),
                         itemBuilder: (ctx, idx) {
                           final item = FoodDatabase.catalog[idx];
-                          return ListTile(
+                          return Material(type: MaterialType.transparency, child: ListTile(
                             dense: true,
                             leading: Text(item.iconEmoji, style: const TextStyle(fontSize: 20)),
                             title: Text(
@@ -1877,7 +1877,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               ),
                             ),
                             onTap: () => _openLogFoodDialog(context, eco, item),
-                          );
+                          ));
                         },
                       ),
                     ),
@@ -1943,7 +1943,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     final item = combinedResults[idx];
                     final isOnline = item.id.startsWith('api_');
 
-                    return ListTile(
+                    return Material(type: MaterialType.transparency, child: ListTile(
                       dense: true,
                       leading: Text(item.iconEmoji, style: const TextStyle(fontSize: 20)),
                       title: Row(
@@ -2000,7 +2000,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         ),
                       ),
                       onTap: () => _openLogFoodDialog(context, eco, item),
-                    );
+                    ));
                   },
                 ),
         ),

@@ -1253,7 +1253,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                   itemBuilder: (ctx, i) {
                     final target = availableEmployees[i];
                     final isTargetAbsent = eco.isEmployeeAbsent(target.id);
-                    return ListTile(
+                    return Material(type: MaterialType.transparency, child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                       leading: CircleAvatar(
                         radius: 16,
@@ -1296,7 +1296,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                           ),
                         );
                       },
-                    );
+                    ));
                   },
                 ),
               ),

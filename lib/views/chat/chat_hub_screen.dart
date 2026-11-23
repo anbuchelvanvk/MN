@@ -452,7 +452,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
           ),
         ],
       ),
-      child: ListTile(
+      child: Material(type: MaterialType.transparency, child: ListTile(
         onTap: () {
           Navigator.push(
             context,
@@ -576,7 +576,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
             ),
           ],
         ),
-      ),
+      )),
     );
   }
 

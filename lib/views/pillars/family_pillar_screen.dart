@@ -1112,7 +1112,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.sandBorder),
                 ),
-                child: CheckboxListTile(
+                child: Material(type: MaterialType.transparency, child: CheckboxListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   activeColor: AppColors.burgundyPrimary,
                   checkColor: Colors.white,
@@ -1142,7 +1142,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       );
                     }
                   },
-                ),
+                )),
               ),
               const SizedBox(height: 12),
 

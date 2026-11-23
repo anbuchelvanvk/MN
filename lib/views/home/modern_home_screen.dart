@@ -2241,12 +2241,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 children: [
-                  ListTile(
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.home_outlined, color: Color(0xFF881337)),
                     title: Text('Home Dashboard', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () => Navigator.pop(context),
-                  ),
-                  ListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.forum_outlined, color: Color(0xFF881337)),
                     title: Text('Team Chat Hub', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
@@ -2261,8 +2261,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         ),
                       );
                     },
-                  ),
-                  ListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.menu_book_rounded, color: Color(0xFF881337)),
                     title: Text('${_deptLabel(emp.dept)} Konar Book', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
@@ -2276,8 +2276,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         ),
                       );
                     },
-                  ),
-                  ListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.person_outline, color: Color(0xFF881337)),
                     title: Text('Employee Profile', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
@@ -2287,8 +2287,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
                       );
                     },
-                  ),
-                  ListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.fact_check_outlined, color: Color(0xFF881337)),
                     title: Text('My Attendance', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
@@ -2298,8 +2298,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         MaterialPageRoute(builder: (_) => const AttendancePillarScreen()),
                       );
                     },
-                  ),
-                  ListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF881337)),
                     title: Text('Online Orders', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
@@ -2309,8 +2309,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
                       );
                     },
-                  ),
-                  ListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.sticky_note_2_outlined, color: Color(0xFF881337)),
                     title: Text('Personal Notes', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
@@ -2320,8 +2320,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         MaterialPageRoute(builder: (_) => const PersonalNotesScreen()),
                       );
                     },
-                  ),
-                  ListTile(
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.video_collection_outlined, color: Color(0xFF881337)),
                     title: Text('Media Review Board', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
@@ -2331,9 +2331,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         MaterialPageRoute(builder: (_) => const CreativeMediaReviewBoardScreen()),
                       );
                     },
-                  ),
+                  )),
                   const Divider(height: 24),
-                  ListTile(
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
                     title: Text(
                       'Logout',
@@ -2346,7 +2346,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       Navigator.pop(context);
                       LogoutConfirmDialog.show(context);
                     },
-                  ),
+                  )),
                 ],
               ),
             ),

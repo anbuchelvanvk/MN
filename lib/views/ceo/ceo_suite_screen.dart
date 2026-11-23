@@ -1360,7 +1360,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                 'Direct Hotline Clearance to CEO Office',
               ].map((perk) {
                 final isGranted = _selectedPerks.contains(perk);
-                return CheckboxListTile(
+                return Material(type: MaterialType.transparency, child: CheckboxListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   activeColor: AppColors.magentaPrimary,
@@ -1383,7 +1383,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       }
                     });
                   },
-                );
+                ));
               }),
             ],
           ),

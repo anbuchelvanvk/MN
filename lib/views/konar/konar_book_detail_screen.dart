@@ -550,7 +550,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
+        child: Material(type: MaterialType.transparency, child: ExpansionTile(
           initiallyExpanded: _allExpanded || index == 0,
           tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           leading: Container(
@@ -644,7 +644,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
               ),
             ),
           ],
-        ),
+        )),
       ),
     );
   }

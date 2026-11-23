@@ -994,7 +994,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                     separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.burgundySurface),
                     itemBuilder: (context, index) {
                       final emp = deptEmployees[index];
-                      return ListTile(
+                      return Material(type: MaterialType.transparency, child: ListTile(
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
@@ -1014,7 +1014,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                           style: const TextStyle(fontSize: 10.5, color: AppColors.sandBorder),
                         ),
                         trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.sandGold),
-                      );
+                      ));
                     },
                   ),
                 ),
