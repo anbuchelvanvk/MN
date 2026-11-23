@@ -30,7 +30,7 @@ void main() {
       // Step 1: Login as CEO
       final detectedRole = await provider.loginWithFirebase(
         email: 'ceoofmn@mnjpark.com',
-        password: 'adminnaandhan',
+        password: 'test-password',
       );
       expect(detectedRole, 'ceo');
       expect(provider.activeEmpId, 'MN-CEO01');
@@ -109,7 +109,7 @@ void main() {
       // Step 1: Login as HR
       final detectedRole = await provider.loginWithFirebase(
         email: 'hr@mnj.com',
-        password: 'hr@mnj123',
+        password: 'test-password',
       );
       expect(detectedRole, 'hr');
       expect(provider.activeEmpId, '7');
@@ -173,7 +173,7 @@ void main() {
       // Step 1: Login as TL Praveenkumar M
       final detectedRole = await provider.loginWithFirebase(
         email: 'praveenkumarotm@mnj.com',
-        password: 'praveen@mnj123',
+        password: 'test-password',
       );
       expect(detectedRole, 'dept_head');
       expect(provider.activeEmpId, 'MN-TL1002');
@@ -237,7 +237,7 @@ void main() {
       // Step 1: Login as Employee (Gokulakrishnan K - OSH)
       final detectedRole = await provider.loginWithFirebase(
         email: 'gokulakrishnanosh@mnj.com',
-        password: 'gokul@mnj123',
+        password: 'test-password',
       );
       expect(detectedRole, 'employee');
       expect(provider.activeEmpId, '6');

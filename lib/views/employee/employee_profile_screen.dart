@@ -49,8 +49,8 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
     _phoneController = TextEditingController(text: emp.phone);
     _dobController = TextEditingController(text: emp.dob);
     _anniversaryController = TextEditingController(text: emp.anniversaryDate);
-    _relationshipStatus = emp.relationshipStatus.isNotEmpty ? emp.relationshipStatus : 'Single';
-    _gender = emp.gender.isNotEmpty ? emp.gender : 'Male';
+    _relationshipStatus = Employee.normalizeRelationship(emp.relationshipStatus);
+    _gender = Employee.normalizeGender(emp.gender);
   }
 
   @override
@@ -145,7 +145,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
     }
 
     setState(() => _isUpdatingPassword = true);
-    final success = await eco.changeEmployeePassword(
+    final error = await eco.changeEmployeePasswordWithReason(
       empId: emp.id,
       oldPassword: oldPass,
       newPassword: newPass,
@@ -154,7 +154,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
     if (!mounted) return;
     setState(() => _isUpdatingPassword = false);
 
-    if (success) {
+    if (error == null) {
       _oldPasswordController.clear();
       _newPasswordController.clear();
       _confirmPasswordController.clear();
@@ -166,8 +166,8 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Incorrect old password. If forgotten, contact HR to retrieve it.'),
+        SnackBar(
+          content: Text(error),
           backgroundColor: AppColors.ragRed,
         ),
       );
@@ -234,7 +234,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                       const Icon(Icons.person, size: 16, color: AppColors.sandGold),
                       const SizedBox(width: 8),
                       Text(
-                        'Mohankumar G (HR Manager)',
+                        'HR Department (hr@mnj.com)',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.bold,
@@ -1028,21 +1028,27 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.history_rounded, color: AppColors.sandGold, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    'RECENT ATTENDANCE',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandLight,
-                      letterSpacing: 0.5,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.history_rounded, color: AppColors.sandGold, size: 18),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'RECENT ATTENDANCE',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.sandLight,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(

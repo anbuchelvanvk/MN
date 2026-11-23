@@ -926,7 +926,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 pointsEarned: livePoints,
                 maxPoints: 50,
                 reason: 'HR dossier inspection completed.',
-                auditedBy: 'Mohankumar G (HR)',
+                auditedBy: '${eco.currentEmployee.name} (HR)',
               );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -950,7 +950,6 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
   }
 
   void _openResetPasswordDialog(BuildContext context, EcosystemProvider eco, Employee emp) {
-    final newPassCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -966,13 +965,10 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
           children: [
             Text('Reset password for ${emp.name} (#${emp.id}):', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
             const SizedBox(height: 10),
-            TextField(
-              controller: newPassCtrl,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
-              decoration: InputDecoration(
-                hintText: 'Enter new password',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
+            Text(
+              'A secure reset link will be emailed to ${emp.email.isNotEmpty ? emp.email : 'their login email'}. '
+              'They set the new password themselves, so it is never shared or visible to HR/CEO.',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -987,16 +983,17 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              final newPass = newPassCtrl.text.trim();
-              if (newPass.isEmpty) return;
               final messenger = ScaffoldMessenger.of(context);
-              await eco.adminResetEmployeePassword(empId: emp.id, newPassword: newPass);
+              final error = await eco.adminResetEmployeePassword(empId: emp.id);
               if (ctx.mounted) Navigator.pop(ctx);
               messenger.showSnackBar(
-                SnackBar(content: Text('Password for ${emp.name} reset to: $newPass'), backgroundColor: const Color(0xFF10B981)),
+                SnackBar(
+                  content: Text(error ?? 'Password reset link sent to ${emp.email}. ${emp.name} must open it to set a new password.'),
+                  backgroundColor: error == null ? const Color(0xFF10B981) : const Color(0xFFDC2626),
+                ),
               );
             },
-            child: const Text('Save & Reset'),
+            child: const Text('Send Reset Link'),
           ),
         ],
       ),
@@ -1008,8 +1005,8 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
     final phoneCtrl = TextEditingController(text: emp.phone);
     final dobCtrl = TextEditingController(text: emp.dob);
     final annivCtrl = TextEditingController(text: emp.anniversaryDate);
-    String relStatus = emp.relationshipStatus.isNotEmpty ? emp.relationshipStatus : 'Single';
-    String gender = emp.gender.isNotEmpty ? emp.gender : 'Male';
+    String relStatus = Employee.normalizeRelationship(emp.relationshipStatus);
+    String gender = Employee.normalizeGender(emp.gender);
 
     showModalBottomSheet(
       context: context,

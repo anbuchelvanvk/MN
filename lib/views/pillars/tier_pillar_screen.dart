@@ -580,7 +580,8 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(
+                    Flexible(
+                      child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: item.indicatorColor.withOpacity(0.18),
@@ -588,12 +589,14 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                       ),
                       child: Text(
                         item.status,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: item.indicatorColor,
                         ),
                       ),
+                    ),
                     ),
                   ],
                 ),

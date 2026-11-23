@@ -96,11 +96,14 @@ void main() {
         assignedByName: 'Praveenkumar M',
       );
 
-      final taskPush = PushNotificationService.testNotificationLog.firstWhere(
-        (p) => p['title']!.contains('Audit Hallmarking Registry Trays'),
+      // Delivered to the assignee's phone through a Firestore notice targeted
+      // at them (not as a local push on the Team Lead's own device).
+      final notice = eco.companyNotifications.firstWhere(
+        (n) => n.title.contains('Audit Hallmarking Registry Trays'),
       );
-      expect(taskPush, isNotNull);
-      expect(taskPush['body'], contains('Critical SLA'));
+      expect(notice.content, contains('Critical SLA'));
+      expect(notice.targetEmpIds, equals(['MN-1007']));
+      expect(eco.tasks.any((t) => t.title == 'Audit Hallmarking Registry Trays' && t.empId == 'MN-1007'), isTrue);
     });
   });
 }

@@ -13,6 +13,7 @@ import '../../providers/ecosystem_provider.dart';
 import 'hr_biometric_punch_audit_screen.dart';
 import 'hr_employee_inspection_screen.dart';
 import 'hr_management_widgets.dart';
+import '../../core/utils/password_generator.dart';
 
 // ============================================================================
 // 1. REUSABLE HR SUBPAGE SCAFFOLD (Standard Top-Left Back Button Architecture)
@@ -286,7 +287,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
   Widget _buildStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
     final isAbsent = eco.isEmployeeAbsent(emp.id);
     final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
-    final empPassword = emp.password.isNotEmpty ? emp.password : 'password123';
+    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored (use Send Reset Link)';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -500,7 +501,8 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       const SizedBox(width: 4),
                       InkWell(
                         onTap: () {
-                          Clipboard.setData(ClipboardData(text: empPassword));
+                          if (emp.password.isEmpty) return;
+                        Clipboard.setData(ClipboardData(text: empPassword));
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               backgroundColor: const Color(0xFF10B981),
@@ -645,7 +647,6 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
   }
 
   void _openResetPasswordDialog(BuildContext context, EcosystemProvider eco, Employee emp) {
-    final newPassCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -661,13 +662,10 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
           children: [
             Text('Reset password for ${emp.name} (#${emp.id}):', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
             const SizedBox(height: 10),
-            TextField(
-              controller: newPassCtrl,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
-              decoration: InputDecoration(
-                hintText: 'Enter new password',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
+            Text(
+              'A secure reset link will be emailed to ${emp.email.isNotEmpty ? emp.email : 'their login email'}. '
+              'They set the new password themselves, so it is never shared or visible to HR/CEO.',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -682,16 +680,17 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              final newPass = newPassCtrl.text.trim();
-              if (newPass.isEmpty) return;
               final messenger = ScaffoldMessenger.of(context);
-              await eco.adminResetEmployeePassword(empId: emp.id, newPassword: newPass);
+              final error = await eco.adminResetEmployeePassword(empId: emp.id);
               if (ctx.mounted) Navigator.pop(ctx);
               messenger.showSnackBar(
-                SnackBar(content: Text('Password for ${emp.name} reset to: $newPass'), backgroundColor: const Color(0xFF10B981)),
+                SnackBar(
+                  content: Text(error ?? 'Password reset link sent to ${emp.email}. ${emp.name} must open it to set a new password.'),
+                  backgroundColor: error == null ? const Color(0xFF10B981) : const Color(0xFFDC2626),
+                ),
               );
             },
-            child: const Text('Save & Reset'),
+            child: const Text('Send Reset Link'),
           ),
         ],
       ),
@@ -753,7 +752,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
             nameController.text = match.name;
             final cleanName = match.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
             emailController.text = '$cleanName@mnjewelpark.com';
-            passwordController.text = '$cleanName@mnj123';
+            passwordController.text = generateTemporaryPassword();
           }
         });
       }
@@ -1108,7 +1107,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                           nameController.text = sheetEmp.name;
                                           final cleanName = sheetEmp.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
                                           emailController.text = '$cleanName@mnjewelpark.com';
-                                          passwordController.text = '$cleanName@mnj123';
+                                          passwordController.text = generateTemporaryPassword();
                                         });
                                       },
                                       child: Container(
@@ -1549,11 +1548,11 @@ class HrSocialCausesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const HrSubpageScaffold(
+    return HrSubpageScaffold(
       title: 'Social Causes',
       subtitle: 'Pillar 5 Workforce Approval',
       body: HrSocialCauseApprovalSection(
-        reviewerName: 'Mohankumar G (HR)',
+        reviewerName: '${context.read<EcosystemProvider>().currentEmployee.name} (HR)',
         reviewerRole: 'HR Manager & Custodian',
       ),
     );
@@ -1568,11 +1567,11 @@ class HrStaffTasksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const HrSubpageScaffold(
+    return HrSubpageScaffold(
       title: 'Staff Tasks',
       subtitle: 'Task Allocation & Operations',
       body: HrEmployeeTodoManagementSection(
-        authorizedName: 'Mohankumar G (HR)',
+        authorizedName: '${context.read<EcosystemProvider>().currentEmployee.name} (HR)',
         authorizedRole: 'HR Manager & Custodian',
       ),
     );
@@ -1690,6 +1689,108 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
     );
   }
 
+  Widget _sheetNoticeCard({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String body,
+    Widget? trailing,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: color),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(body, style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+          if (trailing != null) ...[const SizedBox(height: 8), trailing],
+        ],
+      ),
+    );
+  }
+
+  /// Staff whose EMP number is missing from the selected month's sheet.
+  /// Sync no longer relieves them automatically; HR decides here.
+  Widget _buildMissingFromSheetPanel(BuildContext context, EcosystemProvider eco) {
+    final missing = eco.staffMissingFromAttendanceSheet;
+    if (missing.isEmpty) return const SizedBox.shrink();
+    return _sheetNoticeCard(
+      icon: Icons.person_search_rounded,
+      color: AppColors.ragYellow,
+      title: "${missing.length} staff not found in this month's attendance sheet",
+      body: 'They may have left, or the sheet may be missing a row. Nothing is removed automatically - review each person below.',
+      trailing: Column(
+        children: [
+          for (final emp in missing)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${emp.name} (EMP #${emp.empNo}) - ${emp.dept}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.textDark),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _confirmRelieve(context, eco, emp),
+                    child: const Text('Relieve', style: TextStyle(color: AppColors.ragRed, fontSize: 11.5)),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmRelieve(BuildContext context, EcosystemProvider eco, Employee emp) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Relieve from company?'),
+        content: Text(
+          '${emp.name} (EMP #${emp.empNo}) will be removed from the workforce and their login disabled in the app. This cannot be undone from the app.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.ragRed, foregroundColor: Colors.white),
+            onPressed: () {
+              Navigator.pop(ctx);
+              final ok = eco.relieveEmployee(emp.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(ok ? '${emp.name} has been relieved.' : (eco.notificationMessage ?? 'Could not relieve ${emp.name}.')),
+                ),
+              );
+            },
+            child: const Text('Relieve'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
@@ -1744,10 +1845,13 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
           onPressed: () async {
             await eco.syncGoogleSheetsAttendance(notifyIfUpdated: true);
             if (!context.mounted) return;
+            final err = eco.attendanceSheetError;
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: Color(0xFF10B981),
-                content: Text('HR Attendance synchronized with Google Sheets!'),
+              SnackBar(
+                backgroundColor: err == null ? const Color(0xFF10B981) : AppColors.ragRed,
+                content: Text(err == null
+                    ? 'HR Attendance synchronized with Google Sheets!'
+                    : 'Sync failed: ${err.replaceFirst('Exception: ', '')}'),
               ),
             );
           },
@@ -1756,6 +1860,15 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (eco.attendanceSheetError != null)
+            _sheetNoticeCard(
+              icon: Icons.error_outline_rounded,
+              color: AppColors.ragRed,
+              title: 'Attendance sheet could not be loaded',
+              body: eco.attendanceSheetError!.replaceFirst('Exception: ', ''),
+            ),
+          _buildMissingFromSheetPanel(context, eco),
+
           // View Switcher Tabs: Google Sheets Master vs Today's Shifts
           Container(
             padding: const EdgeInsets.all(4),
@@ -2820,7 +2933,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                         pointsEarned: earnedPoints,
                         maxPoints: 50,
                         reason: remarks,
-                        auditedBy: 'Mohankumar G (HR)',
+                        auditedBy: '${context.read<EcosystemProvider>().currentEmployee.name} (HR)',
                       );
                       _groomingRemarksCtrl.clear();
                       ScaffoldMessenger.of(context).showSnackBar(

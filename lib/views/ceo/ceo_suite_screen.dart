@@ -36,6 +36,7 @@ import '../../services/image_optimization_service.dart';
 import '../pillars/family_pillar_screen.dart';
 import 'admin_role_access_management_screen.dart';
 import '../media/creative_media_review_board_screen.dart';
+import '../../core/utils/password_generator.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   const CeoSuiteScreen({super.key});
@@ -133,7 +134,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         dob: '1975-01-15',
         relationshipStatus: 'Married',
         anniversaryDate: '2001-05-20',
-        password: 'adminnaandhan',
       ),
     );
 
@@ -1624,7 +1624,9 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   const Text('Select Employee:', style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
-                    value: staffList.any((e) => e.id == selectedEmp) ? selectedEmp : staffList.first.id,
+                    value: staffList.any((e) => e.id == selectedEmp)
+                        ? selectedEmp
+                        : (staffList.isNotEmpty ? staffList.first.id : null),
                     isExpanded: true,
                     dropdownColor: AppColors.burgundySurface,
                     style: const TextStyle(color: AppColors.textDark, fontSize: 12),
@@ -3426,7 +3428,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   Widget _buildCeoStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
     final isAbsent = eco.isEmployeeAbsent(emp.id);
     final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
-    final empPassword = emp.password.isNotEmpty ? emp.password : 'password123';
+    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored (use Send Reset Link)';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -3560,6 +3562,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     const SizedBox(width: 4),
                     InkWell(
                       onTap: () {
+                        if (emp.password.isEmpty) return;
                         Clipboard.setData(ClipboardData(text: empPassword));
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -3706,7 +3709,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   }
 
   void _openResetPasswordDialog(BuildContext context, EcosystemProvider eco, Employee emp) {
-    final newPassCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -3728,27 +3730,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: newPassCtrl,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.sandLight),
-              decoration: InputDecoration(
-                hintText: 'Enter new password (min 6 chars)',
-                hintStyle: TextStyle(color: AppColors.textMuted.withOpacity(0.6)),
-                filled: true,
-                fillColor: const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.sandBorder),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.sandBorder),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.magentaPrimary),
-                ),
-              ),
+            Text(
+              'A secure reset link will be emailed to ${emp.email.isNotEmpty ? emp.email : 'their login email'}. '
+              'They set the new password themselves, so it is never shared or visible to HR/CEO.',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -3763,19 +3748,17 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               foregroundColor: AppColors.burgundyCard,
             ),
             onPressed: () async {
-              final newPass = newPassCtrl.text.trim();
-              if (newPass.isEmpty) return;
               final messenger = ScaffoldMessenger.of(context);
-              await eco.adminResetEmployeePassword(empId: emp.id, newPassword: newPass);
+              final error = await eco.adminResetEmployeePassword(empId: emp.id);
               if (ctx.mounted) Navigator.pop(ctx);
               messenger.showSnackBar(
                 SnackBar(
-                  content: Text('Password for ${emp.name} reset to: $newPass'),
-                  backgroundColor: const Color(0xFF10B981),
+                  content: Text(error ?? 'Password reset link sent to ${emp.email}. ${emp.name} must open it to set a new password.'),
+                  backgroundColor: error == null ? const Color(0xFF10B981) : const Color(0xFFDC2626),
                 ),
               );
             },
-            child: const Text('Save & Reset', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Send Reset Link', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -3875,7 +3858,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             nameController.text = match.name;
             final cleanName = match.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
             emailController.text = '$cleanName@mnjewelpark.com';
-            passwordController.text = '$cleanName@mnj123';
+            passwordController.text = generateTemporaryPassword();
           }
         });
       }
@@ -4497,7 +4480,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                           nameController.text = sheetEmp.name;
                                           final cleanName = sheetEmp.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
                                           emailController.text = '$cleanName@mnjewelpark.com';
-                                          passwordController.text = '$cleanName@mnj123';
+                                          passwordController.text = generateTemporaryPassword();
                                         });
                                       },
                                       child: Container(
@@ -4721,7 +4704,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 controller: passwordController,
                                 style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
                                 decoration: InputDecoration(
-                                  hintText: 'Default: password123',
+                                  hintText: 'Leave blank to auto-generate a secure password',
                                   hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
                                   filled: true,
                                   fillColor: AppColors.burgundyBg,
@@ -4823,7 +4806,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           dept: assignedDept,
                           phone: phoneController.text.trim().isNotEmpty ? phoneController.text.trim() : '+91 98450 00000',
                           email: staffEmail,
-                          password: passwordController.text.trim().isNotEmpty ? passwordController.text.trim() : 'password123',
+                          password: passwordController.text.trim(),
                           experienceCategory: 'experienced',
                           experienceYears: '3+ yrs in Corporate',
                           dob: dobController.text.trim().isNotEmpty ? dobController.text.trim() : '01-01-2000',

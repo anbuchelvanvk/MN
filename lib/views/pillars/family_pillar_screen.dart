@@ -315,14 +315,15 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   });
                 },
               ),
-              InkWell(
+              Flexible(
+                child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _selectedDate,
-                    firstDate: DateTime(2025, 1, 1),
-                    lastDate: DateTime(2027, 12, 31),
+                    firstDate: DateTime(2020, 1, 1),
+                    lastDate: DateTime.now().add(const Duration(days: 366)),
                     builder: (context, child) {
                       return Theme(
                         data: ThemeData.dark().copyWith(
@@ -351,19 +352,23 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     children: [
                       const Icon(Icons.calendar_month, color: AppColors.sandGold, size: 16),
                       const SizedBox(width: 6),
-                      Text(
+                      Flexible(
+                        child: Text(
                         '${_months[_selectedDate.month - 1]} ${_selectedDate.year}',
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
                         ),
                       ),
+                      ),
                       const SizedBox(width: 4),
                       const Icon(Icons.arrow_drop_down, color: AppColors.sandPrimary, size: 18),
                     ],
                   ),
                 ),
+              ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -618,7 +623,9 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(emoji, style: const TextStyle(fontSize: 20)),
-                Container(
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: badgeColor.withOpacity(0.18),
@@ -627,12 +634,14 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   ),
                   child: Text(
                     badge,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold,
                       color: badgeColor,
                     ),
                   ),
+                ),
                 ),
               ],
             ),
@@ -1554,8 +1563,8 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         final picked = await showDatePicker(
                           context: context,
                           initialDate: _selectedDate,
-                          firstDate: DateTime(2025, 1, 1),
-                          lastDate: DateTime(2027, 12, 31),
+                          firstDate: DateTime(2020, 1, 1),
+                          lastDate: DateTime.now().add(const Duration(days: 366)),
                           builder: (context, child) {
                             return Theme(
                               data: ThemeData.dark().copyWith(

@@ -291,7 +291,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'HR Custodian: Mohankumar G • Ext: 1001 • hr@mnj.com',
+                  'HR Department • hr@mnj.com',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
                     color: AppColors.textMuted,
@@ -794,20 +794,26 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   ],
                 ),
               ),
-              Container(
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.magentaPrimary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'Updated up to ${sheet?.latestRecordedDay ?? 14}th • $daysCount Days',
+                  sheet?.latestRecordedDay != null
+                      ? 'Updated up to ${_ordinal(sheet!.latestRecordedDay)} • $daysCount Days'
+                      : 'Not updated yet',
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: AppColors.magentaPrimary,
                   ),
                 ),
+              ),
               ),
             ],
           ),
@@ -1419,5 +1425,20 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
         ),
       ),
     );
+  }
+}
+
+/// 1 -> 1st, 2 -> 2nd, 3 -> 3rd, 11 -> 11th, 22 -> 22nd ...
+String _ordinal(int n) {
+  if (n % 100 >= 11 && n % 100 <= 13) return '${n}th';
+  switch (n % 10) {
+    case 1:
+      return '${n}st';
+    case 2:
+      return '${n}nd';
+    case 3:
+      return '${n}rd';
+    default:
+      return '${n}th';
   }
 }

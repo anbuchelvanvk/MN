@@ -1341,7 +1341,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
 
   Widget _buildCeoStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
     final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
-    final empPassword = emp.password.isNotEmpty ? emp.password : 'password123';
+    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored (use Send Reset Link)';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -1467,6 +1467,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                     const SizedBox(width: 4),
                     InkWell(
                       onTap: () {
+                        if (emp.password.isEmpty) return;
                         Clipboard.setData(ClipboardData(text: empPassword));
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -1613,7 +1614,6 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
   }
 
   void _openResetPasswordDialog(BuildContext context, EcosystemProvider eco, Employee emp) {
-    final newPassCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1635,27 +1635,10 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
               style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: newPassCtrl,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.sandLight),
-              decoration: InputDecoration(
-                hintText: 'Enter new password (min 6 chars)',
-                hintStyle: TextStyle(color: AppColors.textMuted.withOpacity(0.6)),
-                filled: true,
-                fillColor: const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.sandBorder),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.sandBorder),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.magentaPrimary),
-                ),
-              ),
+            Text(
+              'A secure reset link will be emailed to ${emp.email.isNotEmpty ? emp.email : 'their login email'}. '
+              'They set the new password themselves, so it is never shared or visible to HR/CEO.',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -1670,19 +1653,17 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
               foregroundColor: AppColors.burgundyCard,
             ),
             onPressed: () async {
-              final newPass = newPassCtrl.text.trim();
-              if (newPass.isEmpty) return;
               final messenger = ScaffoldMessenger.of(context);
-              await eco.adminResetEmployeePassword(empId: emp.id, newPassword: newPass);
+              final error = await eco.adminResetEmployeePassword(empId: emp.id);
               if (ctx.mounted) Navigator.pop(ctx);
               messenger.showSnackBar(
                 SnackBar(
-                  content: Text('Password for ${emp.name} reset to: $newPass'),
-                  backgroundColor: const Color(0xFF10B981),
+                  content: Text(error ?? 'Password reset link sent to ${emp.email}. ${emp.name} must open it to set a new password.'),
+                  backgroundColor: error == null ? const Color(0xFF10B981) : const Color(0xFFDC2626),
                 ),
               );
             },
-            child: const Text('Save & Reset', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Send Reset Link', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

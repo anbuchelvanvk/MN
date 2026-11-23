@@ -230,6 +230,23 @@ class MedicalLeaveRecord {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
+  MedicalLeaveRecord withPrescription(String base64) => MedicalLeaveRecord(
+        id: id,
+        empId: empId,
+        empName: empName,
+        empRole: empRole,
+        department: department,
+        date: date,
+        days: days,
+        reason: reason,
+        prescriptionBase64: base64,
+        status: status,
+        hrApprovedBy: hrApprovedBy,
+        ceoApprovedBy: ceoApprovedBy,
+        reviewedAt: reviewedAt,
+        isEmergency: isEmergency,
+      );
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

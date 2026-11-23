@@ -501,6 +501,14 @@ class Employee {
       id == 'MN-TL1002';
   bool get isDeptHead => isTeamLead;
 
+  /// Dropdown-safe gender value ('Male' / 'Female'); stored data may be lower-case.
+  static String normalizeGender(String raw) =>
+      raw.trim().toLowerCase() == 'female' ? 'Female' : 'Male';
+
+  /// Dropdown-safe relationship status ('Single' / 'Married').
+  static String normalizeRelationship(String raw) =>
+      raw.trim().toLowerCase() == 'married' ? 'Married' : 'Single';
+
   // Granular Access Getters backed by RolePermissions
   bool get canAccessCeoSuite => permissions.canAccessCeoSuite;
   bool get canAccessHrPortal => permissions.canAccessHrPortal;

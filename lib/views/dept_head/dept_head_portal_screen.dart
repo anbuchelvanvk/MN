@@ -20,6 +20,7 @@ import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_book_detail_screen.dart';
 import '../media/creative_media_review_board_screen.dart';
+import '../home/modern_home_screen.dart';
 
 class DeptHeadPortalScreen extends StatefulWidget {
   const DeptHeadPortalScreen({super.key});
@@ -284,6 +285,8 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                   const SizedBox(height: 12),
                   Column(
                     children: [
+                      _verticalTabTile(const ModernHomeScreen(), 'OTM Home Dashboard', Icons.dashboard_customize_outlined, 'V2'),
+                      const SizedBox(height: 8),
                       _verticalTabTile(const ChatHubScreen(), 'Team Chat', Icons.chat_bubble_outline_rounded, eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : ''),
                       const SizedBox(height: 8),
                       _verticalTabTile(const CreativeMediaReviewBoardScreen(), 'Media Review Board', Icons.video_collection_outlined, eco.pendingMediaApprovalsCount > 0 ? '${eco.pendingMediaApprovalsCount}' : 'DAM'),

@@ -36,7 +36,14 @@ void main() async {
   String? initialEmpId;
   String? initialRole;
   try {
-    if (FirebaseAuth.instance.currentUser != null) {
+    // On web the persisted user is restored asynchronously, so wait briefly
+    // for the first auth state instead of reading currentUser immediately.
+    final restoredUser = FirebaseAuth.instance.currentUser ??
+        await FirebaseAuth.instance
+            .authStateChanges()
+            .first
+            .timeout(const Duration(seconds: 3), onTimeout: () => null);
+    if (restoredUser != null) {
       final prefs = await SharedPreferences.getInstance();
       initialEmpId = prefs.getString('saved_emp_id');
       initialRole = prefs.getString('saved_role');
@@ -62,8 +69,9 @@ void main() async {
   final ecoProvider = EcosystemProvider();
   if (initialEmpId != null && initialEmpId.isNotEmpty) {
     ecoProvider.setLoggedIn(true);
-    ecoProvider.setActiveEmpId(initialEmpId);
-    ecoProvider.loadEmployeeFourPillars(initialEmpId);
+    // setActiveEmpId already loads the pillars; keep the saved role if the
+    // staff directory has not streamed in yet.
+    ecoProvider.setActiveEmpId(initialEmpId, fallbackRole: initialRole);
   } else {
     ecoProvider.setLoggedIn(false);
   }
@@ -98,6 +106,10 @@ class _MnFamilyAppState extends State<MnFamilyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Process a deep-link notification payload once, after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PushNotificationService.processPendingPayloadIfAny();
+    });
   }
 
   @override
@@ -110,6 +122,7 @@ class _MnFamilyAppState extends State<MnFamilyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       final eco = Provider.of<EcosystemProvider>(context, listen: false);
+      if (!eco.isLoggedIn) return;
       eco.checkAndResetDailySops();
       eco.checkAndDispatchCelebrations();
     }
@@ -138,11 +151,6 @@ class _MnFamilyAppState extends State<MnFamilyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Process direct deep-link notification payload on post-frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      PushNotificationService.processPendingPayloadIfAny();
-    });
-
     return MaterialApp(
       title: 'MN Family',
       navigatorKey: PushNotificationService.navigatorKey,

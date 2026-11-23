@@ -89,7 +89,6 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
           probationEndDate: 'Completed',
           status: 'active',
           ragStatus: 'green',
-          password: 'hr@mnj123',
           lastActive: 'Active now',
           profileCompletion: ProfileCompletion(
             percentage: 100,
@@ -455,8 +454,8 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
               const SizedBox(height: 16),
 
               // HR Management Broadcast & To-Do Reminder Dispatcher (Positioned at end)
-              const HrBroadcastSection(
-                senderName: 'Mohankumar G (HR)',
+              HrBroadcastSection(
+                senderName: '${eco.currentEmployee.name} (HR)',
                 senderRole: 'HR Manager & Custodian',
               ),
               const SizedBox(height: 16),

@@ -77,10 +77,16 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: Center(
-              child: LiquidGlassPill(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: LiquidGlassPill(
                 label: employee.dept.toUpperCase(),
                 color: AppColors.sandGold,
                 icon: Icons.badge_outlined,
+              ),
+                ),
               ),
             ),
           ),
@@ -172,7 +178,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   Widget _buildAccountSecurityCard(BuildContext context, EcosystemProvider provider, dynamic employee) {
     final empPassword = (employee.password as String?)?.isNotEmpty == true
         ? employee.password as String
-        : 'password123';
+        : 'Not stored (managed by Firebase Auth)';
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -405,7 +411,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   return;
                 }
 
-                final success = await provider.changeEmployeePassword(
+                final error = await provider.changeEmployeePasswordWithReason(
                   empId: employee.id,
                   oldPassword: currentPass,
                   newPassword: newPass,
@@ -413,7 +419,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
                 if (ctx.mounted) Navigator.pop(ctx);
 
-                if (success) {
+                if (error == null) {
                   messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Password updated successfully!'),
@@ -422,8 +428,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   );
                 } else {
                   messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Incorrect current password. Please try again.'),
+                    SnackBar(
+                      content: Text(error),
                       backgroundColor: AppColors.ragRed,
                     ),
                   );
@@ -3232,7 +3238,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
       try {
         selectedEmployee = corporateStaff.firstWhere((e) => e.id == _ceoSelectedStaffId || e.empNo == _ceoSelectedStaffId);
       } catch (_) {
-        selectedEmployee = corporateStaff.isNotEmpty ? corporateStaff.first : null;
+        selectedEmployee = null; // selected staff no longer exists: show the overview
       }
     }
 

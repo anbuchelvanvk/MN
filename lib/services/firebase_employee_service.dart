@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,6 +22,18 @@ class FirebaseEmployeeService {
   static bool get isFirebaseAvailable {
     try {
       return Firebase.apps.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// True only when running under `flutter test`. The offline credential
+  /// fallback in [authenticateUser] is restricted to this environment so a
+  /// failed Firebase initialization can never turn into a login bypass.
+  static bool get isTestEnvironment {
+    if (kIsWeb) return false;
+    try {
+      return Platform.environment.containsKey('FLUTTER_TEST');
     } catch (_) {
       return false;
     }
@@ -1314,6 +1327,9 @@ class FirebaseEmployeeService {
         query == 'hr' ||
         query == 'mohankumar') {
       targetEmail = 'hr@mnj.com';
+    } else if (EcosystemProvider.corporateRegistry[query] != null) {
+      // Known login alias (e.g. "gokul", "os1", "gokul@mnj.com") -> official email
+      targetEmail = EcosystemProvider.corporateRegistry[query]!.defaultEmail;
     } else if (!query.contains('@')) {
       // Look up user doc or employee doc by ID/empNo
       try {
@@ -1334,7 +1350,13 @@ class FirebaseEmployeeService {
       throw Exception('Email / Password incorrect');
     }
 
-    // In unit test or offline environments without Firebase initialized
+    // Firebase unavailable outside of tests: refuse to authenticate rather than
+    // trusting the typed credentials (previously any password was accepted).
+    if (!isFirebaseAvailable && !isTestEnvironment) {
+      throw Exception('Login service unavailable. Please check your connection and try again.');
+    }
+
+    // Unit-test environment without Firebase initialized
     if (!isFirebaseAvailable) {
       final reg = EcosystemProvider.corporateRegistry[targetEmail] ??
           EcosystemProvider.corporateRegistry[emailOrId.trim().toLowerCase()];
@@ -1391,6 +1413,8 @@ class FirebaseEmployeeService {
     }
 
     // 3. User authenticated successfully; fetch role and profile from Firestore
+    var profileLookupFailed = false;
+    Map<String, dynamic>? staleUserData;
     try {
       final userDoc = await _usersCollection.doc(targetEmail).get();
       if (userDoc.exists && userDoc.data() != null) {
@@ -1410,15 +1434,40 @@ class FirebaseEmployeeService {
             'dept': d['dept'] ?? dept ?? 'Online Department',
           };
         }
-        return userDoc.data();
+        // The users doc points at an employee id that does not exist (stale
+        // record). Fall through and find the employee by email instead.
+        staleUserData = data;
       }
 
-      for (final col in [_employeeCollection, _offlineEmployeeCollection]) {
+      // Search every department collection, not just online/offline.
+      final cols = <CollectionReference<Map<String, dynamic>>>[
+        _employeeCollection,
+        _offlineEmployeeCollection,
+        for (final name in const [
+          'administration_employees',
+          'accounts_employees',
+          'media_employees',
+          'operations_employees',
+          'technology_employees',
+          'sales_employees',
+        ])
+          _firestore.collection(name),
+      ];
+      try {
+        final depts = await _departmentsCollection.get();
+        for (final d in depts.docs) {
+          final name = d.data()['collection']?.toString() ?? '';
+          if (name.endsWith('_employees') && !cols.any((c) => c.id == name)) {
+            cols.add(_firestore.collection(name));
+          }
+        }
+      } catch (_) {}
+      for (final col in cols) {
         final emailQuery = await col.where('email', isEqualTo: targetEmail).limit(1).get();
         if (emailQuery.docs.isNotEmpty) {
           final d = emailQuery.docs.first.data();
           return {
-            'empId': d['id'],
+            'empId': d['id'] ?? emailQuery.docs.first.id,
             'name': d['name'],
             'email': d['email'] ?? targetEmail,
             'role': d['roleType'] ?? (d['role'].toString().toLowerCase().contains('lead') ? 'team_lead' : 'employee'),
@@ -1429,6 +1478,7 @@ class FirebaseEmployeeService {
       }
     } catch (e) {
       debugPrint('Profile lookup after login note: $e');
+      profileLookupFailed = true;
     }
 
     if (targetEmail == 'ceoofmn@mnjpark.com') {
@@ -1452,14 +1502,23 @@ class FirebaseEmployeeService {
       };
     }
 
-    return {
-      'empId': query,
-      'name': 'Employee',
-      'email': targetEmail,
-      'role': 'employee',
-      'roleType': 'employee',
-      'dept': 'Online Department',
-    };
+    // No employee record found by email either: keep the previous behaviour
+    // of trusting the users doc rather than locking the person out.
+    if (staleUserData != null) return staleUserData;
+
+    if (profileLookupFailed) {
+      try {
+        await _auth.signOut();
+      } catch (_) {}
+      throw Exception('Network error while loading your profile. Please try again.');
+    }
+
+    // Authenticated with Firebase, but no staff record exists any more (e.g.
+    // relieved from the company). Do not let them into the app.
+    try {
+      await _auth.signOut();
+    } catch (_) {}
+    throw Exception('This account is not active. Please contact HR.');
   }
 
   /// Save specific Pillar data for an Employee to Cloud Firestore in their department collection
@@ -1503,7 +1562,90 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Update password securely in Firebase Auth (I-07, S-05: never in Firestore plain-text)
+  // ---- Personal notes (private per employee; synced across devices) ----
+  CollectionReference<Map<String, dynamic>> get _notesCollection =>
+      _firestore.collection('personal_notes');
+
+  /// Returns null when the cloud copy could not be read (offline / no Firebase),
+  /// so callers never mistake "unavailable" for "no notes".
+  Future<List<Map<String, dynamic>>?> loadPersonalNotes(String empId) async {
+    if (!isFirebaseAvailable || empId.isEmpty) return null;
+    try {
+      final snap = await _notesCollection
+          .where('ownerEmpId', isEqualTo: empId)
+          .get(const GetOptions(source: Source.server));
+      return snap.docs.map((d) => d.data()).toList();
+    } catch (e) {
+      debugPrint('Firestore loadPersonalNotes note: $e');
+      return null;
+    }
+  }
+
+  Future<void> savePersonalNote(Map<String, dynamic> note) async {
+    if (!isFirebaseAvailable) return;
+    final id = note['id']?.toString() ?? '';
+    if (id.isEmpty) return;
+    try {
+      await _notesCollection.doc(id).set(note);
+    } catch (e) {
+      debugPrint('Firestore savePersonalNote note: $e');
+    }
+  }
+
+  Future<void> deletePersonalNote(String noteId) async {
+    if (!isFirebaseAvailable || noteId.isEmpty) return;
+    try {
+      await _notesCollection.doc(noteId).delete();
+    } catch (e) {
+      debugPrint('Firestore deletePersonalNote note: $e');
+    }
+  }
+
+  /// Prescriptions are stored in their own documents (not inside the
+  /// employee record, which Firestore caps at 1 MB per document).
+  Future<void> savePrescription({
+    required String leaveId,
+    required String empId,
+    required String base64,
+  }) async {
+    if (!isFirebaseAvailable || base64.isEmpty) return;
+    await _firestore.collection('leave_prescriptions').doc(leaveId).set({
+      'leaveId': leaveId,
+      'empId': empId,
+      'data': base64,
+      'uploadedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<String?> loadPrescription(String leaveId) async {
+    if (!isFirebaseAvailable) return null;
+    try {
+      final doc = await _firestore.collection('leave_prescriptions').doc(leaveId).get();
+      return doc.data()?['data']?.toString();
+    } catch (e) {
+      debugPrint('Firestore loadPrescription note: $e');
+      return null;
+    }
+  }
+
+  /// Email a Firebase password-reset link to [email]. Safe for HR/CEO to call
+  /// for another employee because it never touches the signed-in account.
+  Future<void> sendPasswordResetEmail(String email) async {
+    if (!isFirebaseAvailable) {
+      throw Exception('Login service unavailable.');
+    }
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw Exception('No login account exists for $email.');
+      }
+      throw Exception(e.message ?? e.code);
+    }
+  }
+
+  /// Changes the password of the CURRENTLY SIGNED-IN user only.
+  /// Never use this to reset someone else's password.
   Future<void> updateEmployeePassword({
     required String empId,
     required String email,
@@ -1920,17 +2062,59 @@ class FirebaseEmployeeService {
     }
   }
 
-  /// Stream real-time chat messages from Cloud Firestore
-  Stream<List<ChatMessage>> streamChatMessages() {
-    if (!isFirebaseAvailable) return Stream.value([]);
-    return _chatsCollection
-        .orderBy('timestamp', descending: false)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => ChatMessage.fromJson(doc.data()))
-          .toList();
-    });
+  /// Stream the chat messages [empId] is allowed to see: All-Hands broadcasts,
+  /// DMs sent to them and DMs they sent. Never the whole collection — other
+  /// staff members' private conversations stay off this device.
+  Stream<List<ChatMessage>> streamChatMessages(String empId) {
+    if (!isFirebaseAvailable || empId.trim().isEmpty) return Stream.value([]);
+    final me = empId.trim();
+    final incoming = _chatsCollection
+        .where('receiverId', whereIn: ['ALL_HANDS', me])
+        .snapshots();
+    final outgoing =
+        _chatsCollection.where('senderId', isEqualTo: me).snapshots();
+
+    late StreamController<List<ChatMessage>> controller;
+    StreamSubscription? subIn;
+    StreamSubscription? subOut;
+    var latestIn = <ChatMessage>[];
+    var latestOut = <ChatMessage>[];
+    var gotIn = false;
+    var gotOut = false;
+
+    void emit() {
+      if (!gotIn || !gotOut) return;
+      final byId = <String, ChatMessage>{};
+      for (final m in [...latestIn, ...latestOut]) {
+        byId[m.id] = m;
+      }
+      final merged = byId.values.toList()
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      controller.add(merged);
+    }
+
+    List<ChatMessage> parse(QuerySnapshot<Map<String, dynamic>> snap) =>
+        snap.docs.map((doc) => ChatMessage.fromJson(doc.data())).toList();
+
+    controller = StreamController<List<ChatMessage>>(
+      onListen: () {
+        subIn = incoming.listen((snap) {
+          latestIn = parse(snap);
+          gotIn = true;
+          emit();
+        }, onError: controller.addError);
+        subOut = outgoing.listen((snap) {
+          latestOut = parse(snap);
+          gotOut = true;
+          emit();
+        }, onError: controller.addError);
+      },
+      onCancel: () async {
+        await subIn?.cancel();
+        await subOut?.cancel();
+      },
+    );
+    return controller.stream;
   }
 
   /// Save a chat message to Cloud Firestore

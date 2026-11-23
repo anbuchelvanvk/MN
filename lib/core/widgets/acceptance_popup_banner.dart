@@ -308,7 +308,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  'Notified to: HR (Mohankumar) • CEO (Naveenraaj) • TL (Praveenkumar)',
+                                  'Notified to: HR • CEO • Team Lead',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w700,
@@ -457,8 +457,8 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _checklistRow('HR Department (Mohankumar G)', true),
-                  _checklistRow('Executive CEO (M N Naveenraaj)', true),
+                  _checklistRow('HR Department', true),
+                  _checklistRow('Executive CEO', true),
                   _checklistRow('Team Lead (Praveenkumar M)', true),
                   _checklistRow('Applicant Staff (${popup.employeeName})', true),
                 ],

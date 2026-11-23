@@ -416,7 +416,8 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   ),
                                 ],
                               ),
-                              Container(
+                              Flexible(
+                                child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
                                   color: hasBoth
@@ -435,6 +436,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 ),
                                 child: Text(
                                   liveCategory,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
@@ -445,6 +447,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                         : AppColors.textMuted,
                                   ),
                                 ),
+                              ),
                               ),
                             ],
                           ),
@@ -478,11 +481,12 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       icon: Icons.check_circle_outline,
                       height: 48,
                       onPressed: () {
-                        if (heightVal <= 50 || weightVal <= 20) {
+                        final metricError = EcosystemProvider.validateBodyMetrics(heightVal, weightVal);
+                        if (metricError != null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               backgroundColor: AppColors.burgundyPrimary,
-                              content: Text('Please enter valid height and weight values.'),
+                              content: Text(metricError),
                             ),
                           );
                           return;
@@ -833,14 +837,15 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   });
                 },
               ),
-              InkWell(
+              Flexible(
+                child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: _selectedDate,
-                    firstDate: DateTime(2025, 1, 1),
-                    lastDate: DateTime(2027, 12, 31),
+                    firstDate: DateTime(2020, 1, 1),
+                    lastDate: DateTime.now().add(const Duration(days: 366)),
                     builder: (context, child) {
                       return Theme(
                         data: ThemeData.dark().copyWith(
@@ -869,19 +874,23 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     children: [
                       const Icon(Icons.calendar_month, color: AppColors.sandGold, size: 16),
                       const SizedBox(width: 6),
-                      Text(
+                      Flexible(
+                        child: Text(
                         '${_months[_selectedDate.month - 1]} ${_selectedDate.year}',
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
                         ),
                       ),
+                      ),
                       const SizedBox(width: 4),
                       const Icon(Icons.arrow_drop_down, color: AppColors.sandPrimary, size: 18),
                     ],
                   ),
                 ),
+              ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1102,14 +1111,18 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
+              Flexible(
+                child: Text(
                 '$recordedSteps steps',
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: AppColors.sandLight,
                 ),
               ),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '${(pct * 100).toInt()}% of daily goal',
                 style: GoogleFonts.plusJakartaSans(
@@ -2631,8 +2644,17 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       ),
                       onPressed: () {
                         if (nameCtrl.text.trim().isEmpty) return;
-                        final g = double.tryParse(gramsCtrl.text) ?? 100.0;
-                        final kcal = double.tryParse(kcalCtrl.text) ?? 150.0;
+                        final g = double.tryParse(gramsCtrl.text.trim());
+                        final kcal = double.tryParse(kcalCtrl.text.trim());
+                        if (g == null || kcal == null || g <= 0 || kcal < 0 || kcal > 10000) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: AppColors.ragRed,
+                              content: Text('Enter a valid weight (grams) and calories (0-10000).'),
+                            ),
+                          );
+                          return;
+                        }
                         eco.addFoodLog(
                           foodName: nameCtrl.text.trim(),
                           mealType: meal,
@@ -3800,7 +3822,13 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       onPressed: () {
                         final h = double.tryParse(_updateHeightController.text) ?? eco.userHeightCm;
                         final w = double.tryParse(_updateWeightController.text) ?? eco.userWeightKg;
-                        if (h <= 50 || w <= 20) return;
+                        final metricError = EcosystemProvider.validateBodyMetrics(h, w);
+                        if (metricError != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(backgroundColor: AppColors.ragRed, content: Text(metricError)),
+                          );
+                          return;
+                        }
 
                         eco.updateWeightAndHeight(heightCm: h, weightKg: w);
                         ScaffoldMessenger.of(context).showSnackBar(

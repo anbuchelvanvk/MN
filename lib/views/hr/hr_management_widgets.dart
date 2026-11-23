@@ -325,9 +325,12 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
         // Pending Submissions
         Row(
           children: [
-            const Text(
-              'Pending Submissions for Approval',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            const Flexible(
+              child: Text(
+                'Pending Submissions for Approval',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+              ),
             ),
             const SizedBox(width: 8),
             Container(
@@ -768,9 +771,12 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Tasks for ${currentSelectedEmp.name} (${empTasks.length})',
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            Expanded(
+              child: Text(
+                'Tasks for ${currentSelectedEmp.name} (${empTasks.length})',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+              ),
             ),
           ],
         ),
@@ -848,15 +854,16 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                     ),
                   ),
                 const SizedBox(height: 2),
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 2,
                   children: [
                     Text(
                       '${task.category} • Due: ${task.due}',
                       style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
                     ),
-                    const SizedBox(width: 6),
                     Container(width: 3, height: 3, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.textMuted)),
-                    const SizedBox(width: 6),
                     Text(
                       'By: ${task.assignedByName}',
                       style: const TextStyle(fontSize: 10, color: AppColors.sandGold),

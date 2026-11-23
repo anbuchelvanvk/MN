@@ -10,21 +10,24 @@ class GoogleSheetsAttendanceService {
 
   static const String spreadsheetId = '1847e_mO5XtPV6guNlZ0uAuOXETi0DaPs0075k8KL5hQ';
 
-  /// Official Sheet GIDs for each of the 12 Monthly Tabs in Google Sheets
+  /// Verified Google Sheet tab GIDs per month.
+  ///
+  /// Only add a month here once its real tab GID is known. Months without an
+  /// entry are reported as "not configured" instead of silently loading some
+  /// other tab (Google returns the FIRST tab for an unknown gid, which used to
+  /// show — and act on — the wrong month's attendance).
   static const Map<int, String> monthGids = {
-    1: '1001',
-    2: '1002',
-    3: '1003',
-    4: '1004',
-    5: '1005',
-    6: '1006',
-    7: '1007',
-    8: '1008',
-    9: '1009',
-    10: '1010',
     11: '1237865007',
     12: '1773257736',
   };
+
+  /// Whether a real sheet tab is configured for [month].
+  static bool hasSheetForMonth(int month) => monthGids.containsKey(month);
+
+  static Exception _notConfigured(int month) => Exception(
+        'No Google Sheet tab is configured for ${monthNames[month] ?? 'month $month'}. '
+        'Add its tab GID to GoogleSheetsAttendanceService.monthGids.',
+      );
 
   /// Display names for the 12 months
   static const Map<int, String> monthNames = {
@@ -52,7 +55,8 @@ class GoogleSheetsAttendanceService {
     String? customUrl,
     bool forceRefresh = false,
   }) async {
-    final gid = monthGids[month] ?? '1237865007';
+    final gid = monthGids[month];
+    if (gid == null) throw _notConfigured(month);
     final monthName = monthNames[month] ?? 'November';
     final prefs = await SharedPreferences.getInstance();
     final cacheKey = 'hr_google_sheet_cached_csv_month_$month';
@@ -138,10 +142,14 @@ class GoogleSheetsAttendanceService {
   }) async {
     final currentYear = year ?? DateTime.now().year;
     final prefs = await SharedPreferences.getInstance();
-    final baseUrl = formatToCsvExportUrl(
-      customUrl ?? prefs.getString(_prefCustomUrlKey) ?? defaultSheetUrl,
-      month: month,
-    );
+    final configuredUrl = customUrl ?? prefs.getString(_prefCustomUrlKey);
+    final monthGid = monthGids[month];
+    if (configuredUrl == null && monthGid == null) throw _notConfigured(month);
+    // The built-in default URL is pinned to the November tab, so without a
+    // custom URL always target the requested month's own tab.
+    final baseUrl = configuredUrl != null
+        ? formatToCsvExportUrl(configuredUrl, month: month)
+        : 'https://docs.google.com/spreadsheets/d/$spreadsheetId/gviz/tq?tqx=out:csv&gid=$monthGid';
 
     final url = forceRefresh
         ? (baseUrl.contains('?')
@@ -166,7 +174,7 @@ class GoogleSheetsAttendanceService {
       debugPrint('GoogleSheetsAttendanceService fetch error: $e');
       // Secondary fallback to Google Sheets /export endpoint without custom headers
       try {
-        final targetGid = monthGids[month] ?? '1237865007';
+        final targetGid = monthGid ?? '1237865007';
         final fallbackExportUrl = 'https://docs.google.com/spreadsheets/d/$spreadsheetId/export?format=csv&gid=$targetGid'
             '${forceRefresh ? '&_cb=${DateTime.now().millisecondsSinceEpoch}' : ''}';
         final fallbackRes = await http.get(Uri.parse(fallbackExportUrl)).timeout(const Duration(seconds: 12));
@@ -189,9 +197,14 @@ class GoogleSheetsAttendanceService {
     final effectivePrevious = shouldUseSeed ? _embeddedNovemberSeedCsv : previousCsv;
 
     // If network failed, fall back to cached CSV or embedded static CSV
+    // Only November has an embedded seed; never show November data as another month.
+    final fallbackCsv = effectivePrevious ?? (month == 11 ? _embeddedNovemberSeedCsv : null);
+    if (newCsv == null && fallbackCsv == null) {
+      throw Exception('Could not download the ${monthNames[month] ?? ''} attendance sheet. Check your internet connection.');
+    }
     final csvToParse = (forceRefresh && newCsv != null)
         ? newCsv
-        : (newCsv ?? effectivePrevious ?? _embeddedNovemberSeedCsv);
+        : (newCsv ?? fallbackCsv!);
 
     // Detect changed dates if we received a fresh response
     List<int> updatedDays = [];

@@ -1,7 +1,5 @@
 import '../../core/widgets/task_action_dialogs.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
-import '../../core/widgets/cross_dept_blocker_section.dart';
-import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -13,17 +11,10 @@ import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
 import '../pillars/social_cause_pillar_screen.dart';
 import '../../core/widgets/company_notification_sheet.dart';
-import '../pillars/attendance_pillar_screen.dart';
-
 import 'employee_profile_screen.dart';
-import 'employee_subpages.dart';
-import '../orders/online_orders_handler_screen.dart';
-import '../notes/personal_notes_screen.dart';
-import '../chat/chat_hub_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
-import '../konar/konar_book_detail_screen.dart';
-import '../media/creative_media_review_board_screen.dart';
+import '../home/modern_home_screen.dart';
 
 class EmployeePortalScreen extends StatefulWidget {
   const EmployeePortalScreen({super.key});
@@ -71,14 +62,16 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     final pendingCount = allTasks.where((t) => t.isPending).length;
 
     return Scaffold(
-      backgroundColor: AppColors.burgundyBg,
-      appBar: RoleAppBar(
-        roleName: 'Employee',
-        userName: '${emp.name} (${emp.straightCutRole})',
-        roleColor: AppColors.goldPrimary,
-        roleIcon: Icons.person_outline,
-        onBellPressed: () => CompanyNotificationSheet.show(context),
-      ),
+      backgroundColor: _activeBottomNav == 0 ? const Color(0xFFFBFBFC) : AppColors.burgundyBg,
+      appBar: _activeBottomNav == 0
+          ? null
+          : RoleAppBar(
+              roleName: 'Employee',
+              userName: '${emp.name} (${emp.straightCutRole})',
+              roleColor: AppColors.goldPrimary,
+              roleIcon: Icons.person_outline,
+              onBellPressed: () => CompanyNotificationSheet.show(context),
+            ),
       body: IndexedStack(
         index: _activeBottomNav,
         children: [
@@ -172,448 +165,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     int pendingCount,
     List<TaskItem> filteredTasks,
   ) {
-    return RefreshIndicator(
-      color: AppColors.sandGold,
-      backgroundColor: AppColors.burgundyCard,
-      onRefresh: () => eco.refreshAllData(),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Hero Profile Card with Profile Navigation
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
-              );
-            },
-            borderRadius: BorderRadius.circular(18),
-            child: LiquidGlassCard(
-              padding: const EdgeInsets.all(14),
-              borderRadius: 18,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: AppColors.goldGradient,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.goldPrimary.withOpacity(0.3),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            emp.initials,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    emp.name,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textDark,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                LiquidGlassPill(
-                                  label: 'On Track',
-                                  color: AppColors.ragGreen,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              emp.role,
-                              style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 4,
-                              children: [
-                                _smallTag(Icons.diamond_outlined, emp.dept),
-                                _smallTag(Icons.badge_outlined, 'ID: ${emp.id}'),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const QuickPillarNavRow(),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Vertical Segmented Navigation Grid (Aesthetic 2-column view - no horizontal sliding required)
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.pureWhite,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x060F172A),
-                  blurRadius: 10,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.apps_rounded, size: 15, color: AppColors.magentaPrimary),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'WORKSPACE PORTALS',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textDark,
-                          letterSpacing: 0.4,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Direct Access',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Column(
-                  children: [
-                    _verticalActionTile(
-                      'Team Chat',
-                      Icons.chat_bubble_outline_rounded,
-                      eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : '',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                            value: eco,
-                            child: const ChatHubScreen(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'KONAR Book',
-                      Icons.menu_book_rounded,
-                      eco.currentEmployee.dept.toLowerCase().contains('online') ? 'OTM' : 'SOP',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => KonarBookDetailScreen(
-                            department: eco.currentEmployee.dept.isNotEmpty
-                                ? eco.currentEmployee.dept
-                                : 'Online Department',
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'Things To Do',
-                      Icons.checklist,
-                      pendingCount > 0 ? '$pendingCount' : '',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                            value: eco,
-                            child: const EmployeeThingsToDoScreen(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'Social Cause',
-                      Icons.volunteer_activism_outlined,
-                      'Pillar 5',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                            value: eco,
-                            child: const EmployeeSocialCauseScreen(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (emp.hasAttendanceAndGrooming) ...[
-                      const SizedBox(height: 8),
-                      _verticalActionTile(
-                        'Attendance Ledger',
-                        Icons.fingerprint,
-                        '',
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                              value: eco,
-                              child: const AttendancePillarScreen(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'Digital ID Vault',
-                      Icons.badge_outlined,
-                      '',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                            value: eco,
-                            child: const EmployeeDigitalIdScreen(),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _verticalActionTile(
-                      'Personal Notes',
-                      Icons.lock_outline_rounded,
-                      'Private',
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                            value: eco,
-                            child: const PersonalNotesScreen(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Creative & Media Review Board (Dedicated Quick Access for VPE, Ass.VPE, CC, OTM & Media Team)
-          if (emp.roleCode == 'VPE' || emp.roleCode == 'Ass.VPE' || emp.roleCode == 'CC' || emp.roleCode == 'OTM' || emp.role.toLowerCase().contains('photo') || emp.role.toLowerCase().contains('creator') || emp.role.toLowerCase().contains('video')) ...[
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(14),
-              borderRadius: 16,
-              borderColor: const Color(0xFFF1F5F9),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF66001F).withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.video_collection_outlined, color: Color(0xFF66001F), size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Text(
-                              'Media Review Board',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                            ),
-                            if (eco.pendingMediaApprovalsCount > 0) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFFFDE68A)),
-                                ),
-                                child: Text(
-                                  '${eco.pendingMediaApprovalsCount} Drafts',
-                                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFB45309)),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Upload photoshoot & reel drafts for CEO sign-off',
-                          style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.magentaPrimary),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CreativeMediaReviewBoardScreen()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-          ],
-
-          // Online Orders Handler (Dedicated Quick Access for OS1, OS2 & Sales Team)
-          if (emp.id == '65' || emp.id == '67' || emp.role.toLowerCase().contains('sales') || emp.role.toLowerCase().contains('online')) ...[
-            LiquidGlassCard(
-              padding: const EdgeInsets.all(14),
-              borderRadius: 16,
-              borderColor: const Color(0xFFF1F5F9),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withOpacity(0.18),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.shopping_bag_outlined, color: Color(0xFFF59E0B), size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Online Orders',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Track & manage customer orders',
-                          style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.magentaPrimary),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const OnlineOrdersHandlerScreen()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-          ],
-
-          // Today's Operational Agenda Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Flexible(
-                          child: Text(
-                            "Today's Tasks",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textDark,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '(${filteredTasks.length})',
-                          style: const TextStyle(fontSize: 12, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Daily SOP Routines',
-                      style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              TextButton(
-                onPressed: () => setState(() => _activeBottomNav = 1),
-                child: const Text('View All', style: TextStyle(fontSize: 12, color: AppColors.magentaPrimary)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Task List
-          ...filteredTasks.take(4).map((task) => _taskCard(context, eco, task)),
-          const SizedBox(height: 20),
-
-          // Cross-Department Blocker Escalation
-          CrossDeptBlockerSection(department: emp.dept),
-          const SizedBox(height: 20),
-
-          // Logout Button with confirmation
-          LogoutConfirmDialog.buildButton(context),
-          const SizedBox(height: 24),
-        ],
-      ),
-    ),
-  );
-}
+    return const ModernHomeScreen(isEmbedded: true);
+  }
 
   Widget _buildFullTasksScreen(
     BuildContext context,
@@ -805,9 +358,9 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                   SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.phone, size: 13, color: AppColors.sandGold),
+                      Icon(Icons.email_outlined, size: 13, color: AppColors.sandGold),
                       SizedBox(width: 6),
-                      Text('Mohankumar G (HR): +91 94433 11000', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
+                      Text('HR Department: hr@mnj.com', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
                     ],
                   ),
                   SizedBox(height: 4),
@@ -1038,7 +591,8 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
+                    Expanded(
+                      child: Row(
                       children: [
                         Container(
                           width: 32,
@@ -1053,12 +607,17 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'MN JEWEL PARK',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        const Flexible(
+                          child: Text(
+                            'MN JEWEL PARK',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
+                    ),
+                    const SizedBox(width: 8),
                     const Text(
                       'STAFF SMART ID',
                       style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary, letterSpacing: 1),
@@ -1090,12 +649,23 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                 const SizedBox(height: 12),
                 const Divider(color: AppColors.sandBorder, height: 1),
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 4,
                   children: [
                     Text('Dept: ${emp.dept}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
-                    Text('DOJ: ${emp.doj}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
-                    const Text('Status: VERIFIED', style: TextStyle(fontSize: 10.5, color: AppColors.ragGreen, fontWeight: FontWeight.bold)),
+                    Text('DOJ: ${emp.doj.isNotEmpty ? emp.doj : '-'}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
+                    Builder(builder: (_) {
+                      final verified = emp.profileCompletion.kycVerified && emp.profileCompletion.photoVerified;
+                      return Text(
+                        verified ? 'Status: VERIFIED' : 'Status: PENDING VERIFICATION',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          color: verified ? AppColors.ragGreen : AppColors.ragYellow,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ],
@@ -1113,26 +683,32 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.manage_accounts_outlined, color: AppColors.magentaPrimary, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Personal Details & Security',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                        ),
-                      ],
+                    const Expanded(
+                      child: Row(
+                        children: [
+                          Icon(Icons.manage_accounts_outlined, color: AppColors.magentaPrimary, size: 20),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'Personal Details & Security',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     LiquidGlassPill(label: 'CONFIDENTIAL', color: AppColors.magentaPrimary),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _personalInfoRow('Mobile Phone', emp.phone.isNotEmpty ? emp.phone : '+91 94420 11000'),
+                _personalInfoRow('Mobile Phone', emp.phone.isNotEmpty ? emp.phone : 'Not added'),
                 _personalInfoRow('Official Email', emp.email),
-                _personalInfoRow('Date of Birth (DOB)', emp.dob.isNotEmpty ? emp.dob : '1996-05-15'),
+                _personalInfoRow('Date of Birth (DOB)', emp.dob.isNotEmpty ? emp.dob : 'Not added'),
                 _personalInfoRow('Relationship', emp.relationshipStatus.isNotEmpty ? emp.relationshipStatus : 'Single'),
                 if (emp.relationshipStatus == 'Married')
-                  _personalInfoRow('Anniversary Date', emp.anniversaryDate.isNotEmpty ? emp.anniversaryDate : '2022-01-20'),
+                  _personalInfoRow('Anniversary Date', emp.anniversaryDate.isNotEmpty ? emp.anniversaryDate : 'Not added'),
                 const SizedBox(height: 14),
                 LiquidGlassButton(
                   label: 'Edit Profile & Change Password',
@@ -1190,7 +766,15 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark),
+            ),
+          ),
         ],
       ),
     );
@@ -1202,76 +786,16 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+          Expanded(
+            child: Text(title, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)),
+          ),
+          const SizedBox(width: 8),
           Icon(
             verified ? Icons.check_circle : Icons.cancel_outlined,
             size: 16,
             color: verified ? AppColors.ragGreen : AppColors.ragRed,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _verticalActionTile(String label, IconData icon, String badge, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppColors.magentaSubtle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 16, color: AppColors.magentaPrimary),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (badge.isNotEmpty) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                decoration: BoxDecoration(
-                  color: AppColors.magentaSubtle,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  badge,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.magentaPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-            const SizedBox(width: 6),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
-          ],
-        ),
       ),
     );
   }
@@ -1354,25 +878,6 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
             Icon(Icons.arrow_forward_ios_rounded, size: 12, color: isSelected ? Colors.white.withOpacity(0.8) : const Color(0xFF94A3B8)),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _smallTag(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.magentaSubtle,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.sandBorder, width: 0.8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 10, color: AppColors.magentaPrimary),
-          const SizedBox(width: 4),
-          Text(text, style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
-        ],
       ),
     );
   }

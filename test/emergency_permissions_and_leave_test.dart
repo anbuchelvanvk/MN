@@ -38,11 +38,14 @@ void main() {
       expect(rec.isOrangeFlagged, isFalse);
       expect(rec.status, equals('Pending HR & CEO'));
 
-      // Verify immediate push notification to CEO and HR
-      expect(PushNotificationService.testNotificationLog.isNotEmpty, isTrue);
-      final notification = PushNotificationService.testNotificationLog.first;
-      expect(notification['title'], contains('Emergency Permission'));
-      expect(notification['body'], contains('Bank visit'));
+      // A notice targeted at CEO & HR is posted (delivered to THEIR devices via
+      // Firestore) instead of a local push on the requester's own phone.
+      final notice = provider.companyNotifications.firstWhere(
+        (n) => n.title.contains('Emergency Permission'),
+      );
+      expect(notice.content, contains('Bank visit'));
+      expect(notice.targetEmpIds, containsAll(['MN-CEO01', '7']));
+      expect(notice.targetEmpIds, isNot(contains('MN-1007')));
     });
 
     test('Emergency permission request exceeding 4 hours triggers Orange Mark', () {
@@ -139,7 +142,10 @@ void main() {
       expect(leave.status, equals('Pending HR & CEO'));
 
       // Verify push notification
-      expect(PushNotificationService.testNotificationLog.any((n) => n['title']!.contains('Medical Leave')), isTrue);
+      final notice = provider.companyNotifications.firstWhere(
+        (n) => n.title.contains('Medical Leave'),
+      );
+      expect(notice.targetEmpIds, containsAll(['MN-CEO01', '7']));
     });
 
     test('HR grants medical leave then CEO gives final approval', () async {

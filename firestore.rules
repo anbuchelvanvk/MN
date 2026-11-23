@@ -1,75 +1,207 @@
 rules_version = '2';
+
+// MN Family App — Cloud Firestore security rules.
+//
+// Identity model used by the app:
+//   * Firebase Auth signs staff in by email.
+//   * users/{lower-cased email} holds { empId, roleType, role, dept, ... }.
+//   * Employee profiles live in "<department>_employees/{empId}".
+//
+// Roles are read from the caller's OWN users/{email} doc, and that doc's
+// role fields can only be changed by HR/CEO, so nobody can self-promote.
+// The three leadership emails are also hard-wired as a safety net in case
+// their users/{email} doc is missing.
+//
+// Deploy:  firebase deploy --only firestore:rules
+// Test first with the emulator (firebase emulators:start --only firestore).
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to inspect the requester's role
-    function getUserRole() {
-      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
-        : (request.auth != null && request.auth.token.role != null ? request.auth.token.role : 'employee');
+    // ---------------------------------------------------------------- helpers
+    function signedIn() {
+      return request.auth != null;
     }
 
-    function isHR() {
-      return getUserRole() == 'hr';
+    function myEmail() {
+      return request.auth.token.email != null
+          ? request.auth.token.email.lower()
+          : '';
+    }
+
+    function userDocPath() {
+      return /databases/$(database)/documents/users/$(myEmail());
+    }
+
+    function hasUserDoc() {
+      return signedIn() && myEmail() != '' && exists(userDocPath());
+    }
+
+    function myRole() {
+      return hasUserDoc() ? get(userDocPath()).data.get('roleType', 'employee') : 'employee';
+    }
+
+    function myEmpId() {
+      return hasUserDoc() ? get(userDocPath()).data.get('empId', '') : '';
     }
 
     function isCEO() {
-      return getUserRole() == 'ceo';
+      return signedIn() && (myEmail() == 'ceoofmn@mnjpark.com' || myRole() == 'ceo');
     }
 
-    function canManageUsers() {
-      return isHR() || isCEO();
+    function isHR() {
+      return signedIn() && (myEmail() == 'hr@mnj.com' || myRole() == 'hr');
     }
 
-    function isTeamLead() {
-      return getUserRole() == 'team_lead' || getUserRole() == 'dept_head';
+    function isAdmin() {
+      return isCEO() || isHR();
     }
 
-    // User Authentication Profiles
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.auth.uid == userId || canManageUsers());
+    function isLead() {
+      return signedIn() && (
+        myRole() == 'team_lead' ||
+        myRole() == 'dept_head' ||
+        myEmail() == 'praveenkumarotm@mnj.com'
+      );
     }
 
-    // Online Department Staff Directory
-    match /online_department_employees/{employeeId} {
-      // Allow reading staff directory
-      allow read: if true;
-
-      // ⚠️ STRICT ENFORCEMENT: ONLY HR AND CEO CAN ADD (CREATE) OR REMOVE (DELETE) EMPLOYEES
-      allow create: if request.auth != null && canManageUsers();
-      allow delete: if request.auth != null && canManageUsers();
-
-      // HR, Team Lead, and individual employee can update their profile & 4 Pillars
-      allow update: if request.auth != null;
+    // Fields that define identity / authority on an employee or user record.
+    function protectedProfileFields() {
+      return ['id', 'empId', 'empNo', 'email', 'role', 'roleType', 'roleCode',
+              'permissions', 'dept', 'collection', 'status'];
     }
 
-    // Biometric Attendance Punches (from eSSL eTimeTrackLite)
-    match /attendance_punches/{punchId} {
-      allow read: if request.auth != null;
-      allow write, create: if request.auth != null;
+    function changesProtectedFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(protectedProfileFields());
     }
 
-    // Tasks & Directives
+    // ------------------------------------------------------- auth role lookup
+    match /users/{email} {
+      allow read: if signedIn();
+      allow create, delete: if isAdmin();
+      // Staff may edit their own profile basics but never their role/identity.
+      allow update: if isAdmin()
+        || (signedIn() && email == myEmail() && !changesProtectedFields());
+    }
+
+    // ---------------------------------------- staff directory (all departments)
+    // Matches online_department_employees, offline_department_employees,
+    // administration_employees, sales_employees, media_employees, ...
+    match /{collectionName}/{empId} {
+      allow read: if signedIn() && collectionName.matches('.*_employees');
+      allow create, delete: if collectionName.matches('.*_employees') && isAdmin();
+      allow update: if collectionName.matches('.*_employees') && (
+        isAdmin()
+        // Team leads update pillar data (grooming, tasks, approvals) but not roles
+        || (isLead() && !changesProtectedFields())
+        // Everyone else may update only their own document, minus role fields
+        || (signedIn() && empId == myEmpId() && !changesProtectedFields())
+      );
+    }
+
+    // ------------------------------------------------------------ team chat
+    // Only All-Hands messages and the caller's own DMs are readable. The app
+    // queries with matching filters (receiverId in [ALL_HANDS, me] / senderId == me).
+    match /mn_team_chats/{msgId} {
+      function isParticipant(data) {
+        return data.receiverId == 'ALL_HANDS'
+          || data.senderId == myEmpId()
+          || data.receiverId == myEmpId();
+      }
+      allow read: if signedIn() && isParticipant(resource.data);
+      allow create: if signedIn() && request.resource.data.senderId == myEmpId();
+      // Read receipts, likes and pins by participants; content stays immutable.
+      allow update: if signedIn() && isParticipant(resource.data)
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['senderId', 'receiverId', 'text', 'timestamp', 'attachmentUrl', 'attachmentType']);
+      allow delete: if signedIn() && (resource.data.senderId == myEmpId() || isAdmin());
+    }
+
+    // ------------------------------------------- personal notes (owner only)
+    match /personal_notes/{noteId} {
+      allow read, delete: if signedIn() && resource.data.ownerEmpId == myEmpId();
+      allow create, update: if signedIn() && request.resource.data.ownerEmpId == myEmpId();
+    }
+
+    // ------------------------------------- medical-leave prescriptions (private)
+    match /leave_prescriptions/{leaveId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.empId == myEmpId());
+      allow create, update: if isAdmin()
+        || (signedIn() && request.resource.data.empId == myEmpId());
+      allow delete: if isAdmin();
+    }
+
+    // ------------------------------------------------- tasks & personal to-dos
+    match /personal_todos/{taskId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && (
+        isAdmin() || isLead() || request.resource.data.empId == myEmpId()
+      );
+      allow update: if signedIn() && (
+        isAdmin() || isLead()
+        || (resource.data.empId == myEmpId() && request.resource.data.empId == myEmpId())
+      );
+      allow delete: if signedIn() && (
+        isAdmin() || isLead() || resource.data.empId == myEmpId()
+      );
+    }
+
     match /tasks/{taskId} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null && (canManageUsers() || isTeamLead());
-      allow delete: if request.auth != null && canManageUsers();
+      allow read: if signedIn();
+      allow create, update: if isAdmin() || isLead();
+      allow delete: if isAdmin();
     }
 
-    // Social Causes (Pillar 5)
-    match /social_causes/{causeId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-      allow delete: if request.auth != null && canManageUsers();
+    // ------------------------------------------------------------ operations
+    match /online_orders/{orderId} {
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin() || isLead();
     }
 
-    // Company Universal Notifications
+    match /attendance_punches/{punchId} {
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /monthly_scorecards/{docId=**} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || isLead();
+    }
+
+    // ---------------------------------------------------- company-wide feeds
     match /company_notifications/{notifId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-      allow delete: if request.auth != null && canManageUsers();
+      allow read: if signedIn();
+      // Any staff member can post requests/notices and react / mark read.
+      allow create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /social_causes/{causeId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn();
+      allow delete: if isAdmin() || (signedIn() && resource.data.empId == myEmpId());
+    }
+
+    // --------------------------------------------------- org configuration
+    match /departments/{deptId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /system_metadata/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /konar_books/{bookId} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || isLead();
+
+      match /pdf_chunks/{chunkId} {
+        allow read: if signedIn();
+        allow write: if isAdmin() || isLead();
+      }
     }
   }
 }
-

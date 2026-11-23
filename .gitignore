@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Admin tooling secrets (never commit)
+tools/service-account.json
+tools/staff_passwords.csv
+tools/node_modules/
+tools/package-lock.json
+tools/package.json
+tools/backups/

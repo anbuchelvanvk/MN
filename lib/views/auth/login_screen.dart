@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -132,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
-    final password = _passwordController.text; // Preserve exact characters without stripping (E-11)
+    final password = _passwordController.text; // Trimmed consistently by the provider for login and password changes
 
     if (email.isEmpty) {
       setState(() => _errorMessage = 'Please enter your email or staff ID');
@@ -211,12 +210,17 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         String msg = 'Email / Password incorrect';
         final errStr = e.toString().toLowerCase();
-        if (errStr.contains('network') || errStr.contains('socket') || errStr.contains('timeout')) {
+        if (errStr.contains('network') || errStr.contains('socket') || errStr.contains('timeout') || errStr.contains('unavailable')) {
           msg = 'Network connection error. Please check your internet connectivity.';
         } else if (errStr.contains('user-not-found')) {
           msg = 'No staff account registered for this email / ID.';
-        } else if (errStr.contains('wrong-password') || errStr.contains('invalid-credential')) {
+        } else if (errStr.contains('wrong-password')) {
           msg = 'Incorrect password. Please verify your credentials.';
+        } else if (errStr.contains('invalid-credential')) {
+          // Firebase returns this for both unknown emails and wrong passwords
+          msg = 'Incorrect email or password.';
+        } else if (errStr.contains('not active')) {
+          msg = 'This account is not active. Please contact HR.';
         } else if (errStr.contains('too-many-requests')) {
           msg = 'Access temporarily locked due to repeated failed attempts. Please try again later.';
         }
@@ -518,13 +522,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 6),
                         TextField(
                           controller: _emailController,
+                          enabled: !_isLoading,
                           keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autocorrect: false,
+                          autofillHints: const [AutofillHints.username, AutofillHints.email],
                           style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.burgundySurface,
                             prefixIcon: const Icon(Icons.email_outlined, size: 18, color: AppColors.sandPrimary),
-                            hintText: 'Email',
+                            hintText: 'Official email',
                             hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -572,7 +580,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 6),
                         TextField(
                           controller: _passwordController,
+                          enabled: !_isLoading,
                           obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          autofillHints: const [AutofillHints.password],
+                          onSubmitted: (_) {
+                            if (!_isLoading) _handleLogin();
+                          },
                           style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
                           decoration: InputDecoration(
                             filled: true,
@@ -700,7 +716,8 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Official company policy requires Human Resources verification to retrieve or reset your portal credentials.',
+              'We can email a secure reset link to your official email address. '
+              'If you no longer have access to that inbox, contact the HR department.',
               style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 11.5, height: 1.4),
             ),
             const SizedBox(height: 14),
@@ -711,27 +728,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.sandBorder),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text('Official HR Representative:', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 10)),
-                  const SizedBox(height: 2),
-                  Text('Mohankumar G (HR Manager)', style: GoogleFonts.plusJakartaSans(color: AppColors.sandGold, fontSize: 13, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.phone, size: 13, color: AppColors.sandPrimary),
-                      const SizedBox(width: 6),
-                      Text('+91 94433 11000', style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 11.5)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.email, size: 13, color: AppColors.sandPrimary),
-                      const SizedBox(width: 6),
-                      Text('hr@mnj.com', style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 11.5)),
-                    ],
+                  const Icon(Icons.email, size: 13, color: AppColors.sandPrimary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'HR Department: hr@mnj.com',
+                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 11.5),
+                    ),
                   ),
                 ],
               ),
@@ -740,19 +745,31 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Clipboard.setData(const ClipboardData(text: 'Mohankumar G (HR): +91 94433 11000, hr@mnj.com'));
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('HR contact details copied to clipboard')),
-              );
-            },
-            child: const Text('Copy HR Contact', style: TextStyle(color: AppColors.sandGold)),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close', style: TextStyle(color: AppColors.sandGold)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.burgundyPrimary),
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: Colors.white)),
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              final email = _emailController.text.trim().toLowerCase();
+              Navigator.pop(ctx);
+              if (!email.contains('@')) {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Enter your official email above first, then tap Forgot Password again.')),
+                );
+                return;
+              }
+              try {
+                await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+              } catch (_) {
+                // Do not reveal whether the account exists
+              }
+              messenger.showSnackBar(
+                SnackBar(content: Text('If $email is a staff account, a reset link has been sent to it.')),
+              );
+            },
+            child: const Text('Email me a reset link', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

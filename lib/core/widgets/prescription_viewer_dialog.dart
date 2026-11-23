@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -25,7 +26,14 @@ class PrescriptionViewerDialog extends StatelessWidget {
     required MedicalLeaveRecord leave,
     bool isCeo = false,
     bool isHr = false,
-  }) {
+  }) async {
+    // Prescriptions live in their own Firestore documents; fetch on demand.
+    if (leave.prescriptionBase64.isEmpty) {
+      try {
+        leave = await context.read<EcosystemProvider>().withLoadedPrescription(leave);
+      } catch (_) {}
+      if (!context.mounted) return;
+    }
     return showDialog(
       context: context,
       barrierDismissible: true,

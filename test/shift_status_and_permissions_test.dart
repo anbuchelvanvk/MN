@@ -116,6 +116,8 @@ void main() {
   group('Permissions System Tests (HR & Employee)', () {
     testWidgets('HR can directly mark permission for an employee', (tester) async {
       final eco = EcosystemProvider();
+      eco.setLoggedIn(true);
+      eco.setActiveEmpId('7'); // HR session
       expect(eco.permissionRecords.isEmpty, isTrue);
 
       eco.markPermissionByHr(

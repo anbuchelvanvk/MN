@@ -12,7 +12,7 @@ void main() {
       // 1. Authenticate with hr@mnj.com credentials
       final detectedRole = await eco.loginWithFirebase(
         email: 'hr@mnj.com',
-        password: 'hr@mnj123',
+        password: 'test-password',
       );
 
       expect(detectedRole, 'hr');
@@ -33,10 +33,10 @@ void main() {
       expect(emp.id == '33', isFalse);
     });
 
-    test('currentEmployee fallback for HR role never returns Mithra M or first non-CEO', () {
+    test('currentEmployee fallback for HR role never returns Mithra M or first non-CEO', () async {
       final eco = EcosystemProvider();
-      // Even if active role is set to hr directly without an ID match
-      eco.loginWithFirebase(email: 'hr@mnj.com', password: 'hr@mnj123');
+      // Session state is only set once authentication completes
+      await eco.loginWithFirebase(email: 'hr@mnj.com', password: 'test-password');
       final emp = eco.currentEmployee;
 
       expect(emp.name, contains('Mohankumar'));
@@ -48,7 +48,7 @@ void main() {
   group('Department Deletion & Workforce Reallocation Tests', () {
     test('Deleting department with reallocation moves employees and removes old dept', () async {
       final eco = EcosystemProvider();
-      await eco.loginWithFirebase(email: 'ceoofmn@mnjpark.com', password: 'adminnaandhan');
+      await eco.loginWithFirebase(email: 'ceoofmn@mnjpark.com', password: 'test-password');
 
       // Create a test department
       await eco.createNewDepartment('Boutique Operations');
@@ -82,7 +82,7 @@ void main() {
 
     test('Deleting department with deleteEmployees permanently purges employees and dept', () async {
       final eco = EcosystemProvider();
-      await eco.loginWithFirebase(email: 'ceoofmn@mnjpark.com', password: 'adminnaandhan');
+      await eco.loginWithFirebase(email: 'ceoofmn@mnjpark.com', password: 'test-password');
 
       // Create a temporary department
       await eco.createNewDepartment('Temporary Staging');

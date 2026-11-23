@@ -66,7 +66,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -87,7 +89,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -108,7 +112,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -129,7 +135,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -149,7 +157,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -169,7 +179,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -189,7 +201,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -244,7 +258,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -264,7 +280,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -284,7 +302,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -304,7 +324,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -324,7 +346,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -344,7 +368,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }
@@ -377,7 +403,9 @@ void main() {
 
         final err = tester.takeException();
         if (err is FlutterError) {
-          debugPrint('OVERFLOW WIDGET TREE:\n${err.toStringDeep()}');
+          for (final d in err.diagnostics) {
+            debugPrint('DIAG: ${d.value}');
+          }
         } else if (err != null) {
           debugPrint('OVERFLOW ERROR DETAILS: $err');
         }

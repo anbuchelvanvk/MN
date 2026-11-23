@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
@@ -1010,7 +1011,8 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
   }
 
   void _openCreateOrderDialog(BuildContext context, EcosystemProvider eco) {
-    final orderIdCtrl = TextEditingController(text: 'ORD-MN-${DateTime.now().millisecondsSinceEpoch % 10000}');
+    final orderIdCtrl = TextEditingController(text: 'ORD-MN-${DateFormat('yyMMdd-HHmmss').format(DateTime.now())}');
+    String? formError;
     final customerCtrl = TextEditingController();
     String salesChannel = 'WhatsApp';
     String brand = 'MN Jewel Park'; // 'Vadivam' or 'MN Jewel Park'
@@ -1710,6 +1712,18 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     const SizedBox(height: 4),
                     TextField(
                       controller: deliveryCtrl,
+                      readOnly: true,
+                      onTap: () async {
+                        final p = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now().add(const Duration(days: 5)),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 90)),
+                        );
+                        if (p != null) {
+                          setModalState(() => deliveryCtrl.text = fmt(p));
+                        }
+                      },
                       style: const TextStyle(color: AppColors.textDark, fontSize: 12),
                       decoration: InputDecoration(
                         filled: true,
@@ -1743,6 +1757,15 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     _subDateInput('5. Delivery & Customer Closure Due', stage5DueCtrl, fmt),
                     const SizedBox(height: 16),
 
+                    if (formError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Text(
+                          formError!,
+                          style: const TextStyle(color: AppColors.ragRed, fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.magentaPrimary,
@@ -1751,10 +1774,22 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       onPressed: () {
+                        // Errors are shown inside the sheet (a SnackBar would be hidden behind it)
+                        final newId = orderIdCtrl.text.trim();
+                        if (newId.isEmpty) {
+                          setModalState(() => formError = 'Please enter an order ID.');
+                          return;
+                        }
+                        if (newId.contains('/')) {
+                          setModalState(() => formError = 'Order ID cannot contain "/".');
+                          return;
+                        }
+                        if (eco.onlineOrders.any((o) => o.orderId.toLowerCase() == newId.toLowerCase())) {
+                          setModalState(() => formError = 'Order #$newId already exists. Use a different order ID.');
+                          return;
+                        }
                         if (customerCtrl.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter customer name.')),
-                          );
+                          setModalState(() => formError = 'Please enter customer name.');
                           return;
                         }
 
@@ -1768,11 +1803,12 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                         final reqMap = buildCurrentCategoryData();
 
                         final newOrder = OnlineOrderModel(
-                          orderId: orderIdCtrl.text.trim(),
+                          orderId: newId,
                           customerName: customerCtrl.text.trim(),
                           salesChannel: salesChannel,
                           handledByEmpId: autoHandlerId,
-                          handledByName: isVadivam ? 'Nisha' : 'Kaaviya',
+                          handledByName: eco.employees.firstWhereOrNull((e) => e.id == autoHandlerId)?.name ??
+                              (isVadivam ? 'Nisha' : 'Kaaviya'),
                           brand: brand,
                           jewelleryCategory: selectedCategory,
                           jewelleryRequirements: reqMap,
@@ -1870,6 +1906,21 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
               height: 34,
               child: TextField(
                 controller: ctrl,
+                // Pick from a calendar so the value is always a parseable date
+                readOnly: true,
+                onTap: () async {
+                  final now = DateTime.now();
+                  final current = DateTime.tryParse(ctrl.text.trim());
+                  final p = await showDatePicker(
+                    context: context,
+                    initialDate: current != null && !current.isBefore(DateTime(now.year, now.month, now.day))
+                        ? current
+                        : now,
+                    firstDate: DateTime(now.year, now.month, now.day),
+                    lastDate: now.add(const Duration(days: 365)),
+                  );
+                  if (p != null) ctrl.text = fmt(p);
+                },
                 style: const TextStyle(color: AppColors.textDark, fontSize: 11),
                 decoration: InputDecoration(
                   filled: true,

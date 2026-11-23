@@ -103,7 +103,8 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
+                Flexible(
+                  child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
                     color: const Color(0xFF6366F1).withOpacity(0.12),
@@ -111,6 +112,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                   ),
                   child: Text(
                     currentEmp.straightCutRole,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -118,10 +120,12 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                     ),
                   ),
                 ),
+                ),
               ],
             ),
             Text(
               'Logged in as ${currentEmp.name}',
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
             ),
           ],
@@ -144,7 +148,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                     children: [
                       const Icon(Icons.chat_bubble_outline_rounded, size: 15),
                       const SizedBox(width: 5),
-                      const Text('Conversations'),
+                      const Flexible(child: Text('Conversations', overflow: TextOverflow.ellipsis)),
                       if (eco.unreadTotalChatCount > 0) ...[
                         const SizedBox(width: 5),
                         Container(
@@ -169,7 +173,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                     children: [
                       const Icon(Icons.people_outline_rounded, size: 16),
                       const SizedBox(width: 5),
-                      Text('Workforce (${peers.length})'),
+                      Flexible(child: Text('Workforce (${peers.length})', overflow: TextOverflow.ellipsis)),
                     ],
                   ),
                 ),

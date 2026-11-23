@@ -82,8 +82,10 @@ class _AdminRoleAccessManagementScreenState
               const SizedBox(height: 16),
 
               // Results Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                spacing: 12,
+                runSpacing: 4,
                 children: [
                   Text(
                     'STAFF DIRECTORY (${filtered.length})',

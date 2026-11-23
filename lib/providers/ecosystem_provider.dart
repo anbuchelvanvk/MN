@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:collection/collection.dart';
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -29,6 +30,7 @@ import '../models/creative_media_asset_model.dart';
 import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
 import '../core/services/push_notification_service.dart';
+import '../core/utils/password_generator.dart';
 
 class EcosystemProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
@@ -70,9 +72,12 @@ class EcosystemProvider extends ChangeNotifier {
       (_activeRole.toLowerCase() == 'team_lead' ||
           _activeRole.toLowerCase() == 'dept_head' ||
           _activeEmpId == 'MN-TL1002' ||
-          _activeEmpId == '2' ||
           currentEmployee.isDeptHead);
   bool get isDeptHead => isTeamLead;
+
+  /// Sentinel for "no employee matched this id" lookups.
+  static final Employee _noMatchEmployee =
+      Employee.simple(id: '__no_match__', name: '', role: '');
 
   static final Employee _guestEmployee = Employee(
     id: '',
@@ -105,12 +110,23 @@ class EcosystemProvider extends ChangeNotifier {
     _isLoggedIn = false;
     _activeRole = 'guest';
     _activeEmpId = '';
+    _clearPerUserState();
+    _resubscribeChats();
+    notifyListeners();
+  }
+
+  /// Clears every buffer that belongs to the signed-in user so nothing leaks
+  /// into the next account (logout or Switch Role).
+  void _clearPerUserState() {
     _lastLoadedEmpId = null;
     _userHeightCm = 0.0;
     _userWeightKg = 0.0;
     _healthOnboarded = false;
-    _dailyCalorieTarget = 2000.0;
-    _dailyStepGoal = 10000;
+    _dailyCalorieTarget = null;
+    _dailyStepGoal = 6000;
+    _weightHistory = [];
+    _salesRecords = [];
+    _originalDocuments = [];
     _dailyStepsMap = {};
     _dailyFoodLogs = [];
     _dailyWorkoutLogs = [];
@@ -328,14 +344,12 @@ class EcosystemProvider extends ChangeNotifier {
   final Map<String, List<OriginalDocumentItem>> _employeeDocuments = {};
 
   List<OriginalDocumentItem> getEmployeeDocuments(String empId) {
-    final emp = _employees.firstWhere(
+    final emp = _employees.firstWhereOrNull(
       (e) => e.id == empId || e.empNo == empId,
-      orElse: () => currentEmployee,
     );
-    // CEO, Praveenkumar M (TL), and External Support Staff are exempt from document vault submissions
-    if (emp.isCeo ||
-        emp.name.toLowerCase().contains('praveen') ||
-        emp.isExternalSupport) {
+    if (emp == null) return const [];
+    // CEO, the Online Team Manager and External Support Staff are exempt from document vault submissions
+    if (emp.isCeo || emp.isOtm || emp.isExternalSupport) {
       return const [];
     }
     if (_employeeDocuments.containsKey(empId)) {
@@ -349,9 +363,7 @@ class EcosystemProvider extends ChangeNotifier {
 
   Future<void> loadAllStaffDocuments() async {
     for (final emp in _employees) {
-      if (!emp.isCeo &&
-          !emp.name.toLowerCase().contains('praveen') &&
-          !emp.isExternalSupport) {
+      if (!emp.isCeo && !emp.isOtm && !emp.isExternalSupport) {
         await loadEmployeeDocuments(emp.id);
       }
     }
@@ -661,23 +673,21 @@ class EcosystemProvider extends ChangeNotifier {
     String? department,
   }) {
     final now = DateTime.now();
-    final emp = _employees.firstWhere(
-      (e) => e.id == employeeId,
-      orElse: () => _employees.first,
-    );
+    final emp = _employees.firstWhereOrNull((e) => e.id == employeeId) ??
+        Employee.simple(id: employeeId, name: employeeName, role: '');
     final empRole = requesterRole ?? emp.role;
     final empDept = department ?? emp.dept;
 
     // Resolve designated leadership recipients: HR, CEO, and TL
     final tl = getTeamLeadForEmployee(employeeId);
-    final hr = _employees.firstWhere(
-      (e) => e.roleType == 'hr' || e.id == 'MN-HR1001',
-      orElse: () => _employees.first,
-    );
-    final ceo = _employees.firstWhere(
-      (e) => e.roleType == 'ceo' || e.id == 'MN-CEO01',
-      orElse: () => _employees.first,
-    );
+    final hr = _employees.firstWhereOrNull(
+          (e) => e.roleType == 'hr' || e.id == 'MN-HR1001' || e.id == '7',
+        ) ??
+        Employee.simple(id: '7', name: 'HR', role: '');
+    final ceo = _employees.firstWhereOrNull(
+          (e) => e.roleType == 'ceo' || e.id == 'MN-CEO01',
+        ) ??
+        Employee.simple(id: 'MN-CEO01', name: 'CEO', role: '');
 
     final isPerm = requestType == AcceptanceRequestType.permission;
     final typeLabel = isPerm ? 'Permission Request' : 'Leave Request';
@@ -737,8 +747,15 @@ class EcosystemProvider extends ChangeNotifier {
         senderName: approvedBy,
         senderRole: 'Executive Approval Authority',
         actionTag: isPerm ? 'PERM_ACCEPTED' : 'LEAVE_ACCEPTED',
+        targetEmpIds: targetEmpIds,
       ),
     );
+    _notifiedCompanyNotifIds.add('NOTIF-${popup.id}');
+    _firebaseEmployeeService
+        .saveCompanyNotification(_companyNotifications.first)
+        .catchError((err) {
+      debugPrint('Firestore acceptance notice note: $err');
+    });
 
     notifyListeners();
   }
@@ -755,7 +772,7 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  int _selectedAttendanceMonth = 11; // Defaults to November (11)
+  int _selectedAttendanceMonth = DateTime.now().month; // Defaults to the current month
   int get selectedAttendanceMonth => _selectedAttendanceMonth;
 
   final Map<int, HrMonthlyAttendanceSheet> _monthlyAttendanceSheets = {};
@@ -847,6 +864,28 @@ class EcosystemProvider extends ChangeNotifier {
     return sheet.getActiveRowsFor(activeNos, activeNames);
   }
 
+  /// Registered attendance-tracked staff whose EMP number/name is not present
+  /// in the selected month's Google Sheet. Informational only — HR decides
+  /// whether to relieve anyone; nothing is deleted automatically.
+  List<Employee> get staffMissingFromAttendanceSheet {
+    final sheet = hrAttendanceSheet;
+    if (sheet == null || sheet.allSheetStaff.isEmpty) return [];
+    final sheetEmpNos = sheet.allSheetStaff
+        .map((s) => s.empNo.trim().toLowerCase())
+        .toSet();
+    final sheetNames = sheet.allSheetStaff
+        .map((s) => s.name.trim().toLowerCase())
+        .where((n) => n.isNotEmpty)
+        .toSet();
+    return _employees.where((e) {
+      if (!e.hasAttendanceAndGrooming || e.isCeo || e.isHr) return false;
+      if (e.empNo.trim().isEmpty) return false;
+      final name = e.name.trim().toLowerCase();
+      return !sheetEmpNos.contains(e.empNo.trim().toLowerCase()) &&
+          !sheetNames.contains(name);
+    }).toList();
+  }
+
   /// Switch the active attendance review month (1..12) and load its sheet from Google Sheets if needed
   Future<void> selectAttendanceMonth(int month) async {
     _selectedAttendanceMonth = month;
@@ -861,7 +900,7 @@ class EcosystemProvider extends ChangeNotifier {
               month,
             );
         _monthlyAttendanceSheets[month] = sheet;
-        if (month == 11) {
+        if (month == DateTime.now().month) {
           _hrAttendanceSheet = sheet;
         }
       } catch (e) {
@@ -890,8 +929,10 @@ class EcosystemProvider extends ChangeNotifier {
     _attendanceSheetError = null;
     notifyListeners();
 
+    int targetMonthForNotice = month ?? _selectedAttendanceMonth;
     try {
       final targetMonth = month ?? _selectedAttendanceMonth;
+      targetMonthForNotice = targetMonth;
       final res = await GoogleSheetsAttendanceService.fetchAttendanceSheet(
         month: targetMonth,
         forceRefresh: forceRefresh,
@@ -900,75 +941,19 @@ class EcosystemProvider extends ChangeNotifier {
       _monthlyAttendanceSheets[targetMonth] = res.sheet;
       _attendanceSheetLastSynced = DateTime.now();
 
-      // If an employee with an assigned empNo was removed from the Google Sheet, relieve them from the active company workforce
-      if (res.sheet.allSheetStaff.isNotEmpty) {
-        final sheetEmpNos = res.sheet.allSheetStaff
-            .map((s) => s.empNo.trim().toLowerCase())
-            .toSet();
-        final sheetNames = res.sheet.allSheetStaff
-            .map((s) => s.name.trim().toLowerCase())
-            .toSet();
-
-        // Core protected leadership & staff: CEO, HR, TL, and all 12 registered workforce accounts
-        const coreWorkforceIds = {
-          'MN-CEO01',
-          '7',
-          'MN-HR001',
-          'MN-HR1001',
-          'MN-TL1002',
-          '6',
-          '33',
-          '65',
-          '67',
-          'EXT-VPE',
-          'EXT-AC',
-          'EXT-OSS',
-          'EXT-DVP',
-          'EXT-CC',
-        };
-        final relievedFromSheet = _employees.where((e) {
-          if (coreWorkforceIds.contains(e.id) ||
-              coreWorkforceIds.contains(e.empNo) ||
-              e.isCeo ||
-              e.isHr ||
-              e.isTeamLead ||
-              e.isOtm) {
-            return false;
-          }
-          if (e.empNo.isEmpty) return false;
-          final empNoMatch = sheetEmpNos.contains(e.empNo.trim().toLowerCase());
-          final nameMatch = sheetNames.any(
-            (sn) =>
-                sn == e.name.trim().toLowerCase() ||
-                sn.contains(e.name.trim().toLowerCase()),
-          );
-          return !empNoMatch && !nameMatch;
-        }).toList();
-
-        for (final emp in relievedFromSheet) {
-          _employees.removeWhere((e) => e.id == emp.id);
-          _tasks.removeWhere((t) => t.empId == emp.id);
-          _firebaseEmployeeService
-              .removeEmployee(employeeId: emp.id, requesterRole: 'hr')
-              .catchError((err) {
-                debugPrint(
-                  'Firestore remote delete on sheet removal note: $err',
-                );
-              });
-          broadcastUniversalAnnouncement(
-            title: 'Workforce Notice: Staff Relieved',
-            message:
-                '${emp.name} (EMP #${emp.empNo}) was removed from the HR Attendance Master Sheet and officially relieved from the company.',
-            category: 'hr',
-          );
-        }
-      }
+      // NOTE: Syncing is read-only. It previously auto-deleted (from Firestore)
+      // any employee missing from the fetched sheet, which ran on every device
+      // at startup and could wipe real staff when the wrong tab/month or a
+      // partial sheet came back. Staff missing from the sheet are now only
+      // surfaced via [staffMissingFromAttendanceSheet] for HR to review and
+      // relieve manually.
 
       if (notifyIfUpdated && res.updatedDays.isNotEmpty) {
-        final monthName = _hrAttendanceSheet?.monthTitle != null
-            ? (_hrAttendanceSheet!.monthTitle.substring(0, 1).toUpperCase() +
-                  _hrAttendanceSheet!.monthTitle.substring(1).toLowerCase())
-            : 'November';
+        final rawTitle = _hrAttendanceSheet?.monthTitle.trim() ?? '';
+        final monthName = rawTitle.isNotEmpty
+            ? (rawTitle.substring(0, 1).toUpperCase() +
+                  rawTitle.substring(1).toLowerCase())
+            : (GoogleSheetsAttendanceService.monthNames[targetMonthForNotice] ?? '');
         final sortedDays = res.updatedDays.toSet().toList()..sort();
         final daysStr = sortedDays.length == 1
             ? '$monthName ${sortedDays.first}'
@@ -1158,7 +1143,7 @@ class EcosystemProvider extends ChangeNotifier {
       type: CompanyNotificationType.broadcastNotice,
       actionTag: 'ATTENDANCE',
       timestamp: DateTime.now(),
-      senderName: 'HR Department (Mohankumar G)',
+      senderName: 'HR Department',
       senderRole: 'HR Manager',
     );
     _companyNotifications.insert(0, notif);
@@ -1183,7 +1168,7 @@ class EcosystemProvider extends ChangeNotifier {
       timestamp: DateTime.now(),
       senderName: category == 'ceo'
           ? 'M N Naveenraaj'
-          : 'HR Department (Mohankumar G)',
+          : 'HR Department',
       senderRole: category == 'ceo' ? 'Managing Director & CEO' : 'HR Manager',
     );
     PushNotificationService().showNotification(
@@ -1313,15 +1298,12 @@ class EcosystemProvider extends ChangeNotifier {
     for (final event in todayCelebrations) {
       final isSelf =
           _activeEmpId == event.employeeId ||
-          currentEmployee.name.toLowerCase().contains(
-            event.employeeName.toLowerCase(),
-          ) ||
-          (isCeo &&
-              (event.employeeId == 'MN-CEO01' ||
-                  event.employeeName.toLowerCase().contains('naveenraaj'))) ||
+          currentEmployee.id == event.employeeId ||
+          (isCeo && event.employeeId == 'MN-CEO01') ||
           (isHr &&
-              (event.employeeId == 'MN-HR001' ||
-                  event.employeeName.toLowerCase().contains('mohankumar')));
+              (event.employeeId == '7' ||
+                  event.employeeId == 'MN-HR001' ||
+                  event.employeeId == 'MN-HR1001'));
 
       final notifId = isSelf
           ? 'NOTIF-MYCELEB-${event.type}-${event.employeeId}-${now.year}_${now.month}_${now.day}'
@@ -1570,9 +1552,11 @@ class EcosystemProvider extends ChangeNotifier {
             if (isDifferentDay) return true;
 
             // 2. If it's an anniversary notification, strictly verify the employee is married and has an anniversary date
-            if (n.type == CompanyNotificationType.anniversary ||
+            //    (only once the live staff directory has loaded, so a real post is never deleted early)
+            if (_remoteEmployeesLoaded &&
+                (n.type == CompanyNotificationType.anniversary ||
                 n.id.contains('anniversary') ||
-                n.title.toLowerCase().contains('anniversary')) {
+                n.title.toLowerCase().contains('anniversary'))) {
               Employee? targetEmp;
               for (final e in _employees) {
                 if (n.targetEmpIds.contains(e.id) ||
@@ -1927,8 +1911,8 @@ class EcosystemProvider extends ChangeNotifier {
     final isShopClosed = now.hour >= 21 || now.hour < 9;
 
     for (final emp in _employees) {
-      // CEO and Praveenkumar M (TL) are available all the time 24/7
-      if (emp.isCeo || emp.name.toLowerCase().contains('praveen')) {
+      // CEO and the Online Team Manager are available all the time 24/7
+      if (emp.isCeo || emp.isOtm) {
         summaries.add(
           EmployeeDailyAttendanceSummary(
             employeeId: emp.id,
@@ -3241,15 +3225,20 @@ class EcosystemProvider extends ChangeNotifier {
                 (empId == 'MN-CEO01' || empId.toLowerCase() == 'ceo')) ||
             ((e.isTeamLead || e.isOtm) &&
                 (empId == 'MN-TL1002' || empId.toLowerCase() == 'otm')),
-        orElse: () => currentEmployee,
+        orElse: () => _noMatchEmployee,
       );
     } catch (_) {
+      emp = _noMatchEmployee;
+    }
+    // Unknown id: never fall back to the signed-in user's own profile.
+    if (identical(emp, _noMatchEmployee)) {
+      if (empId != _activeEmpId) return;
       emp = currentEmployee;
     }
 
-    final isNaveen = emp.id == 'MN-CEO01' || emp.email.toLowerCase().contains('ceo') || emp.name.toLowerCase().contains('naveen');
-    final isMohan = emp.id == '7' || emp.id == 'MN-HR001' || emp.id == 'MN-HR1001' || emp.email.toLowerCase().contains('hr@') || emp.name.toLowerCase().contains('mohan');
-    final isPraveen = emp.id == 'MN-TL1002' || emp.id == '2' || emp.email.toLowerCase().contains('praveen') || (emp.isOtm && emp.dept.toLowerCase().contains('online'));
+    final isNaveen = emp.id == 'MN-CEO01' || emp.email.toLowerCase().contains('ceo');
+    final isMohan = emp.id == '7' || emp.id == 'MN-HR001' || emp.id == 'MN-HR1001' || emp.email.toLowerCase().contains('hr@');
+    final isPraveen = emp.id == 'MN-TL1002' || emp.email.toLowerCase().contains('praveen') || (emp.isOtm && emp.dept.toLowerCase().contains('online'));
 
     final possibleIds = <String>{
       empId,
@@ -3309,15 +3298,22 @@ class EcosystemProvider extends ChangeNotifier {
                 (empId == 'MN-CEO01' || empId.toLowerCase() == 'ceo')) ||
             ((e.isTeamLead || e.isOtm) &&
                 (empId == 'MN-TL1002' || empId.toLowerCase() == 'otm')),
-        orElse: () => currentEmployee,
+        orElse: () => _noMatchEmployee,
       );
     } catch (_) {
+      emp = _noMatchEmployee;
+    }
+    // Unknown id: return nothing rather than the viewer's own tasks.
+    if (identical(emp, _noMatchEmployee)) {
+      if (empId != _activeEmpId) {
+        return _tasks.where((t) => t.empId == empId).toList();
+      }
       emp = currentEmployee;
     }
 
-    final isNaveen = emp.id == 'MN-CEO01' || emp.email.toLowerCase().contains('ceo') || emp.name.toLowerCase().contains('naveen');
-    final isMohan = emp.id == '7' || emp.id == 'MN-HR001' || emp.id == 'MN-HR1001' || emp.email.toLowerCase().contains('hr@') || emp.name.toLowerCase().contains('mohan');
-    final isPraveen = emp.id == 'MN-TL1002' || emp.id == '2' || emp.email.toLowerCase().contains('praveen') || (emp.isOtm && emp.dept.toLowerCase().contains('online'));
+    final isNaveen = emp.id == 'MN-CEO01' || emp.email.toLowerCase().contains('ceo');
+    final isMohan = emp.id == '7' || emp.id == 'MN-HR001' || emp.id == 'MN-HR1001' || emp.email.toLowerCase().contains('hr@');
+    final isPraveen = emp.id == 'MN-TL1002' || emp.email.toLowerCase().contains('praveen') || (emp.isOtm && emp.dept.toLowerCase().contains('online'));
 
     final possibleIds = <String>{
       empId,
@@ -3369,6 +3365,7 @@ class EcosystemProvider extends ChangeNotifier {
   StreamSubscription<List<KonarBookModel>>? _konarBooksSubscription;
   bool _firebaseSyncActive = false;
   bool get firebaseSyncActive => _firebaseSyncActive;
+  bool _remoteEmployeesLoaded = false;
 
   // Real-time Departments Registry & Blacklist
   final Set<String> _deletedDepartments = {};
@@ -3824,19 +3821,160 @@ class EcosystemProvider extends ChangeNotifier {
     _loadLocalPersonalNotesAndDismissed();
     _loadLocalChats();
     _initFirebaseSync();
+    _watchAuthState();
     checkAndDispatchCelebrations();
     _startMidnightCelebrationTimer();
+  }
+
+  StreamSubscription<User?>? _authStateSubscription;
+  String? _syncedForUid;
+
+  /// Firestore rules require a signed-in user, and a snapshot listener that is
+  /// rejected with permission-denied never recovers. So the live streams are
+  /// (re)started whenever the Firebase Auth user changes.
+  void _watchAuthState() {
+    if (!FirebaseEmployeeService.isFirebaseAvailable) return;
+    try {
+      _authStateSubscription =
+          FirebaseAuth.instance.authStateChanges().listen((user) {
+        final uid = user?.uid;
+        if (uid == _syncedForUid) return;
+        _syncedForUid = uid;
+        _cancelFirebaseStreams();
+        if (uid != null) {
+          _initialCompanyNotifsLoaded = false;
+          _initFirebaseSync();
+          _chatSubscribedFor = null;
+          _resubscribeChats();
+        }
+      });
+    } catch (e) {
+      debugPrint('Auth state watch note: $e');
+    }
+  }
+
+  void _cancelFirebaseStreams() {
+    _employeeSubscription?.cancel();
+    _departmentsSubscription?.cancel();
+    _deletedDepartmentsSubscription?.cancel();
+    _socialCausesSubscription?.cancel();
+    _notificationsSubscription?.cancel();
+    _personalTodosSubscription?.cancel();
+    _onlineOrdersSubscription?.cancel();
+    _konarBooksSubscription?.cancel();
+    _chatMessagesSubscription?.cancel();
+    _chatMessagesSubscription = null;
+    _firebaseSyncActive = false;
+  }
+
+  String? _chatSubscribedFor;
+
+  /// (Re)subscribe to the chat stream for the active user only. Private DMs
+  /// between other staff are never downloaded to this device.
+  void _resubscribeChats() {
+    if (_chatSubscribedFor == _activeEmpId && _chatMessagesSubscription != null) {
+      return;
+    }
+    _chatMessagesSubscription?.cancel();
+    _chatMessagesSubscription = null;
+    _chatSubscribedFor = _activeEmpId;
+    _initialChatsStreamLoaded = false;
+    if (_activeEmpId.isEmpty) return;
+    try {
+      _chatMessagesSubscription = _firebaseEmployeeService
+          .streamChatMessages(_activeEmpId)
+          .listen(
+            _onRemoteChats,
+            onError: (err) {
+              debugPrint('Firestore chat stream note: $err');
+            },
+          );
+    } catch (e) {
+      debugPrint('Firestore chat stream error: $e');
+    }
+  }
+
+  void _onRemoteChats(List<ChatMessage> remoteMsgs) {
+    final filteredRemote = remoteMsgs
+        .where(
+          (m) =>
+              !m.id.startsWith('SEED-MSG') &&
+              !m.text.contains('Online Department is active'),
+        )
+        .toList();
+    final remoteIds = filteredRemote.map((m) => m.id).toSet();
+    // Keep unsynced local messages, but only ones this user is part of.
+    final localOnly = _chatMessages
+        .where(
+          (m) =>
+              !remoteIds.contains(m.id) &&
+              (m.isAllHands ||
+                  m.isSentBy(_activeEmpId) ||
+                  m.receiverId.toLowerCase() == _activeEmpId.toLowerCase()) &&
+              !m.id.startsWith('SEED-MSG') &&
+              !m.text.contains('Online Department is active'),
+        )
+        .toList();
+    final merged = [...filteredRemote, ...localOnly];
+    merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    _chatMessages = merged;
+
+    // Push notifications for incoming chat messages like WhatsApp outside the app
+    if (!_initialChatsStreamLoaded) {
+      for (final m in filteredRemote) {
+        _notifiedChatMessageIds.add(m.id);
+      }
+      _initialChatsStreamLoaded = true;
+    } else {
+      for (final m in filteredRemote) {
+        if (!_notifiedChatMessageIds.contains(m.id)) {
+          _notifiedChatMessageIds.add(m.id);
+          final isForMe =
+              m.isAllHands ||
+              m.receiverId.toLowerCase() == _activeEmpId.toLowerCase();
+          if (m.senderId.toLowerCase() != _activeEmpId.toLowerCase() &&
+              isForMe) {
+            final payload = m.isAllHands
+                ? 'chat:ALL_HANDS|MN All-Hands Workforce|All Employees|true'
+                : 'chat:${m.senderId}|${m.senderName}|${m.senderRole}|false';
+            PushNotificationService()
+                .showChatNotification(
+                  id: m.id,
+                  senderName: m.senderName,
+                  message: m.text,
+                  isGroup: m.isAllHands,
+                  payload: payload,
+                )
+                .catchError((err) {
+                  debugPrint(
+                    'Push notification incoming chat stream error: $err',
+                  );
+                });
+          }
+        }
+      }
+    }
+
+    notifyListeners();
   }
 
   void _initFirebaseSync() {
     _loadOfflineCacheAndFlushPending();
     if (!FirebaseEmployeeService.isFirebaseAvailable) return;
+    // Wait for a signed-in user; _watchAuthState() starts the streams then.
+    try {
+      if (FirebaseAuth.instance.currentUser == null) return;
+    } catch (_) {
+      return;
+    }
+    if (_firebaseSyncActive) return;
     _firebaseSyncActive = true;
 
     try {
       _employeeSubscription = _firebaseEmployeeService.streamEmployees().listen(
         (remoteEmployees) {
           if (remoteEmployees.isNotEmpty) {
+            _remoteEmployeesLoaded = true;
             final Map<String, Employee> deduplicated = {};
 
             for (final remote in remoteEmployees) {
@@ -4016,11 +4154,9 @@ class EcosystemProvider extends ChangeNotifier {
           .streamOnlineOrders()
           .listen(
             (remoteOrders) {
-              if (remoteOrders.isNotEmpty) {
-                _onlineOrders = remoteOrders;
-                checkAndEscalateOverdueOrders();
-                notifyListeners();
-              }
+              _onlineOrders = remoteOrders;
+              checkAndEscalateOverdueOrders();
+              notifyListeners();
             },
             onError: (err) {
               debugPrint('Firestore online orders stream note: $err');
@@ -4030,76 +4166,9 @@ class EcosystemProvider extends ChangeNotifier {
       debugPrint('Firestore online orders stream error: $e');
     }
 
-    try {
-      _chatMessagesSubscription = _firebaseEmployeeService.streamChatMessages().listen(
-        (remoteMsgs) {
-          if (remoteMsgs.isNotEmpty) {
-            final filteredRemote = remoteMsgs
-                .where(
-                  (m) =>
-                      !m.id.startsWith('SEED-MSG') &&
-                      !m.text.contains('Online Department is active'),
-                )
-                .toList();
-            final remoteIds = filteredRemote.map((m) => m.id).toSet();
-            final localOnly = _chatMessages
-                .where(
-                  (m) =>
-                      !remoteIds.contains(m.id) &&
-                      !m.id.startsWith('SEED-MSG') &&
-                      !m.text.contains('Online Department is active'),
-                )
-                .toList();
-            final merged = [...filteredRemote, ...localOnly];
-            merged.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-            _chatMessages = merged;
-
-            // Push notifications for incoming chat messages like WhatsApp outside the app
-            if (!_initialChatsStreamLoaded) {
-              for (final m in filteredRemote) {
-                _notifiedChatMessageIds.add(m.id);
-              }
-              _initialChatsStreamLoaded = true;
-            } else {
-              for (final m in filteredRemote) {
-                if (!_notifiedChatMessageIds.contains(m.id)) {
-                  _notifiedChatMessageIds.add(m.id);
-                  final isForMe =
-                      m.isAllHands ||
-                      m.receiverId.toLowerCase() == _activeEmpId.toLowerCase();
-                  if (m.senderId.toLowerCase() != _activeEmpId.toLowerCase() &&
-                      isForMe) {
-                    final payload = m.isAllHands
-                        ? 'chat:ALL_HANDS|MN All-Hands Workforce|All Employees|true'
-                        : 'chat:${m.senderId}|${m.senderName}|${m.senderRole}|false';
-                    PushNotificationService()
-                        .showChatNotification(
-                          id: m.id,
-                          senderName: m.senderName,
-                          message: m.text,
-                          isGroup: m.isAllHands,
-                          payload: payload,
-                        )
-                        .catchError((err) {
-                          debugPrint(
-                            'Push notification incoming chat stream error: $err',
-                          );
-                        });
-                  }
-                }
-              }
-            }
-
-            notifyListeners();
-          }
-        },
-        onError: (err) {
-          debugPrint('Firestore chat stream note: $err');
-        },
-      );
-    } catch (e) {
-      debugPrint('Firestore chat stream error: $e');
-    }
+    // Chat stream is subscribed per signed-in user in _resubscribeChats(),
+    // so each device only downloads All-Hands messages and its own DMs.
+    _resubscribeChats();
 
     try {
       _konarBooksSubscription = _firebaseEmployeeService
@@ -4242,7 +4311,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1975-01-15',
         relationshipStatus: 'Married',
         anniversaryDate: '',
-        password: 'adminnaandhan',
       ),
 
       // 2. HR Management - Employee Number 7
@@ -4278,7 +4346,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1993-04-10',
         relationshipStatus: 'Married',
         anniversaryDate: '',
-        password: 'hr@mnj123',
       ),
 
       // 3. OTM - Online Team Manager / Team Lead (Praveenkumar M)
@@ -4316,7 +4383,6 @@ class EcosystemProvider extends ChangeNotifier {
         gender: 'male',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'praveen@mnj123',
       ),
 
       // 4. OSH - Online Sale Head - Employee Number 6
@@ -4352,7 +4418,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1995-05-12',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'gokul@mnj123',
       ),
 
       // 5. VPE - Chief Photographer & Video Editor
@@ -4388,7 +4453,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1992-06-18',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'aravind@mnj123',
       ),
 
       // 6. Ass.VPE - Assistant Photographer & Videographer - Employee Number 33
@@ -4424,7 +4488,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1997-10-08',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'mithra@mnj123',
       ),
 
       // 7. ECE - E-Commerce Executive
@@ -4460,7 +4523,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1996-08-20',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'ece@mnj123',
       ),
 
       // 8. OS1 - Online Sale Person 1 - Employee Number 65
@@ -4496,7 +4558,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1999-07-11',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'kaaviya@mnj123',
       ),
 
       // 9. OS2 - Online Sale Person 2 - Employee Number 67
@@ -4532,7 +4593,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1999-12-05',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'nisha@mnj123',
       ),
 
       // 10. AC - Online Analytical Consultant
@@ -4568,7 +4628,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1994-03-22',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'midhun@mnj123',
       ),
 
       // 11. OSS - Online Support & Strategist
@@ -4604,7 +4663,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1995-11-09',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'subash@mnj123',
       ),
 
       // 12. DVP - Developer
@@ -4640,7 +4698,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1993-09-30',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'eshwar@mnj123',
       ),
 
       // 13. CC - Content Creator
@@ -4676,7 +4733,6 @@ class EcosystemProvider extends ChangeNotifier {
         dob: '1998-04-14',
         relationshipStatus: 'Single',
         anniversaryDate: '',
-        password: 'samroy@mnj123',
       ),
     ];
 
@@ -4788,12 +4844,15 @@ class EcosystemProvider extends ChangeNotifier {
     // Real-time Workforce Chat Engine (Clean state: only real messages sent by users or streamed from Firestore)
     _chatMessages = [];
 
-    // Pre-seed Google Sheets HR Attendance data with official November ledger
-    _hrAttendanceSheet =
-        GoogleSheetsAttendanceService.parseCsvToAttendanceSheet(
-          GoogleSheetsAttendanceService.embeddedNovemberSeedCsv,
-        );
-    _attendanceSheetLastSynced = DateTime.now();
+    // Pre-seed with the embedded November ledger only while it is actually
+    // November; in any other month it would be shown as the wrong month's data.
+    if (DateTime.now().month == 11) {
+      _hrAttendanceSheet =
+          GoogleSheetsAttendanceService.parseCsvToAttendanceSheet(
+            GoogleSheetsAttendanceService.embeddedNovemberSeedCsv,
+          );
+      _attendanceSheetLastSynced = DateTime.now();
+    }
 
     // Fetch live Google Sheets immediately upon initialization
     syncGoogleSheetsAttendance(notifyIfUpdated: false);
@@ -4959,6 +5018,187 @@ class EcosystemProvider extends ChangeNotifier {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Permission / leave persistence & cross-device delivery
+  // ---------------------------------------------------------------------------
+
+  /// IDs of the CEO account(s).
+  Set<String> _ceoIds() => {
+        'MN-CEO01',
+        ..._employees.where((e) => e.isCeo).map((e) => e.id),
+      };
+
+  /// IDs of everyone who approves permissions / leave (HR + CEO).
+  Set<String> _leaveApproverIds() => {
+        ..._ceoIds(),
+        '7',
+        'MN-HR1001',
+        ..._employees.where((e) => e.isHr).map((e) => e.id),
+      };
+
+  /// Posts a company notification visible (and pushed) only to [targets],
+  /// saved to Firestore so it reaches their devices.
+  void _postTargetedNotice({
+    required String id,
+    required String title,
+    required String body,
+    required Set<String> targets,
+  }) {
+    final notif = CompanyNotification(
+      id: id,
+      title: title,
+      content: body,
+      type: CompanyNotificationType.broadcastNotice,
+      timestamp: DateTime.now(),
+      senderName: currentEmployee.name,
+      senderRole: currentEmployee.role,
+      targetEmpIds: targets.where((t) => t.isNotEmpty).toList(),
+    );
+    _companyNotifications.removeWhere((n) => n.id == id);
+    _companyNotifications.insert(0, notif);
+    _notifiedCompanyNotifIds.add(id);
+    _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
+      debugPrint('Firestore targeted notice note: $err');
+    });
+  }
+
+  /// Writes [empId]'s permission & medical-leave records to their Firestore
+  /// pillar. Remote records are merged by id first (local copy wins) so an
+  /// approver with a partial in-memory list never erases other requests.
+  Future<void> _persistLeaveRecords(String empId) async {
+    if (empId.isEmpty) return;
+    try {
+      final remote = await _firebaseEmployeeService.loadEmployeePillars(empId);
+      List<Map<String, dynamic>> merge(
+        String key,
+        Iterable<Map<String, dynamic>> local,
+      ) {
+        final byId = <String, Map<String, dynamic>>{};
+        final remoteList = remote?[key];
+        if (remoteList is List) {
+          for (final r in remoteList) {
+            if (r is Map && r['id'] != null) {
+              byId[r['id'].toString()] = Map<String, dynamic>.from(r);
+            }
+          }
+        }
+        for (final m in local) {
+          byId[m['id'].toString()] = m;
+        }
+        return byId.values.toList();
+      }
+
+      await _firebaseEmployeeService.saveEmployeePillar(
+        empId: empId,
+        pillarKey: 'permissions',
+        data: merge(
+          'permissions',
+          _permissionRecords.where((p) => p.empId == empId).map((p) => p.toMap()),
+        ),
+      );
+      // Migrate any prescription image still embedded in a leave record
+      // (remote or local) into leave_prescriptions/{id} before stripping it.
+      final embedded = <String, String>{};
+      final remoteLeaves = remote?['medicalLeaves'];
+      if (remoteLeaves is List) {
+        for (final r in remoteLeaves) {
+          if (r is Map) {
+            final data = r['prescriptionBase64']?.toString() ?? '';
+            if (data.isNotEmpty && r['id'] != null) embedded[r['id'].toString()] = data;
+          }
+        }
+      }
+      for (final m in _medicalLeaveRecords.where((m) => m.empId == empId)) {
+        if (m.prescriptionBase64.isNotEmpty) embedded[m.id] = m.prescriptionBase64;
+      }
+      for (final e in embedded.entries.toList()) {
+        try {
+          await _firebaseEmployeeService.savePrescription(
+            leaveId: e.key,
+            empId: empId,
+            base64: e.value,
+          );
+        } catch (err) {
+          // Keep the image embedded if it could not be moved
+          debugPrint('Prescription migrate note: $err');
+          embedded.remove(e.key);
+        }
+      }
+
+      await _firebaseEmployeeService.saveEmployeePillar(
+        empId: empId,
+        pillarKey: 'medicalLeaves',
+        data: merge(
+          'medicalLeaves',
+          _medicalLeaveRecords.where((m) => m.empId == empId).map((m) {
+            final map = m.toMap();
+            if (!embedded.containsKey(m.id) && m.prescriptionBase64.isNotEmpty) {
+              return map; // could not be moved; leave it embedded
+            }
+            map['prescriptionBase64'] = ''; // stored in leave_prescriptions/{id}
+            map['hasPrescription'] = true;
+            return map;
+          }),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Persist leave records ($empId) note: $e');
+    }
+  }
+
+  /// Returns [leave] with its prescription image loaded (fetched from
+  /// Firestore when it is not already in memory).
+  Future<MedicalLeaveRecord> withLoadedPrescription(MedicalLeaveRecord leave) async {
+    if (leave.prescriptionBase64.isNotEmpty) return leave;
+    final data = await _firebaseEmployeeService.loadPrescription(leave.id);
+    if (data == null || data.isEmpty) return leave;
+    final loaded = leave.withPrescription(data);
+    final idx = _medicalLeaveRecords.indexWhere((m) => m.id == leave.id);
+    if (idx != -1) _medicalLeaveRecords[idx] = loaded;
+    return loaded;
+  }
+
+  bool _staffLeaveRecordsLoading = false;
+
+  /// HR / CEO / Team Leads: pull every employee's permission & leave records
+  /// from Firestore so requests made on other devices appear for approval.
+  Future<void> loadAllStaffLeaveRecords() async {
+    if (_staffLeaveRecordsLoading || !(isHr || isCeo || isTeamLead)) return;
+    _staffLeaveRecordsLoading = true;
+    try {
+      for (final emp in List<Employee>.from(_employees)) {
+        if (emp.id.isEmpty) continue;
+        final pillars =
+            await _firebaseEmployeeService.loadEmployeePillars(emp.id);
+        if (pillars == null) continue;
+        if (pillars['permissions'] is List) {
+          for (final raw in pillars['permissions'] as List) {
+            if (raw is! Map) continue;
+            final p = PermissionRecord.fromMap(Map<String, dynamic>.from(raw));
+            _permissionRecords.removeWhere((x) => x.id == p.id);
+            _permissionRecords.add(p);
+          }
+        }
+        if (pillars['medicalLeaves'] is List) {
+          for (final raw in pillars['medicalLeaves'] as List) {
+            if (raw is! Map) continue;
+            final m =
+                MedicalLeaveRecord.fromMap(Map<String, dynamic>.from(raw));
+            _medicalLeaveRecords.removeWhere((x) => x.id == m.id);
+            _medicalLeaveRecords.add(m);
+          }
+        }
+      }
+      _permissionRecords.sort((a, b) => b.date.compareTo(a.date));
+      _medicalLeaveRecords.sort((a, b) => b.date.compareTo(a.date));
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Load staff leave records note: $e');
+    } finally {
+      _staffLeaveRecordsLoading = false;
+    }
+  }
+
   // Permission & Late Arrival Request (4.0 hrs limit & 1 CL rule)
   void requestPermission({
     required String empId,
@@ -4992,14 +5232,7 @@ class EcosystemProvider extends ChangeNotifier {
     );
     notifyListeners();
 
-    _firebaseEmployeeService.saveEmployeePillar(
-      empId: empId,
-      pillarKey: 'permissions',
-      data: _permissionRecords
-          .where((p) => p.empId == empId)
-          .map((p) => p.toMap())
-          .toList(),
-    );
+    _persistLeaveRecords(empId);
   }
 
   // HR marks/grants permission directly to employee
@@ -5033,33 +5266,24 @@ class EcosystemProvider extends ChangeNotifier {
       isHalfDayTriggered: willExceed && !isCasualLeave,
       isCasualLeave: isCasualLeave,
       isSalaryDeducted: false,
-      grantedBy: 'HR (Mohankumar G)',
+      grantedBy: 'HR (${currentEmployee.name})',
     );
     _permissionRecords.insert(0, record);
 
-    final emp = _employees.firstWhere(
-      (e) => e.id == empId,
-      orElse: () => _employees.first,
-    );
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId) ??
+        currentEmployee;
     dispatchAcceptanceNotification(
       requestType: AcceptanceRequestType.permission,
       employeeId: empId,
       employeeName: emp.name,
       durationOrDays: '$hours Hours',
       reason: reason,
-      approvedBy: 'HR (Mohankumar G)',
+      approvedBy: 'HR (${currentEmployee.name})',
       requesterRole: emp.role,
       department: emp.dept,
     );
 
-    _firebaseEmployeeService.saveEmployeePillar(
-      empId: empId,
-      pillarKey: 'permissions',
-      data: _permissionRecords
-          .where((p) => p.empId == empId)
-          .map((p) => p.toMap())
-          .toList(),
-    );
+    _persistLeaveRecords(empId);
   }
 
   // Employee requests standard permission
@@ -5074,10 +5298,8 @@ class EcosystemProvider extends ChangeNotifier {
     final willExceed =
         (currentUsed + requestedHours) > _monthlyPermissionHoursLimit;
 
-    final emp = _employees.firstWhere(
-      (e) => e.id == empId,
-      orElse: () => _employees.first,
-    );
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId) ??
+        currentEmployee;
     final record = PermissionRecord(
       id: 'PERM-${DateTime.now().millisecondsSinceEpoch}',
       empId: empId,
@@ -5097,14 +5319,15 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _permissionRecords.insert(0, record);
 
-    // Push immediate notification to CEO and HR
-    PushNotificationService().showNotification(
-      id: record.id,
+    // Notify CEO and HR on their own devices (Firestore-targeted notice)
+    _postTargetedNotice(
+      id: 'NOTIF-REQ-${record.id}',
       title: 'New Permission Request: ${requestedHours}h',
       body: '${emp.name} (${emp.role}) requested permission for "$reason".',
-      payload: 'permission_request',
+      targets: _leaveApproverIds(),
     );
     notifyListeners();
+    _persistLeaveRecords(empId);
   }
 
   // Request Emergency Permission (15m, 30m, 1h, 2h, >2h custom)
@@ -5115,10 +5338,8 @@ class EcosystemProvider extends ChangeNotifier {
     required String requesterRole,
   }) {
     final now = DateTime.now();
-    final emp = _employees.firstWhere(
-      (e) => e.id == empId,
-      orElse: () => _employees.first,
-    );
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId) ??
+        currentEmployee;
 
     // Tally in 2-hour permission section:
     // If request exceeds 2 hrs OR month used + request exceeds 2 hrs, flag as isOver2Hours (Orange mark)
@@ -5163,15 +5384,16 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _permissionRecords.insert(0, record);
 
-    // Push immediate high-priority notification to CEO and HR
-    PushNotificationService().showNotification(
-      id: record.id,
+    // Notify CEO and HR on their own devices (Firestore-targeted notice)
+    _postTargetedNotice(
+      id: 'NOTIF-REQ-${record.id}',
       title: '🚨 Emergency Permission Request ($durationFormatted)',
       body:
           '${emp.name} ($requesterRole) requested emergency permission to step out: "$reason".',
-      payload: 'emergency_permission',
+      targets: _leaveApproverIds(),
     );
     notifyListeners();
+    _persistLeaveRecords(empId);
   }
 
   // Request Emergency Medical Leave with Mandatory Doctor Prescription (<= 150 KB)
@@ -5188,10 +5410,8 @@ class EcosystemProvider extends ChangeNotifier {
     }
 
     final now = DateTime.now();
-    final emp = _employees.firstWhere(
-      (e) => e.id == empId,
-      orElse: () => _employees.first,
-    );
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId) ??
+        currentEmployee;
     final isHrRequester = requesterRole.toLowerCase().contains('hr');
     final initialStatus = isHrRequester ? 'Pending CEO' : 'Pending HR & CEO';
 
@@ -5210,16 +5430,26 @@ class EcosystemProvider extends ChangeNotifier {
     );
     _medicalLeaveRecords.insert(0, record);
 
-    // Push immediate high-priority notification to CEO and HR
-    PushNotificationService().showNotification(
-      id: record.id,
+    // Notify CEO and HR on their own devices (Firestore-targeted notice)
+    _postTargetedNotice(
+      id: 'NOTIF-REQ-${record.id}',
       title: '🚨 Emergency Medical Leave ($days Days)',
       body:
           '${emp.name} ($requesterRole) submitted emergency medical leave with prescription: "$reason".',
-      payload: 'medical_leave',
+      targets: _leaveApproverIds(),
     );
 
     notifyListeners();
+    try {
+      await _firebaseEmployeeService.savePrescription(
+        leaveId: record.id,
+        empId: empId,
+        base64: prescriptionBase64,
+      );
+    } catch (e) {
+      debugPrint('Save prescription note: $e');
+    }
+    await _persistLeaveRecords(empId);
     return true;
   }
 
@@ -5239,27 +5469,26 @@ class EcosystemProvider extends ChangeNotifier {
         isHalfDayTriggered: old.isHalfDayTriggered,
         isCasualLeave: old.isCasualLeave,
         isSalaryDeducted: old.isSalaryDeducted,
-        grantedBy: 'HR (Mohankumar G) Granted',
+        grantedBy: 'HR (${currentEmployee.name}) Granted',
         isEmergency: old.isEmergency,
         employeeName: old.employeeName,
         department: old.department,
         requesterRole: old.requesterRole,
         isOver2Hours: old.isOver2Hours,
-        hrApprovedBy: 'Mohankumar G (HR)',
+        hrApprovedBy: '${currentEmployee.name} (HR)',
         ceoApprovedBy: old.ceoApprovedBy,
       );
-      final emp = _employees.firstWhere(
-        (e) => e.id == old.empId,
-        orElse: () => _employees.first,
-      );
-      PushNotificationService().showNotification(
-        id: 'HR-GRANT-${DateTime.now().millisecondsSinceEpoch}',
+      final emp = _employees.firstWhereOrNull((e) => e.id == old.empId) ??
+          Employee.simple(id: old.empId, name: old.employeeName ?? old.empId, role: '');
+      _postTargetedNotice(
+        id: 'NOTIF-HR-GRANT-${old.id}',
         title: 'HR Granted Permission: CEO Acceptance Required',
         body:
             'HR granted permission for ${emp.name} (${old.actualHoursUsed}h). Final CEO acceptance needed.',
-        payload: 'hr_grant_permission',
+        targets: {..._ceoIds(), old.empId},
       );
       notifyListeners();
+      _persistLeaveRecords(old.empId);
     }
   }
 
@@ -5285,23 +5514,23 @@ class EcosystemProvider extends ChangeNotifier {
         department: old.department,
         requesterRole: old.requesterRole,
         isOver2Hours: old.isOver2Hours,
-        hrApprovedBy: 'Mohankumar G (HR)',
+        hrApprovedBy: '${currentEmployee.name} (HR)',
         ceoApprovedBy: old.ceoApprovedBy,
       );
-      final emp = _employees.firstWhere(
-        (e) => e.id == old.empId,
-        orElse: () => _employees.first,
-      );
+      final emp = _employees.firstWhereOrNull((e) => e.id == old.empId) ??
+          Employee.simple(id: old.empId, name: old.employeeName ?? old.empId, role: '');
       dispatchAcceptanceNotification(
         requestType: AcceptanceRequestType.permission,
         employeeId: old.empId,
         employeeName: emp.name,
         durationOrDays: '${old.actualHoursUsed} Hours',
         reason: old.reason,
-        approvedBy: 'HR (Mohankumar G)',
+        approvedBy: 'HR (${currentEmployee.name})',
         requesterRole: old.requesterRole,
         department: old.department,
       );
+      notifyListeners();
+      _persistLeaveRecords(old.empId);
     }
   }
 
@@ -5321,29 +5550,29 @@ class EcosystemProvider extends ChangeNotifier {
         isHalfDayTriggered: old.isHalfDayTriggered,
         isCasualLeave: old.isCasualLeave,
         isSalaryDeducted: old.isSalaryDeducted,
-        grantedBy: 'CEO (M N Naveenraaj) Approved',
+        grantedBy: 'CEO (${currentEmployee.name}) Approved',
         isEmergency: old.isEmergency,
         employeeName: old.employeeName,
         department: old.department,
         requesterRole: old.requesterRole,
         isOver2Hours: old.isOver2Hours,
         hrApprovedBy: old.hrApprovedBy,
-        ceoApprovedBy: 'M N Naveenraaj (CEO)',
+        ceoApprovedBy: '${currentEmployee.name} (CEO)',
       );
-      final emp = _employees.firstWhere(
-        (e) => e.id == old.empId,
-        orElse: () => _employees.first,
-      );
+      final emp = _employees.firstWhereOrNull((e) => e.id == old.empId) ??
+          Employee.simple(id: old.empId, name: old.employeeName ?? old.empId, role: '');
       dispatchAcceptanceNotification(
         requestType: AcceptanceRequestType.permission,
         employeeId: old.empId,
         employeeName: emp.name,
         durationOrDays: '${old.actualHoursUsed} Hours',
         reason: old.reason,
-        approvedBy: 'CEO (M N Naveenraaj)',
+        approvedBy: 'CEO (${currentEmployee.name})',
         requesterRole: old.requesterRole,
         department: old.department,
       );
+      notifyListeners();
+      _persistLeaveRecords(old.empId);
     }
   }
 
@@ -5371,17 +5600,16 @@ class EcosystemProvider extends ChangeNotifier {
         requesterRole: old.requesterRole,
         isOver2Hours: old.isOver2Hours,
       );
-      final emp = _employees.firstWhere(
-        (e) => e.id == old.empId,
-        orElse: () => _employees.first,
-      );
-      PushNotificationService().showNotification(
-        id: 'REJ-${DateTime.now().millisecondsSinceEpoch}',
+      final emp = _employees.firstWhereOrNull((e) => e.id == old.empId) ??
+          Employee.simple(id: old.empId, name: old.employeeName ?? old.empId, role: '');
+      _postTargetedNotice(
+        id: 'NOTIF-REJ-${old.id}',
         title: '❌ Permission Request Rejected',
         body: 'Permission request for ${emp.name} was rejected by $rejector.',
-        payload: 'permission_rejected',
+        targets: {old.empId, ..._leaveApproverIds()},
       );
       notifyListeners();
+      _persistLeaveRecords(old.empId);
     }
   }
 
@@ -5401,19 +5629,20 @@ class EcosystemProvider extends ChangeNotifier {
         reason: old.reason,
         prescriptionBase64: old.prescriptionBase64,
         status: 'Granted by HR (Pending CEO Approval)',
-        hrApprovedBy: 'Mohankumar G (HR)',
+        hrApprovedBy: '${currentEmployee.name} (HR)',
         ceoApprovedBy: old.ceoApprovedBy,
         reviewedAt: DateTime.now(),
         isEmergency: old.isEmergency,
       );
-      PushNotificationService().showNotification(
-        id: 'HR-MED-${DateTime.now().millisecondsSinceEpoch}',
+      _postTargetedNotice(
+        id: 'NOTIF-HR-MED-${old.id}',
         title: 'HR Endorsed Medical Leave: CEO Acceptance Required',
         body:
             'HR verified prescription for ${old.empName} (${old.days} days). Awaiting CEO approval.',
-        payload: 'hr_med_leave',
+        targets: {..._ceoIds(), old.empId},
       );
       notifyListeners();
+      _persistLeaveRecords(old.empId);
     }
   }
 
@@ -5434,7 +5663,7 @@ class EcosystemProvider extends ChangeNotifier {
         prescriptionBase64: old.prescriptionBase64,
         status: 'Approved',
         hrApprovedBy: old.hrApprovedBy,
-        ceoApprovedBy: 'M N Naveenraaj (CEO)',
+        ceoApprovedBy: '${currentEmployee.name} (CEO)',
         reviewedAt: DateTime.now(),
         isEmergency: old.isEmergency,
       );
@@ -5444,10 +5673,12 @@ class EcosystemProvider extends ChangeNotifier {
         employeeName: old.empName,
         durationOrDays: '${old.days} Days Medical Leave',
         reason: old.reason,
-        approvedBy: 'CEO (M N Naveenraaj)',
+        approvedBy: 'CEO (${currentEmployee.name})',
         requesterRole: old.empRole,
         department: old.department,
       );
+      notifyListeners();
+      _persistLeaveRecords(old.empId);
     }
   }
 
@@ -5473,14 +5704,15 @@ class EcosystemProvider extends ChangeNotifier {
         reviewedAt: DateTime.now(),
         isEmergency: old.isEmergency,
       );
-      PushNotificationService().showNotification(
-        id: 'MED-REJ-${DateTime.now().millisecondsSinceEpoch}',
+      _postTargetedNotice(
+        id: 'NOTIF-MED-REJ-${old.id}',
         title: '❌ Medical Leave Rejected',
         body:
             'Emergency medical leave for ${old.empName} was rejected by $rejector.',
-        payload: 'medical_leave_rejected',
+        targets: {old.empId, ..._leaveApproverIds()},
       );
       notifyListeners();
+      _persistLeaveRecords(old.empId);
     }
   }
 
@@ -5510,10 +5742,26 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   // Health Pillar 1 Actions
+  /// Realistic adult ranges used to reject typos (e.g. 1700 cm or 0 kg).
+  static const double minHeightCm = 90, maxHeightCm = 250;
+  static const double minWeightKg = 25, maxWeightKg = 300;
+
+  /// Returns an error message for out-of-range body metrics, or null if valid.
+  static String? validateBodyMetrics(double heightCm, double weightKg) {
+    if (heightCm < minHeightCm || heightCm > maxHeightCm) {
+      return 'Height must be between ${minHeightCm.toInt()} and ${maxHeightCm.toInt()} cm.';
+    }
+    if (weightKg < minWeightKg || weightKg > maxWeightKg) {
+      return 'Weight must be between ${minWeightKg.toInt()} and ${maxWeightKg.toInt()} kg.';
+    }
+    return null;
+  }
+
   void completeHealthOnboarding({
     required double heightCm,
     required double weightKg,
   }) {
+    if (validateBodyMetrics(heightCm, weightKg) != null) return;
     _userHeightCm = heightCm;
     _userWeightKg = weightKg;
     _healthOnboarded = true;
@@ -5550,6 +5798,7 @@ class EcosystemProvider extends ChangeNotifier {
     required double heightCm,
     required double weightKg,
   }) {
+    if (validateBodyMetrics(heightCm, weightKg) != null) return;
     _userHeightCm = heightCm;
     _userWeightKg = weightKg;
     final now = DateTime.now();
@@ -5582,6 +5831,7 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   void setDailyCalorieTarget(double target) {
+    target = target.clamp(800.0, 6000.0).toDouble();
     _dailyCalorieTarget = target;
     notifyListeners();
     _firebaseEmployeeService.saveEmployeePillar(
@@ -5602,6 +5852,7 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   void recordDailySteps({required DateTime date, required int steps}) {
+    steps = steps.clamp(0, 100000);
     final key =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     _dailyStepsMap[key] = steps;
@@ -5629,6 +5880,9 @@ class EcosystemProvider extends ChangeNotifier {
     String portionSize = 'Normal',
     double quantity = 1.0,
   }) {
+    // Reject impossible entries (negative or absurd values from typos)
+    grams = grams.clamp(0.0, 5000.0).toDouble();
+    calories = calories.clamp(0.0, 10000.0).toDouble();
     final targetDate = logDate ?? DateTime.now();
     final timeStr =
         '${targetDate.day} ${_monthName(targetDate.month)} ${targetDate.year}, ${targetDate.hour % 12 == 0 ? 12 : targetDate.hour % 12}:${targetDate.minute.toString().padLeft(2, '0')} ${targetDate.hour >= 12 ? 'PM' : 'AM'}';
@@ -5741,7 +5995,7 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setActiveEmpId(String empId) {
+  void setActiveEmpId(String empId, {String? fallbackRole}) {
     _activeEmpId = empId;
     if (empId == 'MN-CEO01') {
       _activeRole = 'ceo';
@@ -5750,13 +6004,15 @@ class EcosystemProvider extends ChangeNotifier {
     } else if (empId == 'MN-TL1002') {
       _activeRole = 'team_lead';
     } else {
-      final emp = _employees.firstWhere(
+      final emp = _employees.firstWhereOrNull(
         (e) => e.id == empId || e.empNo == empId,
-        orElse: () => currentEmployee,
       );
-      _activeRole = emp.roleType;
+      // Unknown yet (directory still loading): keep the saved role instead of
+      // degrading the session to 'guest'.
+      _activeRole = emp?.roleType ?? fallbackRole ?? _activeRole;
     }
     loadEmployeeFourPillars(empId);
+    _resubscribeChats();
     try {
       PushNotificationService().syncActiveUserToNative(
         empId,
@@ -6165,12 +6421,10 @@ class EcosystemProvider extends ChangeNotifier {
       throw Exception('Email / Password incorrect');
     }
 
+    // NOTE: session state (role / empId / isLoggedIn) must only change AFTER
+    // authentication succeeds. Mutating it beforehand left a failed "Switch Role"
+    // attempt impersonating the target account in memory.
     final reg = corporateRegistry[cleanEmail];
-    if (reg != null) {
-      _activeRole = reg.roleType;
-      _activeEmpId = reg.empId;
-      _isLoggedIn = true;
-    }
 
     // Authenticate through Firebase Auth and Cloud Firestore (S-01, S-02, S-03, S-04)
     final userProfile = await _firebaseEmployeeService.authenticateUser(
@@ -6185,23 +6439,32 @@ class EcosystemProvider extends ChangeNotifier {
         (userProfile['roleType'] ?? userProfile['role'] ?? 'employee')
             .toString()
             .toLowerCase();
-    final empId = (userProfile['empId'] ?? _activeEmpId).toString();
+    final empId = (userProfile['empId'] ?? reg?.empId ?? '').toString();
 
+    final String newRole;
+    final String newEmpId;
     if (roleType == 'hr') {
-      _activeRole = 'hr';
-      _activeEmpId = (empId.isNotEmpty && empId != 'MN-CEO01') ? empId : '7';
+      newRole = 'hr';
+      newEmpId = (empId.isNotEmpty && empId != 'MN-CEO01') ? empId : '7';
     } else if (roleType == 'team_lead' || roleType == 'dept_head') {
-      _activeRole = 'dept_head';
-      _activeEmpId = empId.isNotEmpty ? empId : 'MN-TL1002';
+      newRole = 'dept_head';
+      newEmpId = empId.isNotEmpty ? empId : 'MN-TL1002';
     } else if (roleType == 'ceo' || empId == 'MN-CEO01') {
-      _activeRole = 'ceo';
-      _activeEmpId = 'MN-CEO01';
+      newRole = 'ceo';
+      newEmpId = 'MN-CEO01';
     } else {
-      _activeRole = 'employee';
-      _activeEmpId = empId;
+      newRole = 'employee';
+      newEmpId = empId;
     }
 
+    // Switching to a different account: drop the previous user's in-memory data
+    if (newEmpId != _activeEmpId) {
+      _clearPerUserState();
+    }
+    _activeRole = newRole;
+    _activeEmpId = newEmpId;
     _isLoggedIn = true;
+    _resubscribeChats();
     _firebaseEmployeeService.ensureFirebaseAuthSession(
       cleanEmail,
       cleanPass,
@@ -6282,65 +6545,94 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
-  /// Changes password for an employee verifying old password
+  /// Changes the signed-in user's own password after verifying the old one.
   Future<bool> changeEmployeePassword({
+    required String empId,
+    required String oldPassword,
+    required String newPassword,
+  }) async =>
+      await changeEmployeePasswordWithReason(
+        empId: empId,
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      ) ==
+      null;
+
+  /// Same as [changeEmployeePassword] but returns `null` on success or a
+  /// specific, user-facing reason on failure.
+  Future<String?> changeEmployeePasswordWithReason({
     required String empId,
     required String oldPassword,
     required String newPassword,
   }) async {
     final idx = _employees.indexWhere((e) => e.id == empId);
-    if (idx == -1) return false;
+    if (idx == -1) return 'Employee profile not found.';
     final emp = _employees[idx];
 
+    final user = FirebaseAuth.instance.currentUser;
+    // Only the signed-in user may change their own password here.
+    if (user == null ||
+        user.email == null ||
+        (emp.email.isNotEmpty &&
+            user.email!.toLowerCase() != emp.email.trim().toLowerCase())) {
+      return 'You can only change your own password while signed in.';
+    }
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null && user.email != null) {
-        final cred = EmailAuthProvider.credential(
-          email: user.email!,
-          password: oldPassword,
-        );
-        await user.reauthenticateWithCredential(cred);
-        await user.updatePassword(newPassword);
-      } else {
-        await _firebaseEmployeeService.updateEmployeePassword(
-          empId: empId,
-          email: emp.email,
-          newPassword: newPassword,
-        );
-      }
+      final cred = EmailAuthProvider.credential(
+        email: user.email!,
+        password: oldPassword,
+      );
+      await user.reauthenticateWithCredential(cred);
+      await user.updatePassword(newPassword);
       _employees[idx] = emp.copyWith(password: '');
       notifyListeners();
-      return true;
+      return null;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Firebase password update note: ${e.code}');
+      switch (e.code) {
+        case 'wrong-password':
+        case 'invalid-credential':
+          return 'Your current password is incorrect.';
+        case 'weak-password':
+          return 'The new password is too weak. Use at least 6 characters.';
+        case 'too-many-requests':
+          return 'Too many attempts. Please wait a few minutes and try again.';
+        case 'network-request-failed':
+          return 'Network error. Check your connection and try again.';
+        case 'requires-recent-login':
+          return 'Please log out and sign in again, then change your password.';
+        default:
+          return 'Could not change password (${e.code}).';
+      }
     } catch (e) {
       debugPrint('Firebase password update note: $e');
-      return false;
+      return 'Could not change password. Please try again.';
     }
   }
 
-  /// HR or CEO resets an employee's password directly
-  Future<void> adminResetEmployeePassword({
-    required String empId,
-    required String newPassword,
-  }) async {
+  /// HR or CEO triggers a password reset for another employee.
+  ///
+  /// The Firebase client SDK can only change the password of the account that
+  /// is currently signed in, so we must never call `updatePassword` here (it
+  /// used to overwrite the HR/CEO's OWN password). Instead a Firebase password
+  /// reset link is emailed to the employee. Returns `null` on success or a
+  /// human-readable error message.
+  Future<String?> adminResetEmployeePassword({required String empId}) async {
     if (!isCeo && !isHr) {
-      debugPrint('Unauthorized adminResetEmployeePassword attempt: caller is not CEO/HR');
-      return;
+      return 'Only HR and CEO can reset staff passwords.';
     }
-    final idx = _employees.indexWhere((e) => e.id == empId);
-    if (idx != -1) {
-      final emp = _employees[idx];
-      _employees[idx] = emp.copyWith(password: '');
-      notifyListeners();
-
-      try {
-        await _firebaseEmployeeService.updateEmployeePassword(
-          empId: empId,
-          email: emp.email,
-          newPassword: newPassword,
-        );
-      } catch (e) {
-        debugPrint('Admin reset password note: $e');
-      }
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId);
+    if (emp == null) return 'Employee not found.';
+    final email = emp.email.trim().toLowerCase();
+    if (!email.contains('@')) {
+      return '${emp.name} has no login email on file.';
+    }
+    try {
+      await _firebaseEmployeeService.sendPasswordResetEmail(email);
+      return null;
+    } catch (e) {
+      debugPrint('Admin reset password note: $e');
+      return 'Could not send reset link: ${e.toString().replaceFirst('Exception: ', '')}';
     }
   }
 
@@ -6397,6 +6689,7 @@ class EcosystemProvider extends ChangeNotifier {
     if (idx != -1) {
       final t = _tasks[idx];
       _tasks[idx] = t.copyWith(due: 'Tomorrow 11:00 AM', status: 'postponed');
+      _syncTask(_tasks[idx]);
       _notificationMessage =
           'Task "${t.title}" shifted to tomorrow by Team Lead.';
       notifyListeners();
@@ -6413,14 +6706,10 @@ class EcosystemProvider extends ChangeNotifier {
     final idx = _tasks.indexWhere((t) => t.id == taskId);
     if (idx != -1) {
       final t = _tasks[idx];
-      final prevEmp = _employees.firstWhere(
-        (e) => e.id == t.empId,
-        orElse: () => _employees.first,
-      );
-      final newEmp = _employees.firstWhere(
-        (e) => e.id == newEmpId,
-        orElse: () => _employees.first,
-      );
+      final prevEmp = _employees.firstWhereOrNull((e) => e.id == t.empId) ??
+          Employee.simple(id: t.empId, name: t.empId, role: '');
+      final newEmp = _employees.firstWhereOrNull((e) => e.id == newEmpId);
+      if (newEmp == null) return;
 
       final byName = assignedByName ?? 'TL / Manager';
       final byRole = assignedByRole ?? _activeRole;
@@ -6431,6 +6720,7 @@ class EcosystemProvider extends ChangeNotifier {
         assignedByRole: byRole,
         status: 'pending',
       );
+      _syncTask(_tasks[idx]);
       _notificationMessage =
           'Task "${t.title}" reallocated to ${newEmp.name} successfully.';
 
@@ -6444,19 +6734,13 @@ class EcosystemProvider extends ChangeNotifier {
         senderName: byName,
         senderRole: byRole,
         isRead: false,
+        targetEmpIds: [newEmpId],
       );
       _companyNotifications.insert(0, notif);
       _notifiedCompanyNotifIds.add(notif.id);
       _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
         debugPrint('Firestore save reassign notif note: $err');
       });
-      PushNotificationService().showNotification(
-        id: notif.id,
-        title: notif.title,
-        body: notif.content,
-        payload: notif.id,
-      );
-
       notifyListeners();
     }
   }
@@ -6468,14 +6752,10 @@ class EcosystemProvider extends ChangeNotifier {
     String? authorizedByName,
     String? authorizedByRole,
   }) {
-    final fromEmp = _employees.firstWhere(
-      (e) => e.id == fromEmpId,
-      orElse: () => _employees.first,
-    );
-    final toEmp = _employees.firstWhere(
-      (e) => e.id == toEmpId,
-      orElse: () => _employees.first,
-    );
+    final fromEmp = _employees.firstWhereOrNull((e) => e.id == fromEmpId) ??
+        Employee.simple(id: fromEmpId, name: fromEmpId, role: '');
+    final toEmp = _employees.firstWhereOrNull((e) => e.id == toEmpId);
+    if (toEmp == null) return;
     final byName = authorizedByName ?? 'Manager';
     final byRole = authorizedByRole ?? _activeRole;
 
@@ -6488,6 +6768,7 @@ class EcosystemProvider extends ChangeNotifier {
               'Reallocated from ${fromEmp.name} (Absent) by $byName',
           assignedByRole: byRole,
         );
+        _syncTask(_tasks[i]);
         count++;
       }
     }
@@ -6505,18 +6786,13 @@ class EcosystemProvider extends ChangeNotifier {
         senderName: byName,
         senderRole: byRole,
         isRead: false,
+        targetEmpIds: [toEmpId],
       );
       _companyNotifications.insert(0, notif);
       _notifiedCompanyNotifIds.add(notif.id);
       _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
         debugPrint('Firestore save reassign notif note: $err');
       });
-      PushNotificationService().showNotification(
-        id: notif.id,
-        title: notif.title,
-        body: notif.content,
-        payload: notif.id,
-      );
     }
 
     notifyListeners();
@@ -6540,6 +6816,9 @@ class EcosystemProvider extends ChangeNotifier {
     checkAndResetDailySops();
     try {
       final pillars = await _firebaseEmployeeService.loadEmployeePillars(empId);
+      // A newer account switch happened while this load was in flight: drop
+      // the stale result instead of writing it into the new user's session.
+      if (empId != _activeEmpId && _activeEmpId.isNotEmpty) return;
       if (pillars != null) {
         // 1. Health Pillar
         if (pillars['health'] is Map) {
@@ -6723,6 +7002,11 @@ class EcosystemProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Firestore loadEmployeeFourPillars note: $e');
+    }
+    // Approvers also need everyone else's pending permission / leave requests.
+    if (empId == _activeEmpId) {
+      loadAllStaffLeaveRecords();
+      syncPersonalNotes();
     }
   }
 
@@ -7489,6 +7773,7 @@ class EcosystemProvider extends ChangeNotifier {
         postponedTo: postponedTo,
         postponedAt: timeStr,
       );
+      _syncTask(_tasks[idx]);
       notifyListeners();
     }
   }
@@ -7512,6 +7797,19 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Collision-resistant id suffix (timestamp + random component).
+  String _uniqueSuffix() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${math.Random().nextInt(1 << 20).toRadixString(36)}';
+
+  /// Persist a non-SOP task to Firestore so it reaches the assignee's device
+  /// and survives the personal-todo stream rebuilding `_tasks`.
+  void _syncTask(TaskItem task) {
+    if (task.isDefaultSop) return;
+    _firebaseEmployeeService.savePersonalTodo(task).catchError((err) {
+      debugPrint('Firestore task sync note: $err');
+    });
+  }
+
   void assignTask({
     required String empId,
     required String title,
@@ -7522,7 +7820,7 @@ class EcosystemProvider extends ChangeNotifier {
     required String assignedByName,
   }) {
     final newTask = TaskItem(
-      id: 'TSK-${DateTime.now().millisecondsSinceEpoch % 10000}',
+      id: 'TSK-${_uniqueSuffix()}',
       empId: empId,
       title: title,
       category: category,
@@ -7534,6 +7832,7 @@ class EcosystemProvider extends ChangeNotifier {
       status: 'pending',
     );
     _tasks.insert(0, newTask);
+    _syncTask(newTask);
 
     final notif = CompanyNotification(
       id: 'NOTIF-TASK-${DateTime.now().millisecondsSinceEpoch}',
@@ -7545,24 +7844,19 @@ class EcosystemProvider extends ChangeNotifier {
       senderName: assignedByName,
       senderRole: assignedByRole,
       isRead: false,
+      targetEmpIds: [empId],
     );
     _companyNotifications.insert(0, notif);
     _notifiedCompanyNotifIds.add(notif.id);
     _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
       debugPrint('Firestore save task notif note: $err');
     });
-    PushNotificationService().showNotification(
-      id: notif.id,
-      title: notif.title,
-      body: notif.content,
-      payload: notif.id,
-    );
-
     notifyListeners();
   }
 
   void advanceHandover(String handoverId) {
-    final ho = _handovers.firstWhere((h) => h.id == handoverId);
+    final ho = _handovers.firstWhereOrNull((h) => h.id == handoverId);
+    if (ho == null) return;
     final inProgIdx = ho.steps.indexWhere((s) => s.status == 'in_progress');
     if (inProgIdx != -1) {
       ho.steps[inProgIdx].status = 'done';
@@ -7607,7 +7901,7 @@ class EcosystemProvider extends ChangeNotifier {
     final timeStr =
         '${now.hour % 12 == 0 ? 12 : now.hour % 12}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
     final newBlk = Blocker(
-      id: 'BLK-${DateTime.now().millisecondsSinceEpoch % 10000}',
+      id: 'BLK-${_uniqueSuffix()}',
       raisedByDept: raisedByDept,
       raisedByName: raisedByName,
       blockingDept: blockingDept,
@@ -7658,7 +7952,8 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   void resolveBlocker(String blockerId) {
-    final b = _blockers.firstWhere((blk) => blk.id == blockerId);
+    final b = _blockers.firstWhereOrNull((blk) => blk.id == blockerId);
+    if (b == null) return;
     b.status = 'resolved';
     _notificationMessage = 'Blocker #${b.id} marked as resolved.';
     notifyListeners();
@@ -7707,7 +8002,7 @@ class EcosystemProvider extends ChangeNotifier {
     _delegations.insert(
       0,
       EmergencyDelegation(
-        id: 'DEL-${DateTime.now().millisecondsSinceEpoch % 10000}',
+        id: 'DEL-${_uniqueSuffix()}',
         absentEmpId: absentEmpId,
         absentEmpName: '${absentEmp.name} (${absentEmp.dept})',
         coveringEmpId: coveringEmpId,
@@ -7724,7 +8019,7 @@ class EcosystemProvider extends ChangeNotifier {
       employeeName: absentEmp.name,
       durationOrDays: 'Emergency Leave',
       reason: reason,
-      approvedBy: 'HR (Mohankumar G)',
+      approvedBy: 'HR (${currentEmployee.name})',
       requesterRole: absentEmp.role,
       department: absentEmp.dept,
     );
@@ -7800,12 +8095,15 @@ class EcosystemProvider extends ChangeNotifier {
     required String experienceCategory,
     required String experienceYears,
     String? trainerName,
-    String password = 'password123',
+    String password = '',
     String dob = '',
     String gender = 'Male',
     String? customEmpId,
     String? empNo,
   }) {
+    // Firebase Auth needs >= 6 chars; never fall back to a shared default.
+    final effectivePassword =
+        password.trim().length >= 6 ? password.trim() : generateTemporaryPassword();
     if (!canManageEmployees()) {
       _notificationMessage =
           'Access Denied: Only HR and CEO have authorization to add users.';
@@ -7874,7 +8172,7 @@ class EcosystemProvider extends ChangeNotifier {
       status: 'active',
       ragStatus: 'green',
       lastActive: 'Just registered',
-      password: password.isNotEmpty ? password : 'password123',
+      password: effectivePassword,
       dob: dob.isNotEmpty ? dob : '01-01-2000',
       gender: gender.isNotEmpty ? gender : 'Male',
     );
@@ -7904,7 +8202,7 @@ class EcosystemProvider extends ChangeNotifier {
         .addEmployee(
           employee: newEmp,
           requesterRole: _activeRole,
-          password: password,
+          password: effectivePassword,
         )
         .catchError((err) {
           debugPrint('Firestore remote add note: $err');
@@ -8504,6 +8802,7 @@ class EcosystemProvider extends ChangeNotifier {
     _personalNotes.insert(0, note);
     notifyListeners();
     _savePersonalNotesToLocal();
+    _firebaseEmployeeService.savePersonalNote(note.toJson());
   }
 
   void updatePersonalNote({
@@ -8529,13 +8828,62 @@ class EcosystemProvider extends ChangeNotifier {
       );
       notifyListeners();
       _savePersonalNotesToLocal();
+      _firebaseEmployeeService.savePersonalNote(_personalNotes[idx].toJson());
     }
   }
 
   void deletePersonalNote(String noteId) {
+    final owned = _personalNotes.any(
+      (n) => n.id == noteId && n.ownerEmpId == _activeEmpId,
+    );
     _personalNotes.removeWhere(
       (n) => n.id == noteId && n.ownerEmpId == _activeEmpId,
     );
+    notifyListeners();
+    _savePersonalNotesToLocal();
+    if (owned) _firebaseEmployeeService.deletePersonalNote(noteId);
+  }
+
+  /// Merge this user's notes from Firestore with the on-device copy (newest
+  /// edit wins) and upload any notes that only existed on this device.
+  Future<void> syncPersonalNotes() async {
+    final me = _activeEmpId;
+    if (me.isEmpty) return;
+    final remote = await _firebaseEmployeeService.loadPersonalNotes(me);
+    if (remote == null || me != _activeEmpId) return;
+    final remoteById = <String, PersonalNote>{};
+    for (final m in remote) {
+      try {
+        final n = PersonalNote.fromJson(m);
+        remoteById[n.id] = n;
+      } catch (_) {}
+    }
+    // Ids this device has already seen in the cloud. A previously synced note
+    // that is now missing remotely was deleted on another device: drop it
+    // instead of re-uploading it.
+    final syncedKey = 'mn_notes_synced_ids_$me';
+    Set<String> previouslySynced = {};
+    SharedPreferences? prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+      previouslySynced = (prefs.getStringList(syncedKey) ?? const []).toSet();
+    } catch (_) {}
+    final localMine = _personalNotes.where((n) => n.ownerEmpId == me).toList();
+    for (final local in localMine) {
+      final r = remoteById[local.id];
+      if (r == null && previouslySynced.contains(local.id)) continue;
+      if (r == null || local.updatedAt.isAfter(r.updatedAt)) {
+        _firebaseEmployeeService.savePersonalNote(local.toJson());
+        remoteById[local.id] = local;
+      }
+    }
+    try {
+      await prefs?.setStringList(syncedKey, remoteById.keys.toList());
+    } catch (_) {}
+    _personalNotes = [
+      ..._personalNotes.where((n) => n.ownerEmpId != me),
+      ...remoteById.values,
+    ];
     notifyListeners();
     _savePersonalNotesToLocal();
   }
@@ -8552,6 +8900,7 @@ class EcosystemProvider extends ChangeNotifier {
       );
       notifyListeners();
       _savePersonalNotesToLocal();
+      _firebaseEmployeeService.savePersonalNote(_personalNotes[idx].toJson());
     }
   }
 
@@ -9101,12 +9450,8 @@ class EcosystemProvider extends ChangeNotifier {
     final targetEmpId = order.handledByEmpId.isNotEmpty
         ? order.handledByEmpId
         : order.primaryResponsibleEmpId;
-    final staffEmp = _employees.firstWhere(
+    final staffEmp = _employees.firstWhereOrNull(
       (e) => e.id == targetEmpId || e.empNo == targetEmpId,
-      orElse: () => _employees.firstWhere(
-        (e) => e.id == targetEmpId,
-        orElse: () => currentEmployee,
-      ),
     );
     final orderTaskId = 'task_order_${order.orderId}';
     _tasks.removeWhere((t) => t.id == orderTaskId);
@@ -9114,13 +9459,13 @@ class EcosystemProvider extends ChangeNotifier {
       0,
       TaskItem(
         id: orderTaskId,
-        empId: staffEmp.id,
+        empId: staffEmp?.id ?? targetEmpId,
         title:
             '📦 Process Online Order #${order.orderId} (${order.brand} - ${order.customerName})',
         category: 'Online Order Workflow',
         isDefaultSop: false,
-        assignedByRole: 'dept_head',
-        assignedByName: 'Praveenkumar M (TL)',
+        assignedByRole: _activeRole,
+        assignedByName: currentEmployee.name,
         due: order.expectedDeliveryDate.isNotEmpty
             ? order.expectedDeliveryDate
             : 'Today',
@@ -9129,6 +9474,7 @@ class EcosystemProvider extends ChangeNotifier {
         isImmutable: false,
       ),
     );
+    _syncTask(_tasks.first);
 
     notifyListeners();
 
@@ -9463,6 +9809,7 @@ class EcosystemProvider extends ChangeNotifier {
   @override
   void dispose() {
     _firebaseSyncActive = false;
+    _authStateSubscription?.cancel();
     _midnightCelebrationTimer?.cancel();
     _employeeSubscription?.cancel();
     _departmentsSubscription?.cancel();

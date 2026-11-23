@@ -287,11 +287,14 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                   children: [
                     const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF94A3B8)),
                     const SizedBox(width: 4),
-                    Text(
-                      'Updated: ${DateFormat('dd MMM yyyy').format(book.lastUpdated)}',
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                    Expanded(
+                      child: Text(
+                        'Updated: ${DateFormat('dd MMM yyyy').format(book.lastUpdated)}',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 6),
                     Text(
                       '${book.sections.length} Chapters',
                       style: const TextStyle(
