@@ -51,3 +51,4 @@ tools/node_modules/
 tools/package-lock.json
 tools/package.json
 tools/backups/
+releases/
