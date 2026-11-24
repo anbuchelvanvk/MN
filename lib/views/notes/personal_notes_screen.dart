@@ -769,7 +769,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                     children: [
                       Text(
                         'MN JEWEL PARK',
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.4,

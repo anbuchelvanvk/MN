@@ -1,3 +1,4 @@
+import '../../core/widgets/add_todo_dialog.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -782,7 +783,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       latestNotif.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF1E293B),
@@ -1522,7 +1523,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   children: [
                     Text(
                       'To-Do List',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF881337),
@@ -1532,7 +1533,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     const SizedBox(height: 2),
                     Text(
                       '${pending.length} pending,  ${completed.length} completed',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w400,
                         color: const Color(0xFF64748B),
@@ -1570,7 +1571,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       const SizedBox(width: 4),
                       Text(
                         'Add To Do',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF881337),
@@ -1629,7 +1630,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   _selectedFilter == 'all'
                       ? 'No tasks yet. Tap "Add To Do" to create one.'
                       : 'Nothing here right now.',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     color: const Color(0xFF94A3B8),
                   ),
@@ -1651,7 +1652,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 onPressed: () => setState(() => _todoShowCount += 10),
                 child: Text(
                   'Show ${visible.length - shown.length} more',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF881337),
                   ),
@@ -1664,98 +1665,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   }
 
   void _showAddPersonalTodoDialog(BuildContext context) {
-    final titleController = TextEditingController();
-    final eco = context.read<EcosystemProvider>();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Add Personal To-Do',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF881337),
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter to-do task details:',
-              style: GoogleFonts.outfit(
-                fontSize: 13,
-                color: const Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                hintText: 'e.g. MN Jewel Park Reels Post',
-                hintStyle: GoogleFonts.outfit(
-                  fontSize: 13,
-                  color: const Color(0xFF94A3B8),
-                ),
-                filled: true,
-                fillColor: const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF881337),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.outfit(color: const Color(0xFF64748B)),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF881337),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              final text = titleController.text.trim();
-              if (text.isEmpty) return;
-              eco.addEmployeePersonalTodo(
-                empId: eco.activeEmpId,
-                title: text,
-                category: 'Personal',
-                dueTime: '',
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('To-Do "$text" added.'),
-                  backgroundColor: const Color(0xFF881337),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-              Navigator.pop(ctx);
-            },
-            child: Text(
-              'Add To-Do',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
+    showAddPersonalTodoDialog(context, context.read<EcosystemProvider>());
   }
 
   Widget _buildFilterPill({
@@ -1778,7 +1688,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ),
         child: Text(
           label,
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
             color: isSelected ? Colors.white : const Color(0xFF334155),
@@ -1808,7 +1718,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               children: [
                 Text(
                   time,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF0F172A),
@@ -1818,7 +1728,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   date,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF756A80),
@@ -1873,7 +1783,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 onTap: onTap,
                 child: Text(
                   title,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF0F172A),
@@ -1937,7 +1847,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Text(
                       'Type here',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: const Color(0xFF756A80),
@@ -2054,7 +1964,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       children: [
                         Text(
                           drawerName,
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -2062,7 +1972,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         ),
                         Text(
                           drawerRole,
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             color: const Color(0xFFFDE68A),
                           ),
@@ -2081,12 +1991,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 children: [
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.home_outlined, color: Color(0xFF881337)),
-                    title: Text('Home Dashboard', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('Home Dashboard', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () => Navigator.pop(context),
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.forum_outlined, color: Color(0xFF881337)),
-                    title: Text('Team Chat Hub', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('Team Chat Hub', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       FloatingChatWindow.show(context);
@@ -2094,7 +2004,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.menu_book_rounded, color: Color(0xFF881337)),
-                    title: Text('${_deptLabel(emp.dept)} Konar Book', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('${_deptLabel(emp.dept)} Konar Book', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2109,7 +2019,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.person_outline, color: Color(0xFF881337)),
-                    title: Text('Employee Profile', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('Employee Profile', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2120,7 +2030,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.fact_check_outlined, color: Color(0xFF881337)),
-                    title: Text('My Attendance', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('My Attendance', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2131,7 +2041,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF881337)),
-                    title: Text('Online Orders', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('Online Orders', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2142,7 +2052,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.sticky_note_2_outlined, color: Color(0xFF881337)),
-                    title: Text('Personal Notes', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('Personal Notes', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2153,7 +2063,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.video_collection_outlined, color: Color(0xFF881337)),
-                    title: Text('Media Review Board', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('Media Review Board', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2167,7 +2077,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
                     title: Text(
                       'Logout',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.plusJakartaSans(
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFFDC2626),
                       ),
@@ -2186,7 +2096,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               padding: const EdgeInsets.all(16),
               child: Text(
                 'MN Family • v1.1',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   color: const Color(0xFF94A3B8),
                 ),

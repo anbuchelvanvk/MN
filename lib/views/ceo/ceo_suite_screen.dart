@@ -1,3 +1,4 @@
+import '../hr/hr_password_requests_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -385,6 +386,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         icon: Icons.assessment_outlined,
                         badge: '',
                         destination: const MonthlyScorecardScreen(),
+                      ),
+                      const SizedBox(height: 8),
+                      _verticalCeoTabTile(
+                        context: context,
+                        eco: eco,
+                        label: 'Password Requests',
+                        icon: Icons.lock_reset_rounded,
+                        badge: '',
+                        destination: const HrPasswordRequestsScreen(),
                       ),
                       const SizedBox(height: 8),
                       _verticalCeoTabTile(

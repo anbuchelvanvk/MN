@@ -1,3 +1,4 @@
+import '../../core/widgets/add_todo_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -286,61 +287,7 @@ class _EmployeeThingsToDoScreenState extends State<EmployeeThingsToDoScreen> {
   }
 
   void _openAddPersonalTaskDialog(BuildContext context, EcosystemProvider eco) {
-    final titleCtrl = TextEditingController();
-    final categoryCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Add Daily Task',
-          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleCtrl,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
-              decoration: InputDecoration(
-                hintText: 'Task Title (e.g. Clean display velvet tray)',
-                hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: categoryCtrl,
-              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textDark),
-              decoration: InputDecoration(
-                hintText: 'Category (e.g. Showroom Display, Audit...)',
-                hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.magentaPrimary, foregroundColor: Colors.white),
-            onPressed: () {
-              final t = titleCtrl.text.trim();
-              if (t.isEmpty) return;
-              eco.addEmployeePersonalTodo(
-                empId: eco.currentEmployee.id,
-                title: t,
-                category: categoryCtrl.text.trim().isEmpty ? 'General' : categoryCtrl.text.trim(),
-                dueTime: '06:00 PM',
-                priority: 'Standard',
-              );
-              Navigator.pop(ctx);
-            },
-            child: const Text('Add Task', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
+    showAddPersonalTodoDialog(context, eco);
   }
 }
 

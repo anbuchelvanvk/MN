@@ -1,3 +1,4 @@
+import 'hr_password_requests_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -286,6 +287,14 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                           icon: Icons.menu_book_rounded,
                           badge: '',
                           destination: const KonarBooksDirectoryScreen(),
+                        ),
+                        const SizedBox(height: 8),
+                        _portalDirectAccessTile(
+                          context: context,
+                          label: 'Password Requests',
+                          icon: Icons.lock_reset_rounded,
+                          badge: '',
+                          destination: const HrPasswordRequestsScreen(),
                         ),
                         const SizedBox(height: 8),
                         _portalDirectAccessTile(

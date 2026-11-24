@@ -194,6 +194,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ------------------------------------------------- password reset (HR)
+    // Requests are created and changed only by Cloud Functions (functions/).
+    // HR and the CEO can read the queue (who asked, status) — never the code.
+    // password_resets/ (code + token hashes) has no rule, so clients can't read it.
+    match /password_reset_queue/{requestId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /konar_books/{bookId} {
       allow read: if signedIn();
       allow write: if isAdmin() || isLead();

@@ -1,3 +1,4 @@
+import 'forgot_password_screen.dart';
 import '../../core/widgets/mn_brand_logo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -643,83 +644,18 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
   void _showForgotPasswordDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.burgundyCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Icons.support_agent, color: AppColors.sandGold),
-            const SizedBox(width: 8),
-            Text(
-              'Password Assistance',
-              style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 15, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'We can email a secure reset link to your official email address. '
-              'If you no longer have access to that inbox, contact the HR department.',
-              style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 11.5, height: 1.4),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.burgundySurface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.sandBorder),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.email, size: 13, color: AppColors.sandPrimary),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'HR Department: hr@mnj.com',
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 11.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: AppColors.sandGold)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.burgundyPrimary),
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.of(context);
-              final email = _emailController.text.trim().toLowerCase();
-              Navigator.pop(ctx);
-              if (!email.contains('@')) {
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('Enter your official email above first, then tap Forgot Password again.')),
-                );
-                return;
-              }
-              try {
-                await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-              } catch (_) {
-                // Do not reveal whether the account exists
-              }
-              messenger.showSnackBar(
-                SnackBar(content: Text('If $email is a staff account, a reset link has been sent to it.')),
-              );
-            },
-            child: const Text('Email me a reset link', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+    Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ForgotPasswordScreen(initialEmail: _emailController.text.trim()),
       ),
-    );
+    ).then((email) {
+      if (!mounted || email == null || email.isEmpty) return;
+      setState(() {
+        _emailController.text = email;
+        _passwordController.clear();
+        _errorMessage = null;
+      });
+    });
   }
 }

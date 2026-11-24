@@ -1,6 +1,6 @@
+import '../auth/forgot_password_screen.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -251,149 +251,6 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
         ),
       );
     }
-  }
-
-  void _showForgotPasswordModal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.burgundySurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.sandGold, width: 1.2),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.support_agent_outlined, color: AppColors.sandGold, size: 22),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Forgot Your Password?',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.sandLight,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Please contact the HR Department to retrieve or reset your login credentials.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                color: AppColors.sandLight,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.burgundyCard,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.sandBorder),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.person, size: 16, color: AppColors.sandGold),
-                      const SizedBox(width: 8),
-                      Text(
-                        'HR Department (hr@mnj.com)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.phone, size: 15, color: AppColors.sandPrimary),
-                      const SizedBox(width: 8),
-                      Text(
-                        '+91 94433 11000',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppColors.sandPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.email_outlined, size: 15, color: AppColors.sandPrimary),
-                      const SizedBox(width: 8),
-                      Text(
-                        'hr@mnj.com',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppColors.sandPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Note: HR has secure administrative authority in the HR Management Portal to verify your staff ID and provide your password directly.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                color: AppColors.textMuted,
-                height: 1.35,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Clipboard.setData(const ClipboardData(text: '+919443311000'));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('HR Phone number copied to clipboard!'),
-                  backgroundColor: AppColors.ragGreen,
-                ),
-              );
-              Navigator.pop(ctx);
-            },
-            child: Text(
-              'Copy Phone',
-              style: GoogleFonts.plusJakartaSans(color: AppColors.sandGold, fontWeight: FontWeight.bold),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sandGold,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Understood'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -783,7 +640,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         label: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            'Forgot Password? Contact HR',
+                            'Forgot password? Reset with HR',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
@@ -794,7 +651,12 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                             ),
                           ),
                         ),
-                        onPressed: () => _showForgotPasswordModal(context),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ForgotPasswordScreen(initialEmail: emp.email),
+                          ),
+                        ),
                       ),
                     ),
                   ],

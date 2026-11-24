@@ -255,7 +255,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Add To Do'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField).last, 'Shoot new reel');
+      await tester.enterText(find.byKey(const ValueKey('add_todo_title')), 'Shoot new reel');
       await tester.tap(find.text('Add To-Do'));
       await tester.pumpAndSettle();
 
