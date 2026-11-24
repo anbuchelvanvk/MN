@@ -261,7 +261,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                       children: [
                                         const Icon(Icons.business_outlined, size: 10, color: AppColors.magentaPrimary),
                                         const SizedBox(width: 4),
-                                        Text('${eco.employees.length} Corporate Staff', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                                        Flexible(child: Text('${eco.employees.length} Corporate Staff', overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500))),
                                       ],
                                     ),
                                   ),

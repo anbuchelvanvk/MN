@@ -774,7 +774,11 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                         ),
                         const SizedBox(height: 6),
-                        Row(
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
                           children: [
@@ -792,6 +796,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                               style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.sandPrimary),
                             ),
                           ],
+                        ),
                         ),
                         Text(
                           familyHours > 0 ? 'Cherished quality time logged for ${_formatDayShort(_selectedDate)}' : 'No forced targets • Spend time at your own pace',

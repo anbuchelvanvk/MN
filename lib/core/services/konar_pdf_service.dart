@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -303,22 +305,52 @@ class KonarPdfService {
     return pdf.save();
   }
 
-  /// Saves the KONAR Book PDF directly into the device's public Downloads directory
-  static Future<File> saveKonarPdfLocally(KonarBookModel book, {EcosystemProvider? eco}) async {
-    final pdfBytes = await generateKonarPdf(book, eco: eco);
-    final fileName = '${book.department.replaceAll(' ', '_')}_KONAR_Book_${book.version}.pdf';
+  static String fileNameFor(KonarBookModel book) =>
+      '${book.department.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')}_KONAR_Book_${book.version}.pdf';
 
-    Directory? targetDir;
-    final publicDownloads = Directory('/storage/emulated/0/Download');
-    if (await publicDownloads.exists()) {
-      targetDir = publicDownloads;
-    } else {
-      targetDir = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+  /// Lets the user choose where to save the PDF (Android "Save to" screen,
+  /// which includes Downloads; a normal download on web).
+  ///
+  /// Apps cannot write straight into /storage/emulated/0/Download on Android
+  /// 10+ (that caused "Permission denied"), so the system picker is used.
+  /// Returns the saved location, or null if the user cancelled.
+  static Future<String?> downloadKonarPdf(KonarBookModel book, {EcosystemProvider? eco}) async {
+    final bytes = await generateKonarPdf(book, eco: eco);
+    final saved = await FilePicker.saveFile(
+      dialogTitle: 'Save Konar Book',
+      fileName: fileNameFor(book),
+      type: FileType.custom,
+      allowedExtensions: const ['pdf'],
+      bytes: bytes,
+    );
+    // Desktop pickers return a path without writing the bytes themselves.
+    if (saved != null && !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      await File(saved).writeAsBytes(bytes, flush: true);
     }
+    return saved;
+  }
 
-    final file = File('${targetDir.path}/$fileName');
-    await file.writeAsBytes(pdfBytes);
-    return file;
+  /// Opens the system share sheet (WhatsApp, Drive, email, ...) with the PDF.
+  static Future<void> shareKonarPdf(KonarBookModel book, {EcosystemProvider? eco}) async {
+    final bytes = await generateKonarPdf(book, eco: eco);
+    final name = fileNameFor(book);
+    final text = 'Official ${book.department} KONAR Book (${book.version}) - MN Jewel Park';
+    if (kIsWeb) {
+      await Share.shareXFiles(
+        [XFile.fromData(bytes, name: name, mimeType: 'application/pdf')],
+        text: text,
+      );
+      return;
+    }
+    // The app's own temp folder is always writable (no storage permission).
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$name');
+    await file.writeAsBytes(bytes, flush: true);
+    await Share.shareXFiles(
+      [XFile(file.path, mimeType: 'application/pdf', name: name)],
+      text: text,
+      subject: '${book.department} Official KONAR Book',
+    );
   }
 
   /// In-app preview and print using system PDF print spooler

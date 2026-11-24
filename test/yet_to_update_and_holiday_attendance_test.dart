@@ -76,6 +76,7 @@ void main() {
 
       final showroomStaff = summaries.where((s) =>
         s.employeeId != 'MN-CEO01' &&
+        !s.employeeId.toUpperCase().startsWith('EXT-') && // external support staff are exempt
         !s.employeeName.toLowerCase().contains('praveen') &&
         s.department != 'External Support Staff [Online]' &&
         !s.role.contains('External Support')

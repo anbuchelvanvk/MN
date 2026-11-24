@@ -423,9 +423,12 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                             children: const [
                               Icon(Icons.touch_app, size: 11, color: AppColors.textMuted),
                               SizedBox(width: 3),
-                              Text(
-                                'Tap to inspect audit',
-                                style: TextStyle(fontSize: 9.5, color: AppColors.textMuted),
+                              Flexible(
+                                child: Text(
+                                  'Tap to inspect audit',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                                ),
                               ),
                             ],
                           ),

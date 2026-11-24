@@ -841,8 +841,12 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                 const SizedBox(height: 12),
 
                 // Dialog Buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                // Wrap (not Row) so buttons move to a second line on narrow
+                // screens instead of pushing "Close" off the edge.
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     if (isAttendanceRelated) ...[
                       ElevatedButton.icon(
@@ -863,7 +867,6 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         ),
                       ),
-                      const SizedBox(width: 8),
                     ],
                     if (isOrderRelated) ...[
                       ElevatedButton.icon(
@@ -883,7 +886,6 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                       ),
-                      const SizedBox(width: 8),
                     ],
                     OutlinedButton.icon(
                       onPressed: () {
@@ -904,7 +906,6 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     OutlinedButton(
                       onPressed: () => Navigator.pop(ctx),
                       style: OutlinedButton.styleFrom(

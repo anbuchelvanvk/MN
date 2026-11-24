@@ -154,6 +154,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                   ),
                   const SizedBox(height: 5),
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     value: _department,
                     dropdownColor: AppColors.burgundySurface,
                     style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12.5),

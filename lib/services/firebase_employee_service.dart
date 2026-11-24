@@ -1550,6 +1550,7 @@ class FirebaseEmployeeService {
     String? email,
     String? dept,
   }) async {
+    if (!isFirebaseAvailable) return;
     try {
       final col = await _findEmployeeCollection(empId, dept);
       await col.doc(empId).set(fields, SetOptions(merge: true));
@@ -1559,6 +1560,7 @@ class FirebaseEmployeeService {
       }
     } catch (e) {
       debugPrint('Firestore updateEmployeeProfileFields error: $e');
+      rethrow;
     }
   }
 

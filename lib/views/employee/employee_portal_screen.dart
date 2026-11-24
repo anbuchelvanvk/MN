@@ -15,6 +15,7 @@ import 'employee_profile_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../home/modern_home_screen.dart';
+import '../../core/widgets/employee_avatar.dart';
 
 class EmployeePortalScreen extends StatefulWidget {
   const EmployeePortalScreen({super.key});
@@ -627,11 +628,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                 const SizedBox(height: 18),
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: AppColors.magentaPrimary,
-                      child: Text(emp.initials, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
+                    EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 52),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(

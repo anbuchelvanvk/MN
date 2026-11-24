@@ -4,14 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'package:share_plus/share_plus.dart';
 import '../../core/services/konar_pdf_service.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
+import '../../core/widgets/employee_avatar.dart';
 import '../../models/konar_book_model.dart';
 import '../media/creative_media_review_board_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import '../pillars/attendance_pillar_screen.dart';
+import '../pillars/health_pillar_screen.dart';
+import '../pillars/family_pillar_screen.dart';
+import '../pillars/profile_pillar_screen.dart';
+import '../pillars/social_cause_pillar_screen.dart';
 import '../../core/widgets/company_notification_sheet.dart';
 import '../../core/widgets/cross_dept_blocker_section.dart';
 import '../../core/widgets/task_action_dialogs.dart';
@@ -373,7 +377,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               ),
                             ],
                           ),
-                          child: _UserAvatar(emp: emp, size: 38, radius: 19),
+                          child: EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 38),
                         ),
                       ),
                     ],
@@ -648,142 +652,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     final todayCal = eco.getCaloriesConsumedForDate(now);
     final targetCal =
         eco.dailyCalorieTarget > 0 ? eco.dailyCalorieTarget : 1550.0;
-    final healthCalorie =
-        '${todayCal.round()} / ${targetCal.round()} Cal';
-
-    // Calorie Growth / Reduction Remark vs Yesterday (or vs Target)
-    final yesterday = now.subtract(const Duration(days: 1));
-    final yesterdayCal = eco.getCaloriesConsumedForDate(yesterday);
-    final String calorieRemark;
-    final Color calorieRemarkColor;
-    final IconData calorieRemarkIcon;
-    if (yesterdayCal > 0) {
-      final diff = todayCal - yesterdayCal;
-      final pct = ((diff.abs() / yesterdayCal) * 100).toStringAsFixed(1);
-      if (diff > 0) {
-        calorieRemark = '+$pct%';
-        calorieRemarkColor = const Color(0xFF10B981);
-        calorieRemarkIcon = Icons.arrow_upward_rounded;
-      } else if (diff < 0) {
-        calorieRemark = '-$pct%';
-        calorieRemarkColor = const Color(0xFFEF4444);
-        calorieRemarkIcon = Icons.arrow_downward_rounded;
-      } else {
-        calorieRemark = '0.0%';
-        calorieRemarkColor = const Color(0xFF64748B);
-        calorieRemarkIcon = Icons.horizontal_rule_rounded;
-      }
-    } else if (todayCal > 0) {
-      final diff = todayCal - targetCal;
-      final pct = ((diff.abs() / targetCal) * 100).toStringAsFixed(1);
-      if (diff >= 0) {
-        calorieRemark = '+$pct%';
-        calorieRemarkColor = const Color(0xFF10B981);
-        calorieRemarkIcon = Icons.arrow_upward_rounded;
-      } else {
-        calorieRemark = '-$pct%';
-        calorieRemarkColor = const Color(0xFFF59E0B);
-        calorieRemarkIcon = Icons.arrow_downward_rounded;
-      }
-    } else {
-      calorieRemark = '0.0%';
-      calorieRemarkColor = const Color(0xFF64748B);
-      calorieRemarkIcon = Icons.horizontal_rule_rounded;
-    }
-
-    // Nutrient Segregation: Protein, Fats, Carbs, Fibre from overall monthly intake
-    final monthFoodLogs = eco.dailyFoodLogs
-        .where((f) =>
-            f.timestamp.year == now.year && f.timestamp.month == now.month)
-        .toList();
-    final monthCalories =
-        monthFoodLogs.fold(0.0, (sum, f) => sum + f.calories);
-
-    // Standard nutritional macro proportions: Protein 20% (4 kcal/g), Fats 25% (9 kcal/g), Carbs 50% (4 kcal/g), Fibre 14g/1000kcal
-    final double proteinGrams = (monthCalories * 0.20) / 4.0;
-    final double fatsGrams = (monthCalories * 0.25) / 9.0;
-    final double carbsGrams = (monthCalories * 0.50) / 4.0;
-    final double fibreGrams = (monthCalories / 1000.0) * 14.0;
-
-    // Monthly Target (Proportional to days in month with entries, or daily baseline)
-    final double targetMultiplier =
-        (monthCalories > targetCal * 1.5) ? currentDay.toDouble() : 1.0;
-    final double effectiveTargetCal = targetCal * targetMultiplier;
-    final double targetProteinGrams = (effectiveTargetCal * 0.20) / 4.0;
-    final double targetFatsGrams = (effectiveTargetCal * 0.25) / 9.0;
-    final double targetCarbsGrams = (effectiveTargetCal * 0.50) / 4.0;
-    final double targetFibreGrams = (effectiveTargetCal / 1000.0) * 14.0;
-
-    String formatMacro(double actual, double target) {
-      final act = actual >= 100
-          ? actual.round().toString()
-          : actual.toStringAsFixed(1);
-      final tgt = target >= 100
-          ? target.round().toString()
-          : target.toStringAsFixed(1);
-      return '~${act}g / ${tgt}g';
-    }
-
-    final healthNutrientPills = [
-      _buildMicroNutrientPill(
-        label: 'Protein',
-        val: formatMacro(proteinGrams, targetProteinGrams),
-        iconColor: const Color(0xFF4338CA),
-      ),
-      const SizedBox(width: 8),
-      _buildMicroNutrientPill(
-        label: 'Fats',
-        val: formatMacro(fatsGrams, targetFatsGrams),
-        iconColor: const Color(0xFFDC2626),
-      ),
-      const SizedBox(width: 8),
-      _buildMicroNutrientPill(
-        label: 'Carbs',
-        val: formatMacro(carbsGrams, targetCarbsGrams),
-        iconColor: const Color(0xFFD97706),
-      ),
-      const SizedBox(width: 8),
-      _buildMicroNutrientPill(
-        label: 'Fibre',
-        val: formatMacro(fibreGrams, targetFibreGrams),
-        iconColor: const Color(0xFF0D9488),
-      ),
-    ];
-
     // Day Small Circle: Today's BMI & Category
     final currentBmi = eco.currentBmi;
     final healthBadgeValue = currentBmi > 0 ? currentBmi.toStringAsFixed(1) : '--';
-    final healthBadgeSub = currentBmi > 0
-        ? (eco.bmiCategory.toLowerCase().contains('overweight')
-            ? 'OVERWEIGHT'
-            : eco.bmiCategory.toLowerCase().contains('healthy')
-                ? 'HEALTHY'
-                : eco.bmiCategory.toUpperCase())
-        : 'NOT SET';
-    final healthBadgeColor = currentBmi <= 0
-        ? const Color(0xFF94A3B8)
-        : (currentBmi >= 18.5 && currentBmi < 25.0)
-            ? const Color(0xFF059669)
-            : const Color(0xFFEF4444);
-
     // Daily Step Count Subcard
     final todaySteps = eco.getStepsForDate(now);
     final stepsFormatted = todaySteps.toString().replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]},',
         );
-
-    // Total calories after deduction from steps/workouts that burn calories
-    final caloriesBurnedFromSteps = todaySteps * 0.045;
-    final caloriesBurnedFromWorkouts = eco.getCaloriesBurnedForDate(now);
-    final totalBurned = (caloriesBurnedFromSteps + caloriesBurnedFromWorkouts).round();
-    final netCalories = math.max(0, (todayCal - totalBurned).round());
-    final healthNetCalorieTag = '$netCalories Cal';
-
-    // Walked distance automatically calculated from steps (average 0.762 m / step)
-    final walkedKm = (todaySteps * 0.000762).toStringAsFixed(1);
-    final healthWalkedDistance = '$walkedKm km';
-
 
     // 2. FAMILY TIME PILLAR:
     // Month Big Circle: Total family time of the month
@@ -858,7 +735,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             a.timestamp.month == now.month &&
             a.timestamp.year == now.year)
         .fold(0.0, (sum, a) => sum + a.hoursSpent);
-    final todayFamilyLogs = eco.getFamilyActivitiesForDate(now).length;
     String hrs(double h) =>
         h == h.roundToDouble() ? h.toStringAsFixed(0) : h.toStringAsFixed(1);
 
@@ -869,506 +745,297 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     // Social detail
     final approvedCauses =
         monthSocialCauses.where((c) => c.status == 'approved').length;
-    final pendingCauses =
-        monthSocialCauses.where((c) => c.status == 'pending').length;
     String rupees(double v) => '\u20B9${v.toStringAsFixed(0)}';
 
-    return Column(
-      children: [
-        // Row 1: Health & Family Time
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Total Health Performance',
-                percentage: healthPercentage,
-                percentColor: healthPercentColor,
-                calorie: healthCalorie,
-                growth: calorieRemark,
-                growthColor: calorieRemarkColor,
-                growthIcon: calorieRemarkIcon,
-                badgeValue: healthBadgeValue,
-                badgeSub: healthBadgeSub,
-                badgeTop: 'Current BMI',
-                badgeColor: healthBadgeColor,
-                steps: stepsFormatted,
-                ringColor: healthPercentColor,
-                subcardTitle: 'Daily Step Count',
-                subcardCalorie: healthNetCalorieTag,
-                subcardDistance: healthWalkedDistance,
-                customNutrientPills: healthNutrientPills,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Total Family Time',
-                percentage: familyPercentage,
-                percentColor: familyPercentColor,
-                calorie: '${hrs(monthFamilyHours)}h this month',
-                growth: '',
-                badgeValue: familyBadgeValue,
-                badgeSub: 'HOURS TODAY',
-                badgeTop: '',
-                badgeColor: const Color(0xFFEF4444),
-                steps: '$todayFamilyLogs',
-                ringLabel: 'Logs',
-                ringColor: const Color(0xFFEF4444),
-                subcardTitle: 'This Month',
-                subcardCalorie: 'Family ${hrs(monthFamilyHours)}h',
-                subcardDistance: 'Friends ${hrs(monthFriendsHours)}h',
-                customNutrientPills: const [],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
+    final bmiColor = currentBmi <= 0
+        ? const Color(0xFF94A3B8)
+        : (currentBmi >= 18.5 && currentBmi < 25.0)
+            ? const Color(0xFF059669)
+            : const Color(0xFFE11D48);
 
-        // Row 2: Work Performance (Green 100%) & Social Cause
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Total Work Performance',
-                percentage: workPercentage,
-                percentColor: workPercentColor,
-                calorie: '$completedTasks / $totalTasks tasks done',
-                growth: '',
-                badgeValue: '$todayWorkRate%',
-                badgeSub: 'COMPLETED',
-                badgeTop: 'Today Work',
-                badgeColor: const Color(0xFF059669),
-                steps: '$pendingTasks',
-                ringLabel: 'Pending',
-                ringColor: const Color(0xFF059669),
-                isWorkGreen: true,
-                subcardTitle: "Today's Tasks",
-                subcardCalorie: '$todayCompleted / ${todayTasks.length} done',
-                subcardDistance: '$postponedTasks postponed',
-                customNutrientPills: const [],
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'Total Social Cause Spent',
-                percentage: socialPercentage,
-                percentColor: socialPercentColor,
-                calorie: '${rupees(monthSocialAmount)} this month',
-                growth: '',
-                badgeValue: rupees(todaySocialAmount),
-                badgeSub: 'SPENT',
-                badgeTop: 'Today Spent',
-                badgeColor: const Color(0xFFEF4444),
-                steps: '${monthSocialCauses.length}',
-                ringLabel: 'Causes',
-                ringColor: const Color(0xFFEF4444),
-                subcardTitle: 'This Month',
-                subcardCalorie: '$approvedCauses approved',
-                subcardDistance: '$pendingCauses pending',
-                customNutrientPills: const [],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+    final cards = <Widget>[
+      _pillarCard(
+        title: 'Health',
+        icon: Icons.favorite_rounded,
+        accent: healthPercentColor,
+        percent: healthPercentage,
+        caption: 'logging consistency',
+        ringValue: healthBadgeValue,
+        ringLabel: 'BMI',
+        ringColor: bmiColor,
+        stats: [
+          ('Steps today', stepsFormatted),
+          ('Calories', '${todayCal.round()} / ${targetCal.round()}'),
+        ],
+        onTap: () => _open(context, const HealthPillarScreen()),
+      ),
+      _pillarCard(
+        title: 'Family Time',
+        icon: Icons.family_restroom_rounded,
+        accent: familyPercentColor,
+        percent: familyPercentage,
+        caption: '${hrs(monthFamilyHours)}h of 30h this month',
+        ringValue: '${familyBadgeValue}h',
+        ringLabel: 'Today',
+        ringColor: familyPercentColor,
+        stats: [
+          ('Family', '${hrs(monthFamilyHours)}h'),
+          ('Friends', '${hrs(monthFriendsHours)}h'),
+        ],
+        onTap: () => _open(context, const FamilyPillarScreen()),
+      ),
+      _pillarCard(
+        title: 'Work',
+        icon: Icons.work_rounded,
+        accent: workPercentColor,
+        percent: workPercentage,
+        caption: '$completedTasks of $totalTasks tasks done',
+        ringValue: '$todayWorkRate%',
+        ringLabel: 'Today',
+        ringColor: workPercentColor,
+        stats: [
+          ('Pending', '$pendingTasks'),
+          ('Postponed', '$postponedTasks'),
+        ],
+        onTap: () => _open(context, const ProfilePillarScreen()),
+      ),
+      _pillarCard(
+        title: 'Social Cause',
+        icon: Icons.volunteer_activism_rounded,
+        accent: socialPercentColor,
+        percent: socialPercentage,
+        caption: '${rupees(monthSocialAmount)} of ₹5,000 goal',
+        ringValue: rupees(todaySocialAmount),
+        ringLabel: 'Today',
+        ringColor: socialPercentColor,
+        stats: [
+          ('Causes', '${monthSocialCauses.length}'),
+          ('Approved', '$approvedCauses'),
+        ],
+        onTap: () => _open(context, const SocialCausePillarScreen()),
+      ),
+    ];
 
-  Widget _buildMetricCard({
-    required String title,
-    required String percentage,
-    required Color percentColor,
-    required String calorie,
-    required String growth,
-    required String badgeValue,
-    required String badgeSub,
-    required String badgeTop,
-    required Color badgeColor,
-    required String steps,
-    required Color ringColor,
-    bool isWorkGreen = false,
-    String subcardTitle = '',
-    String subcardCalorie = '',
-    String subcardDistance = '',
-    String ringLabel = 'Steps',
-    List<Widget>? customNutrientPills,
-    Color? growthColor,
-    IconData? growthIcon,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFFFFE4E6).withOpacity(0.95),
-          width: 1.5,
-        ),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white,
-            Color(0xFFFFF6F7),
-          ],
-          stops: [0.70, 1.0],
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0C000000),
-            blurRadius: 16,
-            offset: Offset(0, 4),
+    // Same height for all four cards; text scaling is capped so the fixed
+    // card height can never overflow on phones with large font settings.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.15,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: cards[0]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[1]),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: cards[2]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[3]),
+            ],
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top section: Title, Percentage, Calories + Circular Ring Badge
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left Column
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1E293B),
-                        height: 1.15,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        percentage,
-                        style: GoogleFonts.outfit(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w900,
-                          color: percentColor,
-                          letterSpacing: -0.5,
-                          height: 1.05,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  void _open(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
+  /// One pillar summary card. All four share this layout and a fixed height.
+  Widget _pillarCard({
+    required String title,
+    required IconData icon,
+    required Color accent,
+    required String percent,
+    required String caption,
+    required String ringValue,
+    required String ringLabel,
+    required Color ringColor,
+    required List<(String, String)> stats,
+    required VoidCallback onTap,
+  }) {
+    const ink = Color(0xFF1E1B2E);
+    const muted = Color(0xFF64748B);
+    return SizedBox(
+      height: 236,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        elevation: 0,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFF5D0E0), width: 1.2),
+              boxShadow: const [
+                BoxShadow(color: Color(0x14881337), blurRadius: 18, offset: Offset(0, 6)),
+              ],
+              color: Colors.white,
+            ),
+            child: LayoutBuilder(
+              builder: (context, c) {
+                final ring = c.maxWidth < 165 ? 54.0 : 62.0;
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header: icon + title + chevron
+                      Row(
                         children: [
-                          Text(
-                            calorie,
-                            style: GoogleFonts.outfit(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF64748B),
+                          Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: accent.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: Icon(icon, size: 17, color: accent),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w700,
+                                color: ink,
+                              ),
                             ),
                           ),
-                          if (growth.isNotEmpty) const SizedBox(width: 4),
-                          if (growth.isNotEmpty)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                growthIcon ?? Icons.arrow_upward_rounded,
-                                size: 13,
-                                color: growthColor ?? const Color(0xFF10B981),
-                              ),
-                              Text(
-                                growth,
+                          const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFFCBD5E1)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Month percentage + today ring
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                percent,
                                 style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: growthColor ?? const Color(0xFF10B981),
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: accent,
+                                  height: 1.0,
+                                  letterSpacing: -0.5,
                                 ),
                               ),
-                            ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            width: ring,
+                            height: ring,
+                            padding: EdgeInsets.all(ring * 0.16),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: ringColor.withOpacity(0.06),
+                              border: Border.all(color: ringColor, width: 2.5),
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    ringValue,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: ink,
+                                      height: 1.05,
+                                    ),
+                                  ),
+                                  Text(
+                                    ringLabel,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: muted,
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 6),
-
-              // Right Circular Ring Badge (Enlarged, bold, readable)
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: badgeColor, width: 3.0),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: badgeColor.withOpacity(0.12),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(3),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (badgeTop.isNotEmpty)
-                        Text(
-                          badgeTop,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF64748B),
-                            height: 1.0,
-                          ),
-                        ),
+                      const SizedBox(height: 6),
                       Text(
-                        badgeValue,
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          fontSize: badgeTop.isEmpty ? 22 : 18,
-                          fontWeight: FontWeight.w900,
-                          color: badgeColor,
-                          height: 1.1,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text(
-                          badgeSub,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.outfit(
-                            fontSize: badgeTop.isEmpty ? 9.5 : 8.5,
-                            fontWeight: FontWeight.w800,
-                            color: badgeTop.isEmpty ? const Color(0xFF64748B) : badgeColor,
-                            height: 1.0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 13),
-
-          // Nutrient Mini Pills Row (Scrollable, enlarged, legible)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: customNutrientPills ?? const [],
-            ),
-          ),
-
-          if (customNutrientPills == null || customNutrientPills.isNotEmpty)
-            const SizedBox(height: 11),
-
-          // Bottom Workout & Physical Activity Container (Clean, no truncated filler words)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x06000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Concentric Ring with Steps
-                SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      CustomPaint(
-                        size: const Size(48, 48),
-                        painter: _ConcentricRingPainter(ringColor: ringColor),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                steps,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF1E293B),
-                                  height: 1.05,
-                                ),
-                              ),
-                              const SizedBox(height: 1),
-                              Text(
-                                ringLabel,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF64748B),
-                                  height: 1.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-
-                // Subcard Details (Customizable per pillar, e.g. Daily Step Count)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        subcardTitle,
+                        caption,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
                           fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF0F172A),
-                          height: 1.15,
+                          fontWeight: FontWeight.w500,
+                          color: muted,
+                          height: 1.25,
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDF2F8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444), // Coral red badge matching Image 4 & 5
-                                borderRadius: BorderRadius.circular(6),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x24EF4444),
-                                    blurRadius: 4,
-                                    offset: Offset(0, 1.5),
+                            for (int i = 0; i < stats.length; i++) ...[
+                              if (i > 0) const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      stats[i].$1,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.outfit(fontSize: 12, color: muted),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerRight,
+                                      child: Text(
+                                        stats[i].$2,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: ink,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                              child: Text(
-                                subcardCalorie,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                ),
-                              ),
-                            ),
-                            if (subcardDistance.isNotEmpty) const SizedBox(width: 8),
-                            if (subcardDistance.isNotEmpty)
-                            Text(
-                              subcardDistance,
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF334155),
-                                height: 1.1,
-                              ),
-                            ),
+                            ],
                           ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMicroNutrientPill({
-    required String label,
-    required String val,
-    required Color iconColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.compare_arrows_rounded, size: 14, color: iconColor),
-          const SizedBox(width: 5),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF334155),
-                  height: 1.1,
-                ),
-              ),
-              Text(
-                val,
-                style: GoogleFonts.outfit(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF64748B),
-                  height: 1.1,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1414,25 +1081,18 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
       ),
     );
     try {
-      final file = await KonarPdfService.saveKonarPdfLocally(book, eco: eco);
       if (share) {
-        await Share.shareXFiles(
-          [XFile(file.path)],
-          text: 'Official ${book.department} KONAR Book - MN Jewel Park',
-          subject: '${book.department} Official KONAR Book',
-        );
+        await KonarPdfService.shareKonarPdf(book, eco: eco);
       } else {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Saved: ${file.path.split(RegExp(r'[\\/]')).last}'),
-            backgroundColor: const Color(0xFF0F766E),
-            action: SnackBarAction(
-              label: 'Share',
-              textColor: const Color(0xFFFDE68A),
-              onPressed: () => Share.shareXFiles([XFile(file.path)]),
+        final saved = await KonarPdfService.downloadKonarPdf(book, eco: eco);
+        if (saved != null) {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Konar Book saved.'),
+              backgroundColor: Color(0xFF0F766E),
             ),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       messenger.showSnackBar(
@@ -1478,20 +1138,25 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Official ${_deptLabel(eco.currentEmployee.dept)} Konar Book',
-                  maxLines: 1,
+                  '${_deptLabel(eco.currentEmployee.dept)} Konar Book',
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
-                    fontSize: 16.5,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF881337),
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 2),
+                Text(
+                  'Official department handbook',
+                  style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
-                  runSpacing: 6,
+                  runSpacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     // View Full Book Button
@@ -1527,13 +1192,16 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               color: Color(0xFFFDE68A),
                             ),
                             const SizedBox(width: 5),
-                            Text(
+                            Flexible(
+                              child: Text(
                               'View Full Book',
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.outfit(
-                                fontSize: 11,
+                                fontSize: 12.5,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
+                            ),
                             ),
                           ],
                         ),
@@ -1562,13 +1230,16 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               color: Color(0xFFFDE68A),
                             ),
                             const SizedBox(width: 5),
-                            Text(
+                            Flexible(
+                              child: Text(
                               'Download Book',
+                              overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.outfit(
-                                fontSize: 11,
+                                fontSize: 12.5,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
+                            ),
                             ),
                           ],
                         ),
@@ -1660,7 +1331,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           Row(
             children: [
               // Avatar
-              _UserAvatar(emp: emp, size: 48, radius: 16),
+              EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 48, radius: 16),
               const SizedBox(width: 12),
 
               // Title & Subtitle
@@ -2208,7 +1879,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               ),
               child: Row(
                 children: [
-                  _UserAvatar(emp: emp, size: 50, radius: 16),
+                  EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 50, radius: 16),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -2432,50 +2103,6 @@ class _MnDiamondLogoPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-/// Concentric rings with footsteps icon painter
-class _ConcentricRingPainter extends CustomPainter {
-  final Color ringColor;
-  _ConcentricRingPainter({required this.ringColor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    final outerPaint = Paint()
-      ..color = ringColor.withOpacity(0.85)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2
-      ..strokeCap = StrokeCap.round;
-
-    final innerPaint = Paint()
-      ..color = ringColor.withOpacity(0.35)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round;
-
-    // Outer Arc (~270 degrees)
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: size.width / 2 - 3),
-      -math.pi * 0.75,
-      math.pi * 1.5,
-      false,
-      outerPaint,
-    );
-
-    // Inner Arc
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: size.width / 2 - 7),
-      -math.pi * 0.65,
-      math.pi * 1.3,
-      false,
-      innerPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 /// Dashed vertical line painter for timeline
 class _DashedLinePainter extends CustomPainter {
   final Color color;
@@ -2630,47 +2257,4 @@ class _ChatBubbleTailPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-
-/// Profile picture for the signed-in employee: their uploaded photo when it is
-/// a web URL, otherwise their initials. (Replaces a shared mock photo that was
-/// shown for every user.)
-class _UserAvatar extends StatelessWidget {
-  final dynamic emp;
-  final double size;
-  final double radius;
-  const _UserAvatar({required this.emp, this.size = 38, this.radius = 19});
-
-  @override
-  Widget build(BuildContext context) {
-    final String avatar = (emp?.avatar as String?)?.trim() ?? '';
-    final String initials = ((emp?.initials as String?) ?? '').trim();
-    final fallback = Container(
-      color: const Color(0xFF881337),
-      alignment: Alignment.center,
-      child: Text(
-        initials.isNotEmpty ? initials : '?',
-        style: GoogleFonts.outfit(
-          fontWeight: FontWeight.bold,
-          fontSize: size * 0.38,
-          color: Colors.white,
-        ),
-      ),
-    );
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: avatar.startsWith('http')
-            ? Image.network(
-                avatar,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => fallback,
-              )
-            : fallback,
-      ),
-    );
-  }
 }

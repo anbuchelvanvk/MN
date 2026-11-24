@@ -10,6 +10,8 @@ import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../models/employee_model.dart';
 import '../../models/hr_attendance_sheet_models.dart';
 import '../../providers/ecosystem_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../core/widgets/employee_avatar.dart';
 
 class EmployeeProfileScreen extends StatefulWidget {
   const EmployeeProfileScreen({super.key});
@@ -33,6 +35,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
 
   late String _relationshipStatus;
   late String _gender;
+  bool _savingPhoto = false;
   bool _obscureOldPassword = true;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
@@ -113,6 +116,82 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
       const SnackBar(
         content: Text('Personal profile details updated successfully!'),
         backgroundColor: AppColors.ragGreen,
+      ),
+    );
+  }
+
+  Future<void> _changePhoto(EcosystemProvider eco, Employee emp) async {
+    if (_savingPhoto) return;
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded, color: AppColors.magentaPrimary),
+                title: const Text('Choose from gallery'),
+                onTap: () => Navigator.pop(ctx, 'gallery'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_rounded, color: AppColors.magentaPrimary),
+                title: const Text('Take a photo'),
+                onTap: () => Navigator.pop(ctx, 'camera'),
+              ),
+              if (emp.avatar.trim().isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline_rounded, color: AppColors.ragRed),
+                  title: const Text('Remove photo'),
+                  onTap: () => Navigator.pop(ctx, 'remove'),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+
+    String? avatar;
+    try {
+      if (choice == 'remove') {
+        avatar = '';
+      } else {
+        avatar = await AvatarPicker.pick(
+          choice == 'camera' ? ImageSource.camera : ImageSource.gallery,
+        );
+        if (avatar == null) return; // cancelled
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open that photo. Please try another one.')),
+      );
+      return;
+    }
+
+    setState(() => _savingPhoto = true);
+    final error = await eco.updateEmployeeAvatar(empId: emp.id, avatar: avatar);
+    if (!mounted) return;
+    setState(() => _savingPhoto = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error ?? (avatar.isEmpty ? 'Profile photo removed.' : 'Profile photo updated.')),
+        backgroundColor: error == null ? AppColors.ragGreen : AppColors.ragRed,
       ),
     );
   }
@@ -342,16 +421,34 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
               borderRadius: 18,
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: AppColors.goldPrimary,
-                    child: Text(
-                      emp.initials,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                  // Profile photo (tap to change)
+                  InkWell(
+                    onTap: () => _changePhoto(eco, emp),
+                    customBorder: const CircleBorder(),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 64),
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: AppColors.magentaPrimary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: _savingPhoto
+                                ? const SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.photo_camera_rounded, size: 12, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 14),

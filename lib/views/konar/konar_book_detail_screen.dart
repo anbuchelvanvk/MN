@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../core/services/konar_pdf_service.dart';
 import '../../core/services/google_drive_upload_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -215,7 +214,10 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -232,7 +234,6 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
@@ -248,16 +249,20 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 ),
                               ),
                             ),
-                            const Spacer(),
-                            const Icon(Icons.verified_rounded, color: Color(0xFFFDE68A), size: 18),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Live in Cloud',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.verified_rounded, color: Color(0xFFFDE68A), size: 18),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Live in Cloud',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -607,13 +612,16 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             children: [
                               Icon(Icons.rule_rounded, size: 14, color: Color(0xFF831843)),
                               SizedBox(width: 6),
-                              Text(
-                                'MANDATORY PROCEDURES & SLAS',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF831843),
-                                  letterSpacing: 0.3,
+                              Expanded(
+                                child: Text(
+                                  'MANDATORY PROCEDURES & SLAS',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF831843),
+                                    letterSpacing: 0.3,
+                                  ),
                                 ),
                               ),
                             ],
@@ -656,30 +664,31 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
     });
     try {
       final eco = context.read<EcosystemProvider>();
-      final file = await KonarPdfService.saveKonarPdfLocally(book, eco: eco);
+      final saved = await KonarPdfService.downloadKonarPdf(book, eco: eco);
       if (!mounted) return;
       setState(() => _isProcessing = false);
+      if (saved == null) return; // user cancelled the save dialog
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFF0F766E),
-          content: Row(
+          content: const Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Saved to Downloads: ${file.path.split('/').last}',
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  'Konar Book PDF saved.',
+                  style: TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ),
             ],
           ),
-          duration: const Duration(seconds: 5),
+          duration: const Duration(seconds: 4),
           action: SnackBarAction(
             label: 'Share',
             textColor: const Color(0xFFFDE68A),
-            onPressed: () => Share.shareXFiles([XFile(file.path)]),
+            onPressed: () => _handleSharePdf(book),
           ),
         ),
       );
@@ -720,15 +729,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
     });
     try {
       final eco = context.read<EcosystemProvider>();
-      final file = await KonarPdfService.saveKonarPdfLocally(book, eco: eco);
+      await KonarPdfService.shareKonarPdf(book, eco: eco);
       if (!mounted) return;
       setState(() => _isProcessing = false);
-
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Official ${book.department} KONAR Book (${book.version}) - MN Jewel Park',
-        subject: '${book.department} Official KONAR Book',
-      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessing = false);

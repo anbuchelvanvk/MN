@@ -6483,6 +6483,35 @@ class EcosystemProvider extends ChangeNotifier {
 
   // --- EMPLOYEE PROFILE & CREDENTIALS ACTIONS ---
 
+  /// Sets (or clears, with an empty string) an employee's profile photo.
+  /// [avatar] is a small 150x150 PNG data URI produced by AvatarPicker.
+  /// Returns null on success or an error message.
+  Future<String?> updateEmployeeAvatar({
+    required String empId,
+    required String avatar,
+  }) async {
+    final idx = _employees.indexWhere((e) => e.id == empId);
+    if (idx == -1) return 'Employee profile not found.';
+    final previous = _employees[idx];
+    _employees[idx] = previous.copyWith(avatar: avatar);
+    notifyListeners();
+    try {
+      await _firebaseEmployeeService.updateEmployeeProfileFields(
+        empId: empId,
+        fields: {'avatar': avatar},
+        // Photo lives on the employee record only (not the login record).
+        email: null,
+        dept: previous.dept,
+      );
+      return null;
+    } catch (e) {
+      debugPrint('Firebase avatar update note: $e');
+      _employees[idx] = previous;
+      notifyListeners();
+      return 'Could not save your photo. Check your connection and try again.';
+    }
+  }
+
   /// Updates personal details (Name, Phone, DOB, Relationship Status, Anniversary Date, Gender)
   Future<void> updateEmployeePersonalDetails({
     required String empId,

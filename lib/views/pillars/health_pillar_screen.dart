@@ -1559,8 +1559,13 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ),
               ],
             ),
-            Column(
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.bottomLeft,
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   title,
@@ -1585,13 +1590,15 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 Text(
                   subtitle,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
+                    fontSize: 11,
                     color: isSelected ? Colors.white.withOpacity(0.9) : AppColors.textMuted,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+            ),
+              ),
             ),
           ],
         ),

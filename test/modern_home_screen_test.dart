@@ -39,10 +39,10 @@ void main() {
       expect(find.text('Iniya Praveen'), findsNothing);
 
       // 3. 4 Pillar Cards show honest empty values, never placeholder numbers
-      expect(find.text('Total Health Performance'), findsOneWidget);
-      expect(find.text('Total Family Time'), findsOneWidget);
-      expect(find.text('Total Work Performance'), findsOneWidget);
-      expect(find.text('Total Social Cause Spent'), findsOneWidget);
+      expect(find.text('Health'), findsOneWidget);
+      expect(find.text('Family Time'), findsOneWidget);
+      expect(find.text('Work'), findsOneWidget);
+      expect(find.text('Social Cause'), findsOneWidget);
       expect(find.text('78%'), findsNothing);
       expect(find.textContaining('1210 / 1550 Cal'), findsNothing);
       expect(find.text('229 Cal'), findsNothing);
@@ -212,30 +212,31 @@ void main() {
       await tester.pumpAndSettle();
 
       // Monthly metrics in Big Circles
-      expect(find.text('Total Health Performance'), findsOneWidget);
-      expect(find.text('Total Family Time'), findsOneWidget);
-      expect(find.text('Total Work Performance'), findsOneWidget);
-      expect(find.text('Total Social Cause Spent'), findsOneWidget);
+      expect(find.text('Health'), findsOneWidget);
+      expect(find.text('Family Time'), findsOneWidget);
+      expect(find.text('Work'), findsOneWidget);
+      expect(find.text('Social Cause'), findsOneWidget);
 
-      // Day metrics in Small Circles: no data yet -> honest empty values
-      expect(find.text('Current BMI'), findsOneWidget);
+      // Today rings: no data yet -> honest empty values, short readable labels
+      expect(find.text('BMI'), findsOneWidget);
       expect(find.text('--'), findsOneWidget);
-      expect(find.text('NOT SET'), findsOneWidget);
       expect(find.text('27.2'), findsNothing);
+      expect(find.text('Today'), findsNWidgets(3));
+      expect(find.text('0h'), findsWidgets);
+      expect(find.text('0%'), findsWidgets);
 
-      expect(find.text('HOURS TODAY'), findsOneWidget);
-      expect(find.text('2.5'), findsNothing);
+      // All four cards have exactly the same size
+      final sizes = ['Health', 'Family Time', 'Work', 'Social Cause']
+          .map((t) => tester.getSize(find.ancestor(
+                of: find.text(t),
+                matching: find.byType(SizedBox),
+              ).first))
+          .toSet();
+      expect(sizes.length, 1);
 
-      expect(find.text('Today Work'), findsOneWidget);
-      expect(find.text('COMPLETED'), findsOneWidget);
-
-      expect(find.text('Today Spent'), findsOneWidget);
-      expect(find.text('SPENT'), findsOneWidget);
-      expect(find.text('HOURS'), findsNothing);
-
-      // No copied-over workout placeholders on the non-health cards
+      // No copied-over placeholders
       expect(find.text('Workout and Physical Activity'), findsNothing);
-      expect(find.text('1.8 km'), findsNothing);
+      expect(find.text('229 Cal'), findsNothing);
     });
 
     testWidgets('Add To Do saves a real personal task', (tester) async {
@@ -283,23 +284,16 @@ void main() {
       await tester.pumpWidget(createTestWidget(eco: eco));
       await tester.pumpAndSettle();
 
-      // 1. Subcard title is Daily Step Count
-      expect(find.text('Daily Step Count'), findsOneWidget);
+      // Steps and calories come from the real logs
+      expect(find.text('Steps today'), findsOneWidget);
+      expect(find.text('4,444'), findsOneWidget);
+      expect(find.text('Calories'), findsOneWidget);
+      expect(find.text('1500 / 2000'), findsOneWidget);
 
-      // 2. Net calories after step burn: 1500 - 200 = 1300 Cal
-      expect(find.text('1300 Cal'), findsOneWidget);
-
-      // 3. Distance calculated from steps (4444 * 0.000762 = 3.4 km)
-      expect(find.text('3.4 km'), findsOneWidget);
-
-      // 4. Nutrient segregation (Protein, Fats, Carbs, Fibre)
-      expect(find.text('Protein'), findsWidgets);
-      expect(find.text('Fats'), findsWidgets);
-      expect(find.text('Carbs'), findsWidgets);
-      expect(find.text('Fibre'), findsWidgets);
-
-      // 5. Actual calories ate today / target
-      expect(find.textContaining('1500 / 2000 Cal'), findsOneWidget);
+      // Tapping the card opens the Health pillar
+      await tester.tap(find.text('Health'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ModernHomeScreen), findsNothing);
     });
   });
 }

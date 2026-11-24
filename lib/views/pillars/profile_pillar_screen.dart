@@ -12,6 +12,7 @@ import '../ceo/ceo_subpages.dart';
 import '../dept_head/dept_head_subpages.dart';
 import '../employee/employee_subpages.dart';
 import 'tier_pillar_screen.dart';
+import '../../core/widgets/employee_avatar.dart';
 
 class ProfilePillarScreen extends StatefulWidget {
   const ProfilePillarScreen({super.key});
@@ -24,7 +25,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   String? _selectedDropdownDoc;
   String _activeFilter = 'All'; // 'All', 'Submitted', 'Pending'
   int _selectedRingIndex = 1; // 0: Attendance, 1: Documents, 2: Grooming, 3: Sale, 4: Permission, 5: Conduct
-  bool _isPasswordRevealed = false;
   int _selectedCalendarMonth = DateTime.now().month;
   final int _selectedCalendarYear = DateTime.now().year;
   String _ceoSelectedStaffId = 'all';
@@ -106,9 +106,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             _buildWorkTasksCard(context, provider, employee),
             const SizedBox(height: 12),
 
-            // 1c. Account Security & Password Management
-            _buildAccountSecurityCard(context, provider, employee),
-            const SizedBox(height: 14),
 
             // 2. The 6 Professional Profile Rings Matrix
             _buildSixRingsMatrix(context, provider),
@@ -175,274 +172,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   // --- WIDGET BUILDERS ---
 
-  Widget _buildAccountSecurityCard(BuildContext context, EcosystemProvider provider, dynamic employee) {
-    final empPassword = (employee.password as String?)?.isNotEmpty == true
-        ? employee.password as String
-        : 'Not stored (managed by Firebase Auth)';
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 10,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.sandGold.withOpacity(0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.shield_outlined, size: 16, color: AppColors.sandGold),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'ACCOUNT SECURITY & CREDENTIALS',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandGold,
-                    letterSpacing: 0.5,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sandGold,
-                  foregroundColor: AppColors.burgundyCard,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () => _showChangePasswordDialog(context, provider, employee),
-                icon: const Icon(Icons.lock_reset, size: 13, color: AppColors.burgundyCard),
-                label: const Text(
-                  'Change Password',
-                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.burgundyCard),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDF2F8),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFCE7F3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.key, size: 14, color: AppColors.textMuted),
-                const SizedBox(width: 8),
-                Text(
-                  'Active Password: ',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
-                ),
-                Expanded(
-                  child: Text(
-                    _isPasswordRevealed ? empPassword : '••••••••',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandLight,
-                      letterSpacing: _isPasswordRevealed ? 0 : 1.5,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    _isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
-                    size: 16,
-                    color: AppColors.sandGold,
-                  ),
-                  onPressed: () => setState(() => _isPasswordRevealed = !_isPasswordRevealed),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showChangePasswordDialog(BuildContext context, EcosystemProvider provider, dynamic employee) {
-    final currentPassCtrl = TextEditingController();
-    final newPassCtrl = TextEditingController();
-    final confirmPassCtrl = TextEditingController();
-    bool hideCurrent = true;
-    bool hideNew = true;
-    bool hideConfirm = true;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlgState) => AlertDialog(
-          backgroundColor: AppColors.burgundyCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: AppColors.sandGold.withOpacity(0.4)),
-          ),
-          title: Text(
-            'Change Account Password',
-            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Update your login credentials for official portal access.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: currentPassCtrl,
-                  obscureText: hideCurrent,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
-                  decoration: InputDecoration(
-                    labelText: 'Current Password',
-                    labelStyle: const TextStyle(color: AppColors.textMuted),
-                    filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
-                    suffixIcon: IconButton(
-                      icon: Icon(hideCurrent ? Icons.visibility : Icons.visibility_off, size: 16, color: AppColors.sandGold),
-                      onPressed: () => setDlgState(() => hideCurrent = !hideCurrent),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: newPassCtrl,
-                  obscureText: hideNew,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
-                  decoration: InputDecoration(
-                    labelText: 'New Password',
-                    labelStyle: const TextStyle(color: AppColors.textMuted),
-                    filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
-                    suffixIcon: IconButton(
-                      icon: Icon(hideNew ? Icons.visibility : Icons.visibility_off, size: 16, color: AppColors.sandGold),
-                      onPressed: () => setDlgState(() => hideNew = !hideNew),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: confirmPassCtrl,
-                  obscureText: hideConfirm,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
-                    labelStyle: const TextStyle(color: AppColors.textMuted),
-                    filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.magentaPrimary)),
-                    suffixIcon: IconButton(
-                      icon: Icon(hideConfirm ? Icons.visibility : Icons.visibility_off, size: 16, color: AppColors.sandGold),
-                      onPressed: () => setDlgState(() => hideConfirm = !hideConfirm),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sandGold,
-                foregroundColor: AppColors.burgundyCard,
-              ),
-              onPressed: () async {
-                final currentPass = currentPassCtrl.text.trim();
-                final newPass = newPassCtrl.text.trim();
-                final confirmPass = confirmPassCtrl.text.trim();
-
-                final messenger = ScaffoldMessenger.of(context);
-
-                if (currentPass.isEmpty || newPass.isEmpty) {
-                  messenger.showSnackBar(
-                    const SnackBar(content: Text('Please fill all required password fields.'), backgroundColor: AppColors.ragRed),
-                  );
-                  return;
-                }
-                if (newPass.length < 6) {
-                  messenger.showSnackBar(
-                    const SnackBar(content: Text('New password must be at least 6 characters.'), backgroundColor: AppColors.ragRed),
-                  );
-                  return;
-                }
-                if (newPass != confirmPass) {
-                  messenger.showSnackBar(
-                    const SnackBar(content: Text('New password and confirm password do not match.'), backgroundColor: AppColors.ragRed),
-                  );
-                  return;
-                }
-
-                final error = await provider.changeEmployeePasswordWithReason(
-                  empId: employee.id,
-                  oldPassword: currentPass,
-                  newPassword: newPass,
-                );
-
-                if (ctx.mounted) Navigator.pop(ctx);
-
-                if (error == null) {
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Password updated successfully!'),
-                      backgroundColor: Color(0xFF10B981),
-                    ),
-                  );
-                } else {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(error),
-                      backgroundColor: AppColors.ragRed,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Update Password', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildStaffProfileCard(dynamic employee) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -476,15 +205,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 ),
               ],
             ),
-            child: Center(
-              child: Text(
-                employee.initials,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+            child: EmployeeAvatar(
+              avatar: (employee.avatar as String?) ?? '',
+              initials: (employee.initials as String?) ?? '',
+              size: 56,
             ),
           ),
           const SizedBox(width: 14),
@@ -2344,7 +2068,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           ElevatedButton.icon(
             icon: const Icon(Icons.file_upload_outlined, size: 14, color: Colors.white),
             label: Text(
-              'Submit to Vault',
+              'Submit',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
