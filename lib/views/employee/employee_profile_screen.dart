@@ -789,7 +789,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w600,
                               color: AppColors.sandGold,
                               decoration: TextDecoration.underline,
@@ -852,7 +852,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                   ),
                   Text(
                     'Exempt from retail showroom attire & grooming audits',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -900,7 +900,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 child: Text(
                   isStar ? '★ Star' : 'Standard',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: isStar ? const Color(0xFF10B981) : AppColors.sandGold,
                   ),
@@ -993,7 +993,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                   ),
                   Text(
                     'Autonomous Leadership Cadence • Biometrics Waived',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -1094,7 +1094,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
+              Flexible(child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusBg,
@@ -1104,12 +1104,12 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 child: Text(
                   statusLabel,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: statusColor,
                   ),
                 ),
-              ),
+              )),
             ],
           ),
         ),
@@ -1155,7 +1155,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 child: Text(
                   'PAST 7 DAYS',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandGold,
                   ),
@@ -1166,7 +1166,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
           const SizedBox(height: 4),
           Text(
             'Official record from HR Google Sheets Master Ledger',
-            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
           ),
           const SizedBox(height: 12),
           ...dayItems,

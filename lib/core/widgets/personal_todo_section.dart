@@ -79,7 +79,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                               const SizedBox(height: 2),
                               Text(
                                 '$pendingCount Pending • $completedCount Completed',
-                                style: const TextStyle(fontSize: 10.5, color: AppColors.sandLight),
+                                style: const TextStyle(fontSize: 11.5, color: AppColors.sandLight),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -128,12 +128,12 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
               const SizedBox(height: 14),
 
               // Filter Chips
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   _filterChip('all', 'All (${allUserTasks.length})'),
-                  const SizedBox(width: 8),
                   _filterChip('pending', 'Pending ($pendingCount)'),
-                  const SizedBox(width: 8),
                   _filterChip('completed', 'Completed ($completedCount)'),
                 ],
               ),
@@ -171,7 +171,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                                 Text(
                                   cat,
                                   style: TextStyle(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                     color: isSelected ? AppColors.magentaPrimary : AppColors.textSecondary,
                                   ),
@@ -186,7 +186,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                                   child: Text(
                                     countBadge,
                                     style: TextStyle(
-                                      fontSize: 9,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: isSelected ? Colors.white : AppColors.textSecondary,
                                     ),
@@ -353,14 +353,14 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                         ),
                         child: Text(
                           task.priority,
-                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: priorityColor),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: priorityColor),
                         ),
                       ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           '${task.category} • Due: ${task.due}',
-                          style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                          style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -373,7 +373,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                             SizedBox(width: 3),
                             Text(
                               'Done',
-                              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
                             ),
                           ],
                         ),
@@ -514,7 +514,7 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
                         child: Text(
                           cat,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             color: categoryCtrl.text == cat ? Colors.white : AppColors.textDark,
                             fontWeight: FontWeight.w600,
                           ),

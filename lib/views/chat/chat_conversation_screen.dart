@@ -15,6 +15,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/chat_message_model.dart';
 import '../../models/employee_model.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../../core/utils/file_saver.dart';
 
 /// Custom TextEditingController that dynamically styles mentioned names in signature Magenta
 class MentionTextEditingController extends TextEditingController {
@@ -91,6 +92,13 @@ class ChatConversationScreen extends StatefulWidget {
   final bool isGroup;
   final String? initialText;
 
+  /// Called by the back button when this is the first page of a floating chat window.
+  final VoidCallback? onClose;
+
+  /// Open the emoji picker / attachment options right away (chat dock shortcuts).
+  final bool autoOpenEmoji;
+  final bool autoOpenAttachments;
+
   const ChatConversationScreen({
     super.key,
     required this.peerId,
@@ -99,6 +107,9 @@ class ChatConversationScreen extends StatefulWidget {
     required this.peerInitials,
     this.isGroup = false,
     this.initialText,
+    this.onClose,
+    this.autoOpenEmoji = false,
+    this.autoOpenAttachments = false,
   });
 
   @override
@@ -149,6 +160,11 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       final eco = Provider.of<EcosystemProvider>(context, listen: false);
       eco.markConversationAsRead(widget.peerId);
       _scrollToBottom();
+      if (widget.autoOpenEmoji) {
+        _showEmojiPicker(context);
+      } else if (widget.autoOpenAttachments) {
+        _showAttachmentOptionsSheet(context, eco);
+      }
     });
   }
 
@@ -564,7 +580,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     Text(
                       'PDF Document • Tap to view/save',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11.5,
                         color: isMe ? Colors.white70 : const Color(0xFF64748B),
                       ),
                     ),
@@ -613,7 +629,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       SizedBox(width: 3),
                       Text(
                         'View & Save',
-                        style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -744,39 +760,21 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       }
 
       final fileName = 'MN_Photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      Directory? targetDir;
-
-      final publicDownloads = Directory('/storage/emulated/0/Download');
-      if (await publicDownloads.exists()) {
-        targetDir = publicDownloads;
-      } else {
-        targetDir = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
-      }
-
-      final file = File('${targetDir.path}/$fileName');
-      await file.writeAsBytes(bytes);
-
-      if (context.mounted) {
+      final saved = await saveBytesWithPicker(
+        bytes: bytes,
+        fileName: fileName,
+        extensions: const ['jpg', 'jpeg', 'png'],
+        dialogTitle: 'Save photo',
+      );
+      if (saved != null && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFF0F766E),
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Saved to Downloads: $fileName',
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 4),
+            content: const Text('Photo saved.'),
             action: SnackBarAction(
               label: 'Share',
               textColor: const Color(0xFFFDE68A),
-              onPressed: () => Share.shareXFiles([XFile(file.path)]),
+              onPressed: () => _shareImage(context, msg),
             ),
           ),
         );
@@ -940,39 +938,17 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
   Future<void> _savePdfLocally(BuildContext context, Uint8List bytes, String fileName) async {
     try {
-      Directory? targetDir;
-      final publicDownloads = Directory('/storage/emulated/0/Download');
-      if (await publicDownloads.exists()) {
-        targetDir = publicDownloads;
-      } else {
-        targetDir = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
-      }
-
-      final file = File('${targetDir.path}/$fileName');
-      await file.writeAsBytes(bytes);
-
-      if (context.mounted) {
+      final saved = await saveBytesWithPicker(
+        bytes: bytes,
+        fileName: fileName,
+        extensions: const ['pdf'],
+        dialogTitle: 'Save document',
+      );
+      if (saved != null && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFF0F766E),
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Saved to Downloads: $fileName',
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Share',
-              textColor: const Color(0xFFFDE68A),
-              onPressed: () => Share.shareXFiles([XFile(file.path)]),
-            ),
+          const SnackBar(
+            backgroundColor: Color(0xFF0F766E),
+            content: Text('Document saved.'),
           ),
         );
       }
@@ -1112,7 +1088,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                       const SizedBox(width: 4),
                                       const Text(
                                         '(You)',
-                                        style: TextStyle(fontSize: 10.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold),
+                                        style: TextStyle(fontSize: 11.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ],
@@ -1120,7 +1096,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   '${emp.straightCutRole} • ${emp.dept}',
-                                  style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -1363,7 +1339,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                             child: Text(
                               initials,
                               style: const TextStyle(
-                                fontSize: 10,
+                                fontSize: 11.5,
                                 color: AppColors.magentaPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1547,7 +1523,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                           child: Text(
                             remainingText,
                             style: const TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               color: Color(0xFF64748B),
                               fontWeight: FontWeight.w600,
                             ),
@@ -1576,6 +1552,87 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Emoji reaction chips under a message; tap one to add/remove yours.
+  Widget _reactionChips(EcosystemProvider eco, ChatMessage msg, bool isMe) {
+    final counts = msg.reactionCounts;
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      children: [
+        for (final e in counts.entries)
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => eco.toggleChatReaction(msg.id, e.key),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: msg.hasReacted(eco.activeEmpId, e.key)
+                    ? (isMe ? Colors.white.withOpacity(0.32) : AppColors.magentaSubtle)
+                    : (isMe ? Colors.white.withOpacity(0.16) : const Color(0xFFF4EEF2)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${e.key} ${e.value}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isMe ? Colors.white : AppColors.textDark,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  static const List<String> _composerEmojis = [
+    '😀', '😂', '😊', '😍', '🥰', '😎', '🤔', '😮', '😢', '😡',
+    '👍', '👎', '👏', '🙏', '💪', '🤝', '👌', '✌️', '🙌', '👀',
+    '❤️', '💖', '🔥', '✨', '🎉', '🎂', '💍', '💎', '🌸', '⭐',
+    '✅', '❌', '⏰', '📦', '📸', '🎥', '📍', '💯', '🙂', '😅',
+  ];
+
+  /// Emoji picker for the message box; inserts at the cursor.
+  void _showEmojiPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
+          child: GridView.count(
+            crossAxisCount: 8,
+            shrinkWrap: true,
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
+            children: [
+              for (final e in _composerEmojis)
+                InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    final value = _textController.value;
+                    final sel = value.selection.isValid
+                        ? value.selection
+                        : TextSelection.collapsed(offset: value.text.length);
+                    final text = value.text.replaceRange(sel.start, sel.end, e);
+                    _textController.value = TextEditingValue(
+                      text: text,
+                      selection: TextSelection.collapsed(offset: sel.start + e.length),
+                    );
+                    _onTextChanged();
+                  },
+                  child: Center(child: Text(e, style: const TextStyle(fontSize: 24))),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1634,7 +1691,39 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+                // Quick emoji reactions
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (final emoji in ChatMessage.reactionChoices)
+                      InkWell(
+                        borderRadius: BorderRadius.circular(22),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          eco.toggleChatReaction(msg.id, emoji);
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: msg.hasReacted(eco.activeEmpId, emoji)
+                                ? AppColors.magentaSubtle
+                                : const Color(0xFFF8F4F7),
+                            border: Border.all(
+                              color: msg.hasReacted(eco.activeEmpId, emoji)
+                                  ? AppColors.magentaPrimary
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
                 Material(type: MaterialType.transparency, child: ListTile(
                   leading: Icon(
                     isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded,
@@ -1919,7 +2008,13 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         foregroundColor: AppColors.textDark,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.pop(context);
+            } else {
+              widget.onClose?.call();
+            }
+          },
         ),
         titleSpacing: 0,
         title: InkWell(
@@ -2000,7 +2095,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                           child: Text(
                             roleAcronym,
                             style: const TextStyle(
-                              fontSize: 10.5,
+                              fontSize: 11.5,
                               color: Color(0xFF64748B),
                               fontWeight: FontWeight.w600,
                             ),
@@ -2139,7 +2234,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                       ? msg.senderName[0].toUpperCase()
                                       : '?',
                                   style: const TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 11.5,
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -2278,7 +2373,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                               Text(
                                                 msg.replyToSenderName ?? 'Reply',
                                                 style: TextStyle(
-                                                  fontSize: 10,
+                                                  fontSize: 11.5,
                                                   fontWeight: FontWeight.bold,
                                                   color: isMe ? const Color(0xFFFDE68A) : AppColors.magentaPrimary,
                                                 ),
@@ -2288,7 +2383,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
-                                                  fontSize: 10.5,
+                                                  fontSize: 11.5,
                                                   color: isMe ? Colors.white70 : const Color(0xFF64748B),
                                                 ),
                                               ),
@@ -2325,7 +2420,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                               child: Text(
                                                 msg.senderRole,
                                                 style: const TextStyle(
-                                                  fontSize: 8.5,
+                                                  fontSize: 10,
                                                   color: Color(0xFF64748B),
                                                   fontWeight: FontWeight.w600,
                                                 ),
@@ -2357,7 +2452,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                           Text(
                                             _formatMsgTime(msg.timestamp),
                                             style: TextStyle(
-                                              fontSize: 9.5,
+                                              fontSize: 11,
                                               color: isMe
                                                 ? Colors.white.withOpacity(0.7)
                                                 : const Color(0xFF94A3B8),
@@ -2404,7 +2499,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                                   Text(
                                                     '${msg.likesCount}',
                                                     style: TextStyle(
-                                                      fontSize: 9,
+                                                      fontSize: 11,
                                                       fontWeight: FontWeight.bold,
                                                       color: isMe
                                                           ? Colors.white
@@ -2417,6 +2512,10 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                           ],
                                         ],
                                       ),
+                                      if (msg.reactions.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        _reactionChips(eco, msg, isMe),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -2687,10 +2786,20 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         textCapitalization: TextCapitalization.sentences,
                         style: const TextStyle(fontSize: 13.5, color: AppColors.textDark),
                         decoration: InputDecoration(
-                          hintText: 'Type message to ${widget.peerName}...',
-                          hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+                          hintText: 'Message',
+                          hintStyle: const TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+                          filled: false,
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          isDense: true,
+                          prefixIcon: IconButton(
+                            tooltip: 'Emoji',
+                            icon: const Icon(Icons.emoji_emotions_outlined, color: AppColors.magentaPrimary),
+                            onPressed: () => _showEmojiPicker(context),
+                          ),
+                          prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 11),
                         ),
                         onChanged: _onTextChanged,
                         onSubmitted: (_) => _sendMessage(eco),
@@ -2708,7 +2817,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         height: 42,
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Color(0xFF831843), Color(0xFFB45309)],
+                            colors: [Color(0xFFE11D48), Color(0xFF881337)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),

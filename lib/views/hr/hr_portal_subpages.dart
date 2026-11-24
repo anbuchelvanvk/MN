@@ -273,7 +273,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
             child: Text(
               '$count Staff',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
+                fontSize: 11.5,
                 fontWeight: FontWeight.bold,
                 color: accent,
               ),
@@ -372,7 +372,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                         Text(
                           isAbsent ? 'ABSENT' : 'PRESENT',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
                           ),
@@ -404,7 +404,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'Mobile: ${emp.phone.isNotEmpty ? emp.phone : 'Not provided'}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textDark),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -413,7 +413,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'Email: ${emp.email}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textDark),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -427,7 +427,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'DOB: ${emp.dob.isNotEmpty ? emp.dob : 'Not provided'}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textDark),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -436,7 +436,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'Gender: ${emp.gender.isNotEmpty ? emp.gender : 'Male'}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textDark),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -464,7 +464,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Text(
                         'Password: ',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.magentaPrimary,
                         ),
@@ -544,7 +544,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                               Text(
                                 'Reset',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9.5,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.magentaPrimary,
                                 ),
@@ -572,7 +572,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                 Text(
                                   'Relieve Staff',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9.5,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFFDC2626),
                                   ),
@@ -851,7 +851,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                     Text(
                                       isSyncingSheets ? 'Syncing...' : 'Sync Sheets',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10.5,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.magentaPrimary,
                                       ),
@@ -882,7 +882,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                         child: Text(
                           syncStatusMessage!,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: syncStatusMessage!.startsWith('✓') ? const Color(0xFF047857) : const Color(0xFFB91C1C),
                           ),
@@ -983,7 +983,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                   child: Text(
                                     'Sheet Match',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 9.5,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFF15803D),
                                     ),
@@ -994,7 +994,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           const SizedBox(height: 4),
                           Text(
                             'Type the Employee ID manually. It will instantly search database and Google Sheets.',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 8),
                           TextField(
@@ -1054,12 +1054,12 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                         const SizedBox(height: 2),
                                         Text(
                                           'Employee ID "${empIdController.text.trim()}" is already registered as ${alreadyHiredStaff!.name} (${alreadyHiredStaff!.role}, ${alreadyHiredStaff!.dept}).',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF7F1D1D)),
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF7F1D1D)),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           'Cannot add duplicate Employee ID.',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFFDC2626)),
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFFDC2626)),
                                         ),
                                       ],
                                     ),
@@ -1139,7 +1139,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                               ),
                                               child: Text(
                                                 isSelected ? 'Selected' : 'Auto-fill',
-                                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
                                               ),
                                             ),
                                           ],
@@ -1162,7 +1162,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                 Expanded(
                                   child: Text(
                                     'Custom ID "${empIdController.text.trim()}". Enter details below.',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF64748B)),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF64748B)),
                                   ),
                                 ),
                               ],
@@ -1644,7 +1644,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
             const SizedBox(height: 14),
             const Text(
               'DATE / DATES UPDATED',
-              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
             ),
             const SizedBox(height: 6),
             TextField(
@@ -1997,7 +1997,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                             Text(
                               '${allSheetRows.length} Workforce Rows • Live Synced',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
+                                fontSize: 11.5,
                                 color: AppColors.textMuted,
                               ),
                             ),
@@ -2098,7 +2098,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                                     ),
                                     child: Text(
                                       'EMP #${r.empNo}',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -2115,7 +2115,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           ),
                           Text(
                             'S.No ${r.sNo}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
                       ),
@@ -2160,7 +2160,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   '$day',
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: tc),
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: tc),
                                 ),
                               );
                             }),
@@ -2206,7 +2206,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                   child: Text(
                     isTuesday ? '$weekOffCount WEEK OFF' : '$activeDutyCount ON DUTY',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: isTuesday ? const Color(0xFF64748B) : const Color(0xFF10B981),
                     ),
@@ -2334,7 +2334,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           child: Text(
                             s.statusBadgeText,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: s.statusBadgeColor,
                             ),
@@ -2365,7 +2365,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                             children: [
                               Text(
                                 'View Biometric Punch Audit',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
                               ),
                               const SizedBox(width: 3),
                               const Icon(Icons.arrow_forward_ios_rounded, size: 9, color: AppColors.magentaPrimary),
@@ -2394,7 +2394,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
       ),
       child: Text(
         '$label: $value',
-        style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: text),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: text),
       ),
     );
   }
@@ -2438,7 +2438,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                       child: Text(
                         'SELECT ATTENDANCE MONTH',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.sandGold,
                           letterSpacing: 0.5,
@@ -2460,7 +2460,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                 child: Text(
                   eco.hrAttendanceSheet?.monthTitle ?? 'November 2026',
                   style: const TextStyle(
-                    fontSize: 9.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.magentaPrimary,
                   ),
@@ -2534,7 +2534,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
               Text(
                 'FILTER BY EMPLOYEE',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w800,
                   color: AppColors.sandGold,
                   letterSpacing: 0.5,
@@ -2601,7 +2601,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
               Expanded(
                 child: Text(
                   label,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -2762,7 +2762,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              Container(
+                              Flexible(child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: isFemale ? const Color(0xFFFDF2F8) : const Color(0xFFEFF6FF),
@@ -2772,12 +2772,12 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                                 child: Text(
                                   isFemale ? 'FEMALE (SAREE/UNIFORM)' : 'MALE (FORMAL SUIT)',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 8.5,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: isFemale ? const Color(0xFFDB2777) : const Color(0xFF1D4ED8),
                                   ),
                                 ),
-                              ),
+                              )),
                             ],
                           ),
                           const SizedBox(height: 2),
@@ -2791,7 +2791,9 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                 const Divider(color: Color(0xFFF1F5F9), height: 20),
 
                 // Select All / Deselect All
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -2879,7 +2881,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                             child: Text(
                               '+10 Pts',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: isChecked ? const Color(0xFF059669) : const Color(0xFF64748B),
                               ),
@@ -2961,11 +2963,11 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('COMPANY-WIDE GROOMING AUDIT LOG', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                    Expanded(child: Text('COMPANY-WIDE GROOMING AUDIT LOG', overflow: TextOverflow.ellipsis, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark))),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(color: AppColors.magentaSubtle, borderRadius: BorderRadius.circular(6)),
-                      child: Text('${auditHistory.length} Audits', style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
+                      child: Text('${auditHistory.length} Audits', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
                     ),
                   ],
                 ),
@@ -2998,7 +3000,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                             child: Column(
                               children: [
                                 Text('${audit.percentage}%', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: isPass ? const Color(0xFF059669) : const Color(0xFFE11D48))),
-                                Text('${audit.pointsEarned}/${audit.maxPoints}', style: GoogleFonts.plusJakartaSans(fontSize: 8.5, color: AppColors.textMuted)),
+                                Text('${audit.pointsEarned}/${audit.maxPoints}', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
                               ],
                             ),
                           ),
@@ -3009,11 +3011,11 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                               children: [
                                 Text('${emp.name} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                                 const SizedBox(height: 2),
-                                Text(audit.reason, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted)),
+                                Text(audit.reason, style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
                               ],
                             ),
                           ),
-                          Text('Followed: ${audit.followedItems.length}/5', style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: const Color(0xFF059669), fontWeight: FontWeight.bold)),
+                          Text('Followed: ${audit.followedItems.length}/5', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF059669), fontWeight: FontWeight.bold)),
                         ],
                       ),
                     );

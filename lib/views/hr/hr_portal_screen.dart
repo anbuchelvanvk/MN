@@ -201,7 +201,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                                   child: Text(
                                     isCeo ? 'CEO' : 'HR ADMIN',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 9,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: isCeo ? const Color(0xFFD97706) : const Color(0xFF059669),
                                     ),
@@ -212,7 +212,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                             const SizedBox(height: 2),
                             Text(
                               '${isCeo ? eco.currentEmployee.role : hrEmp.role} • ID: ${isCeo ? eco.currentEmployee.id : hrEmp.id}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -266,7 +266,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         Text(
                           'Direct Access',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textMuted,
                           ),
@@ -383,7 +383,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         Text(
                           'Staff Directory & Credentials',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),
                           maxLines: 1,
@@ -538,7 +538,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                   child: Text(
                     badge,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),

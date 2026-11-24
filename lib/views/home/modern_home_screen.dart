@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +20,7 @@ import '../../core/widgets/cross_dept_blocker_section.dart';
 import '../../core/widgets/task_action_dialogs.dart';
 import '../../models/task_model.dart';
 import '../../providers/ecosystem_provider.dart';
-import '../chat/chat_hub_screen.dart';
+import '../chat/floating_chat_window.dart';
 import '../employee/employee_profile_screen.dart';
 import '../konar/konar_book_detail_screen.dart';
 
@@ -182,7 +181,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       _buildKonarBookBanner(context, eco),
                       const SizedBox(height: 22),
 
-                      // Personal To-Do List Section with Timeline
+                      // To-Do List Section with Timeline
                       _buildPersonalTodoListSection(context, eco),
                       const SizedBox(height: 26),
 
@@ -216,178 +215,147 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   // TOP APP BAR
   // ==========================================
   Widget _buildTopBar(BuildContext context, EcosystemProvider eco, dynamic emp) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth;
-        final canvasWidth = math.max(availableWidth, 480.0);
-        return SizedBox(
-          width: availableWidth,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: canvasWidth,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Left Branding: Diamond Crest Logo + Maroon Divider + Welcome / MN Family
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        width: 34,
-                        height: 34,
-                        child: CustomPaint(
-                          painter: _MnDiamondLogoPainter(),
-                        ),
+    // Laid out at real size (it used to be drawn at 480px and scaled down,
+    // which made the logo, title and buttons ~25% smaller on phones).
+    Widget roundButton({
+      required IconData icon,
+      required VoidCallback onTap,
+      VoidCallback? onLongPress,
+      bool dot = false,
+    }) {
+      return Material(
+        color: const Color(0xFFFDF2F8),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: SizedBox(
+            width: 42,
+            height: 42,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(icon, size: 23, color: const Color(0xFF881337)),
+                if (dot)
+                  Positioned(
+                    top: 9,
+                    right: 10,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE11D48),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
                       ),
-                      const SizedBox(width: 6),
-
-                      // Vertical Maroon Divider Bar
-                      Container(
-                        width: 3.0,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF881337),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-
-                      // Welcome / MN Family Text
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Welcome',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF64748B),
-                              height: 1.1,
-                            ),
-                          ),
-                          Text(
-                            'MN Family',
-                            style: GoogleFonts.outfit(
-                              fontSize: 17.5,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF881337),
-                              letterSpacing: -0.3,
-                              height: 1.15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
-                  // Right Actions: Status Pill + Notification Bell + Hamburger Menu + User Avatar
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Floating Notification Pill: Appears when a company notification arrives, else hidden
-                      _buildFloatingNotificationPill(context, eco),
-
-                      // Notification Bell Icon with Red Badge Dot
-                      Builder(
-                        builder: (ctx) => InkWell(
-                          onTap: () => _onBellTapped(context, eco),
-                          onLongPress: () => CompanyNotificationSheet.show(context),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.notifications_none_rounded,
-                                  size: 20,
-                                  color: Color(0xFF1E293B),
-                                ),
-                                if (eco.activeCompanyNotifications.isNotEmpty)
-                                  Positioned(
-                                    top: 7,
-                                    right: 7,
-                                    child: Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFFEF4444),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            // Brand: diamond crest + divider + Welcome / MN Family
+            const SizedBox(
+              width: 42,
+              height: 42,
+              child: CustomPaint(painter: _MnDiamondLogoPainter()),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 3,
+              height: 34,
+              decoration: BoxDecoration(
+                color: const Color(0xFF881337),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Welcome',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF756A80),
+                      height: 1.1,
+                    ),
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'MN Family',
+                      style: GoogleFonts.outfit(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF881337),
+                        letterSpacing: -0.3,
+                        height: 1.15,
                       ),
-                      const SizedBox(width: 6),
-
-                      // Hamburger Menu Button (Opens Drawer)
-                      Builder(
-                        builder: (ctx) => InkWell(
-                          onTap: () => Scaffold.of(ctx).openDrawer(),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.menu_rounded,
-                              size: 20,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-
-                      // Profile Avatar (Navigates to Profile)
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(19),
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.2),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x0A000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 38),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 6),
+            roundButton(
+              icon: Icons.notifications_none_rounded,
+              onTap: () => _onBellTapped(context, eco),
+              onLongPress: () => CompanyNotificationSheet.show(context),
+              dot: eco.activeCompanyNotifications.isNotEmpty,
+            ),
+            const SizedBox(width: 8),
+            Builder(
+              builder: (ctx) => roundButton(
+                icon: Icons.menu_rounded,
+                onTap: () => Scaffold.of(ctx).openDrawer(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Profile photo (opens profile)
+            Material(
+              color: Colors.transparent,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFF3C6D6), width: 1.5),
+                  ),
+                  child: EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 44),
+                ),
+              ),
+            ),
+          ],
+        ),
+        // Latest-notification pill slides in under the bell for a few seconds
+        Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: _buildFloatingNotificationPill(context, eco),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -458,7 +426,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 155),
+              constraints: const BoxConstraints(maxWidth: 280),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -511,10 +479,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   Flexible(
                     child: Text(
                       latestNotif.title,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(
-                        fontSize: 11,
+                        fontSize: 12.5,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF1E293B),
                         letterSpacing: -0.2,
@@ -862,7 +830,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     const ink = Color(0xFF1E1B2E);
     const muted = Color(0xFF64748B);
     return SizedBox(
-      height: 236,
+      height: 256,
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
@@ -903,8 +871,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                           Expanded(
                             child: Text(
                               title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              // Wrap long titles onto a second line instead of cutting them off
+                              maxLines: 2,
+                              softWrap: true,
+                              overflow: TextOverflow.fade,
                               style: GoogleFonts.outfit(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w700,
@@ -1340,7 +1310,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Personal To-Do List',
+                      'To-Do List',
                       style: GoogleFonts.outfit(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
@@ -1621,7 +1591,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         children: [
           // Time Column
           SizedBox(
-            width: 70,
+            width: 80,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1635,10 +1605,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 ),
                 Text(
                   date,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w400,
-                    color: const Color(0xFF94A3B8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF756A80),
+                    height: 1.2,
                   ),
                 ),
               ],
@@ -1710,127 +1683,113 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   // BOTTOM NUTRIENT METRIC SECTION
   // ==========================================
   Widget _buildStickyChatDock(BuildContext context, EcosystemProvider eco) {
-    return Material(
-      color: Colors.transparent,
-      elevation: 0,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // White Capsule Input Bar: [ (face)  Type Here  (clip) ]
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                    value: eco,
-                    child: const ChatHubScreen(),
-                  ),
-                ),
-              );
-            },
+    void open(FloatingChatStart start) => FloatingChatWindow.show(context, start: start);
+
+    Widget capsuleButton(IconData icon, String tip, VoidCallback onTap) => Tooltip(
+          message: tip,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
             child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: const Color(0xFFCBD5E1),
-                  width: 1.2,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x18000000),
-                    blurRadius: 18,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Smile Reaction Icon
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFFF1F2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.add_reaction_outlined,
-                      size: 16,
-                      color: Color(0xFF881337),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // Hint Text
-                  Text(
-                    'Type Here',
-                    style: GoogleFonts.outfit(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Paperclip Icon
-                  const Icon(
-                    Icons.attach_file_rounded,
-                    size: 20,
-                    color: Color(0xFF881337),
-                  ),
-                ],
-              ),
+              width: 34,
+              height: 34,
+              decoration: const BoxDecoration(color: Color(0xFFFDF2F8), shape: BoxShape.circle),
+              child: Icon(icon, size: 19, color: const Color(0xFF881337)),
             ),
           ),
+        );
 
-          const SizedBox(width: 6),
+    final unread = eco.unreadTotalChatCount;
 
-          // Sapphire Blue Speech Bubble Button with Group Silhouettes
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                    value: eco,
-                    child: const ChatHubScreen(),
+    return Material(
+      color: Colors.transparent,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Capsule: [emoji] Type here [attach] - each opens the floating chat
+          Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: const Color(0xFFF3C6D6), width: 1.2),
+              boxShadow: const [
+                BoxShadow(color: Color(0x22881337), blurRadius: 18, offset: Offset(0, 5)),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                capsuleButton(Icons.add_reaction_outlined, 'Emoji', () => open(FloatingChatStart.allHandsEmoji)),
+                InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => open(FloatingChatStart.allHands),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Text(
+                      'Type here',
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF756A80),
+                      ),
+                    ),
                   ),
                 ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            child: SizedBox(
-              width: 58,
-              height: 58,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Speech Bubble with Tail Painter
-                  CustomPaint(
-                    size: const Size(58, 58),
-                    painter: _ChatBubbleTailPainter(
-                      color: const Color(0xFF1553A3),
-                      strokeColor: Colors.white,
-                      strokeWidth: 2.8,
+                capsuleButton(Icons.attach_file_rounded, 'Attach', () => open(FloatingChatStart.allHandsAttach)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Chat bubble: opens the floating chat hub (all conversations)
+          Tooltip(
+            message: 'Team chat',
+            child: InkWell(
+              onTap: () => open(FloatingChatStart.hub),
+              borderRadius: BorderRadius.circular(30),
+              child: SizedBox(
+                width: 58,
+                height: 58,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(
+                      size: const Size(58, 58),
+                      painter: _ChatBubbleTailPainter(
+                        color: const Color(0xFFBE185D),
+                        strokeColor: Colors.white,
+                        strokeWidth: 2.8,
+                      ),
                     ),
-                  ),
-
-                  // Group Silhouettes Icon (Pure White)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 3, right: 3),
-                    child: Icon(
-                      Icons.groups_rounded,
-                      size: 28,
-                      color: Colors.white,
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 3, right: 3),
+                      child: Icon(Icons.groups_rounded, size: 28, color: Colors.white),
                     ),
-                  ),
-                ],
+                    if (unread > 0)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE11D48),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white, width: 1.5),
+                          ),
+                          child: Text(
+                            unread > 99 ? '99+' : '$unread',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1922,15 +1881,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     title: Text('Team Chat Hub', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChangeNotifierProvider<EcosystemProvider>.value(
-                            value: eco,
-                            child: const ChatHubScreen(),
-                          ),
-                        ),
-                      );
+                      FloatingChatWindow.show(context);
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
@@ -2085,7 +2036,7 @@ class _MnDiamondLogoPainter extends CustomPainter {
       text: TextSpan(
         text: 'MN',
         style: GoogleFonts.outfit(
-          fontSize: 8.5,
+          fontSize: 10,
           fontWeight: FontWeight.w900,
           color: const Color(0xFF881337),
         ),

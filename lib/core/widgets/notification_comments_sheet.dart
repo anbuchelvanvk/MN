@@ -308,7 +308,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
                                         child: Text(
                                           comment.authorRole,
                                           style: const TextStyle(
-                                            fontSize: 9,
+                                            fontSize: 11,
                                             color: Color(0xFF475569),
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -319,7 +319,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
                                 ),
                                 Text(
                                   _formatTimeAgo(comment.timestamp),
-                                  style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
                                 ),
                               ],
                             ),
@@ -372,7 +372,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
                                             Text(
                                               '${comment.likesCount}',
                                               style: TextStyle(
-                                                fontSize: 10.5,
+                                                fontSize: 11.5,
                                                 fontWeight: FontWeight.bold,
                                                 color: isLiked ? const Color(0xFFEF4444) : const Color(0xFF64748B),
                                               ),
@@ -400,7 +400,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
               children: [
                 const Text(
                   'Quick:',
-                  style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 6),
                 Expanded(

@@ -247,7 +247,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                           'Warmest wishes from the entire MN Jewel Park Executive Board & Workforce.',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             color: const Color(0xFF64748B),
                             fontStyle: FontStyle.italic,
                           ),

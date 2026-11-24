@@ -9,7 +9,10 @@ import '../../providers/ecosystem_provider.dart';
 import 'chat_conversation_screen.dart';
 
 class ChatHubScreen extends StatefulWidget {
-  const ChatHubScreen({super.key});
+  /// Called by the back button when the hub is the first page of a floating chat window.
+  final VoidCallback? onClose;
+
+  const ChatHubScreen({super.key, this.onClose});
 
   @override
   State<ChatHubScreen> createState() => _ChatHubScreenState();
@@ -87,7 +90,13 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
         titleSpacing: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.pop(context);
+            } else {
+              widget.onClose?.call();
+            }
+          },
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +123,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                     currentEmp.straightCutRole,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF4F46E5),
                     ),
@@ -159,7 +168,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                           ),
                           child: Text(
                             '${eco.unreadTotalChatCount}',
-                            style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
@@ -360,7 +369,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                       if (lastMsg != null)
                         Text(
                           _formatSnippetTime(lastMsg.timestamp),
-                          style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                          style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
                         ),
                     ],
                   ),
@@ -411,7 +420,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                           child: Text(
                             '$unreadCount',
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -527,7 +536,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
               Text(
                 _formatSnippetTime(lastMsg.timestamp),
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11.5,
                   color: unreadCount > 0 ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
                   fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -564,7 +573,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                     child: Text(
                       '$unreadCount',
                       style: const TextStyle(
-                        fontSize: 9.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),

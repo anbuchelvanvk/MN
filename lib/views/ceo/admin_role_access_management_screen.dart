@@ -287,7 +287,7 @@ class _AdminRoleAccessManagementScreenState
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
                 color: AppColors.textSecondary,
-                fontSize: 10,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -509,7 +509,7 @@ class _AdminRoleAccessManagementScreenState
                                       ? emp.roleCode
                                       : emp.straightCutRole,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.magentaPrimary,
                                   ),
@@ -592,7 +592,7 @@ class _AdminRoleAccessManagementScreenState
                         child: Text(
                           'Executive Admin (Protected)',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFFB45309),
                           ),
@@ -611,7 +611,7 @@ class _AdminRoleAccessManagementScreenState
                         child: Text(
                           'Executive Access',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF1D4ED8),
                           ),
@@ -630,7 +630,7 @@ class _AdminRoleAccessManagementScreenState
                         child: Text(
                           'HR Admin',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF4338CA),
                           ),
@@ -649,7 +649,7 @@ class _AdminRoleAccessManagementScreenState
                         child: Text(
                           'Team Lead',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF15803D),
                           ),
@@ -1100,7 +1100,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                     Text(
                       'Granular Routing',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         color: AppColors.textMuted,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1228,7 +1228,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                     Text(
                       'Ecosystem Foundations',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         color: AppColors.textMuted,
                         fontWeight: FontWeight.w600,
                       ),

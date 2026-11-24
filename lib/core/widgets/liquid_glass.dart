@@ -139,7 +139,7 @@ class LiquidGlassPill extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: color,
-                  fontSize: 10.5,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
                 ),
@@ -279,7 +279,7 @@ class LiquidMetricCard extends StatelessWidget {
                   child: Text(
                     label,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       color: AppColors.textMuted,
                       fontWeight: FontWeight.w600,
                     ),
@@ -304,7 +304,7 @@ class LiquidMetricCard extends StatelessWidget {
               Text(
                 subtitle!,
                 style: const TextStyle(
-                  fontSize: 9.5,
+                  fontSize: 11,
                   color: AppColors.textMuted,
                 ),
                 overflow: TextOverflow.ellipsis,

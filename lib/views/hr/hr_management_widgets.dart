@@ -84,7 +84,7 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
                           SizedBox(height: 1),
                           Text(
                             'Pushes an instant alert to every employee account & mobile notification bar',
-                            style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                            style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                           ),
                         ],
                       ),
@@ -312,7 +312,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                     const SizedBox(height: 2),
                     const Text(
                       'Review staff good deeds. Approved causes automatically notify all employees with deed & amount!',
-                      style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -342,7 +342,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
               ),
               child: Text(
                 '${pendingCauses.length}',
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
               ),
             ),
           ],
@@ -428,7 +428,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                               ),
                               child: Text(
                                 '₹${c.amountSpent.toStringAsFixed(0)}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
                               ),
                             ),
                           ],
@@ -446,7 +446,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 'Approved & broadcasted by ${c.approvedByName ?? "Management"}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF059669), fontWeight: FontWeight.w500),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF059669), fontWeight: FontWeight.w500),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -490,7 +490,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                     const SizedBox(height: 1),
                     Text(
                       cause.employeeRole,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -521,7 +521,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
             ),
             child: Text(
               cause.causeType,
-              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
             ),
           ),
           const SizedBox(height: 4),
@@ -568,7 +568,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                         children: [
                           Icon(Icons.fullscreen, size: 14, color: Colors.white),
                           SizedBox(width: 4),
-                          Text('Preview Proof Photo', style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                          Text('Preview Proof Photo', style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -706,7 +706,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                     const SizedBox(height: 2),
                     const Text(
                       'Employees cannot delete tasks themselves. As HR/CEO, you can inspect and remove tasks across all staff.',
-                      style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -861,12 +861,12 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                   children: [
                     Text(
                       '${task.category} • Due: ${task.due}',
-                      style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                     ),
                     Container(width: 3, height: 3, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.textMuted)),
                     Text(
                       'By: ${task.assignedByName}',
-                      style: const TextStyle(fontSize: 10, color: AppColors.sandGold),
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.sandGold),
                     ),
                   ],
                 ),
@@ -962,7 +962,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 child: Text(
                                   task.category,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.magentaPrimary,
                                   ),
@@ -978,7 +978,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 child: Text(
                                   task.priority,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF2563EB),
                                   ),
@@ -1070,7 +1070,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Due Time & SLA:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                Text('Due Time & SLA:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
                                 Text(task.due, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
@@ -1080,7 +1080,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Assigned By:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                Text('Assigned By:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
                                 Text(task.assignedByName, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
@@ -1111,7 +1111,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                               CircleAvatar(
                                 radius: 14,
                                 backgroundColor: isAbsent ? const Color(0xFFEF4444) : AppColors.magentaPrimary,
-                                child: Text(emp.initials, style: const TextStyle(fontSize: 10.5, color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(emp.initials, style: const TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -1119,7 +1119,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(emp.name, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
                                   ],
                                 ),
                               ),
@@ -1131,7 +1131,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 ),
                                 child: Text(
                                   isAbsent ? 'ABSENT TODAY' : 'PRESENT',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                                 ),
                               ),
                             ],
@@ -1152,7 +1152,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                   Expanded(
                                     child: Text(
                                       '${emp.name} is Absent Today. Reassign this task immediately to maintain daily operations.',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFFB91C1C), fontWeight: FontWeight.w600),
                                     ),
                                   ),
                                 ],
@@ -1273,13 +1273,13 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                       ),
                       subtitle: Text(
                         '${target.role} • ${target.dept}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       trailing: isTargetAbsent
                           ? Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(4)),
-                              child: Text('Absent', style: GoogleFonts.plusJakartaSans(fontSize: 9, color: const Color(0xFFEF4444), fontWeight: FontWeight.bold)),
+                              child: Text('Absent', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFFEF4444), fontWeight: FontWeight.bold)),
                             )
                           : const Icon(Icons.chevron_right, size: 16, color: AppColors.textMuted),
                       onTap: () {

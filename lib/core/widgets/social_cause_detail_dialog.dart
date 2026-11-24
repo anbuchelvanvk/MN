@@ -157,7 +157,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                 Text(
                                   'Pillar 5 • Act of Kindness & CSR',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
@@ -470,7 +470,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                         Text(
                                           'M N Naveenraaj (Managing Director & CEO) acknowledged this deed.',
                                           style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 10,
+                                            fontSize: 11.5,
                                             fontWeight: FontWeight.w600,
                                             color: const Color(0xFFB45309),
                                           ),

@@ -136,6 +136,7 @@ class CrossDeptBlockerSection extends StatefulWidget {
                             const Text('Against:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight)),
                             const SizedBox(height: 4),
                             DropdownButtonFormField<String>(
+                              isExpanded: true,
                               value: toDept,
                               dropdownColor: AppColors.burgundySurface,
                               style: const TextStyle(color: AppColors.textDark, fontSize: 12),
@@ -171,8 +172,9 @@ class CrossDeptBlockerSection extends StatefulWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       const Text('Expected Time:', style: TextStyle(fontSize: 11, color: AppColors.sandLight)),
                       DropdownButton<String>(
@@ -276,7 +278,7 @@ class CrossDeptBlockerSection extends StatefulWidget {
                       children: [
                         Text(
                           'Raised by ${blocker.raisedByDept} (${blocker.raisedByName}):',
-                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFFEF4444)),
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFFEF4444)),
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -414,7 +416,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                   Text(
                     'Track and resolve issues between teams',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       color: AppColors.textMuted,
                     ),
                   ),
@@ -480,7 +482,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                         ? 'All cross-department tickets are progressing smoothly within SLA.'
                         : 'Your unit has no pending blockers in this view.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -543,7 +545,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                               ? 'OVERDUE / LATE'
                               : (isResolved ? 'RESOLVED' : (hasResponse ? 'RESPONDED' : 'AWAITING REPLY')),
                           style: TextStyle(
-                            fontSize: 8.5,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: blk.isLate
                                 ? AppColors.ragRed
@@ -569,9 +571,9 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                     children: [
                       const Icon(Icons.access_time, size: 11, color: AppColors.textMuted),
                       const SizedBox(width: 4),
-                      Text('Raised at ${blk.time} by ${blk.raisedByName}', style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted)),
+                      Text('Raised at ${blk.time} by ${blk.raisedByName}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                       const Spacer(),
-                      Text('Target SLA: ${blk.slaDue}', style: const TextStyle(fontSize: 9.5, color: AppColors.goldBright, fontWeight: FontWeight.w600)),
+                      Text('Target SLA: ${blk.slaDue}', style: const TextStyle(fontSize: 11, color: AppColors.goldBright, fontWeight: FontWeight.w600)),
                     ],
                   ),
 
@@ -595,13 +597,13 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                               Expanded(
                                 child: Text(
                                   'Response from ${blk.blockingDept} (${blk.respondedByName ?? "Team Lead"}):',
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.goldBright),
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.goldBright),
                                 ),
                               ),
                               if (blk.respondedAt != null)
                                 Text(
                                   blk.respondedAt!,
-                                  style: const TextStyle(fontSize: 9, color: AppColors.textMuted),
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                                 ),
                             ],
                           ),
@@ -667,7 +669,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                       if (!isResolved && !blk.isLate) ...[
                         TextButton(
                           style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
-                          child: const Text('Mark Late', style: TextStyle(fontSize: 9.5, color: Color(0xFFEF4444))),
+                          child: const Text('Mark Late', style: TextStyle(fontSize: 11, color: Color(0xFFEF4444))),
                           onPressed: () {
                             eco.markBlockerLate(blk.id, true);
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -695,7 +697,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
         label: Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 11.5,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             color: isSelected
                 ? Colors.white

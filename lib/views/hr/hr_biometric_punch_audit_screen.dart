@@ -178,7 +178,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                               child: Text(
                                 todaySummary.statusBadgeText.toUpperCase(),
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: todaySummary.statusBadgeColor,
                                 ),
@@ -205,7 +205,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                               child: Text(
                                 'Staff ID: #${emp.id}',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10.5,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textDark,
                                 ),
@@ -282,7 +282,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                         child: Text(
                           'Official duty attendance and records are maintained directly by HR in the Master Ledger.',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),
                         ),
@@ -366,7 +366,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                               child: Text(
                                 day.status,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9.5,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: day.statusColor,
                                 ),
@@ -422,20 +422,20 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
                             const SizedBox(width: 6),
                             Text(
                               p.punchType.name.toUpperCase(),
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                             ),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 'at ${p.timeString}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 6),
                             Text(
                               'ID: ${p.id}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 9, color: const Color(0xFF94A3B8)),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8)),
                             ),
                           ],
                         ),
@@ -489,7 +489,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textMuted),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -503,7 +503,7 @@ class HrBiometricPunchAuditScreen extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             subtext,
-            style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

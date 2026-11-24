@@ -392,7 +392,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         child: Text(
                           'Today',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
                           ),
@@ -451,7 +451,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           Text(
                             _weekdays[date.weekday - 1],
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.bold,
                               color: isSelected
                                   ? AppColors.burgundyBg
@@ -524,7 +524,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
             ),
             Text(
               'Tap to open',
-              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -615,7 +615,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 ]
               : [],
         ),
-        child: Column(
+        child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.topLeft, child: SizedBox(width: 150, child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -636,7 +636,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     badge,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: badgeColor,
                     ),
@@ -671,14 +671,14 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 ),
                 Text(
                   subtitle,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ],
-        ),
+        ))),
       ),
     );
   }
@@ -733,7 +733,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '${_formatDayLabel(_selectedDate)} • Quality Family Time',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -832,7 +832,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           Text(
                             familyHours > 0 ? 'Cherished' : 'Relax',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
                             ),
@@ -860,7 +860,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     Expanded(
                       child: Text(
                         'Genuine, stress-free presence with loved ones. Every moment counts.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandLight),
                       ),
                     ),
                   ],
@@ -923,7 +923,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                               child: Text(
                                 '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10.5,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandGold,
                                 ),
@@ -956,7 +956,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                               child: Text(
                                 'Reset (0h)',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFFEF4444),
                                 ),
@@ -1017,7 +1017,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         label: Text(
                           'Reset Today (0.0h)',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.ragRed,
                           ),
@@ -1062,7 +1062,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                                 ),
                                 Text(
                                   '${a.category} • ${a.hoursSpent.toStringAsFixed(1)} hrs',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandPrimary),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
                                 ),
                               ],
                             ),
@@ -1131,7 +1131,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   ),
                   subtitle: Text(
                     'Shared family meal without phones or digital distractions',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                   value: _dinnerTogetherToday,
                   onChanged: (v) {
@@ -1164,7 +1164,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         ),
                         Text(
                           'Emergency: ${_emergencyContactController.text.isNotEmpty ? _emergencyContactController.text : "Need to be added"}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
                         ),
                       ],
                     ),
@@ -1237,7 +1237,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '${_formatDayLabel(_selectedDate)} • Social Connections',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1331,7 +1331,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           Text(
                             friendsHours > 0 ? 'Connected' : 'Social',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
                             ),
@@ -1359,7 +1359,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     Expanded(
                       child: Text(
                         'Meaningful peer conversations and team support with no artificial targets.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandLight),
                       ),
                     ),
                   ],
@@ -1421,7 +1421,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                             child: Text(
                               '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
                               ),
@@ -1517,7 +1517,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
             const SizedBox(height: 2),
             Text(
               'Log Your Time',
-              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1594,7 +1594,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                         child: Text(
                           'Change',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
                           ),
@@ -1699,7 +1699,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 children: [
                   Text(
                     'UPLOAD PICTURE (OPTIONAL)',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                   ),
                   const SizedBox(width: 6),
                   const Icon(Icons.photo_camera_back_outlined, size: 14, color: AppColors.sandGold),
@@ -2054,7 +2054,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     _showAllHistory
                         ? '${allLogs.length} total entries across all dates'
                         : '${dateLogs.length} entries on ${_formatDayLabel(_selectedDate)}',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -2149,7 +2149,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                   children: [
                     Text(
                       'DAILY TIME RATIO',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                     ),
                     Text(
                       'Total: ${formatDuration(totalHours)}',
@@ -2197,7 +2197,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                             Expanded(
                               child: Text(
                                 'Family: ${formatDuration(familyHours)} (${totalHours > 0 ? ((familyHours / totalHours) * 100).toInt() : 0}%)',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -2221,7 +2221,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                             Expanded(
                               child: Text(
                                 'Friends: ${formatDuration(friendsHours)} (${totalHours > 0 ? ((friendsHours / totalHours) * 100).toInt() : 0}%)',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.sandLight),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -2358,7 +2358,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       Text(
                         '${dayLogs.length} ${dayLogs.length == 1 ? "entry" : "entries"} • ${formatDuration(dayHours)}',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
                         ),
@@ -2429,7 +2429,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       child: Text(
                         log.category,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: isFam ? const Color(0xFFA855F7) : AppColors.sandGold,
                         ),
@@ -2438,7 +2438,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     const SizedBox(width: 6),
                     Text(
                       log.timeString,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -2456,7 +2456,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       log.notes!,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted, fontStyle: FontStyle.italic),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2494,7 +2494,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                                 children: [
                                   Icon(Icons.fullscreen, size: 11, color: AppColors.sandGold),
                                   SizedBox(width: 3),
-                                  Text('Preview', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold)),
+                                  Text('Preview', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ),
@@ -2530,7 +2530,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     Text(
                       formatDuration(log.hoursSpent),
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFFBE185D),
                       ),
@@ -2687,7 +2687,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 Text(
                   'View team family time, quality moments & social logs',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     color: AppColors.textMuted,
                   ),
                 ),
@@ -2813,7 +2813,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
               Text(
                 'SELECT EMPLOYEE',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   color: AppColors.sandGold,
                   letterSpacing: 0.5,
@@ -2848,7 +2848,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                 child: Text(
                                   emp.initials,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 8.5,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: isSelected ? AppColors.sandGold : AppColors.sandLight,
                                   ),
@@ -2912,7 +2912,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                               ),
                               Text(
                                 selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandPrimary),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
                               ),
                             ],
                           ),
@@ -3075,7 +3075,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                   child: Text(
                                     '${dayLogs.length} ${dayLogs.length == 1 ? "entry" : "entries"} • ${formatDuration(dayHours)}',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.sandGold,
                                     ),
@@ -3168,7 +3168,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                         Text(
                                                           formatDuration(a.hoursSpent),
                                                           style: GoogleFonts.plusJakartaSans(
-                                                            fontSize: 10.5,
+                                                            fontSize: 11.5,
                                                             fontWeight: FontWeight.w700,
                                                             color: const Color(0xFFBE185D),
                                                             letterSpacing: 0.2,
@@ -3197,7 +3197,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                     child: Text(
                                                       '${a.category} • ${a.subCategory}',
                                                       style: GoogleFonts.plusJakartaSans(
-                                                        fontSize: 10,
+                                                        fontSize: 11.5,
                                                         fontWeight: FontWeight.w600,
                                                         color: isFam
                                                             ? const Color(0xFFA855F7)
@@ -3275,7 +3275,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                     Text('Preview Photo',
                                                         style: TextStyle(
                                                             color: Colors.white,
-                                                            fontSize: 10,
+                                                            fontSize: 11.5,
                                                             fontWeight: FontWeight.bold)),
                                                   ],
                                                 ),
@@ -3332,7 +3332,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                   child: Text(
                     title,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 8.5,
+                      fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: AppColors.sandPrimary,
                       letterSpacing: 0.4,
@@ -3361,7 +3361,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
             alignment: Alignment.centerLeft,
             child: Text(
               subText,
-              style: GoogleFonts.plusJakartaSans(fontSize: 8.5, color: accentColor),
+              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: accentColor),
             ),
           ),
         ],

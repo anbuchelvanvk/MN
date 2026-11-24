@@ -196,7 +196,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                 child: Text(
                   '${provider.holisticEquilibriumScore}% OVERALL',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: provider.holisticTierColor,
                   ),
@@ -257,7 +257,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                 Text(
                   title,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textSecondary,
                   ),
@@ -483,7 +483,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                 Text(
                   'Combines Pillar 1 (Health), Pillar 2 (Family), Pillar 3 (Profile), and Pillar 4 (Attendance) to show your current status.',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -594,7 +594,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                         item.status,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 9,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: item.indicatorColor,
                         ),
@@ -607,7 +607,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                 Text(
                   item.description,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     color: AppColors.textMuted,
                   ),
                 ),
@@ -628,7 +628,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                           child: Text(
                             'Fix: ${item.improvementAction}',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w600,
                               color: item.indicatorColor,
                             ),

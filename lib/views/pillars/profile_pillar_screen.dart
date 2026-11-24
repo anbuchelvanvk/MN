@@ -241,7 +241,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       child: Text(
                         employee.id,
                         style: const TextStyle(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
                         ),
@@ -275,7 +275,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       child: Text(
                         'Occasional',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppColors.sandGold,
                         ),
@@ -335,7 +335,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           Text(
                             '${pendingTasks.length} Pending • ${completedTasks.length} Completed',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5,
+                              fontSize: 11.5,
                               color: AppColors.textMuted,
                             ),
                           ),
@@ -417,7 +417,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       child: Text(
                         task.priority.toUpperCase(),
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFFD97706),
                         ),
@@ -487,7 +487,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 child: Text(
                   'WORK PILLAR 3',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandGold,
                   ),
@@ -499,7 +499,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           Text(
             'Tap any ring to inspect individual subsystem audits, policies, and actions.',
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 10.5,
+              fontSize: 11.5,
               color: AppColors.textMuted,
             ),
           ),
@@ -695,7 +695,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         Text(
                           displayValue,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w800,
                             height: 1.0,
                             color: AppColors.textDark,
@@ -726,7 +726,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 9,
+                fontSize: 11,
                 color: AppColors.textMuted,
               ),
             ),
@@ -740,7 +740,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               child: Text(
                 statusText,
                 style: TextStyle(
-                  fontSize: 8.5,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: ringColor,
                 ),
@@ -892,7 +892,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         Text(
                           '${monthNames[_selectedCalendarMonth - 1]} $_selectedCalendarYear • $totalMonthDays Days Full Calendar',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),
                           maxLines: 1,
@@ -1033,7 +1033,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     child: Text(
                       'Tuesday = Overtime (OT)',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFFC084FC),
                       ),
@@ -1153,7 +1153,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         Text(
                           '$dayNumber $wLabel',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 8.5,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: textColor,
                           ),
@@ -1169,7 +1169,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             Text(
                               statusTag,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
                               ),
@@ -1214,7 +1214,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     Expanded(
                       child: Text(
                         'Full calendar tracking (Jan–Dec, 28-31 days). Tuesday is the company week-off; any attendance punched on Tuesday is strictly recorded as Overtime (OT). Each calendar day is logged.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandLight),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandLight),
                       ),
                     ),
                   ],
@@ -1240,7 +1240,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         Text(
           label,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
+            fontSize: 11.5,
             fontWeight: FontWeight.w600,
             color: AppColors.sandLight,
           ),
@@ -1339,7 +1339,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     child: Text(
                       hasAudit ? '${percentage.toStringAsFixed(0)}% ($dailyPoints/50)' : 'Pending HR Audit',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                         color: !hasAudit
                             ? AppColors.textSecondary
@@ -1352,7 +1352,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               const SizedBox(height: 6),
               Text(
                 'Evaluated across 5 daily criteria (10 pts each, 50 pts max) and converted into compliance percentage.',
-                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
               ),
               const SizedBox(height: 14),
 
@@ -1433,7 +1433,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Text(
                     '50 Pts Max',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.magentaPrimary,
                     ),
@@ -1481,7 +1481,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         child: Text(
                           isFollowed ? '+10 Pts' : '0 Pts',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: isFollowed ? const Color(0xFF059669) : const Color(0xFFE11D48),
                           ),
@@ -1521,7 +1521,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   const SizedBox(width: 8),
                   Text(
                     '${audits.length} Records',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -1564,7 +1564,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               '${auditPercent.toStringAsFixed(0)}%\n${audit.pointsEarned}/50',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: isGood ? const Color(0xFF059669) : const Color(0xFFE11D48),
                                 height: 1.1,
@@ -1588,7 +1588,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                 Text(
                                   audit.reason,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10,
+                                    fontSize: 11.5,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
@@ -1601,13 +1601,13 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             children: [
                               Text(
                                 audit.dateFormatted,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 9, color: AppColors.textMuted),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 audit.auditedBy.split(' ').first,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9.5,
+                                  fontSize: 11,
                                   color: AppColors.magentaPrimary,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1683,7 +1683,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       ? '0 DOCUMENTS'
                       : (pending == 0 ? '$compliancePct% SECURED' : '$pending ACTION REQUIRED'),
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: total == 0
                         ? const Color(0xFF94A3B8)
@@ -1764,7 +1764,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 9.5,
+            fontSize: 11,
             color: AppColors.textMuted,
           ),
           textAlign: TextAlign.center,
@@ -1976,7 +1976,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Text(
                     '${existingDoc.vaultLockerRef} • Status: ${existingDoc.statusLabel}',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
+                      fontSize: 11.5,
                       color: isSubmitted ? const Color(0xFF15803D) : const Color(0xFFB45309),
                     ),
                     maxLines: 1,
@@ -2057,7 +2057,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 Text(
                   'Ready to deposit into safe vault locker',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -2184,7 +2184,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         child: Text(
           '$label ($count)',
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 10.5,
+            fontSize: 11.5,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             color: isSelected ? color : AppColors.textSecondary,
           ),
@@ -2278,7 +2278,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               child: Text(
                                 'MANDATORY',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 8.5,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.magentaPrimary,
                                   letterSpacing: 0.3,
@@ -2312,7 +2312,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               child: Text(
                                 'Cert #: ${doc.certificateNumber}',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                   color: const Color(0xFF475569),
                                 ),
@@ -2363,7 +2363,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     Text(
                       doc.submissionDate.isNotEmpty ? 'Date: ${doc.submissionDate}' : 'Date: Pending',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary,
                       ),
@@ -2562,7 +2562,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 child: Text(
                   tier == PillarTierLevel.green ? 'CRITERIA MET' : 'PENDING',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: tier == PillarTierLevel.green ? const Color(0xFF059669) : AppColors.ragRed,
                   ),
@@ -3014,7 +3014,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               ),
                               Text(
                                 '${sheet?.monthTitle ?? "November 2026"} • Google Sheet ($timeStr)',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
                               ),
                             ],
                           ),
@@ -3030,7 +3030,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     icon: const Icon(Icons.open_in_new, size: 12, color: AppColors.sandGold),
                     label: Text(
                       'Full Console',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: AppColors.sandGold.withOpacity(0.5)),
@@ -3163,7 +3163,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           Text(
                             emp.dept,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5,
+                              fontSize: 11.5,
                               color: AppColors.sandPrimary,
                             ),
                           ),
@@ -3182,7 +3182,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       child: Text(
                         statusText,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: statusColor,
                         ),
@@ -3256,7 +3256,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     ),
                     Text(
                       '${emp.dept} • $currentMonthName $_selectedCalendarYear',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
                     ),
                   ],
                 ),
@@ -3387,7 +3387,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     Text(
                       '${rec.date.day} ${DateFormat('E').format(rec.date)}',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
@@ -3407,7 +3407,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         : Text(
                             badgeText,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w900,
                               color: textColor,
                             ),
@@ -3490,7 +3490,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         ),
                         Text(
                           'Official academic marksheets, KYC, and ID proofs locked in safe custody',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -3670,7 +3670,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 Text(
                   emp.dept,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textMuted,
                   ),
@@ -3729,7 +3729,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               child: const Text(
                                 'MANDATORY',
                                 style: TextStyle(
-                                  fontSize: 8.5,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFE11D48),
                                 ),
@@ -3746,7 +3746,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         children: [
                           Text(
                             doc.category,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
@@ -3756,7 +3756,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             ),
                             child: Text(
                               'Cert #: ${doc.certificateNumber}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textSecondary),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
                             ),
                           ),
                         ],
@@ -3782,7 +3782,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                 Flexible(
                                   child: Text(
                                     'Safe Custody',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textDark, fontWeight: FontWeight.w600),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -3796,7 +3796,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                 Flexible(
                                   child: Text(
                                     'Date: ${doc.submissionDate}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -3834,7 +3834,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                   child: Text(
                                     doc.statusLabel,
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: isSubmitted ? const Color(0xFF059669) : const Color(0xFFD97706),
                                     ),
@@ -3858,7 +3858,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                 Text(
                                   'HR Verified',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF059669),
                                   ),
@@ -3968,7 +3968,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
           Text(
             label,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 8.5,
+              fontSize: 10,
               fontWeight: FontWeight.bold,
               color: color,
               letterSpacing: 0.4,
@@ -4006,7 +4006,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         child: Text(
           label,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 10.5,
+            fontSize: 11.5,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             color: isSelected ? Colors.white : AppColors.sandLight,
           ),
@@ -4030,7 +4030,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         child: Text(
           label,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 10.5,
+            fontSize: 11.5,
             fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
             color: isSel ? AppColors.burgundyBg : AppColors.sandPrimary,
           ),
@@ -4049,8 +4049,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         ),
         child: Column(
           children: [
-            Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: color)),
-            Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 8, color: AppColors.textMuted)),
+            Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: color)),
+            Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
           ],
         ),
       ),
@@ -4099,7 +4099,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         ),
                         Text(
                           'Daily showroom attire & grooming compliance across online team staff',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
                         ),
                       ],
                     ),
@@ -4138,7 +4138,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             backgroundColor: AppColors.sandGold.withOpacity(0.2),
                             child: Text(
                               emp.initials,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -4154,7 +4154,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                 ),
                                 Text(
                                   '${emp.id} • ${emp.straightCutDesignation}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -4203,7 +4203,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             const SizedBox(width: 3),
                             Text(
                               item,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.sandLight),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight),
                             ),
                           ],
                         ),

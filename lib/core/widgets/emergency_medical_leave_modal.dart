@@ -153,7 +153,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                         ),
                         const Text(
                           'Prescription strictly required • Compressed to <= 150 KB',
-                          style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                          style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -255,7 +255,10 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
               const SizedBox(height: 14),
 
               // Mandatory Doctor Prescription Section
-              Row(
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     'Doctor Prescription (Mandatory):',
@@ -275,7 +278,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                     ),
                     child: const Text(
                       'REQUIRED',
-                      style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: AppColors.ragRed),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.ragRed),
                     ),
                   ),
                 ],
@@ -340,7 +343,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                                 const SizedBox(height: 2),
                                 Text(
                                   'Size: ${((_prescriptionSizeBytes ?? 0) / 1024).toStringAsFixed(1)} KB (<= 150 KB Verified)',
-                                  style: const TextStyle(color: AppColors.sandGold, fontSize: 10),
+                                  style: const TextStyle(color: AppColors.sandGold, fontSize: 11.5),
                                 ),
                               ],
                             ),
@@ -373,7 +376,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                       const Text(
                         'Without doctor prescription, medical leave cannot be submitted or accepted.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFFE11D48), fontSize: 10.5, fontWeight: FontWeight.w600),
+                        style: TextStyle(color: Color(0xFFE11D48), fontSize: 11.5, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -414,7 +417,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
 
               if (_errorMessage != null) ...[
                 const SizedBox(height: 8),
-                Text(_errorMessage!, style: const TextStyle(color: AppColors.ragRed, fontSize: 10.5)),
+                Text(_errorMessage!, style: const TextStyle(color: AppColors.ragRed, fontSize: 11.5)),
               ],
               const SizedBox(height: 18),
 

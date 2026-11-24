@@ -211,7 +211,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                 child: Text(
                   'ACTIVE / ON DUTY STAFF (${activeAssignees.length})',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF10B981),
                     letterSpacing: 0.5,
@@ -265,7 +265,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                   child: Text(
                     'No Active Recipients',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
+                      fontSize: 11.5,
                       fontStyle: FontStyle.italic,
                       color: AppColors.textMuted,
                       fontWeight: FontWeight.w500,
@@ -302,7 +302,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                 child: Text(
                   'OFF DUTY STAFF (${offDutyAssignees.length})',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFFEF4444),
                     letterSpacing: 0.5,
@@ -717,7 +717,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(28),
-          child: Column(
+          child: SingleChildScrollView(child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
@@ -776,7 +776,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                   onPressed: () => setState(() => _showNewTaskForm = true),
                 ),
             ],
-          ),
+          )),
         ),
       );
     }
@@ -814,7 +814,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                   ),
                   child: Text(
                     '${absentList.length} Absent • A-Z Arranged',
-                    style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                   ),
                 ),
               ],
@@ -867,7 +867,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                           child: Text(
                             firstLetter,
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w900,
                               color: isSelected ? Colors.white : AppColors.magentaPrimary,
                             ),
@@ -888,7 +888,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                             Text(
                               '$taskCount pending tasks',
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: 11,
                                 color: isSelected ? Colors.white.withOpacity(0.9) : AppColors.textSecondary,
                               ),
                             ),
@@ -943,7 +943,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                               ),
                               child: const Text(
                                 'ABSENT',
-                                style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: AppColors.ragRed),
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.ragRed),
                               ),
                             ),
                           ],
@@ -951,7 +951,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                         const SizedBox(height: 2),
                         Text(
                           '${selectedAbsentEmp.role} • ${selectedAbsentEmp.dept}',
-                          style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -1151,7 +1151,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                               child: Text(
                                 task.priority,
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: task.priority == 'Critical SLA' ? AppColors.ragRed : AppColors.sandGold,
                                 ),
@@ -1164,12 +1164,12 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                           children: [
                             const Icon(Icons.access_time, size: 12, color: AppColors.textMuted),
                             const SizedBox(width: 4),
-                            Text('Due: ${task.due}', style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                            Text('Due: ${task.due}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 '• ${task.category}',
-                                style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                                style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -1274,7 +1274,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                                     _searchQuery.isNotEmpty
                                         ? 'No staff found matching "$_searchQuery". Clear search to reassign.'
                                         : 'No eligible assignees available.',
-                                    style: const TextStyle(fontSize: 10, color: AppColors.sandGold),
+                                    style: const TextStyle(fontSize: 11.5, color: AppColors.sandGold),
                                   ),
                                 ),
                               ],
@@ -1292,7 +1292,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                             icon: const Icon(Icons.schedule_send, size: 12, color: AppColors.textMuted),
                             label: const Text(
                               'Shift to Tomorrow',
-                              style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                             ),
                             onPressed: () {
                               eco.shiftTaskToNextDay(task.id);

@@ -214,7 +214,7 @@ class _PillarItem extends StatelessWidget {
                       badgeCount > 99 ? '99+' : '$badgeCount',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 9.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         height: 1.1,
                       ),

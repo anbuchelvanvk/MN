@@ -229,7 +229,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 book.version,
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -244,7 +244,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 book.departmentCode,
                                 style: const TextStyle(
                                   color: Color(0xFFFDE68A),
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -295,14 +295,14 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             Expanded(
                               child: Text(
                                 'Authorized: ${book.updatedByName} (${book.updatedByRole})',
-                                style: const TextStyle(fontSize: 10, color: Colors.white70),
+                                style: const TextStyle(fontSize: 11.5, color: Colors.white70),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             Text(
                               DateFormat('dd MMM yyyy').format(book.lastUpdated),
-                              style: const TextStyle(fontSize: 10, color: Colors.white70),
+                              style: const TextStyle(fontSize: 11.5, color: Colors.white70),
                             ),
                           ],
                         ),
@@ -356,7 +356,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               Text(
                                 '5 Operational Pillars: Purpose, Goals, Process, Structure, System',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10.5,
+                                  fontSize: 11.5,
                                   color: const Color(0xFF64748B),
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -384,7 +384,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 Text(
                                   '${book.sections.length} Architectures',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     color: const Color(0xFF831843),
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -577,7 +577,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
           subtitle: section.subtitle.isNotEmpty
               ? Text(
                   section.subtitle,
-                  style: const TextStyle(fontSize: 10.5, color: Color(0xFF0F766E), fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF0F766E), fontWeight: FontWeight.w500),
                 )
               : null,
           children: [
@@ -919,7 +919,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 ),
                                 const Text(
                                   'Uploaded directly to Google Drive & synced',
-                                  style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                  style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                                 ),
                               ],
                             ),

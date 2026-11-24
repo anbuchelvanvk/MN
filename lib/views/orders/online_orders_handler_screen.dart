@@ -91,7 +91,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                           const SizedBox(height: 2),
                           const Text(
                             'Overdue Workflow Alert',
-                            style: TextStyle(fontSize: 10.5, color: Color(0xFFEF4444)),
+                            style: TextStyle(fontSize: 11.5, color: Color(0xFFEF4444)),
                           ),
                         ],
                       ),
@@ -130,7 +130,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                             isTLOrCeo
                                 ? 'Reassign Staff Orders'
                                 : 'Requires Lead Reallocation',
-                            style: const TextStyle(fontSize: 10.5, color: Color(0xFFEA580C)),
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFFEA580C)),
                           ),
                         ],
                       ),
@@ -231,7 +231,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                                   Text(
                                     '${ord.brand} • ${ord.completedCount}/38',
                                     style: TextStyle(
-                                      fontSize: 9.5,
+                                      fontSize: 11,
                                       color: isSelected ? brandColor : AppColors.textMuted,
                                     ),
                                   ),
@@ -524,7 +524,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -544,7 +544,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
           const SizedBox(height: 1),
           Text(
             subtitle,
-            style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary),
+            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -624,7 +624,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                     ),
                     const Text(
                       'Custom Client Order Requirements',
-                      style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -648,7 +648,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                       Text(
                         'Copy Enquiry Details',
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.magentaPrimary,
                         ),
@@ -699,7 +699,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                 Expanded(
                   child: Text(
                     footerTagline,
-                    style: const TextStyle(fontSize: 9.5, fontStyle: FontStyle.italic, color: AppColors.textMuted),
+                    style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppColors.textMuted),
                   ),
                 ),
               ],
@@ -766,7 +766,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                                     ? const Icon(Icons.check, size: 13, color: AppColors.ragGreen)
                                     : Text(
                                         '${stage.index}',
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: stageColor),
+                                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: stageColor),
                                       ),
                               ),
                             ),
@@ -827,7 +827,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                                 child: Text(
                                   'Due: ${stage.dueDate.isNotEmpty ? stage.dueDate : "Set Due"}',
                                   style: TextStyle(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w600,
                                     color: isOverdue ? AppColors.ragRed : AppColors.sandLight,
                                     decoration: TextDecoration.underline,
@@ -855,7 +855,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                               SizedBox(width: 3),
                               Text(
                                 'OVERDUE',
-                                style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                               ),
                             ],
                           ),
@@ -1329,7 +1329,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 icon: const Icon(Icons.copy_rounded, size: 12, color: AppColors.magentaPrimary),
-                                label: const Text('Copy Enquiry Details', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
+                                label: const Text('Copy Enquiry Details', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
                                 onPressed: copyEnquiryToClipboard,
                               ),
                             ],
@@ -1442,7 +1442,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                               controller: pendantAdditionalCtrl,
                             ),
                             const SizedBox(height: 10),
-                            const Text('* Required fields. Reference images can be shared separately through WhatsApp.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                            const Text('* Required fields. Reference images can be shared separately through WhatsApp.', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
                           ] else if (selectedCategory == 'Chain') ...[
                             // Chain Type
                             _formDropdown(
@@ -1518,7 +1518,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                               controller: chainAdditionalCtrl,
                             ),
                             const SizedBox(height: 10),
-                            const Text('Our team will review your requirements and assist you with the design, estimated weight and quotation.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                            const Text('Our team will review your requirements and assist you with the design, estimated weight and quotation.', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
                           ] else if (selectedCategory == 'Bracelet') ...[
                             // Bracelet Type & Purity
                             Row(
@@ -1623,7 +1623,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                               controller: braceletAdditionalCtrl,
                             ),
                             const SizedBox(height: 10),
-                            const Text('VADIVAM by MN Jewel Park | Your Idea. Your Design. Our Craftsmanship.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                            const Text('VADIVAM by MN Jewel Park | Your Idea. Your Design. Our Craftsmanship.', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
                           ] else ...[
                             // Earrings: Type & Purity
                             Row(
@@ -1700,7 +1700,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                               controller: earringAdditionalCtrl,
                             ),
                             const SizedBox(height: 10),
-                            const Text('Please share your design reference images along with the completed requirements, if available.', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+                            const Text('Please share your design reference images along with the completed requirements, if available.', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
                           ],
                         ],
                       ),
@@ -1898,7 +1898,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
         children: [
           Expanded(
             flex: 3,
-            child: Text(label, style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
+            child: Text(label, style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
           ),
           Expanded(
             flex: 2,

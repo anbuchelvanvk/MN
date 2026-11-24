@@ -88,7 +88,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                         decoration: const BoxDecoration(color: Color(0xFFE11D48), shape: BoxShape.circle),
                         child: Text(
                           '${eco.pendingSocialCauses.length}',
-                          style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                     ),
@@ -170,7 +170,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
             const Text(
               'Pillar 5 • Occasional Cadence',
               style: TextStyle(
-                fontSize: 9.5,
+                fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textMuted,
               ),
@@ -234,7 +234,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                     const SizedBox(height: 2),
                     const Text(
                       'Kindness, Community Service & Good Deeds • Occasional Cadence',
-                      style: TextStyle(fontSize: 10.5, color: Color(0xFFE11D48), fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 11.5, color: Color(0xFFE11D48), fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -289,7 +289,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
@@ -322,7 +322,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: 11.5,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? Colors.white : const Color(0xFF475569),
               ),
@@ -416,7 +416,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                               Text(
                                 _formatDateTime(cause.date),
                                 style: const TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
                                   color: Color(0xFF94A3B8),
                                 ),
@@ -472,7 +472,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                                 children: const [
                                   Icon(Icons.delete_outline_rounded, size: 14, color: Color(0xFFEF4444)),
                                   SizedBox(width: 2),
-                                  Text('Delete', style: TextStyle(fontSize: 10, color: Color(0xFFEF4444), fontWeight: FontWeight.w600)),
+                                  Text('Delete', style: TextStyle(fontSize: 11.5, color: Color(0xFFEF4444), fontWeight: FontWeight.w600)),
                                 ],
                               ),
                             ),
@@ -507,7 +507,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                         child: Text(
                           cause.causeType,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                             color: typeColor,
                             letterSpacing: 0.2,
@@ -590,7 +590,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                                   Text(
                                     '${cause.amountSpent.toStringAsFixed(0)} Sponsored',
                                     style: const TextStyle(
-                                      fontSize: 10.5,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.w700,
                                       color: Color(0xFFE11D48),
                                     ),
@@ -614,7 +614,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                                   Text(
                                     'Voluntary Service',
                                     style: TextStyle(
-                                      fontSize: 10.5,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.w700,
                                       color: Color(0xFF059669),
                                     ),
@@ -638,7 +638,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                                   Text(
                                     'CEO Reacted!',
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.w800,
                                       color: Color(0xFF92400E),
                                     ),
@@ -712,7 +712,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
             SizedBox(width: 4),
             Text(
               'Approved',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF059669)),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF059669)),
             ),
           ],
         ),
@@ -733,7 +733,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
             SizedBox(width: 4),
             Text(
               'Pending Approval',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFD97706)),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFFD97706)),
             ),
           ],
         ),
@@ -753,7 +753,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
           SizedBox(width: 4),
           Text(
             'Rejected',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFFDC2626)),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFFDC2626)),
           ),
         ],
       ),
@@ -935,7 +935,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                             Text(
                               isVolunteering ? 'Volunteering (₹0)' : 'Volunteering',
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: isVolunteering ? Colors.white : AppColors.sandGold,
                               ),
@@ -968,7 +968,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                     suffixText: isVolunteering ? 'Voluntary Service' : null,
-                    suffixStyle: const TextStyle(fontSize: 10.5, color: Color(0xFF34D399), fontWeight: FontWeight.bold),
+                    suffixStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF34D399), fontWeight: FontWeight.bold),
                     hintText: isVolunteering ? '0 (Voluntary Service)' : 'e.g. 500, 1500 (or tap Volunteering)',
                     hintStyle: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                     filled: true,
@@ -1066,7 +1066,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                         Expanded(
                           child: Text(
                             'Optimized: ${compressedPhotoSizeKb?.toStringAsFixed(1)} KB (Safe <= 150 KB)',
-                            style: const TextStyle(fontSize: 10.5, color: Color(0xFF10B981), fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF10B981), fontWeight: FontWeight.bold),
                           ),
                         ),
                         InkWell(
@@ -1086,7 +1086,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                   style: const TextStyle(fontSize: 12, color: AppColors.sandLight),
                   decoration: InputDecoration(
                     hintText: 'Or paste external image URL...',
-                    hintStyle: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                    hintStyle: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                     filled: true,
                     fillColor: AppColors.burgundySurface,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),

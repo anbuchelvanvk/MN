@@ -141,7 +141,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                   child: Text(
                                     '$unreadCount New',
                                     style: const TextStyle(
-                                      fontSize: 9.5,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
@@ -153,7 +153,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           const SizedBox(height: 2),
                           const Text(
                             'Birthdays, Special Days & Management Notices',
-                            style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                            style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -213,7 +213,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         icon: const Icon(Icons.delete_sweep_outlined, size: 16, color: Color(0xFF64748B)),
                         label: const Text(
                           'Clear all read alerts',
-                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
                           overflow: TextOverflow.ellipsis,
                         ),
                         style: OutlinedButton.styleFrom(
@@ -447,7 +447,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         child: Text(
                           notif.categoryLabel,
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: notif.color,
                           ),
@@ -458,7 +458,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         children: [
                           Text(
                             timeStr,
-                            style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
                           ),
                           const SizedBox(width: 8),
                           if (!isRead)
@@ -513,7 +513,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                       Expanded(
                         child: Text(
                           'From: ${notif.senderName.toLowerCase().contains("senthil") || notif.senderName.toLowerCase().contains("executive ceo") ? "M N Naveenraaj" : notif.senderName} (${notif.senderRole.toLowerCase().contains("founder") || notif.senderName.toLowerCase().contains("senthil") ? "Managing Director & CEO" : notif.senderRole})',
-                          style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -555,7 +555,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                 Text(
                                   '${notif.likesCount}',
                                   style: TextStyle(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: notif.isLikedBy(eco.activeEmpId) ? const Color(0xFFEF4444) : const Color(0xFF64748B),
                                   ),
@@ -598,7 +598,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                 Text(
                                   notif.commentsCount > 0 ? '${notif.commentsCount}' : 'Comment',
                                   style: TextStyle(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: notif.commentsCount > 0 ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
                                   ),
@@ -624,7 +624,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                 Text(
                                   'CEO Reacted!',
                                   style: TextStyle(
-                                    fontSize: 9.5,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w800,
                                     color: Color(0xFF92400E),
                                   ),
@@ -637,7 +637,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         if (notif.type == CompanyNotificationType.socialCause || notif.actionTag?.startsWith('CAUSE-') == true)
                           const Text(
                             'Tap to view deed',
-                            style: TextStyle(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 11.5, color: AppColors.sandGold, fontWeight: FontWeight.w600),
                           ),
                       ],
                     ),
@@ -669,7 +669,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                 Text(
                                   'Open Attendance',
                                   style: TextStyle(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFFB45309),
                                   ),
@@ -752,7 +752,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           Text(
                             notif.categoryLabel,
                             style: TextStyle(
-                              fontSize: 10.5,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.bold,
                               color: notif.color,
                             ),
@@ -788,7 +788,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                     const SizedBox(width: 4),
                     Text(
                       formattedDate,
-                      style: const TextStyle(fontSize: 10.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -829,7 +829,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                     Expanded(
                       child: Text(
                         'From: ${notif.senderName.toLowerCase().contains("senthil") || notif.senderName.toLowerCase().contains("executive ceo") ? "M N Naveenraaj" : notif.senderName} (${notif.senderRole.toLowerCase().contains("founder") || notif.senderName.toLowerCase().contains("senthil") ? "Managing Director & CEO" : notif.senderRole})',
-                        style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

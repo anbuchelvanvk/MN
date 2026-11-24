@@ -201,7 +201,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                 child: SelectableText(
                   previewLines.join('\n'),
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     color: const Color(0xFFF8FAFC),
                     height: 1.4,
                   ),
@@ -287,7 +287,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                       ),
                       Text(
                         widget.isTeamLead ? 'Team Tasks & Attendance' : 'Corporate CSV Reports',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                     ],
                   ),
@@ -398,7 +398,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                               style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                             ),
                             const SizedBox(width: 8),
-                            const Text('(Tap to change)', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                            const Text('(Tap to change)', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                           ],
                         ),
                       ),
@@ -564,9 +564,12 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
       children: [
         Icon(icon, size: 14, color: AppColors.sandGold),
         const SizedBox(width: 6),
-        Text(
-          title,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+        Expanded(
+          child: Text(
+            title,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+          ),
         ),
       ],
     );
@@ -613,7 +616,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                   Text(
                     subtitle,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9.5,
+                      fontSize: 11,
                       color: isSelected ? AppColors.textDark : AppColors.textMuted,
                     ),
                     maxLines: 1,

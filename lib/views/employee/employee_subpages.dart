@@ -258,7 +258,7 @@ class _EmployeeThingsToDoScreenState extends State<EmployeeThingsToDoScreen> {
                     ),
                     Text(
                       '${task.category} • Due: ${task.due} • ${task.priority}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -272,7 +272,7 @@ class _EmployeeThingsToDoScreenState extends State<EmployeeThingsToDoScreen> {
                 child: Text(
                   isDone ? 'DONE' : 'PENDING',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: isDone ? const Color(0xFF059669) : const Color(0xFFD97706),
                   ),
@@ -284,7 +284,7 @@ class _EmployeeThingsToDoScreenState extends State<EmployeeThingsToDoScreen> {
             const SizedBox(height: 8),
             Text(
               'Proof: ${task.proof!.content} (${task.proof!.timestamp})',
-              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF059669), fontStyle: FontStyle.italic),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF059669), fontStyle: FontStyle.italic),
             ),
           ],
           const SizedBox(height: 10),
@@ -443,21 +443,21 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
+                      Flexible(child: Row(
                         children: [
                           const Icon(Icons.diamond_outlined, color: Colors.white, size: 20),
                           const SizedBox(width: 6),
-                          Text(
+                          Flexible(child: Text(
                             'MN JEWEL PARK',
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               letterSpacing: 0.5,
                             ),
-                          ),
-                        ],
-                      ),
+                          ),),                        ],
+                      )),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
@@ -467,7 +467,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                         ),
                         child: Text(
                           'OFFICIAL ID',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                     ],
@@ -503,7 +503,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                             ),
                             Text(
                               'ID: ${emp.id} • ${emp.dept}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: Colors.white.withOpacity(0.75)),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: Colors.white.withOpacity(0.75)),
                             ),
                           ],
                         ),
@@ -520,8 +520,8 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Vault Security Status', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: Colors.white.withOpacity(0.85))),
-                        Text('VERIFIED ACTIVE', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Flexible(child: Text('Vault Security Status', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: Colors.white.withOpacity(0.85)))),
+                        Text('VERIFIED ACTIVE', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white)),
                       ],
                     ),
                   ),
@@ -540,10 +540,10 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      Expanded(child: Text(
                         'Personal & Contact Details',
                         style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                      ),
+                      )),
                       InkWell(
                         onTap: () {
                           Navigator.push(
@@ -589,9 +589,13 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                     children: [
                       const Icon(Icons.key_outlined, size: 16, color: AppColors.magentaPrimary),
                       const SizedBox(width: 8),
-                      Text('Active Password: ', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
-                      Text('••••••••', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2)),
-                      const Spacer(),
+                      Expanded(
+                        child: Text(
+                          'Login & password',
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textMuted),
+                        ),
+                      ),
                       OutlinedButton(
                         onPressed: () {
                           Navigator.push(
@@ -622,7 +626,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
       children: [
         Icon(icon, size: 15, color: AppColors.magentaPrimary),
         const SizedBox(width: 8),
-        Text('$label: ', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted)),
+        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 130), child: Text('$label: ', overflow: TextOverflow.ellipsis, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted))),
         Expanded(
           child: Text(
             value,

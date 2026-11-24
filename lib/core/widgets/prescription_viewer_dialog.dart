@@ -120,13 +120,16 @@ class PrescriptionViewerDialog extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Text(
                         'Reason for Leave:',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
                         ),
@@ -140,7 +143,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
                         ),
                         child: Text(
                           '${leave.days} Days • ${leave.dateFormatted}',
-                          style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.ragRed),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.ragRed),
                         ),
                       ),
                     ],
@@ -154,7 +157,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
                   Text(
                     'Status: ${leave.status}',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w600,
                       color: leave.status == 'Approved'
                           ? AppColors.ragGreen
@@ -172,7 +175,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
             Text(
               'Doctor Prescription (Pinch to Zoom):',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 10.5,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textMuted,
               ),

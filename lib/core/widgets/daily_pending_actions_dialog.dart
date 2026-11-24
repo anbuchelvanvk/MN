@@ -304,7 +304,7 @@ class DailyPendingActionsDialog extends StatelessWidget {
                 child: Text(
                   badgeText,
                   style: TextStyle(
-                    fontSize: 8.5,
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: primaryColor,
                   ),

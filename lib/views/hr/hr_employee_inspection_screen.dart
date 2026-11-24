@@ -94,7 +94,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
             ),
             Text(
               '${emp.name} • #${emp.id}',
-              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -171,7 +171,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                               child: Text(
                                 isAbsent ? 'ABSENT TODAY' : 'ON DUTY',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
                                 ),
@@ -192,7 +192,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         const SizedBox(height: 2),
                         Text(
                           '${emp.department.isNotEmpty ? emp.department : "Operations"} • #${emp.id}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -440,7 +440,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                             child: Text(
                               '$submissionPercent% Submitted ($submittedDocsCount/$totalDocsCount)',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: submissionPercent >= 80 ? const Color(0xFF059669) : const Color(0xFFD97706),
                               ),
@@ -451,7 +451,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                   const SizedBox(height: 4),
                   Text(
                     'HR Custody of employee certificates & original ID verifications.',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                   const Divider(color: Color(0xFFF1F5F9), height: 20),
 
@@ -483,7 +483,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                 const SizedBox(height: 2),
                                 Text(
                                   'Employee has not reported certificate submission in MN Pillar yet. Once deposited, original records will appear here.',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                                 ),
                               ],
                             ),
@@ -530,7 +530,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                   const SizedBox(height: 2),
                                   Text(
                                     '${d.category} • Vault: ${d.vaultLockerRef}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                                   ),
                                 ],
                               ),
@@ -570,7 +570,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                     Text(
                                       d.status.name.toUpperCase(),
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 9.5,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                         color: badgeColor,
                                       ),
@@ -695,7 +695,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted)),
+          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 2),
           Text(
             value,
@@ -703,7 +703,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
           ),
           if (subLabel != null) ...[
             const SizedBox(height: 1),
-            Text(subLabel, style: const TextStyle(fontSize: 8.5, color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600)),
+            Text(subLabel, style: const TextStyle(fontSize: 10, color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600)),
           ],
         ],
       ),
@@ -763,7 +763,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 child: Text(
                   isFemale ? 'FEMALE (SAREE)' : 'MALE (FORMAL)',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: isFemale ? AppColors.magentaPrimary : const Color(0xFF2563EB),
                   ),
@@ -777,7 +777,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               Expanded(
                 child: Text(
                   'Gender: ${emp.genderDisplay} • 50 Pts Scale',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textSecondary),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -824,7 +824,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                   ),
                   child: Text(
                     'Select All (50 Pts)',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
                   ),
                 ),
               ),
@@ -845,7 +845,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                   ),
                   child: Text(
                     'Deselect All',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                   ),
                 ),
               ),
@@ -892,7 +892,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       child: Text(
                         isChecked ? '+10 Pts' : '0 Pts',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: isChecked ? const Color(0xFF059669) : const Color(0xFFE11D48),
                         ),
@@ -941,7 +941,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
             const SizedBox(height: 10),
             Text(
               'Recent Audits: ${audits.take(2).map((a) => "${a.pointsChange > 0 ? '+' : ''}${a.pointsChange}pts (${a.category})").join(" • ")}',
-              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: AppColors.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
         ],

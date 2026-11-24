@@ -229,7 +229,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                     child: Text(
                                       'ID: ${ceoEmp.id}',
                                       style: const TextStyle(
-                                        fontSize: 10.5,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.magentaPrimary,
                                         letterSpacing: 0.4,
@@ -283,7 +283,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                         const SizedBox(width: 4),
                                         Text(
                                           '${eco.employees.length} Active Staff',
-                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
+                                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
                                         ),
                                       ],
                                     ),
@@ -342,7 +342,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       Text(
                         'Direct Access',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
                         ),
@@ -557,7 +557,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               ? '${eco.overdueOnlineOrders.length} Overdue'
                               : '${eco.onlineOrders.length} Active',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.ragGreen,
                           ),
@@ -586,7 +586,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('MN Jewel Park', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                              const Text('MN Jewel Park', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                               const SizedBox(height: 2),
                               Text('${eco.os1Orders.length} Orders (OS1)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                             ],
@@ -605,7 +605,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Vadivam', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                              const Text('Vadivam', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
                               const SizedBox(height: 2),
                               Text('${eco.os2Orders.length} Orders (OS2)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                             ],
@@ -624,7 +624,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Overdue SLA', style: TextStyle(fontSize: 10, color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.textSecondary)),
+                              Text('Overdue SLA', style: TextStyle(fontSize: 11.5, color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.textSecondary)),
                               const SizedBox(height: 2),
                               Text('${eco.overdueOnlineOrders.length} Alerts', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: eco.overdueOnlineOrders.isNotEmpty ? AppColors.ragRed : AppColors.ragGreen)),
                             ],
@@ -773,7 +773,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                 child: Text(
                   badge,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.magentaPrimary,
                   ),
@@ -867,7 +867,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     Text(
                       'Executive authority to reassign departments, grant leadership tiers (Dept Head, HR, Employee, CEO), and designate task assignment perks.',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         color: AppColors.textSecondary,
                         height: 1.35,
                       ),
@@ -1002,7 +1002,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             ),
                             Text(
                               '${emp.id} • ${emp.dept}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 9.5, color: const Color(0xFF94A3B8)),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF94A3B8)),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1073,7 +1073,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         Text(
                           'Current Assignment: ${activeEmp.dept} • ${activeEmp.role}',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             color: AppColors.sandPrimary,
                           ),
                         ),
@@ -1128,7 +1128,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               Text(
                 'ASSIGN SHOWROOM DEPARTMENT',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
                 ),
@@ -1180,7 +1180,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               Text(
                 'ASSIGN LEADERSHIP ROLE TIER',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
                 ),
@@ -1349,7 +1349,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               const SizedBox(height: 4),
               Text(
                 'Toggle clearances granted to ${activeEmp.name}:',
-                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF64748B)),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF64748B)),
               ),
               const SizedBox(height: 8),
               ...[
@@ -1461,7 +1461,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               ),
               child: const Text(
                 'Workshop → Assay',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.magentaPrimary),
+                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.magentaPrimary),
               ),
             ),
           ],
@@ -1523,14 +1523,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             Text(
                               step.dept,
                               style: TextStyle(
-                                fontSize: 9.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: isDone ? AppColors.ragGreen : (isInProg ? AppColors.goldBright : const Color(0xFF64748B)),
                               ),
                             ),
                             Text(
                               step.completedBy ?? 'Pending',
-                              style: const TextStyle(fontSize: 8.5, color: Color(0xFF94A3B8)),
+                              style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -1801,7 +1801,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         ),
                         child: Text(
                           dateStr,
-                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
@@ -1882,7 +1882,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                       ? 'Week off'
                                       : (yetToUpdateEmps.length >= 5 ? 'Yet to update' : 'On Duty'),
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 11.5,
                                     color: (now.weekday == DateTime.tuesday || weekOffEmps.length >= 5)
                                         ? const Color(0xFF64748B)
                                         : (yetToUpdateEmps.length >= 5 ? const Color(0xFFB45309) : const Color(0xFF047857)),
@@ -1923,7 +1923,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                     ? '${shiftOverEmps.length} Shift Over'
                                     : (isPresentActive ? 'Viewing on duty ▼' : 'Tap to view')),
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               color: isPresentActive ? const Color(0xFF047857) : AppColors.textSecondary,
                             ),
                           ),
@@ -1989,7 +1989,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 child: Text(
                                   (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty) ? 'Yet to update' : 'Off Duty',
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 11.5,
                                     color: (absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty)
                                         ? const Color(0xFFB45309)
                                         : const Color(0xFFB91C1C),
@@ -2028,7 +2028,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 ? 'Viewing absent ▼'
                                 : ((absentEmps.isEmpty && yetToUpdateEmps.isNotEmpty) ? 'Pending HR Sheet' : 'Tap to view'),
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               color: isAbsentActive ? const Color(0xFFB91C1C) : AppColors.textSecondary,
                             ),
                           ),
@@ -2195,7 +2195,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 child: Text(
                                   emp.initials,
                                   style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: badgeColor,
                                   ),
@@ -2234,7 +2234,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                           child: Text(
                                             badgeText,
                                             style: TextStyle(
-                                              fontSize: 9.5,
+                                              fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color: badgeColor,
                                             ),
@@ -2247,7 +2247,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                     // Row 2: Department and punch timings across the full width
                                     Text(
                                       '${emp.dept}$timeInfo',
-                                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                                     ),
                                   ],
                                 ),
@@ -2407,7 +2407,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                 ),
                 child: const Text(
                   'Deep Inspection',
-                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
                 ),
               ),
             ],
@@ -2473,7 +2473,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     const SizedBox(width: 6),
                     Text(
                       '$presentCount Days Present',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
                     ),
                   ],
                 ),
@@ -2516,7 +2516,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         ),
                         child: Text(
                           'Day ${r.day}: ${r.displayLabel}',
-                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: r.textColor),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: r.textColor),
                         ),
                       );
                     }).toList(),
@@ -2551,7 +2551,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         selectedEmp.hasAttendanceAndGrooming
                             ? 'Score: $groomingPts/50 Pts • ${isGroomingStar ? "★ Star Groomed" : "Standard Grooming"}'
                             : 'Exempt from showroom grooming audits',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -2567,7 +2567,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   child: Text(
                     !selectedEmp.hasAttendanceAndGrooming ? 'Exempt' : '$groomingPts / 50',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: !selectedEmp.hasAttendanceAndGrooming
                           ? const Color(0xFF64748B)
@@ -2607,7 +2607,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             deeds.isNotEmpty
                                 ? '${deeds.length} deeds registered • Latest: "${deeds.first.title}"'
                                 : 'No community deeds submitted yet',
-                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -2623,7 +2623,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       child: Text(
                         '${deeds.length} Deeds',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: deeds.isNotEmpty ? const Color(0xFFBE185D) : const Color(0xFF64748B),
                         ),
@@ -2663,7 +2663,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               children: [
                                 Icon(Icons.fullscreen, size: 12, color: Colors.white),
                                 SizedBox(width: 4),
-                                Text('Preview Deed Photo', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                                Text('Preview Deed Photo', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
@@ -2707,7 +2707,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         ),
                         Text(
                           'Inspect ${selectedEmp.name}\'s logged moments & photo proofs',
-                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -2724,7 +2724,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         Text(
                           'Inspect Photos',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF7C3AED),
                           ),
@@ -2762,7 +2762,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       ),
                       Text(
                         'Steps: $todaySteps / $stepGoal • Calories: ${todayCalories.toStringAsFixed(0)} kcal',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -2776,7 +2776,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   child: Text(
                     '${todaySteps > 0 ? ((todaySteps / stepGoal) * 100).round() : 0}% Goal',
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1D4ED8),
                     ),
@@ -2809,7 +2809,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       ),
                       Text(
                         'DOB: ${selectedEmp.dob.isNotEmpty ? selectedEmp.dob : "Not recorded"} • Status: ${selectedEmp.relationshipStatus}${selectedEmp.anniversaryDate.isNotEmpty ? " • Anniversary: ${selectedEmp.anniversaryDate}" : ""}',
-                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2825,7 +2825,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   child: Text(
                     selectedEmp.relationshipStatus,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF7C3AED),
                     ),
@@ -2850,9 +2850,9 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 8.5, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis),
+          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis),
           const SizedBox(height: 1),
-          Text(value, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color), overflow: TextOverflow.ellipsis),
+          Text(value, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: color), overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -2886,7 +2886,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 10.5,
+            fontSize: 11.5,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
             color: isSelected ? Colors.white : AppColors.textSecondary,
           ),
@@ -3118,7 +3118,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           const SizedBox(width: 8),
                           Text(
                             'Section $firstLetter • Absent Staff (A to Z)',
-                            style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                           ),
                         ],
                       ),
@@ -3194,7 +3194,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               ),
                               Text(
                                 '${item.employeeId} • ${item.department} (${item.role})',
-                                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                                style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                               ),
                             ],
                           ),
@@ -3210,7 +3210,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         child: Text(
                           item.statusBadgeText.toUpperCase(),
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: item.statusBadgeColor,
                           ),
@@ -3243,7 +3243,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             SizedBox(width: 3),
                             Text(
                                   'Dossier',
-                                  style: TextStyle(fontSize: 10, color: AppColors.sandGold, fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontSize: 11.5, color: AppColors.sandGold, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -3261,7 +3261,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               children: const [
                                 Text(
                                   'Open Biometric Ledger',
-                                  style: TextStyle(fontSize: 10, color: AppColors.sandLight, fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontSize: 11.5, color: AppColors.sandLight, fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(width: 3),
                                 Icon(Icons.arrow_forward_ios, size: 9, color: AppColors.sandLight),
@@ -3334,7 +3334,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     Text(
                       'Select any staff profile to view KYC, document custody, attendance records, and reset portal passwords.',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         color: AppColors.textSecondary,
                         height: 1.3,
                       ),
@@ -3414,7 +3414,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             child: Text(
               '$count Staff',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
+                fontSize: 11.5,
                 fontWeight: FontWeight.bold,
                 color: accent,
               ),
@@ -3485,14 +3485,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         const SizedBox(height: 2),
                         Text(
                           '${emp.straightCutDesignation} • ${emp.dept}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF94A3B8)),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF94A3B8)),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${emp.phone} • ${emp.email}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -3529,7 +3529,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     Text(
                       'Password: ',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
                       ),
@@ -3605,7 +3605,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             Text(
                               'Reset Password',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
                               ),
@@ -3633,7 +3633,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               Text(
                                 'Relieve Staff',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFFEF4444),
                                 ),
@@ -3789,7 +3789,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 8.5,
+                  fontSize: 10,
                   color: isSelected ? color : AppColors.textMuted,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -3954,7 +3954,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                     Text(
                                       isSyncingSheets ? 'Syncing...' : 'Refresh Sheets',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10.5,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.sandGold,
                                       ),
@@ -3988,7 +3988,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         child: Text(
                           syncStatusMessage!,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: syncStatusMessage!.startsWith('✓') ? const Color(0xFF34D399) : const Color(0xFFF87171),
                           ),
@@ -4225,7 +4225,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           child: Text(
                             selectedGender == 'Female' ? 'Saree Specification' : 'Formal Wear Specification',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: selectedGender == 'Female' ? const Color(0xFFBE185D) : const Color(0xFF0284C7),
                             ),
@@ -4354,7 +4354,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                   child: Text(
                                     'Sheet Match',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 9.5,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFF34D399),
                                     ),
@@ -4365,7 +4365,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           const SizedBox(height: 4),
                           Text(
                             'Type Employee ID manually. Instantly searches database and Google Sheets.',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 8),
                           TextField(
@@ -4419,7 +4419,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                         Text(
                                           'ALREADY HIRED IN DATABASE',
                                           style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 10.5,
+                                            fontSize: 11.5,
                                             fontWeight: FontWeight.bold,
                                             color: const Color(0xFFFCA5A5),
                                           ),
@@ -4427,12 +4427,12 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                         const SizedBox(height: 2),
                                         Text(
                                           'Employee ID "${empIdController.text.trim()}" is already registered as ${alreadyHiredStaff!.name} (${alreadyHiredStaff!.role}, ${alreadyHiredStaff!.dept}).',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandLight),
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandLight),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           'Cannot add duplicate Employee ID.',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: const Color(0xFFF87171)),
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFFF87171)),
                                         ),
                                       ],
                                     ),
@@ -4462,7 +4462,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                       Text(
                                         'FOUND IN GOOGLE SHEETS (${matchedSheetStaff.length} match)',
                                         style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 10.5,
+                                          fontSize: 11.5,
                                           fontWeight: FontWeight.bold,
                                           color: const Color(0xFF34D399),
                                         ),
@@ -4512,7 +4512,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                               ),
                                               child: Text(
                                                 isSelected ? 'Selected' : 'Auto-fill',
-                                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white),
                                               ),
                                             ),
                                           ],
@@ -4535,7 +4535,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                                 Expanded(
                                   child: Text(
                                     'Custom ID "${empIdController.text.trim()}". Enter candidate details below.',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.sandPrimary),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
                                   ),
                                 ),
                               ],

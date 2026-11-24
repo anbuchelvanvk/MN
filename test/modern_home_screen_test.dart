@@ -63,7 +63,7 @@ void main() {
       expect(find.text('MN Jewel Park Carosal Post'), findsNothing);
 
       // 7. Sticky Chat Dock
-      expect(find.text('Type Here'), findsOneWidget);
+      expect(find.text('Type here'), findsOneWidget);
       expect(find.byIcon(Icons.add_reaction_outlined), findsOneWidget);
       expect(find.byIcon(Icons.attach_file_rounded), findsOneWidget);
       expect(find.byIcon(Icons.groups_rounded), findsOneWidget);

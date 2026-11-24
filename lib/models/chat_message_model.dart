@@ -19,6 +19,13 @@ class ChatMessage {
   final String? pinnedBy;
   final DateTime? pinnedAt;
 
+  /// Emoji reactions stored as "empId|emoji" entries (one per person per emoji),
+  /// so they can be toggled atomically with arrayUnion / arrayRemove.
+  final List<String> reactions;
+
+  /// Quick-reaction set offered on every message.
+  static const List<String> reactionChoices = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
   ChatMessage({
     required this.id,
     required this.senderId,
@@ -39,7 +46,23 @@ class ChatMessage {
     this.pinnedUntil,
     this.pinnedBy,
     this.pinnedAt,
+    this.reactions = const [],
   });
+
+  /// emoji -> number of people who reacted with it (in first-seen order).
+  Map<String, int> get reactionCounts {
+    final counts = <String, int>{};
+    for (final r in reactions) {
+      final i = r.indexOf('|');
+      if (i <= 0) continue;
+      final emoji = r.substring(i + 1);
+      counts[emoji] = (counts[emoji] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  bool hasReacted(String empId, String emoji) =>
+      reactions.contains('$empId|$emoji');
 
   bool get isAllHands => receiverId == 'ALL_HANDS';
   bool isSentBy(String empId) => senderId.toLowerCase() == empId.toLowerCase();
@@ -95,6 +118,7 @@ class ChatMessage {
     DateTime? pinnedUntil,
     String? pinnedBy,
     DateTime? pinnedAt,
+    List<String>? reactions,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -116,6 +140,7 @@ class ChatMessage {
       pinnedUntil: pinnedUntil ?? this.pinnedUntil,
       pinnedBy: pinnedBy ?? this.pinnedBy,
       pinnedAt: pinnedAt ?? this.pinnedAt,
+      reactions: reactions ?? this.reactions,
     );
   }
 
@@ -139,6 +164,7 @@ class ChatMessage {
     'pinnedUntil': pinnedUntil?.toIso8601String(),
     'pinnedBy': pinnedBy,
     'pinnedAt': pinnedAt?.toIso8601String(),
+    'reactions': reactions,
   };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -168,6 +194,7 @@ class ChatMessage {
       pinnedAt: json['pinnedAt'] != null
           ? DateTime.tryParse(json['pinnedAt'].toString())
           : null,
+      reactions: (json['reactions'] as List?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 }

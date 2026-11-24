@@ -162,7 +162,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                                     Text(
                                       categoryTitle,
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.w800,
                                         color: const Color(0xFF34D399),
                                         letterSpacing: 0.6,
@@ -175,7 +175,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                               Text(
                                 '• Just now',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   color: const Color(0xFF94A3B8),
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -279,7 +279,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                                           child: Text(
                                             popup.approvedBy,
                                             style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 10,
+                                              fontSize: 11.5,
                                               fontWeight: FontWeight.bold,
                                               color: const Color(0xFF34D399),
                                             ),
@@ -310,7 +310,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                                 child: Text(
                                   'Notified to: HR • CEO • Team Lead',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9.5,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: const Color(0xFFFBBF24),
                                     letterSpacing: 0.2,
@@ -450,7 +450,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
                   Text(
                     'OFFICIAL POP-UP NOTIFICATION RECIPIENTS',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.w800,
                       color: AppColors.sandGold,
                       letterSpacing: 0.5,
@@ -542,7 +542,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
             child: const Text(
               'NOTIFIED',
               style: TextStyle(
-                fontSize: 8.5,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF059669),
               ),

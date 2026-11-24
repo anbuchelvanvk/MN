@@ -302,7 +302,7 @@ class PillarsPopupDialog extends StatelessWidget {
                                               child: Text(
                                                 isRed ? 'ACTION NEEDED' : 'OPTIMAL',
                                                 style: const TextStyle(
-                                                  fontSize: 8.5,
+                                                  fontSize: 10,
                                                   fontWeight: FontWeight.w800,
                                                   color: Colors.white,
                                                   letterSpacing: 0.5,
@@ -446,7 +446,7 @@ class PillarsPopupDialog extends StatelessWidget {
                             child: Text(
                               pillarBadge,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF64748B),
                               ),
@@ -481,7 +481,7 @@ class PillarsPopupDialog extends StatelessWidget {
                             Text(
                               isDaily ? 'Daily' : 'Occasional',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: isDaily ? const Color(0xFF047857) : const Color(0xFFB45309),
                                 letterSpacing: 0.2,

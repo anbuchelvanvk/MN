@@ -41,7 +41,7 @@ class LiveGoldTicker extends StatelessWidget {
                     const Text(
                       'BIS 916 GOLD RATE',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         color: AppColors.burgundyPrimary,
                         letterSpacing: 0.5,
@@ -57,7 +57,7 @@ class LiveGoldTicker extends StatelessWidget {
                       child: const Text(
                         'LIVE SYNC',
                         style: TextStyle(
-                          fontSize: 8.5,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: AppColors.ragGreen,
                         ),
@@ -96,7 +96,7 @@ class LiveGoldTicker extends StatelessWidget {
               Text(
                 'Treasury Desk',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11.5,
                   color: AppColors.textMuted,
                   fontWeight: FontWeight.w500,
                 ),
@@ -104,7 +104,7 @@ class LiveGoldTicker extends StatelessWidget {
               Text(
                 '09:30 AM Synced',
                 style: TextStyle(
-                  fontSize: 9.5,
+                  fontSize: 11,
                   color: AppColors.burgundyPrimary,
                   fontWeight: FontWeight.w600,
                 ),

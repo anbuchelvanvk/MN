@@ -482,7 +482,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           Text(
                                             'ACTIVE ACCOUNT',
                                             style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 9.5,
+                                              fontSize: 11,
                                               fontWeight: FontWeight.w800,
                                               color: const Color(0xFF10B981),
                                               letterSpacing: 0.5,

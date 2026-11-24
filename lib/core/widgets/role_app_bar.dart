@@ -148,7 +148,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                           Text(
                             'Switch Role',
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w700,
                               color: AppColors.magentaPrimary,
                             ),
@@ -249,7 +249,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                         const Text(
                           'EXECUTIVE SUITE',
                           style: TextStyle(
-                            fontSize: 8.5,
+                            fontSize: 10,
                             letterSpacing: 1.1,
                             color: AppColors.magentaPrimary,
                             fontWeight: FontWeight.w700,
@@ -329,7 +329,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   child: Text(
                                     unreadNotifications > 99 ? '99+' : '$unreadNotifications',
                                     style: const TextStyle(
-                                      fontSize: 8.5,
+                                      fontSize: 10,
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -509,7 +509,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   Text(
                                     roleName,
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.sandGold,
                                       letterSpacing: 0.5,
@@ -821,7 +821,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 child: Text(
                                   badgeText,
                                   style: const TextStyle(
-                                    fontSize: 9.5,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
@@ -834,7 +834,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                         Text(
                           subtitle,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
+                            fontSize: 11.5,
                             color: isDestructive ? AppColors.ragRed : AppColors.textMuted,
                           ),
                           maxLines: 1,

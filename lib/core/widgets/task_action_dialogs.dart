@@ -176,7 +176,7 @@ class TaskActionDialogs {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
+                        Flexible(child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(8),
@@ -187,16 +187,19 @@ class TaskActionDialogs {
                               child: const Icon(Icons.assignment_outlined, color: AppColors.magentaPrimary, size: 20),
                             ),
                             const SizedBox(width: 10),
-                            Text(
-                              'Task Details & Oversight',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
+                            Flexible(
+                              child: Text(
+                                'Task Details & Oversight',
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textDark,
+                                ),
                               ),
                             ),
                           ],
-                        ),
+                        )),
                         IconButton(
                           icon: const Icon(Icons.close, color: AppColors.textMuted),
                           onPressed: () => Navigator.pop(bottomSheetCtx),
@@ -217,7 +220,10 @@ class TaskActionDialogs {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -228,7 +234,7 @@ class TaskActionDialogs {
                                 child: Text(
                                   task.category,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.magentaPrimary,
                                   ),
@@ -246,7 +252,7 @@ class TaskActionDialogs {
                                 child: Text(
                                   task.priority,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: task.priority == 'Critical SLA'
                                         ? const Color(0xFFDC2626)
@@ -340,7 +346,7 @@ class TaskActionDialogs {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Due Time & SLA:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                Text('Due Time & SLA:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
                                 Text(task.due, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
@@ -350,7 +356,7 @@ class TaskActionDialogs {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Assigned By:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                Text('Assigned By:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
                                 Text(task.assignedByName, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
@@ -381,7 +387,7 @@ class TaskActionDialogs {
                               CircleAvatar(
                                 radius: 14,
                                 backgroundColor: isAbsent ? const Color(0xFFEF4444) : AppColors.magentaPrimary,
-                                child: Text(emp.initials, style: const TextStyle(fontSize: 10.5, color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(emp.initials, style: const TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -389,7 +395,7 @@ class TaskActionDialogs {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(emp.name, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
                                   ],
                                 ),
                               ),
@@ -401,7 +407,7 @@ class TaskActionDialogs {
                                 ),
                                 child: Text(
                                   isAbsent ? 'ABSENT TODAY' : 'ON DUTY',
-                                  style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                                 ),
                               ),
                             ],
@@ -411,7 +417,7 @@ class TaskActionDialogs {
                             Text(
                               '⚠️ Warning: Assignee is marked absent today. Task should be reassigned to prevent operational bottleneck.',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
+                                fontSize: 11.5,
                                 color: const Color(0xFFB91C1C),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -426,6 +432,7 @@ class TaskActionDialogs {
                     Row(
                       children: [
                         Expanded(
+                          flex: 3,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.magentaPrimary,
@@ -434,7 +441,7 @@ class TaskActionDialogs {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                             icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-                            label: const Text('Reassign Task', style: TextStyle(fontWeight: FontWeight.bold)),
+                            label: const Text('Reassign Task', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold)),
                             onPressed: () {
                               Navigator.pop(bottomSheetCtx);
                               AssignTasksToOthersModal.show(context, defaultAbsentEmpId: emp.id);
@@ -442,7 +449,9 @@ class TaskActionDialogs {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        OutlinedButton(
+                        Expanded(
+                          flex: 2,
+                          child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
                             foregroundColor: task.isCompleted ? const Color(0xFFDC2626) : const Color(0xFF059669),
                             side: BorderSide(
@@ -475,6 +484,7 @@ class TaskActionDialogs {
                             task.isCompleted ? 'Mark Pending' : 'Supervisor Sign-off',
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                           ),
+                        ),
                         ),
                       ],
                     ),
@@ -581,7 +591,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                Flexible(child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(6),
@@ -596,16 +606,19 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      'Complete Task',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark,
+                    const Flexible(
+                      child: Text(
+                        'Complete Task',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDark,
+                        ),
                       ),
                     ),
                   ],
-                ),
+                )),
                 IconButton(
                   icon: const Icon(Icons.close, color: AppColors.textMuted, size: 20),
                   padding: EdgeInsets.zero,
@@ -636,7 +649,10 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -647,21 +663,17 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                         child: Text(
                           widget.task.category,
                           style: const TextStyle(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.sandGold,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Due: ${widget.task.due} • ${widget.task.priority}',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFF94A3B8),
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        'Due: ${widget.task.due} • ${widget.task.priority}',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF94A3B8),
                         ),
                       ),
                     ],
@@ -715,7 +727,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                         child: const Text(
                           'Required',
                           style: TextStyle(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: AppColors.ragRed,
                           ),
@@ -727,7 +739,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                   const Text(
                     'Enter remarks or explanation in words describing the work completed.',
                     style: TextStyle(
-                      fontSize: 10.5,
+                      fontSize: 11.5,
                       color: AppColors.textMuted,
                     ),
                   ),
@@ -748,7 +760,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                       filled: true,
                       fillColor: AppColors.cardSurface,
                       errorText: _commentError,
-                      errorStyle: const TextStyle(fontSize: 10, color: AppColors.ragRed),
+                      errorStyle: const TextStyle(fontSize: 11.5, color: AppColors.ragRed),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -813,7 +825,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                   const Text(
                     'Attach photo or camera capture proof of work completion.',
                     style: TextStyle(
-                      fontSize: 10.5,
+                      fontSize: 11.5,
                       color: AppColors.textMuted,
                     ),
                   ),
@@ -911,7 +923,7 @@ class _TaskCompletionModalState extends State<_TaskCompletionModal> {
                                 const SizedBox(height: 2),
                                 Text(
                                   'Size: ${_attachedImage!.sizeInKb.toStringAsFixed(1)} KB (Safe <= 150 KB)',
-                                  style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary),
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                 ),
                               ],
                             ),

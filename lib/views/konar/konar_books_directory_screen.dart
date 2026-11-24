@@ -241,7 +241,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                                 child: Text(
                                   book.version,
                                   style: const TextStyle(
-                                    fontSize: 9.5,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF475569),
                                   ),
@@ -258,7 +258,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                                   child: const Text(
                                     'HIDDEN FOR STAFF',
                                     style: TextStyle(
-                                      fontSize: 8.5,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: Color(0xFFDC2626),
                                     ),
@@ -291,14 +291,14 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                       child: Text(
                         'Updated: ${DateFormat('dd MMM yyyy').format(book.lastUpdated)}',
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                       ),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       '${book.sections.length} Chapters',
                       style: const TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.magentaPrimary,
                       ),
@@ -768,7 +768,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                         ),
                         subtitle: Text(
                           '${emp.role} • ID: ${emp.id}',
-                          style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                          style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                         ),
                         trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF9D174D)),
                       ));

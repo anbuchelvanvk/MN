@@ -96,7 +96,7 @@ class InternetConnectionBanner extends StatelessWidget {
                                     Text(
                                       isChecking ? 'Checking' : 'Retry',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10.5,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),

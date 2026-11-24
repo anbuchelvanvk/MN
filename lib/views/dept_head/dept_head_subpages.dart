@@ -182,7 +182,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
               ),
               child: Text(
                 '${displayedEmps.length} Staff • $displayedTaskCount Tasks',
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
               ),
             ),
           ],
@@ -236,7 +236,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                           child: Text(
                             emp.initials,
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: isAbsent ? const Color(0xFFDC2626) : AppColors.magentaPrimary,
                             ),
@@ -258,7 +258,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                           ),
                           child: Text(
                             '${empTasks.length} tasks',
-                            style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                           ),
                         ),
                       ],
@@ -326,7 +326,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                             ),
                             Text(
                               '${emp.role} • ${emp.dept}',
-                              style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                              style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -344,7 +344,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                         child: Text(
                           isAbsent ? 'ABSENT (${empTasks.length})' : 'ON DUTY (${empTasks.length})',
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: isAbsent ? AppColors.ragRed : const Color(0xFF047857),
                           ),
@@ -375,7 +375,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                                       CircleAvatar(
                                         radius: 12,
                                         backgroundColor: isAbsent ? const Color(0xFFEF4444).withOpacity(0.2) : AppColors.magentaSubtle,
-                                        child: Text(emp.initials, style: TextStyle(fontSize: 9.5, color: isAbsent ? AppColors.ragRed : AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
+                                        child: Text(emp.initials, style: TextStyle(fontSize: 11, color: isAbsent ? AppColors.ragRed : AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
@@ -444,10 +444,10 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Text('Proof Uploaded', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.ragGreen)),
+                                          const Text('Proof Uploaded', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.ragGreen)),
                                           Text(
                                             task.proof!.timestamp.isNotEmpty ? 'Verified (${task.proof!.timestamp})' : 'Pending verification',
-                                            style: const TextStyle(fontSize: 9.5, color: Color(0xFF94A3B8)),
+                                            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
                                           ),
                                         ],
                                       ),
@@ -471,11 +471,11 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                                   children: [
                                     Text(
                                       'Postpone Reason: ${task.postponeInfo!.reason}',
-                                      style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.ragRed),
+                                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.ragRed),
                                     ),
                                     Text(
                                       'Rescheduled to: ${task.postponeInfo!.postponedTo}',
-                                      style: const TextStyle(fontSize: 9.5, color: AppColors.textSecondary),
+                                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                     ),
                                   ],
                                 ),
@@ -629,7 +629,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                           backgroundColor: statusColor.withOpacity(0.15),
                           child: Text(
                             emp.initials,
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
+                            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: statusColor),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -643,7 +643,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                               ),
                               Text(
                                 emp.straightCutDesignation,
-                                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                                style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                               ),
                             ],
                           ),
@@ -715,7 +715,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                           Text(
                             'Shift pending tasks to any active team member',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               color: AppColors.textMuted,
                             ),
                           ),
@@ -792,7 +792,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                           child: Text(
                             'Section $letter • Absent Staff (A to Z)',
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFFB91C1C),
                             ),
@@ -822,7 +822,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                                 backgroundColor: const Color(0xFFEF4444).withOpacity(0.15),
                                 child: Text(
                                   absentEmp.initials,
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.ragRed),
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.ragRed),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -836,7 +836,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                                     ),
                                     Text(
                                       '${absentEmp.straightCutDesignation} • ${empTasks.length} Pending Tasks',
-                                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                                     ),
                                   ],
                                 ),
@@ -928,13 +928,13 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
           ),
           Text(
             'Past 1-Week Attendance Performance (${selectedEmp.name})',
-            style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
           ),
           const SizedBox(height: 12),
 
           const Text(
             'SELECT TEAM MEMBER',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textMuted, letterSpacing: 0.5),
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textMuted, letterSpacing: 0.5),
           ),
           const SizedBox(height: 4),
 
@@ -992,8 +992,8 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
-                Text('Date', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
-                Text('Shift Status', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                Text('Date', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                Text('Shift Status', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -1019,7 +1019,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                       ),
                       child: Text(
                         r.status,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: r.statusColor),
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: r.statusColor),
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.ellipsis,
@@ -1046,7 +1046,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 9, color: AppColors.textMuted)),
+          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 2),
           Text(value, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color), overflow: TextOverflow.ellipsis),
         ],
@@ -1063,27 +1063,10 @@ class TlMyTasksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const TlSubpageScaffold(
       title: 'My Tasks',
-      subtitle: 'Personal To-Dos & Operational Actions',
+      subtitle: 'Daily SOPs, to-dos & follow-ups',
       body: PersonalTodoSectionWidget(
-        title: 'Personal To-Dos',
-        subtitle: 'Tasks & Follow-ups',
-      ),
-    );
-  }
-}
-
-/// 4. TL Daily SOPs Screen
-class TlDailySopsScreen extends StatelessWidget {
-  const TlDailySopsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const TlSubpageScaffold(
-      title: 'Daily SOP Routines',
-      subtitle: 'Leadership Checklist & Standard Operations',
-      body: PersonalTodoSectionWidget(
-        title: 'Daily SOP Checklist',
-        subtitle: 'Leadership daily routines & deliverables',
+        title: 'My Tasks & SOPs',
+        subtitle: 'Daily routines, to-dos & follow-ups',
       ),
     );
   }
@@ -1164,7 +1147,7 @@ class TlTeamDirectoryScreen extends StatelessWidget {
                                 child: Text(
                                   isAbsent ? 'ABSENT' : 'ON DUTY',
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
                                   ),
@@ -1179,7 +1162,7 @@ class TlTeamDirectoryScreen extends StatelessWidget {
                           ),
                           Text(
                             '${emp.email} • ${emp.phone}',
-                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                           ),
                         ],
                       ),

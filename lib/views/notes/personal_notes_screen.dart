@@ -229,7 +229,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                           Text(
                             'Pinned',
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: colorOption.accent,
                             ),
@@ -326,14 +326,14 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                       const SizedBox(width: 4),
                       Text(
                         formattedDate,
-                        style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
                   Text(
                     colorOption.name,
                     style: TextStyle(
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: colorOption.accent.withOpacity(0.8),
                     ),
@@ -402,7 +402,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                           ),
                           Text(
                             'Updated $formattedDate',
-                            style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
                           ),
                         ],
                       ),
@@ -804,7 +804,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                       const Text(
                         'PERSONAL NOTE & OFFICIAL MEMO',
                         style: TextStyle(
-                          fontSize: 9,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.8,
                           color: Color(0xFFFDE68A),
@@ -870,7 +870,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                           Text(
                             formattedDate,
                             style: const TextStyle(
-                              fontSize: 10,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF94A3B8),
                             ),
@@ -942,13 +942,13 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                     SizedBox(width: 4),
                     Text(
                       'MN Family Verified Note',
-                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF059669)),
                     ),
                   ],
                 ),
                 const Text(
                   'mnjewelpark.com',
-                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: Color(0xFF94A3B8)),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF94A3B8)),
                 ),
               ],
             ),

@@ -160,7 +160,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                                     child: Text(
                                       'ID: ${eco.currentEmployee.id}',
                                       style: const TextStyle(
-                                        fontSize: 10.5,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.magentaPrimary,
                                         letterSpacing: 0.4,
@@ -196,7 +196,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                                         const SizedBox(width: 4),
                                         Text(
                                           '${teamMembers.length} Members',
-                                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                          style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                                         ),
                                       ],
                                     ),
@@ -216,7 +216,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                                           const SizedBox(width: 4),
                                           Text(
                                             eco.currentEmployee.dept,
-                                            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                            style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                                           ),
                                         ],
                                       ),
@@ -275,7 +275,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       Text(
                         'Direct Access',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textMuted,
                         ),
@@ -312,8 +312,6 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       _verticalTabTile(const TlTeamTasksScreen(), 'Team Tasks', Icons.assignment_outlined, opsTasks.isNotEmpty ? '${opsTasks.length}' : ''),
                       const SizedBox(height: 8),
                       _verticalTabTile(const TlMyTasksScreen(), 'My Tasks', Icons.task_alt_outlined, ''),
-                      const SizedBox(height: 8),
-                      _verticalTabTile(const TlDailySopsScreen(), 'Daily SOPs', Icons.menu_book_outlined, ''),
                       const SizedBox(height: 8),
                       _verticalTabTile(const TlTeamDirectoryScreen(), 'Team', Icons.group_outlined, '${teamMembers.length}'),
                       const SizedBox(height: 8),
@@ -414,7 +412,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                           const SizedBox(height: 2),
                           const Text(
                             'Reallocate SOP Tasks',
-                            style: TextStyle(fontSize: 10.5, color: AppColors.ragRed),
+                            style: TextStyle(fontSize: 11.5, color: AppColors.ragRed),
                           ),
                         ],
                       ),
@@ -489,7 +487,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                             SizedBox(height: 2),
                             Text(
                               'Workflow Checklist',
-                              style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                              style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -505,7 +503,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: const [
-                            Text('Open', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                            Text('Open', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white)),
                             SizedBox(width: 3),
                             Icon(Icons.arrow_forward_ios, size: 9, color: Colors.white),
                           ],
@@ -554,7 +552,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 'SLA due dates passed for ${eco.overdueOnlineOrders.map((o) => "#${o.orderId} (${o.brand})").join(", ")}. Tap to review & reassign.',
-                                style: const TextStyle(fontSize: 10.5, color: AppColors.ragRed),
+                                style: const TextStyle(fontSize: 11.5, color: AppColors.ragRed),
                               ),
                             ],
                           ),
@@ -642,7 +640,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                 child: Text(
                   badge,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.magentaPrimary,
                   ),
@@ -733,7 +731,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                         ),
                         child: Text(
                           preset,
-                          style: const TextStyle(fontSize: 10, color: AppColors.magentaPrimary, fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.magentaPrimary, fontWeight: FontWeight.w600),
                         ),
                       ),
                     );

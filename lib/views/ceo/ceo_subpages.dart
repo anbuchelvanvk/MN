@@ -349,7 +349,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                         Text(
                           emp.id,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 9.5,
+                            fontSize: 11,
                             color: isSelected ? Colors.white.withOpacity(0.85) : AppColors.textMuted,
                           ),
                         ),
@@ -401,7 +401,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const Divider(color: Color(0x33F8FAFC), height: 24),
 
                 // Designation Dropdown
-                Text('ASSIGNED DESIGNATION', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                Text('ASSIGNED DESIGNATION', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -438,7 +438,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const SizedBox(height: 14),
 
                 // Department Dropdown
-                Text('DEPARTMENT / DIVISION', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                Text('DEPARTMENT / DIVISION', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -475,7 +475,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const SizedBox(height: 18),
 
                 // Privilege Perks Toggles
-                Text('EXECUTIVE PRIVILEGES & PERKS', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                Text('EXECUTIVE PRIVILEGES & PERKS', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
                 const SizedBox(height: 8),
                 ...[
                   'Can Assign Works to Others',
@@ -685,7 +685,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                             child: Text(
                               'CORE',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
                               ),
@@ -1011,7 +1011,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                         ),
                         subtitle: Text(
                           '${emp.role} • ID: ${emp.id}',
-                          style: const TextStyle(fontSize: 10.5, color: AppColors.sandBorder),
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.sandBorder),
                         ),
                         trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.sandGold),
                       ));
@@ -1153,7 +1153,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                       Text(
                         'Select any staff profile to view KYC, document custody, attendance records, and reset portal passwords.',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           color: AppColors.textSecondary,
                           height: 1.3,
                         ),
@@ -1331,7 +1331,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
             ),
             child: Text(
               '$count Staff',
-              style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: accent),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: accent),
             ),
           ),
         ],
@@ -1395,14 +1395,14 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                         const SizedBox(height: 2),
                         Text(
                           '${emp.straightCutDesignation} • ${emp.dept}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF94A3B8)),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF94A3B8)),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${emp.phone} • ${emp.email}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1434,7 +1434,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                     Text(
                       'Password: ',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
                       ),
@@ -1510,7 +1510,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                             Text(
                               'Reset Password',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
                               ),
@@ -1538,7 +1538,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                               Text(
                                 'Relieve Staff',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
+                                  fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFFEF4444),
                                 ),
@@ -1983,7 +1983,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                                     ),
                                     child: Text(
                                       'EMP #${r.empNo}',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -2000,7 +2000,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                           ),
                           Text(
                             'S.No ${r.sNo}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
                       ),
@@ -2045,7 +2045,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   '$day',
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: tc),
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: tc),
                                 ),
                               );
                             }),
@@ -2223,7 +2223,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                           Expanded(
                             child: Text(
                               'Section $firstLetter • Absent Staff (A to Z)',
-                              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -2268,7 +2268,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                               const SizedBox(height: 1),
                               Text(
                                 '${s.employeeId} • ${s.department}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF94A3B8)),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF94A3B8)),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -2332,7 +2332,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
             const SizedBox(height: 14),
             const Text(
               'DATE / DATES UPDATED',
-              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
             ),
             const SizedBox(height: 6),
             TextField(
@@ -2389,7 +2389,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
       ),
       child: Text(
         '$label: $value',
-        style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: text),
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: text),
       ),
     );
   }
@@ -2433,7 +2433,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                       child: Text(
                         'SELECT ATTENDANCE MONTH',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.sandGold,
                           letterSpacing: 0.5,
@@ -2456,7 +2456,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                 child: Text(
                   eco.hrAttendanceSheet?.monthTitle ?? 'November 2026',
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandGold,
                   ),
@@ -2530,7 +2530,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
               Text(
                 'FILTER BY EMPLOYEE',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w800,
                   color: AppColors.sandGold,
                   letterSpacing: 0.5,
@@ -2603,7 +2603,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 8.5,
+                  fontSize: 10,
                   color: isSelected ? color : AppColors.textMuted,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -2666,7 +2666,7 @@ class CeoPipelinesBlockersScreen extends StatelessWidget {
                       Text(
                         'Monitor cross-departmental blocker escalations and shift handovers in real time.',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           color: AppColors.textSecondary,
                           height: 1.3,
                         ),
@@ -2932,7 +2932,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           ),
                           Text(
                             '8 Comprehensive sheets exported to Microsoft Excel format',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
                           ),
                         ],
                       ),
@@ -3021,7 +3021,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           ),
                           Text(
                             'Upload previously generated Excel backup to verify and view data',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.sandGold),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
                           ),
                         ],
                       ),
@@ -3091,7 +3091,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                             selectedColor: AppColors.sandGold,
                             backgroundColor: AppColors.burgundyBg,
                             labelStyle: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5,
+                              fontSize: 11.5,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               color: isSelected ? AppColors.burgundyCard : AppColors.sandLight,
                             ),
@@ -3153,7 +3153,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           ),
                           Text(
                             'Cleans notifications and social causes while preserving users & documents',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
                       ),
@@ -3179,7 +3179,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           Expanded(
                             child: Text(
                               'Preserved: All User Accounts, Staff Directory, Departments, Health Profiles (BMI, weight, height, calorie targets), and Document Vault Submissions & Safe Custody.',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFF10B981), height: 1.3),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF10B981), height: 1.3),
                             ),
                           ),
                         ],
@@ -3193,7 +3193,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           Expanded(
                             child: Text(
                               'Erased from Firebase: All company and personal notification alerts, social cause posts, and transient logs to keep database performant.',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: const Color(0xFFF87171), height: 1.3),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFFF87171), height: 1.3),
                             ),
                           ),
                         ],
@@ -3271,7 +3271,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                 color: AppColors.sandGold,
               ),
               dataTextStyle: GoogleFonts.plusJakartaSans(
-                fontSize: 10.5,
+                fontSize: 11.5,
                 color: AppColors.sandLight,
               ),
               horizontalMargin: 12,
@@ -3326,7 +3326,7 @@ class _DatasetChip extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 10,
+              fontSize: 11.5,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF10B981),
             ),

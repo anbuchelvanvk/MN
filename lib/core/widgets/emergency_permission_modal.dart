@@ -140,7 +140,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                         ),
                         const Text(
                           'Immediate step-out request • Approvals flow: TL/Staff → HR & CEO',
-                          style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                          style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -171,7 +171,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                         children: [
                           const Text(
                             '4-Hour Permission Quota',
-                            style: TextStyle(fontSize: 10, color: AppColors.textMuted),
+                            style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -200,7 +200,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                       child: Text(
                         willExceedQuota ? 'Orange Flag (Exceeds 4h)' : 'Within 4h Quota',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: willExceedQuota ? AppColors.ragYellow : AppColors.ragGreen,
                         ),

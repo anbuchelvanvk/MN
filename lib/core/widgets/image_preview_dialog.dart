@@ -86,7 +86,7 @@ class ImagePreviewDialog extends StatelessWidget {
                         Text(
                           subtitle!,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),
                           maxLines: 1,
@@ -142,7 +142,7 @@ class ImagePreviewDialog extends StatelessWidget {
                     SizedBox(width: 6),
                     Text(
                       'Pinch or double tap to zoom',
-                      style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                      style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                     ),
                   ],
                 ),

@@ -2171,6 +2171,19 @@ class FirebaseEmployeeService {
     }
   }
 
+  /// Add or remove one emoji reaction by [empId] on a chat message.
+  Future<void> setChatReaction(String messageId, String empId, String emoji, bool add) async {
+    if (!isFirebaseAvailable || empId.trim().isEmpty) return;
+    final entry = '${empId.trim()}|$emoji';
+    try {
+      await _chatsCollection.doc(messageId).update({
+        'reactions': add ? FieldValue.arrayUnion([entry]) : FieldValue.arrayRemove([entry]),
+      });
+    } catch (e) {
+      debugPrint('Firestore setChatReaction error: $e');
+    }
+  }
+
   /// Pin a chat message in Cloud Firestore (with optional expiry date)
   Future<void> pinChatMessage(
     String messageId, {

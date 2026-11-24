@@ -8546,6 +8546,24 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  /// Toggle the signed-in user's [emoji] reaction on a chat message.
+  void toggleChatReaction(String messageId, String emoji) {
+    final idx = _chatMessages.indexWhere((m) => m.id == messageId);
+    if (idx == -1 || _activeEmpId.isEmpty) return;
+    final msg = _chatMessages[idx];
+    final entry = '$_activeEmpId|$emoji';
+    final add = !msg.reactions.contains(entry);
+    final updated = List<String>.from(msg.reactions);
+    if (add) {
+      updated.add(entry);
+    } else {
+      updated.remove(entry);
+    }
+    _chatMessages[idx] = msg.copyWith(reactions: updated);
+    notifyListeners();
+    _firebaseEmployeeService.setChatReaction(messageId, _activeEmpId, emoji, add);
+  }
+
   Future<void> toggleChatMessageLike(String messageId) async {
     final idx = _chatMessages.indexWhere((m) => m.id == messageId);
     if (idx == -1) return;

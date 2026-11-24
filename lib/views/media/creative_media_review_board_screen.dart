@@ -65,7 +65,7 @@ class _CreativeMediaReviewBoardScreenState
             Text(
               'DAM Pipeline • Photoshoot & Reel Sign-Off',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
+                fontSize: 11.5,
                 color: AppColors.magentaPrimary,
                 fontWeight: FontWeight.w600,
               ),
@@ -321,7 +321,7 @@ class _CreativeMediaReviewBoardScreenState
             Text(
               label,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: color.withOpacity(0.9),
               ),
@@ -381,7 +381,7 @@ class _CreativeMediaReviewBoardScreenState
                 child: Text(
                   '$count',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -488,7 +488,7 @@ class _CreativeMediaReviewBoardScreenState
                       Text(
                         asset.category.toUpperCase(),
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -512,7 +512,7 @@ class _CreativeMediaReviewBoardScreenState
                     child: Text(
                       asset.collectionTag,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF92400E),
                       ),
@@ -537,7 +537,7 @@ class _CreativeMediaReviewBoardScreenState
                       Text(
                         asset.displayStatus,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: statusColor,
                         ),
@@ -595,7 +595,7 @@ class _CreativeMediaReviewBoardScreenState
                       child: Text(
                         asset.captionDraft,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontStyle: FontStyle.italic,
                           color: const Color(0xFF334155),
                         ),
@@ -636,7 +636,7 @@ class _CreativeMediaReviewBoardScreenState
                         ? asset.creatorName.substring(0, 1)
                         : 'M',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF0F172A),
                     ),
@@ -646,7 +646,7 @@ class _CreativeMediaReviewBoardScreenState
                 Text(
                   '${asset.creatorName} (${asset.creatorRole})',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF334155),
                   ),
@@ -666,7 +666,7 @@ class _CreativeMediaReviewBoardScreenState
                     child: Text(
                       ch,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF475569),
                       ),
@@ -722,7 +722,7 @@ class _CreativeMediaReviewBoardScreenState
                       child: Text(
                         'Google Drive: ${asset.driveUrl}',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF1D4ED8),
                         ),
@@ -748,7 +748,7 @@ class _CreativeMediaReviewBoardScreenState
                   Text(
                     'REVIEW LOG (${asset.comments.length})',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                       color: const Color(0xFF64748B),
@@ -792,7 +792,7 @@ class _CreativeMediaReviewBoardScreenState
                                     text:
                                         '${comment.authorName} (${comment.authorRole}): ',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: comment.isExecutiveNote
                                           ? const Color(0xFFB45309)
@@ -802,7 +802,7 @@ class _CreativeMediaReviewBoardScreenState
                                   TextSpan(
                                     text: comment.comment,
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
+                                      fontSize: 11.5,
                                       color: const Color(0xFF334155),
                                     ),
                                   ),
@@ -1114,7 +1114,7 @@ class _CreativeMediaReviewBoardScreenState
                             Text(
                               'Uploaded to Google Drive for CEO sign-off',
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
+                                fontSize: 11.5,
                                 color: const Color(0xFF64748B),
                               ),
                             ),
@@ -1132,7 +1132,7 @@ class _CreativeMediaReviewBoardScreenState
                   // Title
                   Text('ASSET TITLE *',
                       style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
                   const SizedBox(height: 4),
@@ -1149,7 +1149,7 @@ class _CreativeMediaReviewBoardScreenState
                   // Category
                   Text('CATEGORY',
                       style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
                   const SizedBox(height: 4),
@@ -1173,7 +1173,7 @@ class _CreativeMediaReviewBoardScreenState
                   Text(
                     'UPLOAD MEDIA FILE *',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
+                      fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF475569),
                     ),
@@ -1295,7 +1295,7 @@ class _CreativeMediaReviewBoardScreenState
                     const SizedBox(height: 4),
                     Text(
                       uploadErrorMessage!,
-                      style: const TextStyle(fontSize: 10, color: Color(0xFFDC2626)),
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFFDC2626)),
                     ),
                   ],
                   const SizedBox(height: 8),
@@ -1304,7 +1304,7 @@ class _CreativeMediaReviewBoardScreenState
                   Text(
                     'OR PASTE MEDIA LINK / SHARING URL',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF64748B),
                     ),
@@ -1324,7 +1324,7 @@ class _CreativeMediaReviewBoardScreenState
                   // Description
                   Text('PRODUCTION NOTES / SCOPE',
                       style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
                   const SizedBox(height: 4),
@@ -1342,7 +1342,7 @@ class _CreativeMediaReviewBoardScreenState
                   // Caption Draft
                   Text('SOCIAL MEDIA CAPTION & HASHTAGS DRAFT',
                       style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
                   const SizedBox(height: 4),

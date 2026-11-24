@@ -237,7 +237,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       ),
                       subtitle: Text(
                         'Certified electronic scale zeroed with official weights',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       value: _scaleCalibrated,
                       onChanged: (v) => setState(() => _scaleCalibrated = v ?? false),
@@ -265,7 +265,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       ),
                       subtitle: Text(
                         'Shift opening checklist physically and digitally verified',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       value: _sopAcknowledged,
                       onChanged: (v) => setState(() => _sopAcknowledged = v ?? false),
