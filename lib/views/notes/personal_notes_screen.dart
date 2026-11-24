@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_brand_logo.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -760,23 +761,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
             child: Row(
               children: [
                 // Logo
-                Container(
-                  width: 44,
-                  height: 44,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFF59E0B), width: 1.5),
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.diamond_rounded, color: Color(0xFF881337), size: 24),
-                    ),
-                  ),
-                ),
+                const MnBrandLogo(size: 46),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

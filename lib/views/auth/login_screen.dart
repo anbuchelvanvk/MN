@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_brand_logo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -339,36 +340,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Center(
                     child: Column(
                       children: [
-                        Container(
-                          width: 92,
-                          height: 92,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.heroAccent,
-                              width: 2.4,
-                            ),
-                            color: Colors.black,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.heroAccent.withOpacity(0.35),
-                                blurRadius: 28,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/images/logo.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.diamond_outlined,
-                                color: AppColors.magentaPrimary,
-                                size: 38,
-                              ),
-                            ),
-                          ),
-                        ),
+                        const MnBrandLogo(size: 104),
                         const SizedBox(height: 16),
                         Text(
                           'MN JEWEL PARK',

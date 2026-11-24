@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../core/utils/attendance_date_label.dart';
 import 'package:http/http.dart' as http;
 import '../models/employee_model.dart';
 import '../models/task_model.dart';
@@ -1038,81 +1039,14 @@ class EcosystemProvider extends ChangeNotifier {
     }).toList();
   }
 
-  /// Formats raw attendance date inputs or multi-day lists into clean "[Month] [Date]" notation
-  /// e.g. "1 NOVEMBER, 2 NOVEMBER... 15 NOVEMBER" -> "November 1–15"
-  /// e.g. "15 Nov" -> "November 15"
+  /// Formats raw attendance date input into one clean date: the latest day
+  /// the update covers, e.g. "1 NOVEMBER ... 15 NOVEMBER" -> "November 15th",
+  /// "15 Nov" -> "November 15th", "1-22" -> "November 22nd".
   static String formatAttendanceDateLabel(
     String rawInput, {
     String? defaultMonth,
-  }) {
-    final clean = rawInput.trim();
-    if (clean.isEmpty) return 'Today';
-
-    // Detect month name
-    final monthRegex = RegExp(
-      r'(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)',
-      caseSensitive: false,
-    );
-    final monthMatch = monthRegex.firstMatch(clean);
-    String detectedMonth = defaultMonth ?? 'November';
-    if (monthMatch != null) {
-      final rawM = monthMatch.group(1)!;
-      final lowerM = rawM.toLowerCase();
-      if (lowerM.startsWith('jan')) {
-        detectedMonth = 'January';
-      } else if (lowerM.startsWith('feb')) {
-        detectedMonth = 'February';
-      } else if (lowerM.startsWith('mar')) {
-        detectedMonth = 'March';
-      } else if (lowerM.startsWith('apr')) {
-        detectedMonth = 'April';
-      } else if (lowerM.startsWith('may')) {
-        detectedMonth = 'May';
-      } else if (lowerM.startsWith('jun')) {
-        detectedMonth = 'June';
-      } else if (lowerM.startsWith('jul')) {
-        detectedMonth = 'July';
-      } else if (lowerM.startsWith('aug')) {
-        detectedMonth = 'August';
-      } else if (lowerM.startsWith('sep')) {
-        detectedMonth = 'September';
-      } else if (lowerM.startsWith('oct')) {
-        detectedMonth = 'October';
-      } else if (lowerM.startsWith('nov')) {
-        detectedMonth = 'November';
-      } else if (lowerM.startsWith('dec')) {
-        detectedMonth = 'December';
-      }
-    }
-
-    final digits =
-        RegExp(r'\b([0-9]{1,2})\b')
-            .allMatches(clean)
-            .map((m) => int.tryParse(m.group(1)!))
-            .whereType<int>()
-            .where((d) => d >= 1 && d <= 31)
-            .toSet()
-            .toList()
-          ..sort();
-
-    if (digits.isEmpty) {
-      return clean;
-    }
-
-    if (digits.length == 1) {
-      return '$detectedMonth ${digits.first}';
-    }
-
-    final minDay = digits.first;
-    final maxDay = digits.last;
-    if (digits.length > 2 && (maxDay - minDay + 1 <= digits.length + 3)) {
-      return '$detectedMonth $minDay–$maxDay';
-    } else if (digits.length <= 3) {
-      return '$detectedMonth ${digits.join(', ')}';
-    } else {
-      return '$detectedMonth $minDay–$maxDay';
-    }
-  }
+  }) =>
+      formatAttendanceDate(rawInput, defaultMonth: defaultMonth);
 
   /// Broadcast notification to all staff that attendance has been updated
   void broadcastAttendanceUpdateNotification(String dateOrDays) {
@@ -1126,7 +1060,7 @@ class EcosystemProvider extends ChangeNotifier {
 
     final title = '📋 $cleanLabel Attendance Update';
     final body =
-        '$cleanLabel Attendance update has been made by HR. Please head to your attendance section and check yours.';
+        'Attendance up to $cleanLabel has been updated by HR. Please head to your attendance section and check yours.';
 
     // Push local notification
     PushNotificationService().showNotification(

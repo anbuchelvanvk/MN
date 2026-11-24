@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../core/services/konar_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../../core/widgets/mn_brand_logo.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/employee_avatar.dart';
 import '../../models/konar_book_model.dart';
@@ -309,12 +310,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 // Brand + actions
                 Row(
                   children: [
-                    const SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CustomPaint(painter: _MnDiamondLogoPainter(color: AppColors.heroAccent)),
-                    ),
-                    const SizedBox(width: 10),
+                    const MnBrandLogo(size: 48),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1098,16 +1095,25 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             ),
             child: Stack(
               children: [
-                // Soft tinted corner
-                Positioned(
-                  right: -38,
-                  top: -38,
-                  child: Container(
-                    width: 84,
-                    height: 84,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: tint.withOpacity(0.06),
+                // Soft tinted corner, clipped to the card's rounded edge
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(23),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: -34,
+                          top: -34,
+                          child: Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: tint.withOpacity(0.06),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -2198,65 +2204,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
 // ==========================================
 
 /// Diamond crest logo painter for MN Family
-class _MnDiamondLogoPainter extends CustomPainter {
-  final Color color;
-  const _MnDiamondLogoPainter({this.color = const Color(0xFF881337)});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final half = size.width / 2 - 2;
-
-    // Outer Diamond
-    final outerPath = Path()
-      ..moveTo(cx, cy - half)
-      ..lineTo(cx + half, cy)
-      ..lineTo(cx, cy + half)
-      ..lineTo(cx - half, cy)
-      ..close();
-    canvas.drawPath(outerPath, strokePaint);
-
-    // Inner Diamond
-    final innerHalf = half * 0.72;
-    final innerPath = Path()
-      ..moveTo(cx, cy - innerHalf)
-      ..lineTo(cx + innerHalf, cy)
-      ..lineTo(cx, cy + innerHalf)
-      ..lineTo(cx - innerHalf, cy)
-      ..close();
-    canvas.drawPath(innerPath, strokePaint);
-
-    // Text "MN" in center
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: 'MN',
-        style: GoogleFonts.outfit(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: color,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    textPainter.paint(
-      canvas,
-      Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 /// Dashed vertical line painter for timeline
 class _DashedLinePainter extends CustomPainter {
   final Color color;

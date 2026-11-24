@@ -29,6 +29,10 @@ class DeptHeadPortalScreen extends StatefulWidget {
   final bool embedded;
   const DeptHeadPortalScreen({super.key, this.embedded = false});
 
+  /// Opens the "Nudge team" reminder dialog (also used by the My Team tab).
+  static void showNudgeTeam(BuildContext context, EcosystemProvider eco) =>
+      _DeptHeadPortalScreenState._nudgeTeam(context, eco);
+
   @override
   State<DeptHeadPortalScreen> createState() => _DeptHeadPortalScreenState();
 }
@@ -645,7 +649,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
     );
   }
 
-  void _nudgeTeam(BuildContext context, EcosystemProvider eco) {
+  static void _nudgeTeam(BuildContext context, EcosystemProvider eco) {
     final msgController = TextEditingController(
       text: 'Shift Alert: Please verify your attendance, complete pending deliverables, and upload task proofs before deadline.',
     );

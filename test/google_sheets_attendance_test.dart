@@ -291,10 +291,13 @@ void main() {
       // Test date range label cleaner
       const rawMultiDays = '1 NOVEMBER, 2 NOVEMBER, 4 NOVEMBER, 5 NOVEMBER, 6 NOVEMBER, 7 NOVEMBER, 8 NOVEMBER, 13 NOVEMBER, 14 NOVEMBER, 15 NOVEMBER';
       final cleanMulti = EcosystemProvider.formatAttendanceDateLabel(rawMultiDays);
-      expect(cleanMulti, equals('November 1–15'));
+      expect(cleanMulti, equals('November 15th'));
 
       final cleanSingle = EcosystemProvider.formatAttendanceDateLabel('15 Nov');
-      expect(cleanSingle, equals('November 15'));
+      expect(cleanSingle, equals('November 15th'));
+      expect(EcosystemProvider.formatAttendanceDateLabel('1, 22', defaultMonth: 'November'), equals('November 22nd'));
+      expect(EcosystemProvider.formatAttendanceDateLabel('22/11/2026'), equals('November 22nd'));
+      expect(EcosystemProvider.formatAttendanceDateLabel('Nov 1-22'), equals('November 22nd'));
 
       // Test broadcasting notification
       eco.broadcastAttendanceUpdateNotification('15 Nov');
@@ -302,10 +305,10 @@ void main() {
 
       expect(notif.actionTag, equals('ATTENDANCE'));
       expect(notif.categoryLabel, equals('Attendance Update'));
-      expect(notif.title, equals('📋 November 15 Attendance Update'));
+      expect(notif.title, equals('📋 November 15th Attendance Update'));
       expect(
         notif.content,
-        equals('November 15 Attendance update has been made by HR. Please head to your attendance section and check yours.'),
+        equals('Attendance up to November 15th has been updated by HR. Please head to your attendance section and check yours.'),
       );
     });
   });

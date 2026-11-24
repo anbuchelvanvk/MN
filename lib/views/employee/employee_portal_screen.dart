@@ -191,7 +191,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
                             color: Colors.black,
                           ),
                           child: ClipOval(
-                            child: Image.asset('assets/images/logo.png', fit: BoxFit.cover),
+                            child: Image.asset('assets/images/mnjlogo.jpg', fit: BoxFit.cover),
                           ),
                         ),
                         const SizedBox(width: 8),

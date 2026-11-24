@@ -9,7 +9,7 @@ import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
 import '../ceo/ceo_suite_screen.dart';
 import '../chat/chat_hub_screen.dart';
-import '../dept_head/dept_head_portal_screen.dart';
+import '../dept_head/team_hub_screen.dart';
 import '../employee/employee_profile_screen.dart';
 import '../home/modern_home_screen.dart';
 import '../hr/hr_portal_screen.dart';
@@ -52,7 +52,7 @@ class _MainShellState extends State<MainShell> {
       'hr' => _ShellTab('HR Desk', Icons.badge_outlined, Icons.badge_rounded,
           (_) => const HrPortalScreen(embedded: true)),
       'dept_head' || 'team_lead' => _ShellTab('My Team', Icons.groups_outlined, Icons.groups_rounded,
-          (_) => const DeptHeadPortalScreen(embedded: true)),
+          (_) => const TeamHubScreen()),
       _ => _ShellTab('Social', Icons.volunteer_activism_outlined, Icons.volunteer_activism_rounded,
           (_) => const SocialCausePillarScreen()),
     };

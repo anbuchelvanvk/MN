@@ -1,3 +1,4 @@
+import 'mn_brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -228,27 +229,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     const SizedBox(width: 10),
                   ],
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.heroAccent, width: 1.2),
-                      color: Colors.black,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(11),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.diamond_outlined,
-                          color: AppColors.heroAccent,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ),
+                  const MnBrandLogo(size: 44),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/utils/attendance_date_label.dart';
 
 enum CompanyNotificationType {
   birthday,
@@ -220,6 +221,13 @@ class CompanyNotification {
         .replaceAll('Senthil Nathan', 'M N Naveenraaj')
         .replaceAll('Senthil', 'M N Naveenraaj')
         .replaceAll('CEO & Founder', 'Managing Director & CEO');
+
+    // Attendance updates saved by older builds used labels like "November 1, 22".
+    if (rawTitle.trim().endsWith('Attendance Update')) {
+      final cleaned = cleanLegacyAttendanceNotification(rawTitle, rawContent);
+      rawTitle = cleaned.$1;
+      rawContent = cleaned.$2;
+    }
 
     return CompanyNotification(
       id: json['id']?.toString() ?? 'NOTIF-${DateTime.now().millisecondsSinceEpoch}',

@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_brand_logo.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -70,27 +71,7 @@ class PillarsPopupDialog extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.magentaPrimary.withOpacity(0.4), width: 1.2),
-                          color: Colors.black,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(11),
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.diamond_outlined,
-                              color: AppColors.magentaPrimary,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                      ),
+                      const MnBrandLogo(size: 46, onDark: false),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
