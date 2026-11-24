@@ -908,7 +908,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     child: _metricColumn(
                       title: 'Tuesday OT',
                       value: '$tuesdayOtCount OT',
-                      color: const Color(0xFF8B5CF6),
+                      color: const Color(0xFFF65C8F),
                       icon: Icons.access_time_filled_rounded,
                     ),
                   ),
@@ -958,9 +958,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6).withOpacity(0.18),
+                      color: const Color(0xFFF65C8F).withOpacity(0.18),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.5)),
+                      border: Border.all(color: const Color(0xFFF65C8F).withOpacity(0.5)),
                     ),
                     child: Text(
                       'Tuesday = Overtime (OT)',
@@ -991,8 +991,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   IconData? icon;
 
                   if (r.isOvertime) {
-                    boxColor = const Color(0xFF8B5CF6).withOpacity(0.2);
-                    borderColor = const Color(0xFF8B5CF6);
+                    boxColor = const Color(0xFFF65C8F).withOpacity(0.2);
+                    borderColor = const Color(0xFFF65C8F);
                     textColor = const Color(0xFFC084FC);
                     statusTag = 'OT';
                     icon = Icons.bolt;
@@ -1123,7 +1123,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   _legendPill(label: 'Present (P)', color: AppColors.ragGreen),
                   _legendPill(label: 'Late (L)', color: const Color(0xFFF59E0B)),
                   _legendPill(label: 'Permission (PM)', color: const Color(0xFF10B981)),
-                  _legendPill(label: 'Tuesday Overtime (OT)', color: const Color(0xFF8B5CF6)),
+                  _legendPill(label: 'Tuesday Overtime (OT)', color: const Color(0xFFF65C8F)),
                   _legendPill(label: 'Tuesday Week-off (OFF)', color: const Color(0xFF94A3B8)),
                   _legendPill(label: 'Leave (CL/LOP)', color: const Color(0xFFEF4444)),
                   _legendPill(label: 'Absent (A)', color: const Color(0xFFEF4444)),
@@ -1260,12 +1260,12 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     decoration: BoxDecoration(
                       color: !hasAudit
                           ? const Color(0xFFF1F5F9)
-                          : (isCompliant ? const Color(0xFFECFDF5) : const Color(0xFFEEF0FF)),
+                          : (isCompliant ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F4)),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: !hasAudit
                             ? const Color(0xFFE2E8F0)
-                            : (isCompliant ? const Color(0xFFA7F3D0) : const Color(0xFFC7D2FE)),
+                            : (isCompliant ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3)),
                       ),
                     ),
                     child: Text(
@@ -1275,7 +1275,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         fontWeight: FontWeight.bold,
                         color: !hasAudit
                             ? AppColors.textSecondary
-                            : (isCompliant ? const Color(0xFF059669) : const Color(0xFF4338CA)),
+                            : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
                       ),
                     ),
                   ),
@@ -1311,7 +1311,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     size: 15,
                     color: !hasAudit
                         ? AppColors.textMuted
-                        : (isCompliant ? const Color(0xFF059669) : const Color(0xFF4338CA)),
+                        : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -1328,7 +1328,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         fontWeight: FontWeight.w600,
                         color: !hasAudit
                             ? AppColors.textSecondary
-                            : (isCompliant ? const Color(0xFF059669) : const Color(0xFF4338CA)),
+                            : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
                       ),
                     ),
                   ),
@@ -1380,10 +1380,10 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isFollowed ? const Color(0xFFF8FAFC) : const Color(0xFFEEF0FF),
+                    color: isFollowed ? const Color(0xFFF8FAFC) : const Color(0xFFFFF1F4),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isFollowed ? const Color(0xFFE2E8F0) : const Color(0xFFC7D2FE),
+                      color: isFollowed ? const Color(0xFFE2E8F0) : const Color(0xFFFECDD3),
                     ),
                   ),
                   child: Row(
@@ -1391,7 +1391,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                       Icon(
                         isFollowed ? Icons.check_circle : Icons.cancel_outlined,
                         size: 16,
-                        color: isFollowed ? const Color(0xFF059669) : const Color(0xFF4338CA),
+                        color: isFollowed ? const Color(0xFF059669) : const Color(0xFFE11D48),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -1400,14 +1400,14 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: isFollowed ? FontWeight.w600 : FontWeight.normal,
-                            color: isFollowed ? AppColors.textDark : const Color(0xFF312E81),
+                            color: isFollowed ? AppColors.textDark : const Color(0xFF9F1239),
                           ),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: isFollowed ? const Color(0xFFECFDF5) : const Color(0xFFEEF0FF),
+                          color: isFollowed ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F4),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -1415,7 +1415,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isFollowed ? const Color(0xFF059669) : const Color(0xFF4338CA),
+                            color: isFollowed ? const Color(0xFF059669) : const Color(0xFFE11D48),
                           ),
                         ),
                       ),
@@ -1481,7 +1481,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isGood ? const Color(0xFFE2E8F0) : const Color(0xFFC7D2FE),
+                          color: isGood ? const Color(0xFFE2E8F0) : const Color(0xFFFECDD3),
                         ),
                       ),
                       child: Row(
@@ -1489,7 +1489,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: isGood ? const Color(0xFFECFDF5) : const Color(0xFFEEF0FF),
+                              color: isGood ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F4),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -1498,7 +1498,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: isGood ? const Color(0xFF059669) : const Color(0xFF4338CA),
+                                color: isGood ? const Color(0xFF059669) : const Color(0xFFE11D48),
                                 height: 1.1,
                               ),
                             ),
@@ -2106,7 +2106,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? (activeColor != null ? color.withOpacity(0.12) : const Color(0xFFEEF0FF)) : AppColors.pureWhite,
+          color: isSelected ? (activeColor != null ? color.withOpacity(0.12) : const Color(0xFFFFF1F4)) : AppColors.pureWhite,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? color : const Color(0xFFE2E8F0),
@@ -2132,17 +2132,17 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     final statusColor = doc.statusColor;
     final statusBgColor = isSubmitted
         ? const Color(0xFFF0FDF4)
-        : (isVerifying ? const Color(0xFFFFFBEB) : const Color(0xFFEEF0FF));
+        : (isVerifying ? const Color(0xFFFFFBEB) : const Color(0xFFFFF1F4));
     final statusBorderColor = isSubmitted
         ? const Color(0xFFBBF7D0)
-        : (isVerifying ? const Color(0xFFFDE68A) : const Color(0xFFC7D2FE));
+        : (isVerifying ? const Color(0xFFFDE68A) : const Color(0xFFFECDD3));
 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSubmitted ? const Color(0xFFE2E8F0) : const Color(0xFFC7D2FE),
+          color: isSubmitted ? const Color(0xFFE2E8F0) : const Color(0xFFFECDD3),
           width: 1.1,
         ),
         boxShadow: const [
@@ -2203,9 +2203,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEEF0FF),
+                                color: const Color(0xFFFFF1F4),
                                 borderRadius: BorderRadius.circular(5),
-                                border: Border.all(color: const Color(0xFFE0E7FF)),
+                                border: Border.all(color: const Color(0xFFFFE4E6)),
                               ),
                               child: Text(
                                 'MANDATORY',
@@ -2487,9 +2487,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: tier == PillarTierLevel.green ? const Color(0xFFECFDF5) : const Color(0xFFEEF0FF),
+                  color: tier == PillarTierLevel.green ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F4),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: tier == PillarTierLevel.green ? const Color(0xFFA7F3D0) : const Color(0xFFC7D2FE)),
+                  border: Border.all(color: tier == PillarTierLevel.green ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3)),
                 ),
                 child: Text(
                   tier == PillarTierLevel.green ? 'CRITERIA MET' : 'PENDING',
@@ -3210,9 +3210,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
               const SizedBox(width: 6),
               _kpiPill('$presentCount Days', 'Present', const Color(0xFF10B981)),
               const SizedBox(width: 6),
-              _kpiPill('$tuesdayOtCount OT', 'Tuesday OT', const Color(0xFF8B5CF6)),
+              _kpiPill('$tuesdayOtCount OT', 'Tuesday OT', const Color(0xFFF65C8F)),
               const SizedBox(width: 6),
-              _kpiPill('$weekoffCount Days', 'Week-offs', const Color(0xFF4338CA)),
+              _kpiPill('$weekoffCount Days', 'Week-offs', const Color(0xFFE11D48)),
             ],
           ),
           const SizedBox(height: 14),
@@ -3243,9 +3243,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                 textColor = const Color(0xFF94A3B8);
                 badgeText = 'OFF';
               } else if (isOt) {
-                bgColor = const Color(0xFF8B5CF6).withOpacity(0.2);
-                borderColor = const Color(0xFF8B5CF6).withOpacity(0.6);
-                textColor = const Color(0xFFA78BFA);
+                bgColor = const Color(0xFFF65C8F).withOpacity(0.2);
+                borderColor = const Color(0xFFF65C8F).withOpacity(0.6);
+                textColor = const Color(0xFFFA8BB0);
                 badgeText = 'OT';
               } else if (rec.status.contains('Yet to update') ||
                   rec.status.contains('Pending') ||
@@ -3655,7 +3655,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEEF0FF),
+                                color: const Color(0xFFFFF1F4),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: const Text(
@@ -3663,7 +3663,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4338CA),
+                                  color: Color(0xFFE11D48),
                                 ),
                               ),
                             ),

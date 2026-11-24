@@ -42,7 +42,7 @@ class MentionTextEditingController extends TextEditingController {
     final mentionStyle = defaultStyle.copyWith(
       color: AppColors.magentaPrimary,
       fontWeight: FontWeight.bold,
-      backgroundColor: const Color(0xFFEEF0FF),
+      backgroundColor: const Color(0xFFFFF1F4),
     );
 
     final rawNames = getEmployeeNames();
@@ -338,7 +338,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   _buildAttachmentChoice(
                     icon: Icons.camera_alt_rounded,
                     label: 'Camera',
-                    gradient: const [Color(0xFF4338CA), Color(0xFF4338CA)],
+                    gradient: const [Color(0xFFE11D48), Color(0xFFE11D48)],
                     onTap: () {
                       Navigator.pop(ctx);
                       _pickAndSendImage(eco, ImageSource.camera);
@@ -347,7 +347,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   _buildAttachmentChoice(
                     icon: Icons.photo_library_rounded,
                     label: 'Photos',
-                    gradient: const [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                    gradient: const [Color(0xFFF65C8F), Color(0xFFBE185D)],
                     onTap: () {
                       Navigator.pop(ctx);
                       _pickAndSendImage(eco, ImageSource.gallery);
@@ -908,7 +908,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF0FF),
+                      color: const Color(0xFFFFF1F4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.share_rounded, color: AppColors.magentaPrimary),
@@ -1002,7 +1002,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       height: 36,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0xFFB45309), Color(0xFF1E1B4B)],
+                          colors: [Color(0xFFB45309), Color(0xFF881337)],
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -1051,10 +1051,10 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isSelf ? const Color(0xFFEEF0FF) : const Color(0xFFF8FAFC),
+                        color: isSelf ? const Color(0xFFFFF1F4) : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelf ? const Color(0xFFC7D2FE) : const Color(0xFFE2E8F0),
+                          color: isSelf ? const Color(0xFFFECDD3) : const Color(0xFFE2E8F0),
                         ),
                       ),
                       child: Row(
@@ -1394,7 +1394,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
       fontSize: 13,
       fontWeight: FontWeight.bold,
       color: isMe ? const Color(0xFFFDE68A) : AppColors.magentaPrimary,
-      backgroundColor: isMe ? Colors.white.withOpacity(0.18) : const Color(0xFFEEF0FF),
+      backgroundColor: isMe ? Colors.white.withOpacity(0.18) : const Color(0xFFFFF1F4),
     );
 
     final names = employeeNames
@@ -2038,14 +2038,14 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                 decoration: BoxDecoration(
                   gradient: widget.isGroup
                       ? const LinearGradient(
-                          colors: [Color(0xFFB45309), Color(0xFF1E1B4B)],
+                          colors: [Color(0xFFB45309), Color(0xFF881337)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         )
                       : LinearGradient(
                           colors: [
                             AppColors.magentaPrimary,
-                            const Color(0xFF4F46E5),
+                            const Color(0xFFBE185D),
                           ],
                         ),
                   shape: BoxShape.circle,
@@ -2101,7 +2101,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                             roleAcronym,
                             style: const TextStyle(
                               fontSize: 11.5,
-                              color: Color(0xFFC9CBEA),
+                              color: Color(0xFFFFD6E5),
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
@@ -2320,8 +2320,8 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                     gradient: isMe
                                         ? const LinearGradient(
                                             colors: [
-                                              Color(0xFF1E1B4B), // Rich festive plum
-                                              Color(0xFF3730A3),
+                                              Color(0xFF881337), // Rich festive plum
+                                              Color(0xFF9D174D),
                                             ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
@@ -2337,7 +2337,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                     boxShadow: [
                                       BoxShadow(
                                         color: isMe
-                                            ? const Color(0xFF1E1B4B).withOpacity(0.18)
+                                            ? const Color(0xFF881337).withOpacity(0.18)
                                             : const Color(0x0A000000),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
@@ -2691,9 +2691,9 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEEF0FF),
+                          color: const Color(0xFFFFF1F4),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFC7D2FE)),
+                          border: Border.all(color: const Color(0xFFFECDD3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -2822,7 +2822,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         height: 42,
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Color(0xFF4338CA), Color(0xFF1E1B4B)],
+                            colors: [Color(0xFFE11D48), Color(0xFF881337)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),

@@ -27,10 +27,10 @@ class PersonalNoteColors {
     ),
     NoteColorOption(
       name: 'Rose Blush',
-      bg: Color(0xFFEEF0FF),
-      border: Color(0xFFC7D2FE),
-      textDark: Color(0xFF1E1B4B),
-      accent: Color(0xFF4338CA),
+      bg: Color(0xFFFFF1F4),
+      border: Color(0xFFFECDD3),
+      textDark: Color(0xFF881337),
+      accent: Color(0xFFE11D48),
     ),
     NoteColorOption(
       name: 'Warm Amber',

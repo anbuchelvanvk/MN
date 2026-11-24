@@ -73,11 +73,11 @@ class _EmployeeThingsToDoScreenState extends State<EmployeeThingsToDoScreen> {
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: ElevatedButton.icon(
-            icon: const Icon(Icons.add, size: 14, color: AppColors.midnight),
-            label: const Text('Add Task', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.midnight)),
+            icon: const Icon(Icons.add, size: 14, color: AppColors.magentaPrimary),
+            label: const Text('Add Task', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.gold,
-              foregroundColor: AppColors.midnight,
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.magentaPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               shape: const StadiumBorder(),
             ),
@@ -393,13 +393,13 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.magentaPrimary, Color(0xFF4F46E5)],
+                  colors: [AppColors.magentaPrimary, Color(0xFFBE185D)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x224338CA), blurRadius: 14, offset: Offset(0, 6)),
+                  BoxShadow(color: Color(0x22E11D48), blurRadius: 14, offset: Offset(0, 6)),
                 ],
               ),
               child: Column(

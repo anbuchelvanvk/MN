@@ -432,9 +432,9 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFEEF0FF),
+              color: const Color(0xFFFFF1F4),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFC7D2FE)),
+              border: Border.all(color: const Color(0xFFFECDD3)),
             ),
             child: const Icon(Icons.balance, color: AppColors.magentaPrimary, size: 22),
           ),

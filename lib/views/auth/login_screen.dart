@@ -227,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF14123A), Color(0xFF1E1B4B), Color(0xFF312E81)],
+            colors: [Color(0xFF2A0F22), Color(0xFF881337), Color(0xFF9F1239)],
           ),
         ),
         child: Stack(
@@ -243,8 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.gold.withOpacity(0.22),
-                      AppColors.gold.withOpacity(0.0),
+                      AppColors.heroAccent.withOpacity(0.22),
+                      AppColors.heroAccent.withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -318,7 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.goldBright,
+                          foregroundColor: AppColors.heroAccent,
                           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         ),
                         icon: const Icon(Icons.arrow_back_ios_new, size: 16),
@@ -345,13 +345,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.gold,
+                              color: AppColors.heroAccent,
                               width: 2.4,
                             ),
                             color: Colors.black,
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.gold.withOpacity(0.35),
+                                color: AppColors.heroAccent.withOpacity(0.35),
                                 blurRadius: 28,
                                 offset: const Offset(0, 6),
                               ),
@@ -385,7 +385,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
-                            color: AppColors.goldBright,
+                            color: AppColors.heroAccent,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.3,
                           ),

@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
 
-/// The app's standard page header: a midnight-indigo gradient bar with a
+/// The app's standard page header: a magenta gradient bar with a
 /// round back button, a clear title, an optional one-line subtitle and compact
 /// actions. Used by every pillar and sub-page so headers look the same.
 class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -93,7 +93,7 @@ class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFFC9CBEA),
+                  color: const Color(0xFFFFD6E5),
                 ),
               ),
             ),
@@ -111,7 +111,7 @@ class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// Soft gold glow in the corner of the header for depth.
+/// Soft white glow in the corner of the header for depth.
 class _HeaderGlow extends StatelessWidget {
   const _HeaderGlow();
 
@@ -129,7 +129,7 @@ class _HeaderGlow extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [Color(0x33C9A24B), Color(0x00C9A24B)],
+                  colors: [Color(0x33FFFFFF), Color(0x00FFFFFF)],
                 ),
               ),
             ),
@@ -182,7 +182,7 @@ class MnGlassIconButton extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: AppColors.gold,
+                      color: AppColors.heroAccent,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.indigoDeep, width: 1.5),
                     ),
@@ -209,7 +209,7 @@ class MnHeaderPill extends StatelessWidget {
     return Center(
       child: Material(
         color: const Color(0x1FFFFFFF),
-        shape: const StadiumBorder(side: BorderSide(color: Color(0x40E2C26E))),
+        shape: const StadiumBorder(side: BorderSide(color: Color(0x40FFD6E5))),
         child: InkWell(
           customBorder: const StadiumBorder(),
           onTap: onTap,
@@ -218,7 +218,7 @@ class MnHeaderPill extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 15, color: AppColors.goldBright),
+                Icon(icon, size: 15, color: AppColors.heroAccent),
                 const SizedBox(width: 6),
                 Text(
                   label,
@@ -252,7 +252,7 @@ class MnSectionTitle extends StatelessWidget {
           width: 4,
           height: 18,
           decoration: BoxDecoration(
-            gradient: AppColors.goldGradientBright,
+            gradient: AppColors.primaryGradient,
             borderRadius: BorderRadius.circular(2),
           ),
         ),

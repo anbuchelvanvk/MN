@@ -222,8 +222,8 @@ class _AdminRoleAccessManagementScreenState
                 label: 'Total Staff',
                 value: '${employees.length}',
                 icon: Icons.people_alt_outlined,
-                bgColor: const Color(0xFFEEF2FF),
-                accentColor: const Color(0xFF4F46E5),
+                bgColor: const Color(0xFFFFF1F4),
+                accentColor: const Color(0xFFBE185D),
               ),
               const SizedBox(width: 8),
               _buildStatChip(
@@ -238,7 +238,7 @@ class _AdminRoleAccessManagementScreenState
                 label: 'Standard Staff',
                 value: '$standardStaffCount',
                 icon: Icons.badge_outlined,
-                bgColor: const Color(0xFFE0E7FF),
+                bgColor: const Color(0xFFFFE4E6),
                 accentColor: AppColors.magentaPrimary,
               ),
             ],
@@ -622,17 +622,17 @@ class _AdminRoleAccessManagementScreenState
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEEF2FF),
+                          color: const Color(0xFFFFF1F4),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                              color: const Color(0xFFC7D2FE), width: 0.8),
+                              color: const Color(0xFFFECDD3), width: 0.8),
                         ),
                         child: Text(
                           'HR Admin',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF4338CA),
+                            color: const Color(0xFFE11D48),
                           ),
                         ),
                       )

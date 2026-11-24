@@ -781,7 +781,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           Icon(
                             familyHours > 0 ? Icons.favorite_rounded : Icons.family_restroom_rounded,
                             size: 18,
-                            color: familyHours > 0 ? const Color(0xFF7C3AED) : AppColors.sandGold,
+                            color: familyHours > 0 ? const Color(0xFFBE185D) : AppColors.sandGold,
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -2469,9 +2469,9 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEF0FF),
+                  color: const Color(0xFFFFF1F4),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFC7D2FE)),
+                  border: Border.all(color: const Color(0xFFFECDD3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -2479,7 +2479,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     const Icon(
                       Icons.access_time_rounded,
                       size: 10.5,
-                      color: Color(0xFF4F46E5),
+                      color: Color(0xFFBE185D),
                     ),
                     const SizedBox(width: 3.5),
                     Text(
@@ -2487,7 +2487,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF4F46E5),
+                        color: const Color(0xFFBE185D),
                       ),
                     ),
                   ],
@@ -3054,12 +3054,12 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                           decoration: BoxDecoration(
                                             color: isFam
                                                 ? const Color(0xFFFAF5FF)
-                                                : const Color(0xFFEEF0FF),
+                                                : const Color(0xFFFFF1F4),
                                             borderRadius: BorderRadius.circular(10),
                                             border: Border.all(
                                               color: isFam
                                                   ? const Color(0xFFE9D5FF)
-                                                  : const Color(0xFFE0E7FF),
+                                                  : const Color(0xFFFFE4E6),
                                             ),
                                           ),
                                           child: Center(
@@ -3092,10 +3092,10 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                     padding: const EdgeInsets.symmetric(
                                                         horizontal: 8, vertical: 3.5),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFFEEF0FF),
+                                                      color: const Color(0xFFFFF1F4),
                                                       borderRadius: BorderRadius.circular(16),
                                                       border: Border.all(
-                                                          color: const Color(0xFFC7D2FE)),
+                                                          color: const Color(0xFFFECDD3)),
                                                     ),
                                                     child: Row(
                                                       mainAxisSize: MainAxisSize.min,
@@ -3103,7 +3103,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                         const Icon(
                                                           Icons.access_time_rounded,
                                                           size: 10.5,
-                                                          color: Color(0xFF4F46E5),
+                                                          color: Color(0xFFBE185D),
                                                         ),
                                                         const SizedBox(width: 3.5),
                                                         Text(
@@ -3111,7 +3111,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                           style: GoogleFonts.plusJakartaSans(
                                                             fontSize: 11.5,
                                                             fontWeight: FontWeight.w700,
-                                                            color: const Color(0xFF4F46E5),
+                                                            color: const Color(0xFFBE185D),
                                                             letterSpacing: 0.2,
                                                           ),
                                                         ),
@@ -3129,7 +3129,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                     decoration: BoxDecoration(
                                                       color: isFam
                                                           ? const Color(0xFFA855F7)
-                                                          : const Color(0xFF4F46E5),
+                                                          : const Color(0xFFBE185D),
                                                       shape: BoxShape.circle,
                                                     ),
                                                   ),
@@ -3142,7 +3142,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                         fontWeight: FontWeight.w600,
                                                         color: isFam
                                                             ? const Color(0xFFA855F7)
-                                                            : const Color(0xFF4F46E5),
+                                                            : const Color(0xFFBE185D),
                                                       ),
                                                       maxLines: 1,
                                                       overflow: TextOverflow.ellipsis,

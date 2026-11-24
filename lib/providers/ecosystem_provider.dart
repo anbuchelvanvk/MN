@@ -1890,7 +1890,7 @@ class EcosystemProvider extends ChangeNotifier {
     if (todayLogoutPunch != null) {
       return todayNetWorkDurationHours < 8.0
           ? const Color(0xFFF59E0B)
-          : const Color(0xFF8B5CF6);
+          : const Color(0xFFF65C8F);
     }
     if (isAttendanceOnTime) return const Color(0xFF10B981);
     return const Color(0xFFEAB308);
@@ -2525,7 +2525,7 @@ class EcosystemProvider extends ChangeNotifier {
         if (isTuesday) {
           isOvertime = true;
           statusStr = 'Tuesday Overtime (${hrs}h ${mins}m)';
-          statusColor = const Color(0xFF8B5CF6);
+          statusColor = const Color(0xFFF65C8F);
         } else if (isToday) {
           final isOnLunch =
               lunchOut != null &&
@@ -2561,7 +2561,7 @@ class EcosystemProvider extends ChangeNotifier {
               hrDay.type == HrAttendanceDayType.leaveHalfDay) {
             isOvertime = true;
             statusStr = 'Tuesday Overtime (OT)';
-            statusColor = const Color(0xFF8B5CF6);
+            statusColor = const Color(0xFFF65C8F);
             inStr = '09:30 AM';
             outStr = '08:30 PM';
             netHoursStr = 'Full Day OT';

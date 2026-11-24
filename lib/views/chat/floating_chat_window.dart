@@ -23,7 +23,7 @@ class FloatingChatWindow {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Close chat',
-      barrierColor: const Color(0x6614123A),
+      barrierColor: const Color(0x662A0F22),
       transitionDuration: const Duration(milliseconds: 280),
       pageBuilder: (dialogCtx, _, __) {
         void close() => Navigator.of(dialogCtx).pop();
@@ -72,7 +72,7 @@ class FloatingChatWindow {
                   child: Material(
                     color: Colors.white,
                     elevation: 18,
-                    shadowColor: const Color(0x551E1B4B),
+                    shadowColor: const Color(0x55881337),
                     borderRadius: BorderRadius.circular(26),
                     clipBehavior: Clip.antiAlias,
                     child: SizedBox(
@@ -90,7 +90,7 @@ class FloatingChatWindow {
                                   width: 42,
                                   height: 5,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFE2E5F0),
+                                    color: const Color(0xFFEADCE4),
                                     borderRadius: BorderRadius.circular(3),
                                   ),
                                 ),
@@ -98,7 +98,7 @@ class FloatingChatWindow {
                                 IconButton(
                                   tooltip: 'Close chat',
                                   visualDensity: VisualDensity.compact,
-                                  icon: const Icon(Icons.close_rounded, color: Color(0xFF6B6F86)),
+                                  icon: const Icon(Icons.close_rounded, color: Color(0xFF756A80)),
                                   onPressed: close,
                                 ),
                               ],

@@ -706,7 +706,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
         ),
         selected: isSelected,
         selectedColor: isAlert ? const Color(0xFFEF4444) : AppColors.sandGold,
-        backgroundColor: isAlert ? const Color(0xFFEEF0FF) : const Color(0xFFF8FAFC),
+        backgroundColor: isAlert ? const Color(0xFFFFF1F4) : const Color(0xFFF8FAFC),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),

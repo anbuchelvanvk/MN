@@ -385,8 +385,8 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
               LiquidGlassCard(
                 borderRadius: 14,
                 padding: const EdgeInsets.all(12),
-                backgroundColor: const Color(0xFFEEF0FF),
-                borderColor: const Color(0xFFC7D2FE),
+                backgroundColor: const Color(0xFFFFF1F4),
+                borderColor: const Color(0xFFFECDD3),
                 child: Row(
                   children: [
                     const Icon(Icons.warning_amber_rounded, color: AppColors.ragRed, size: 24),

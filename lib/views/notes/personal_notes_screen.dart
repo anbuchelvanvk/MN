@@ -131,9 +131,9 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFFEEF0FF),
+                color: const Color(0xFFFFF1F4),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFC7D2FE)),
+                border: Border.all(color: const Color(0xFFFECDD3)),
               ),
               child: const Icon(Icons.note_alt_outlined, size: 40, color: AppColors.magentaPrimary),
             ),
@@ -451,8 +451,8 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                             ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFC7D2FE), width: 1.2),
-                            backgroundColor: const Color(0xFFEEF0FF),
+                            side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
+                            backgroundColor: const Color(0xFFFFF1F4),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                             elevation: 0,
@@ -471,21 +471,21 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                             Navigator.pop(ctx);
                             _showShareNotePreviewDialog(context, eco, note);
                           },
-                          icon: const Icon(Icons.share_rounded, size: 15, color: Color(0xFF3730A3)),
+                          icon: const Icon(Icons.share_rounded, size: 15, color: Color(0xFF9D174D)),
                           label: const FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
                               'Share Image',
                               style: TextStyle(
-                                color: Color(0xFF3730A3),
+                                color: Color(0xFF9D174D),
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFC7D2FE), width: 1.2),
-                            backgroundColor: const Color(0xFFEEF0FF),
+                            side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
+                            backgroundColor: const Color(0xFFFFF1F4),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                             elevation: 0,
@@ -617,7 +617,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: const BoxDecoration(
-                                color: Color(0xFFEEF0FF),
+                                color: Color(0xFFFFF1F4),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.share_rounded, size: 16, color: AppColors.magentaPrimary),
@@ -751,7 +751,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF1E1B4B), Color(0xFF14123A)],
+                colors: [Color(0xFF881337), Color(0xFF2A0F22)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -773,7 +773,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                     child: Image.asset(
                       'assets/images/logo.png',
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.diamond_rounded, color: Color(0xFF1E1B4B), size: 24),
+                      errorBuilder: (_, __, ___) => const Icon(Icons.diamond_rounded, color: Color(0xFF881337), size: 24),
                     ),
                   ),
                 ),
@@ -1042,7 +1042,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                             Container(
                               padding: const EdgeInsets.all(7),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEEF0FF),
+                                color: const Color(0xFFFFF1F4),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.lock_rounded, size: 16, color: AppColors.magentaPrimary),

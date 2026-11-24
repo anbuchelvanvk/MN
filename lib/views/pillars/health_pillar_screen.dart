@@ -2950,7 +2950,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEEF0FF),
+                              color: const Color(0xFFFFF1F4),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(selectedActivity.icon, color: AppColors.magentaPrimary, size: 22),
@@ -4860,7 +4860,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                         title: 'EXERCISE TODAY',
                         value: '$workoutMins mins',
                         subText: '${workouts.length} workouts logged',
-                        accentColor: const Color(0xFF7C3AED),
+                        accentColor: const Color(0xFFBE185D),
                       ),
                     ),
                   ],

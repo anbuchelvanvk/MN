@@ -176,14 +176,14 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF1E1B4B), Color(0xFF3730A3)],
+                        colors: [Color(0xFF881337), Color(0xFF9D174D)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1E1B4B).withOpacity(0.25),
+                          color: const Color(0xFF881337).withOpacity(0.25),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -311,9 +311,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEEF0FF),
+                            color: const Color(0xFFFFF1F4),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFFE0E7FF)),
+                            border: Border.all(color: const Color(0xFFFFE4E6)),
                           ),
                           child: const Icon(Icons.summarize_rounded, size: 20, color: AppColors.magentaPrimary),
                         ),
@@ -352,9 +352,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEEF0FF),
+                              color: const Color(0xFFFFF1F4),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFC7D2FE)),
+                              border: Border.all(color: const Color(0xFFFECDD3)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -363,7 +363,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                   '${book.sections.length} Architectures',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
-                                    color: const Color(0xFF1E1B4B),
+                                    color: const Color(0xFF881337),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -371,7 +371,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 Icon(
                                   _allExpanded ? Icons.unfold_less_rounded : Icons.unfold_more_rounded,
                                   size: 14,
-                                  color: const Color(0xFF1E1B4B),
+                                  color: const Color(0xFF881337),
                                 ),
                               ],
                             ),
@@ -434,19 +434,19 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 height: 46,
                                 child: OutlinedButton.icon(
                                   onPressed: () => _handlePrintPdf(book),
-                                  icon: const Icon(Icons.visibility_rounded, size: 18, color: Color(0xFF1E1B4B)),
+                                  icon: const Icon(Icons.visibility_rounded, size: 18, color: Color(0xFF881337)),
                                   label: Text(
                                     'View Full Book',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12.5,
-                                      color: const Color(0xFF1E1B4B),
+                                      color: const Color(0xFF881337),
                                     ),
                                   ),
                                   style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Color(0xFFC7D2FE), width: 1.2),
-                                    backgroundColor: const Color(0xFFEEF0FF),
-                                    foregroundColor: const Color(0xFF1E1B4B),
+                                    side: const BorderSide(color: Color(0xFFFECDD3), width: 1.2),
+                                    backgroundColor: const Color(0xFFFFF1F4),
+                                    foregroundColor: const Color(0xFF881337),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     padding: const EdgeInsets.symmetric(horizontal: 10),
                                   ),
@@ -539,7 +539,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFEEF0FF),
+              color: const Color(0xFFFFF1F4),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.bookmark_rounded, size: 17, color: AppColors.magentaPrimary),
@@ -588,7 +588,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.rule_rounded, size: 14, color: Color(0xFF1E1B4B)),
+                              Icon(Icons.rule_rounded, size: 14, color: Color(0xFF881337)),
                               SizedBox(width: 6),
                               Expanded(
                                 child: Text(
@@ -597,7 +597,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E1B4B),
+                                    color: Color(0xFF881337),
                                     letterSpacing: 0.3,
                                   ),
                                 ),
@@ -611,7 +611,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('• ', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
+                                  const Text('• ', style: TextStyle(color: Color(0xFF881337), fontWeight: FontWeight.bold)),
                                   Expanded(
                                     child: Text(
                                       rule,
@@ -877,9 +877,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEEF0FF),
+                        color: const Color(0xFFFFF1F4),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFC7D2FE)),
+                        border: Border.all(color: const Color(0xFFFECDD3)),
                       ),
                       child: Row(
                         children: [

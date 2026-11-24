@@ -86,7 +86,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                       right: -4,
                       child: Container(
                         padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(color: Color(0xFF4338CA), shape: BoxShape.circle),
+                        decoration: const BoxDecoration(color: Color(0xFFE11D48), shape: BoxShape.circle),
                         child: Text(
                           '${eco.pendingSocialCauses.length}',
                           style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
@@ -190,11 +190,11 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEF0FF),
+                  color: const Color(0xFFFFF1F4),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFC7D2FE)),
+                  border: Border.all(color: const Color(0xFFFECDD3)),
                 ),
-                child: const Icon(Icons.volunteer_activism, color: Color(0xFF4338CA), size: 24),
+                child: const Icon(Icons.volunteer_activism, color: Color(0xFFE11D48), size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -212,7 +212,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                     const SizedBox(height: 2),
                     const Text(
                       'Kindness, community service & good deeds',
-                      style: TextStyle(fontSize: 11.5, color: Color(0xFF4338CA), fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 11.5, color: Color(0xFFE11D48), fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -238,7 +238,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
             ),
             child: Row(
               children: [
-                Expanded(child: _metricColumn('Total Value', '₹${totalApprovedSpent.toStringAsFixed(0)}', const Color(0xFF4338CA))),
+                Expanded(child: _metricColumn('Total Value', '₹${totalApprovedSpent.toStringAsFixed(0)}', const Color(0xFFE11D48))),
                 Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
                 Expanded(child: _metricColumn('Approved', '$approvedCount', const Color(0xFF10B981))),
                 Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
@@ -286,10 +286,10 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF4338CA) : AppColors.pureWhite,
+            color: isSelected ? const Color(0xFFE11D48) : AppColors.pureWhite,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isSelected ? const Color(0xFF4338CA) : const Color(0xFFE2E8F0),
+              color: isSelected ? const Color(0xFFE11D48) : const Color(0xFFE2E8F0),
             ),
           ),
           child: Padding(
@@ -557,20 +557,20 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEEF0FF),
+                                color: const Color(0xFFFFF1F4),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFC7D2FE)),
+                                border: Border.all(color: const Color(0xFFFECDD3)),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.currency_rupee, size: 12, color: Color(0xFF4338CA)),
+                                  const Icon(Icons.currency_rupee, size: 12, color: Color(0xFFE11D48)),
                                   Text(
                                     '${cause.amountSpent.toStringAsFixed(0)} Sponsored',
                                     style: const TextStyle(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF4338CA),
+                                      color: Color(0xFFE11D48),
                                     ),
                                   ),
                                 ],
@@ -637,10 +637,10 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: isLiked ? const Color(0xFFEEF0FF) : const Color(0xFFF8FAFC),
+                          color: isLiked ? const Color(0xFFFFF1F4) : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isLiked ? const Color(0xFFA5B4FC) : const Color(0xFFE2E8F0),
+                            color: isLiked ? const Color(0xFFFDA4AF) : const Color(0xFFE2E8F0),
                           ),
                         ),
                         child: Row(
@@ -649,7 +649,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                             Icon(
                               isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                               size: 15,
-                              color: isLiked ? const Color(0xFF4338CA) : const Color(0xFF64748B),
+                              color: isLiked ? const Color(0xFFE11D48) : const Color(0xFF64748B),
                             ),
                             const SizedBox(width: 5),
                             Text(
@@ -657,7 +657,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,
-                                color: isLiked ? const Color(0xFF4338CA) : const Color(0xFF64748B),
+                                color: isLiked ? const Color(0xFFE11D48) : const Color(0xFF64748B),
                               ),
                             ),
                           ],

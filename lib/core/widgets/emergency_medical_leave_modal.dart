@@ -132,10 +132,10 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF0FF),
+                      color: const Color(0xFFFFF1F4),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.medical_services_outlined, color: Color(0xFF4338CA), size: 16),
+                    child: const Icon(Icons.medical_services_outlined, color: Color(0xFFE11D48), size: 16),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -367,16 +367,16 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEEF0FF),
+                    color: const Color(0xFFFFF1F4),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFC7D2FE), width: 1),
+                    border: Border.all(color: const Color(0xFFFECDD3), width: 1),
                   ),
                   child: Column(
                     children: [
                       const Text(
                         'Without doctor prescription, medical leave cannot be submitted or accepted.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFF4338CA), fontSize: 11.5, fontWeight: FontWeight.w600),
+                        style: TextStyle(color: Color(0xFFE11D48), fontSize: 11.5, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 10),
                       Row(

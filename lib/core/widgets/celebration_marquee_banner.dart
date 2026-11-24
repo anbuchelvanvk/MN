@@ -101,9 +101,9 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> {
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [
-                Color(0xFF1E1B4B), // Rich festive berry
+                Color(0xFF881337), // Rich festive berry
                 Color(0xFFB45309), // Warm celebratory amber/gold
-                Color(0xFF1E1B4B),
+                Color(0xFF881337),
               ],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,

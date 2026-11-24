@@ -1385,7 +1385,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFEEF0FF),
+              color: const Color(0xFFFFF1F4),
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
               border: Border(top: BorderSide(color: AppColors.sandBorder)),
             ),
@@ -1760,7 +1760,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
       subtitle: _activeViewTab == 0 ? 'HR Google Sheets Master Ledger' : 'Live Biometrics & Shift Punches',
       actions: [
         IconButton(
-          icon: const Icon(Icons.campaign_outlined, color: AppColors.goldBright),
+          icon: const Icon(Icons.campaign_outlined, color: AppColors.heroAccent),
           tooltip: 'Broadcast Update to Staff',
           onPressed: () => _showBroadcastUpdateDialog(context, eco),
         ),
@@ -2203,7 +2203,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                       color: AppColors.burgundyCard,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isEmpAbsent ? const Color(0xFFC7D2FE).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.4),
+                        color: isEmpAbsent ? const Color(0xFFFECDD3).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.4),
                       ),
                     ),
                     child: Row(

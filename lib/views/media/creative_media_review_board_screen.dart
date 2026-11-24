@@ -116,8 +116,8 @@ class _CreativeMediaReviewBoardScreenState
                         _metricTile(
                           label: 'Revisions',
                           value: '$revisionCount',
-                          color: const Color(0xFF4338CA),
-                          bgColor: const Color(0xFFE0E7FF),
+                          color: const Color(0xFFE11D48),
+                          bgColor: const Color(0xFFFFE4E6),
                         ),
                         const SizedBox(width: 8),
                         _metricTile(
@@ -410,8 +410,8 @@ class _CreativeMediaReviewBoardScreenState
       statusBg = const Color(0xFFD1FAE5);
       statusIcon = Icons.check_circle_outline_rounded;
     } else if (asset.isRevisionsRequested) {
-      statusColor = const Color(0xFF4338CA);
-      statusBg = const Color(0xFFE0E7FF);
+      statusColor = const Color(0xFFE11D48);
+      statusBg = const Color(0xFFFFE4E6);
       statusIcon = Icons.edit_note_rounded;
     } else if (asset.isPublished) {
       statusColor = const Color(0xFF2563EB);
@@ -446,7 +446,7 @@ class _CreativeMediaReviewBoardScreenState
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF050066),
+                    color: const Color(0xFF660022),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -821,8 +821,8 @@ class _CreativeMediaReviewBoardScreenState
                   if (!asset.isApprovedByCeo && !asset.isPublished) ...[
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF4338CA),
-                        side: const BorderSide(color: Color(0xFFA5B4FC)),
+                        foregroundColor: const Color(0xFFE11D48),
+                        side: const BorderSide(color: Color(0xFFFDA4AF)),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         textStyle: GoogleFonts.plusJakartaSans(
@@ -942,7 +942,7 @@ class _CreativeMediaReviewBoardScreenState
           style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF4338CA)),
+              color: const Color(0xFFE11D48)),
         ),
         content: TextField(
           controller: controller,
@@ -961,7 +961,7 @@ class _CreativeMediaReviewBoardScreenState
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4338CA),
+              backgroundColor: const Color(0xFFE11D48),
               foregroundColor: Colors.white,
             ),
             onPressed: () {
@@ -1066,7 +1066,7 @@ class _CreativeMediaReviewBoardScreenState
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE0E7FF),
+                          color: const Color(0xFFFFE4E6),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(Icons.cloud_upload_outlined,

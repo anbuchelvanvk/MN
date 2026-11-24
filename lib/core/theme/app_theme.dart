@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// App-wide look ("Midnight & Gold"): cool pearl canvas, midnight-indigo
-/// structure, royal-indigo actions and champagne-gold highlights. Screens that use default Material widgets (buttons,
+/// App-wide look: white surfaces on a soft blush-white canvas, magenta
+/// headers and actions, deep plum text. Screens that use default Material widgets (buttons,
 /// fields, dialogs, sheets, snack bars, chips, list tiles) pick this up
 /// automatically.
 class AppThemes {
@@ -57,7 +57,7 @@ class AppThemes {
         surface: AppColors.pureWhite,
         onSurface: ink,
         surfaceTint: Colors.transparent,
-        outline: const Color(0xFFE2E5F0),
+        outline: const Color(0xFFEADCE4),
         outlineVariant: AppColors.sandBorder,
         error: AppColors.ragRed,
       ),
@@ -70,7 +70,7 @@ class AppThemes {
         elevation: 0,
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
-        shadowColor: const Color(0x1414123A),
+        shadowColor: const Color(0x142A0F22),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
           side: const BorderSide(color: AppColors.line, width: 1),
@@ -83,7 +83,7 @@ class AppThemes {
         foregroundColor: ink,
         elevation: 0,
         scrolledUnderElevation: 0.5,
-        shadowColor: const Color(0x1A1E1B4B),
+        shadowColor: const Color(0x1A881337),
         centerTitle: false,
         iconTheme: const IconThemeData(color: ink),
         titleTextStyle: GoogleFonts.plusJakartaSans(
@@ -99,7 +99,7 @@ class AppThemes {
           backgroundColor: primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shadowColor: const Color(0x334338CA),
+          shadowColor: const Color(0x33E11D48),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           shape: pill,
           textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
@@ -117,7 +117,7 @@ class AppThemes {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primary,
-          side: const BorderSide(color: Color(0xFFC7CBEA), width: 1.2),
+          side: const BorderSide(color: Color(0xFFF3C6D6), width: 1.2),
           shape: pill,
           textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
         ),
@@ -141,7 +141,7 @@ class AppThemes {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF3F4FA),
+        fillColor: const Color(0xFFFDFAFC),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 14),
         labelStyle: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary, fontSize: 14),
@@ -154,7 +154,7 @@ class AppThemes {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFE6E8F2)),
+          borderSide: const BorderSide(color: Color(0xFFF1E4EB)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -170,7 +170,7 @@ class AppThemes {
         backgroundColor: AppColors.pureWhite,
         surfaceTintColor: Colors.transparent,
         elevation: 6,
-        shadowColor: const Color(0x2914123A),
+        shadowColor: const Color(0x292A0F22),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
         titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 18, fontWeight: FontWeight.w700, color: ink),
@@ -189,7 +189,7 @@ class AppThemes {
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.midnight,
         contentTextStyle: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13.5),
-        actionTextColor: AppColors.goldBright,
+        actionTextColor: AppColors.heroAccent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       ),
@@ -221,9 +221,9 @@ class AppThemes {
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? Colors.white : const Color(0xFFB9BCD3)),
+          (s) => s.contains(WidgetState.selected) ? Colors.white : const Color(0xFFCBB8C4)),
         trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? primary : const Color(0xFFE6E8F2)),
+          (s) => s.contains(WidgetState.selected) ? primary : const Color(0xFFF1E4EB)),
       ),
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith(
@@ -232,8 +232,8 @@ class AppThemes {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: primary,
-        linearTrackColor: Color(0xFFE6E8F2),
-        circularTrackColor: Color(0xFFE6E8F2),
+        linearTrackColor: Color(0xFFF1E4EB),
+        circularTrackColor: Color(0xFFF1E4EB),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surface,

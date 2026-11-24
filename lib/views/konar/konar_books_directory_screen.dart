@@ -186,7 +186,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                       height: 44,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF1E1B4B), Color(0xFF3730A3)],
+                          colors: [Color(0xFF881337), Color(0xFF9D174D)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -490,7 +490,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: const [
-            Icon(Icons.people_outline_rounded, color: Color(0xFF3730A3), size: 24),
+            Icon(Icons.people_outline_rounded, color: Color(0xFF9D174D), size: 24),
             SizedBox(width: 8),
             Flexible(child: Text('Staff Disposition')),
           ],
@@ -521,8 +521,8 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
           ),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF3730A3),
-              side: const BorderSide(color: Color(0xFF3730A3)),
+              foregroundColor: const Color(0xFF9D174D),
+              side: const BorderSide(color: Color(0xFF9D174D)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
@@ -641,10 +641,10 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE0E7FF),
+                        color: const Color(0xFFFFE4E6),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.swap_horiz_rounded, color: Color(0xFF3730A3), size: 24),
+                      child: const Icon(Icons.swap_horiz_rounded, color: Color(0xFF9D174D), size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -739,7 +739,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
                           radius: 18,
-                          backgroundColor: const Color(0xFF1E1B4B),
+                          backgroundColor: const Color(0xFF881337),
                           child: Text(
                             emp.initials.toString().isNotEmpty ? emp.initials.toString() : 'MN',
                             style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
@@ -753,7 +753,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                           '${emp.role} • ID: ${emp.id}',
                           style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF3730A3)),
+                        trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF9D174D)),
                       ));
                     },
                   ),
@@ -767,7 +767,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                   height: 48,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E1B4B),
+                      backgroundColor: const Color(0xFF881337),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 2,

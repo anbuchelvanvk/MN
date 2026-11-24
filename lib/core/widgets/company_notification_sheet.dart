@@ -104,9 +104,9 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEEF0FF),
+                        color: const Color(0xFFFFF1F4),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFC7D2FE)),
+                        border: Border.all(color: const Color(0xFFFECDD3)),
                       ),
                       child: const Icon(Icons.notifications_active, color: AppColors.magentaPrimary, size: 20),
                     ),
@@ -193,7 +193,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                           side: BorderSide(color: AppColors.magentaPrimary.withOpacity(0.4)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          backgroundColor: const Color(0xFFEEF0FF),
+                          backgroundColor: const Color(0xFFFFF1F4),
                         ),
                       ),
                     ),
@@ -576,12 +576,12 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: notif.commentsCount > 0
-                                  ? const Color(0xFF6366F1).withOpacity(0.12)
+                                  ? const Color(0xFFF43F5E).withOpacity(0.12)
                                   : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: notif.commentsCount > 0
-                                    ? const Color(0xFF6366F1).withOpacity(0.4)
+                                    ? const Color(0xFFF43F5E).withOpacity(0.4)
                                     : const Color(0xFFE2E8F0),
                                 width: 0.8,
                               ),
@@ -592,7 +592,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                 Icon(
                                   Icons.mode_comment_outlined,
                                   size: 12.5,
-                                  color: notif.commentsCount > 0 ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
+                                  color: notif.commentsCount > 0 ? const Color(0xFFBE185D) : const Color(0xFF64748B),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -600,7 +600,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                                   style: TextStyle(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
-                                    color: notif.commentsCount > 0 ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
+                                    color: notif.commentsCount > 0 ? const Color(0xFFBE185D) : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -881,7 +881,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         icon: const Icon(Icons.shopping_bag_outlined, size: 14, color: Colors.white),
                         label: const Text('View Orders', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4338CA),
+                          backgroundColor: const Color(0xFFE11D48),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
@@ -892,17 +892,17 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         Navigator.pop(ctx);
                         NotificationCommentsSheet.show(context, notif);
                       },
-                      icon: const Icon(Icons.mode_comment_outlined, size: 14, color: Color(0xFF4F46E5)),
+                      icon: const Icon(Icons.mode_comment_outlined, size: 14, color: Color(0xFFBE185D)),
                       label: Text(
                         notif.commentsCount > 0
                             ? 'Comments (${notif.commentsCount})'
                             : 'Comments',
-                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF4F46E5), fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFFBE185D), fontWeight: FontWeight.bold),
                       ),
                       style: OutlinedButton.styleFrom(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        side: const BorderSide(color: Color(0xFFC7D2FE)),
-                        backgroundColor: const Color(0xFFEEF2FF),
+                        side: const BorderSide(color: Color(0xFFFECDD3)),
+                        backgroundColor: const Color(0xFFFFF1F4),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),

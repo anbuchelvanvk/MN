@@ -63,9 +63,9 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF0FF),
+                      color: const Color(0xFFFFF1F4),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFC7D2FE)),
+                      border: Border.all(color: const Color(0xFFFECDD3)),
                     ),
                     child: const Icon(Icons.precision_manufacturing_outlined, color: AppColors.magentaPrimary, size: 28),
                   ),

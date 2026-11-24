@@ -285,7 +285,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               height: 240,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [Color(0x40C9A24B), Color(0x00C9A24B)]),
+                gradient: RadialGradient(colors: [Color(0x40FFFFFF), Color(0x00FFFFFF)]),
               ),
             ),
           ),
@@ -312,7 +312,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     const SizedBox(
                       width: 40,
                       height: 40,
-                      child: CustomPaint(painter: _MnDiamondLogoPainter(color: AppColors.goldBright)),
+                      child: CustomPaint(painter: _MnDiamondLogoPainter(color: AppColors.heroAccent)),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -325,7 +325,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFFB9BCE0),
+                              color: const Color(0xFFFFD6E5),
                               height: 1.1,
                             ),
                           ),
@@ -388,7 +388,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFFC9CBEA),
+                              color: const Color(0xFFFFD6E5),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -428,14 +428,14 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFFB9BCE0)),
+                                  const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFFFFD6E5)),
                                   const SizedBox(width: 5),
                                   Text(
                                     _todayLabel(),
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFFC9CBEA),
+                                      color: const Color(0xFFFFD6E5),
                                     ),
                                   ),
                                 ],
@@ -510,7 +510,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 17, color: AppColors.goldBright),
+          Icon(icon, size: 17, color: AppColors.heroAccent),
           const SizedBox(height: 5),
           FittedBox(
             fit: BoxFit.scaleDown,
@@ -531,7 +531,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFFB9BCE0),
+              color: const Color(0xFFFFD6E5),
             ),
           ),
         ],
@@ -630,7 +630,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             width: 4,
             height: 18,
             decoration: BoxDecoration(
-              gradient: AppColors.goldGradientBright,
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -965,7 +965,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ? const Color(0xFF94A3B8)
         : (currentBmi >= 18.5 && currentBmi < 25.0)
             ? const Color(0xFF059669)
-            : const Color(0xFF4338CA);
+            : const Color(0xFFE11D48);
 
     final cards = <Widget>[
       _pillarCard(
@@ -1152,7 +1152,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                   ),
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFFB9BCD3)),
+                              const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFFCBB8C4)),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -1331,7 +1331,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     messenger.showSnackBar(
       SnackBar(
         content: Text('Preparing ${book.department} Konar Book PDF...'),
-        backgroundColor: const Color(0xFF1E1B4B),
+        backgroundColor: const Color(0xFF881337),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -1372,14 +1372,14 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           message: tip,
           child: Material(
             color: const Color(0x1FFFFFFF),
-            shape: const CircleBorder(side: BorderSide(color: Color(0x33E2C26E))),
+            shape: const CircleBorder(side: BorderSide(color: Color(0x33FFD6E5))),
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: onTap,
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(icon, size: 20, color: AppColors.goldBright),
+                child: Icon(icon, size: 20, color: AppColors.heroAccent),
               ),
             ),
           ),
@@ -1396,7 +1396,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             borderRadius: BorderRadius.circular(24),
             gradient: AppColors.heroGradient,
             boxShadow: const [
-              BoxShadow(color: Color(0x3314123A), blurRadius: 20, offset: Offset(0, 8)),
+              BoxShadow(color: Color(0x332A0F22), blurRadius: 20, offset: Offset(0, 8)),
             ],
           ),
           padding: const EdgeInsets.all(16),
@@ -1434,7 +1434,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       'Your department handbook • tap to open',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFFC9CBEA)),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFFFFD6E5)),
                     ),
                   ],
                 ),
@@ -1519,7 +1519,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E1B4B),
+                        color: const Color(0xFF881337),
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -1546,10 +1546,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEEF0FF),
+                    color: const Color(0xFFFFF1F4),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFFE0E7FF),
+                      color: const Color(0xFFFFE4E6),
                       width: 1.1,
                     ),
                   ),
@@ -1559,7 +1559,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       const Icon(
                         Icons.add_circle_outline_rounded,
                         size: 14,
-                        color: Color(0xFF1E1B4B),
+                        color: Color(0xFF881337),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -1567,7 +1567,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E1B4B),
+                          color: const Color(0xFF881337),
                         ),
                       ),
                     ],
@@ -1647,7 +1647,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   'Show ${visible.length - shown.length} more',
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E1B4B),
+                    color: const Color(0xFF881337),
                   ),
                 ),
               ),
@@ -1668,7 +1668,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           'Add Personal To-Do',
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF1E1B4B),
+            color: const Color(0xFF881337),
           ),
         ),
         content: Column(
@@ -1700,7 +1700,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(
-                    color: Color(0xFF1E1B4B),
+                    color: Color(0xFF881337),
                     width: 1.5,
                   ),
                 ),
@@ -1718,7 +1718,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1E1B4B),
+              backgroundColor: const Color(0xFF881337),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1736,7 +1736,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('To-Do "$text" added.'),
-                  backgroundColor: const Color(0xFF1E1B4B),
+                  backgroundColor: const Color(0xFF881337),
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -1767,7 +1767,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E1B4B) : const Color(0xFFE2E8F0),
+          color: isSelected ? const Color(0xFF881337) : const Color(0xFFE2E8F0),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -1815,7 +1815,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF6B6F86),
+                    color: const Color(0xFF756A80),
                     height: 1.2,
                   ),
                 ),
@@ -1838,7 +1838,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   border: Border.all(
                     color: isCompleted
                         ? const Color(0xFF059669)
-                        : const Color(0xFFA7A4E7),
+                        : const Color(0xFFE7A4BA),
                     width: 2,
                   ),
                 ),
@@ -1895,8 +1895,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             child: Container(
               width: 34,
               height: 34,
-              decoration: const BoxDecoration(color: Color(0xFFEEF0FF), shape: BoxShape.circle),
-              child: Icon(icon, size: 19, color: const Color(0xFF1E1B4B)),
+              decoration: const BoxDecoration(color: Color(0xFFFFF1F4), shape: BoxShape.circle),
+              child: Icon(icon, size: 19, color: const Color(0xFF881337)),
             ),
           ),
         );
@@ -1915,9 +1915,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: const Color(0xFFC7D2FE), width: 1.2),
+              border: Border.all(color: const Color(0xFFFECDD3), width: 1.2),
               boxShadow: const [
-                BoxShadow(color: Color(0x221E1B4B), blurRadius: 18, offset: Offset(0, 5)),
+                BoxShadow(color: Color(0x22881337), blurRadius: 18, offset: Offset(0, 5)),
               ],
             ),
             child: Row(
@@ -1934,7 +1934,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF6B6F86),
+                        color: const Color(0xFF756A80),
                       ),
                     ),
                   ),
@@ -1960,7 +1960,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     CustomPaint(
                       size: const Size(58, 58),
                       painter: _ChatBubbleTailPainter(
-                        color: const Color(0xFF4F46E5),
+                        color: const Color(0xFFBE185D),
                         strokeColor: Colors.white,
                         strokeWidth: 2.8,
                       ),
@@ -1976,7 +1976,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4338CA),
+                            color: const Color(0xFFE11D48),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: Colors.white, width: 1.5),
                           ),
@@ -2074,12 +2074,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 children: [
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.home_outlined, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.home_outlined, color: Color(0xFF881337)),
                     title: Text('Home Dashboard', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () => Navigator.pop(context),
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.forum_outlined, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.forum_outlined, color: Color(0xFF881337)),
                     title: Text('Team Chat Hub', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -2087,7 +2087,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.menu_book_rounded, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.menu_book_rounded, color: Color(0xFF881337)),
                     title: Text('${_deptLabel(emp.dept)} Konar Book', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -2102,7 +2102,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.person_outline, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.person_outline, color: Color(0xFF881337)),
                     title: Text('Employee Profile', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -2113,7 +2113,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.fact_check_outlined, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.fact_check_outlined, color: Color(0xFF881337)),
                     title: Text('My Attendance', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -2124,7 +2124,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF881337)),
                     title: Text('Online Orders', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -2135,7 +2135,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.sticky_note_2_outlined, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.sticky_note_2_outlined, color: Color(0xFF881337)),
                     title: Text('Personal Notes', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -2146,7 +2146,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.video_collection_outlined, color: Color(0xFF1E1B4B)),
+                    leading: const Icon(Icons.video_collection_outlined, color: Color(0xFF881337)),
                     title: Text('Media Review Board', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -2200,7 +2200,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
 /// Diamond crest logo painter for MN Family
 class _MnDiamondLogoPainter extends CustomPainter {
   final Color color;
-  const _MnDiamondLogoPainter({this.color = const Color(0xFF1E1B4B)});
+  const _MnDiamondLogoPainter({this.color = const Color(0xFF881337)});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -2292,7 +2292,7 @@ class _KonarBookIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final bookPaint = Paint()
-      ..color = const Color(0xFF1E1B4B)
+      ..color = const Color(0xFF881337)
       ..style = PaintingStyle.fill;
 
     final goldBorderPaint = Paint()
@@ -2314,7 +2314,7 @@ class _KonarBookIconPainter extends CustomPainter {
 
     // Spine Line
     final spinePaint = Paint()
-      ..color = const Color(0xFF130E6B)
+      ..color = const Color(0xFF6B0E2D)
       ..style = PaintingStyle.fill;
     canvas.drawRRect(
       RRect.fromRectAndCorners(

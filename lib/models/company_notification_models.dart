@@ -133,7 +133,7 @@ class CompanyNotification {
     }
     switch (type) {
       case CompanyNotificationType.birthday:
-        return const Color(0xFF7C3AED); // Pink
+        return const Color(0xFFEC4899); // Pink
       case CompanyNotificationType.anniversary:
         return const Color(0xFFF59E0B); // Amber / Gold
       case CompanyNotificationType.socialCause:

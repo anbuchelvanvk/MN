@@ -157,7 +157,7 @@ class _ShellNavBar extends StatelessWidget {
                 gradient: AppColors.heroGradient,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x3314123A), blurRadius: 22, offset: Offset(0, 10)),
+                  BoxShadow(color: Color(0x332A0F22), blurRadius: 22, offset: Offset(0, 10)),
                 ],
               ),
               child: Row(
@@ -220,7 +220,7 @@ class _NavItem extends StatelessWidget {
                   Icon(
                     selected ? tab.activeIcon : tab.icon,
                     size: 22,
-                    color: selected ? AppColors.midnight : const Color(0xFFB9BCE0),
+                    color: selected ? AppColors.midnight : const Color(0xFFFFD6E5),
                   ),
                   if (badge > 0)
                     Positioned(
@@ -252,7 +252,7 @@ class _NavItem extends StatelessWidget {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.5,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? Colors.white : const Color(0xFFB9BCE0),
+                color: selected ? Colors.white : const Color(0xFFFFD6E5),
               ),
             ),
           ],

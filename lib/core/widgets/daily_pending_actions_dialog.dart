@@ -91,12 +91,12 @@ class DailyPendingActionsDialog extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF2F2),
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFC7D2FE)),
+                          border: Border.all(color: const Color(0xFFFECDD3)),
                         ),
                         child: const Icon(
                           Icons.notification_important_rounded,
                           size: 20,
-                          color: Color(0xFF4338CA),
+                          color: Color(0xFFE11D48),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -143,8 +143,8 @@ class DailyPendingActionsDialog extends StatelessWidget {
                       title: 'Health Log Pending',
                       subtitle: 'Calorie, hydration, steps, or workout check-in has not been recorded today.',
                       badgeText: 'Health Pillar',
-                      primaryColor: const Color(0xFF4338CA),
-                      bgColor: const Color(0xFFEEF0FF),
+                      primaryColor: const Color(0xFFE11D48),
+                      bgColor: const Color(0xFFFFF1F4),
                       actionLabel: 'Log Health',
                       onAction: () {
                         Navigator.pop(context);
@@ -165,8 +165,8 @@ class DailyPendingActionsDialog extends StatelessWidget {
                       title: 'Family Moment Pending',
                       subtitle: 'Quality family time or milestone has not been logged for today.',
                       badgeText: 'Family Pillar',
-                      primaryColor: const Color(0xFF7C3AED),
-                      bgColor: const Color(0xFFF5F3FF),
+                      primaryColor: const Color(0xFFBE185D),
+                      bgColor: const Color(0xFFFFF3F7),
                       actionLabel: 'Log Family',
                       onAction: () {
                         Navigator.pop(context);

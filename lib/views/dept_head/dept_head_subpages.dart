@@ -255,10 +255,10 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: isAbsent ? const Color(0xFFEEF0FF) : AppColors.whiteBg,
+                    color: isAbsent ? const Color(0xFFFFF1F4) : AppColors.whiteBg,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isAbsent ? const Color(0xFFC7D2FE) : AppColors.sandBorder,
+                      color: isAbsent ? const Color(0xFFFECDD3) : AppColors.sandBorder,
                     ),
                   ),
                   child: Row(
@@ -569,10 +569,10 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isAbsent ? const Color(0xFFEEF0FF) : const Color(0xFFF8FAFC),
+                      color: isAbsent ? const Color(0xFFFFF1F4) : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: isAbsent ? const Color(0xFFC7D2FE) : const Color(0xFFE2E8F0),
+                        color: isAbsent ? const Color(0xFFFECDD3) : const Color(0xFFE2E8F0),
                         width: 0.8,
                       ),
                     ),
@@ -1080,10 +1080,10 @@ class TlTeamDirectoryScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: isAbsent ? const Color(0xFFEEF0FF) : const Color(0xFFECFDF5),
+                                  color: isAbsent ? const Color(0xFFFFF1F4) : const Color(0xFFECFDF5),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: isAbsent ? const Color(0xFFC7D2FE) : const Color(0xFFA7F3D0),
+                                    color: isAbsent ? const Color(0xFFFECDD3) : const Color(0xFFA7F3D0),
                                   ),
                                 ),
                                 child: Text(
@@ -1091,7 +1091,7 @@ class TlTeamDirectoryScreen extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: isAbsent ? const Color(0xFF4338CA) : const Color(0xFF059669),
+                                    color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
                                   ),
                                 ),
                               ),

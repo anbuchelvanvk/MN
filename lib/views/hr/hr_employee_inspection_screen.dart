@@ -137,10 +137,10 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                               decoration: BoxDecoration(
-                                color: isAbsent ? const Color(0xFFEEF0FF) : const Color(0xFFECFDF5),
+                                color: isAbsent ? const Color(0xFFFFF1F4) : const Color(0xFFECFDF5),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: isAbsent ? const Color(0xFFC7D2FE) : const Color(0xFFA7F3D0),
+                                  color: isAbsent ? const Color(0xFFFECDD3) : const Color(0xFFA7F3D0),
                                 ),
                               ),
                               child: Text(
@@ -148,7 +148,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: isAbsent ? const Color(0xFF4338CA) : const Color(0xFF059669),
+                                  color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
                                 ),
                               ),
                             ),
@@ -470,9 +470,9 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     ...docs.map((d) {
                       final isSubmitted = d.status == DocumentSubmissionStatus.submitted;
                       final isPending = d.status == DocumentSubmissionStatus.pending;
-                      final badgeColor = isSubmitted ? const Color(0xFF059669) : (isPending ? const Color(0xFF4338CA) : const Color(0xFFD97706));
-                      final badgeBg = isSubmitted ? const Color(0xFFECFDF5) : (isPending ? const Color(0xFFEEF0FF) : const Color(0xFFFFFBEB));
-                      final badgeBorder = isSubmitted ? const Color(0xFFA7F3D0) : (isPending ? const Color(0xFFC7D2FE) : const Color(0xFFFDE68A));
+                      final badgeColor = isSubmitted ? const Color(0xFF059669) : (isPending ? const Color(0xFFE11D48) : const Color(0xFFD97706));
+                      final badgeBg = isSubmitted ? const Color(0xFFECFDF5) : (isPending ? const Color(0xFFFFF1F4) : const Color(0xFFFFFBEB));
+                      final badgeBorder = isSubmitted ? const Color(0xFFA7F3D0) : (isPending ? const Color(0xFFFECDD3) : const Color(0xFFFDE68A));
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -598,7 +598,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         child: _attendanceMetricTile(
                           'Today Status',
                           weekRecords.isNotEmpty ? weekRecords.first.status : (isAbsent ? 'Absent' : 'Present'),
-                          weekRecords.isNotEmpty ? weekRecords.first.statusColor : (isAbsent ? const Color(0xFF4338CA) : const Color(0xFF059669)),
+                          weekRecords.isNotEmpty ? weekRecords.first.statusColor : (isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669)),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -608,7 +608,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                           '$realAttendancePercent%',
                           realAttendancePercent >= 80
                               ? const Color(0xFF059669)
-                              : (realAttendancePercent > 0 ? const Color(0xFFD97706) : const Color(0xFF4338CA)),
+                              : (realAttendancePercent > 0 ? const Color(0xFFD97706) : const Color(0xFFE11D48)),
                           tuesdayOvertimeCount > 0 ? '+$tuesdayOvertimeCount Tuesday OT' : null,
                         ),
                       ),
@@ -678,7 +678,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
           ),
           if (subLabel != null) ...[
             const SizedBox(height: 1),
-            Text(subLabel, style: const TextStyle(fontSize: 10, color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600)),
+            Text(subLabel, style: const TextStyle(fontSize: 10, color: Color(0xFFF65C8F), fontWeight: FontWeight.w600)),
           ],
         ],
       ),
@@ -729,10 +729,10 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isFemale ? const Color(0xFFEEF0FF) : const Color(0xFFEFF6FF),
+                  color: isFemale ? const Color(0xFFFFF1F4) : const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: isFemale ? const Color(0xFFC7D2FE) : const Color(0xFFBFDBFE),
+                    color: isFemale ? const Color(0xFFFECDD3) : const Color(0xFFBFDBFE),
                   ),
                 ),
                 child: Text(
@@ -767,7 +767,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     fontWeight: FontWeight.bold,
                     color: isPendingAudit
                         ? AppColors.textMuted
-                        : (isCompliant ? const Color(0xFF059669) : const Color(0xFF4338CA)),
+                        : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
                   ),
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
@@ -861,7 +861,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                       decoration: BoxDecoration(
-                        color: isChecked ? const Color(0xFFECFDF5) : const Color(0xFFEEF0FF),
+                        color: isChecked ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F4),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -869,7 +869,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isChecked ? const Color(0xFF059669) : const Color(0xFF4338CA),
+                          color: isChecked ? const Color(0xFF059669) : const Color(0xFFE11D48),
                         ),
                       ),
                     ),

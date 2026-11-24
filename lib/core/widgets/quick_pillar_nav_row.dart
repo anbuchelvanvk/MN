@@ -30,8 +30,8 @@ class QuickPillarNavRow extends StatelessWidget {
                   child: _PillarItem(
                     title: 'Health',
                     icon: Icons.favorite_rounded,
-                    primaryColor: const Color(0xFF4338CA),
-                    bgColor: const Color(0xFFEEF0FF),
+                    primaryColor: const Color(0xFFE11D48),
+                    bgColor: const Color(0xFFFFF1F4),
                     badgeCount: eco.healthPillarBadgeCount,
                     onTap: () {
                       Navigator.push(
@@ -46,8 +46,8 @@ class QuickPillarNavRow extends StatelessWidget {
                   child: _PillarItem(
                     title: 'Family',
                     icon: Icons.family_restroom_rounded,
-                    primaryColor: const Color(0xFF7C3AED),
-                    bgColor: const Color(0xFFF5F3FF),
+                    primaryColor: const Color(0xFFBE185D),
+                    bgColor: const Color(0xFFFFF3F7),
                     badgeCount: eco.familyPillarBadgeCount,
                     onTap: () {
                       Navigator.push(

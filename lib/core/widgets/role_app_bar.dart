@@ -100,7 +100,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: AppColors.gold,
+                        color: AppColors.heroAccent,
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.indigoDeep, width: 1.5),
                       ),
@@ -109,7 +109,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                       constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
                       decoration: BoxDecoration(
-                        color: AppColors.gold,
+                        color: AppColors.heroAccent,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.indigoDeep, width: 1.5),
                       ),
@@ -137,7 +137,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
         gradient: AppColors.heroGradient,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
         boxShadow: [
-          BoxShadow(color: Color(0x2914123A), blurRadius: 18, offset: Offset(0, 6)),
+          BoxShadow(color: Color(0x292A0F22), blurRadius: 18, offset: Offset(0, 6)),
         ],
       ),
       child: SafeArea(
@@ -167,7 +167,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                             height: 7,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.gold,
+                              color: AppColors.heroAccent,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -177,7 +177,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                               style: const TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFFC9CBEA),
+                                color: Color(0xFFFFD6E5),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -195,12 +195,12 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       decoration: BoxDecoration(
                         color: const Color(0x1FFFFFFF),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0x40E2C26E), width: 0.8),
+                        border: Border.all(color: const Color(0x40FFD6E5), width: 0.8),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.swap_horiz_rounded, size: 12, color: AppColors.goldBright),
+                          Icon(Icons.swap_horiz_rounded, size: 12, color: AppColors.heroAccent),
                           SizedBox(width: 4),
                           Text(
                             'Switch Role',
@@ -233,7 +233,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                     height: 40,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.gold, width: 1.2),
+                      border: Border.all(color: AppColors.heroAccent, width: 1.2),
                       color: Colors.black,
                     ),
                     child: ClipRRect(
@@ -243,7 +243,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.diamond_outlined,
-                          color: AppColors.gold,
+                          color: AppColors.heroAccent,
                           size: 18,
                         ),
                       ),
@@ -270,7 +270,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10.5,
                             letterSpacing: 1.2,
-                            color: AppColors.goldBright,
+                            color: AppColors.heroAccent,
                             fontWeight: FontWeight.w700,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -333,7 +333,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x1A211B99),
+                color: Color(0x1A991B45),
                 blurRadius: 24,
                 offset: Offset(0, -4),
               ),
@@ -461,13 +461,13 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                     final unreadChats = eco.unreadTotalChatCount;
                     return _menuItemTile(
                       icon: Icons.chat_bubble_outline_rounded,
-                      iconColor: const Color(0xFF6366F1),
+                      iconColor: const Color(0xFFF43F5E),
                       title: 'MN Team Chat',
                       subtitle: unreadChats > 0
                           ? '$unreadChats unread messages'
                           : 'Direct & All-Hands team messaging',
                       badgeText: unreadChats > 0 ? '$unreadChats' : null,
-                      badgeColor: const Color(0xFF6366F1),
+                      badgeColor: const Color(0xFFF43F5E),
                       onTap: () {
                         Navigator.pop(ctx);
                         Navigator.push(
@@ -540,7 +540,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 // 3. MN Family Pillars
                 _menuItemTile(
                   icon: Icons.inventory_2_outlined,
-                  iconColor: const Color(0xFFA78BFA),
+                  iconColor: const Color(0xFFFA8BB0),
                   title: 'MN Family Pillars',
                   subtitle: 'Health, Family, Profile, Attendance & Social',
                   onTap: () {

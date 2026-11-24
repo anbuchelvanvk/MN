@@ -1260,7 +1260,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF0FF),
+                      color: const Color(0xFFFFF1F4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(roleConfig.icon, color: AppColors.magentaPrimary, size: 16),
@@ -2152,14 +2152,14 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           badgeColor = const Color(0xFFF59E0B);
                         } else if (now.hour >= 21 || now.hour < 9) {
                           badgeText = 'Off Duty (9 PM)';
-                          badgeColor = const Color(0xFF8B5CF6);
+                          badgeColor = const Color(0xFFF65C8F);
                         } else if (summary.logoutPunch != null || summary.status == DailyAttendanceStatus.completed) {
                           if (summary.netWorkHours > 0 && summary.netWorkHours < 8.0) {
                             badgeText = 'Left Early';
                             badgeColor = const Color(0xFFF59E0B);
                           } else {
                             badgeText = 'Shift Over';
-                            badgeColor = const Color(0xFF8B5CF6);
+                            badgeColor = const Color(0xFFF65C8F);
                           }
                         } else if (summary.isCurrentlyOnLunch) {
                           badgeText = 'On Lunch';
@@ -2178,7 +2178,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isAbsent ? const Color(0xFFEEF0FF) : AppColors.whiteBg,
+                            color: isAbsent ? const Color(0xFFFFF1F4) : AppColors.whiteBg,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: badgeColor.withOpacity(0.3),
@@ -2592,7 +2592,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.volunteer_activism_outlined, size: 16, color: Color(0xFF7C3AED)),
+                    const Icon(Icons.volunteer_activism_outlined, size: 16, color: Color(0xFFBE185D)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -2616,7 +2616,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: deeds.isNotEmpty ? const Color(0xFFE0E7FF) : const Color(0xFFF1F5F9),
+                        color: deeds.isNotEmpty ? const Color(0xFFFFE4E6) : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -2624,7 +2624,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
-                          color: deeds.isNotEmpty ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
+                          color: deeds.isNotEmpty ? const Color(0xFFBE185D) : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -2725,11 +2725,11 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF7C3AED),
+                            color: Color(0xFFBE185D),
                           ),
                         ),
                         SizedBox(width: 3),
-                        Icon(Icons.arrow_forward_ios, size: 9, color: Color(0xFF7C3AED)),
+                        Icon(Icons.arrow_forward_ios, size: 9, color: Color(0xFFBE185D)),
                       ],
                     ),
                   ),
@@ -2796,7 +2796,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.cake_outlined, size: 16, color: Color(0xFF8B5CF6)),
+                const Icon(Icons.cake_outlined, size: 16, color: Color(0xFFF65C8F)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -2826,7 +2826,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                     style: const TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF7C3AED),
+                      color: Color(0xFFBE185D),
                     ),
                   ),
                 ),
@@ -3435,7 +3435,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
         color: AppColors.burgundyCard,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isAbsent ? const Color(0xFFC7D2FE).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.6),
+          color: isAbsent ? const Color(0xFFFECDD3).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.6),
         ),
       ),
       child: Column(
@@ -3514,7 +3514,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFEEF0FF),
+              color: const Color(0xFFFFF1F4),
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
               border: Border(top: BorderSide(color: AppColors.sandBorder)),
             ),
@@ -4215,10 +4215,10 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: selectedGender == 'Female' ? const Color(0xFFEEF0FF) : const Color(0xFFF0F9FF),
+                            color: selectedGender == 'Female' ? const Color(0xFFFFF1F4) : const Color(0xFFF0F9FF),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: selectedGender == 'Female' ? const Color(0xFFC7D2FE) : const Color(0xFFBAE6FD),
+                              color: selectedGender == 'Female' ? const Color(0xFFFECDD3) : const Color(0xFFBAE6FD),
                             ),
                           ),
                           child: Text(
@@ -4226,7 +4226,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: selectedGender == 'Female' ? const Color(0xFF4F46E5) : const Color(0xFF0284C7),
+                              color: selectedGender == 'Female' ? const Color(0xFFBE185D) : const Color(0xFF0284C7),
                             ),
                           ),
                         ),

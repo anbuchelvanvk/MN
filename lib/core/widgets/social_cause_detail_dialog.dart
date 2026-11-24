@@ -384,14 +384,14 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFEEF2FF),
+                                        color: const Color(0xFFFFF1F4),
                                         borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: const Color(0xFFC7D2FE)),
+                                        border: Border.all(color: const Color(0xFFFECDD3)),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.mode_comment_outlined, size: 15, color: Color(0xFF4F46E5)),
+                                          const Icon(Icons.mode_comment_outlined, size: 15, color: Color(0xFFBE185D)),
                                           const SizedBox(width: 5),
                                           Text(
                                             notif != null && notif.commentsCount > 0
@@ -400,7 +400,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                             style: GoogleFonts.plusJakartaSans(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
-                                              color: const Color(0xFF4F46E5),
+                                              color: const Color(0xFFBE185D),
                                             ),
                                           ),
                                         ],

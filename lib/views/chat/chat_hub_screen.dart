@@ -298,7 +298,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
               height: 46,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF1E1B4B), Color(0xFFB45309)],
+                  colors: [Color(0xFF881337), Color(0xFFB45309)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
