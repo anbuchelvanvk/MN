@@ -12,6 +12,7 @@ import '../../models/employee_model.dart';
 import '../../models/task_model.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../hr/hr_employee_inspection_screen.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 /// Reusable Scaffold for all Team Lead Subpages (Clean White/Magenta styling with top-left back button)
 class TlSubpageScaffold extends StatelessWidget {
@@ -34,46 +35,10 @@ class TlSubpageScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (subtitle != null && subtitle!.isNotEmpty)
-              Text(
-                subtitle!,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  color: AppColors.textMuted,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-          ],
-        ),
+      appBar: MnAppBar(
+        title: title,
+        subtitle: subtitle,
         actions: actions,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFE2E8F0), height: 1),
-        ),
       ),
       floatingActionButton: floatingActionButton,
       body: SingleChildScrollView(
@@ -511,18 +476,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final isTuesday = DateTime.now().weekday == DateTime.tuesday;
-    final curDept = eco.currentEmployee.dept.trim().toLowerCase();
-    final isOnlineOrOps = curDept.contains('online') ||
-        curDept.contains('operation') ||
-        eco.currentEmployee.isOtm ||
-        eco.currentEmployee.roleCode == 'OTM';
-    final teamMembers = eco.employees.where((e) {
-      if (!e.hasAttendanceAndGrooming) return false;
-      if (e.id == eco.currentEmployee.id) return false;
-      if (curDept.isEmpty || isOnlineOrOps) return true;
-      final eDept = e.dept.trim().toLowerCase();
-      return eDept == curDept;
-    }).toList();
+    final teamMembers = eco.myTeamMembers.where((e) => e.hasAttendanceAndGrooming).toList();
     final teamAbsentees = teamMembers.where((e) => eco.isEmployeeAbsent(e.id)).toList();
     final subtitleText = isTuesday
         ? 'Tuesday Week-off • ${teamMembers.length} Total Team'
@@ -1079,19 +1033,7 @@ class TlTeamDirectoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final curDept = eco.currentEmployee.dept.trim().toLowerCase();
-    final teamMembers = eco.employees.where((e) {
-      final isCeo = e.roleType == 'ceo' || e.role.toLowerCase().contains('ceo') || e.id.toUpperCase().contains('CEO');
-      final isHr = e.roleType == 'hr' || e.role.toLowerCase().contains('hr') || e.id.toUpperCase().contains('HR');
-      final isSelf = e.id == eco.currentEmployee.id;
-      if (isCeo || isHr || isSelf) return false;
-      if (curDept.isEmpty) return true;
-      final eDept = e.dept.trim().toLowerCase();
-      if (curDept.contains('online')) {
-        return eDept.contains('online') || eDept.contains('operation');
-      }
-      return eDept == curDept;
-    }).toList();
+    final teamMembers = eco.myTeamMembers;
 
     final deptName = eco.currentEmployee.dept.isNotEmpty ? eco.currentEmployee.dept : 'Department';
     return TlSubpageScaffold(

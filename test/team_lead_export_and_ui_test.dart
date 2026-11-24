@@ -100,7 +100,7 @@ void main() {
       expect(find.text('BIOMETRIC PUNCH AUDIT TRAIL', skipOffstage: false), findsNothing);
 
       // Verify Gateway card has high-contrast 'Green Factor' and 'Attendance Pending'
-      expect(find.text('Green Factor', skipOffstage: false), findsOneWidget);
+      expect(find.text('Status', skipOffstage: false), findsOneWidget);
       expect(find.text('Attendance Pending', skipOffstage: false), findsOneWidget);
     });
   });

@@ -155,7 +155,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  'Pillar 5 • Act of Kindness & CSR',
+                                  'Act of kindness',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     color: AppColors.textSecondary,

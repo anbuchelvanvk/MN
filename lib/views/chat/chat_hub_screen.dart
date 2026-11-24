@@ -7,6 +7,7 @@ import '../../models/employee_model.dart';
 import '../../models/chat_message_model.dart';
 import '../../providers/ecosystem_provider.dart';
 import 'chat_conversation_screen.dart';
+import '../../core/widgets/employee_avatar.dart';
 
 class ChatHubScreen extends StatefulWidget {
   /// Called by the back button when the hub is the first page of a floating chat window.
@@ -148,7 +149,6 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
               indicatorColor: AppColors.magentaPrimary,
               labelColor: AppColors.magentaPrimary,
               unselectedLabelColor: const Color(0xFF64748B),
-              labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               tabs: [
                 Tab(
                   child: Row(
@@ -440,9 +440,9 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
 
   Widget _buildPeerChatCard(
       BuildContext context, Employee peer, ChatMessage? lastMsg, int unreadCount, bool hasMention) {
-    final initials = peer.name.isNotEmpty
-        ? peer.name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
-        : '??';
+    final initials = peer.name.trim().isNotEmpty
+        ? peer.name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).map((p) => p[0]).take(2).join().toUpperCase()
+        : '?';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -476,35 +476,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
           );
         },
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        leading: Stack(
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: const Color(0xFFF1F5F9),
-              child: Text(
-                initials,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF475569),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-              ),
-            ),
-          ],
-        ),
+        leading: EmployeeAvatar(avatar: peer.avatar, initials: initials, size: 44),
         title: Text(
           peer.name,
           style: GoogleFonts.plusJakartaSans(
@@ -591,7 +563,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
 
   Widget _buildDirectoryCard(BuildContext context, Employee emp) {
     final initials = emp.name.isNotEmpty
-        ? emp.name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
+        ? emp.name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).map((p) => p[0]).take(2).join().toUpperCase()
         : '??';
 
     return Container(

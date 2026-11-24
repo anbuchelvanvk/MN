@@ -3,13 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/liquid_glass.dart';
 import '../../models/employee_model.dart';
 import '../../models/hr_attendance_sheet_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../ceo/ceo_subpages.dart';
 import '../dept_head/dept_head_subpages.dart';
 import 'tier_pillar_screen.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 class AttendancePillarScreen extends StatefulWidget {
   const AttendancePillarScreen({super.key});
@@ -40,59 +40,11 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'ATTENDANCE',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.sandLight,
-                letterSpacing: 0.8,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              isExempt
-                  ? 'Leadership Governance • Exempt from Shift Roster'
-                  : '${sheet?.monthTitle ?? "November 2026"} • Official HR Master Ledger',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11.5,
-                color: AppColors.sandGold,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: Center(
-              child: LiquidGlassPill(
-                label: isExempt ? 'EXEMPT' : 'PILLAR 4 • HR AUDIT',
-                color: isExempt
-                    ? const Color(0xFF10B981)
-                    : AppColors.magentaPrimary,
-                icon: isExempt
-                    ? Icons.verified
-                    : Icons.assignment_turned_in_rounded,
-              ),
-            ),
-          ),
-        ],
+      appBar: MnAppBar(
+        title: 'Attendance',
+        subtitle: isExempt
+            ? 'Exempt from the shift roster'
+            : '${_titleCase(sheet?.monthTitle ?? 'This month')} • from the HR attendance sheet',
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -247,7 +199,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'OFFICIAL HR ATTENDANCE RECORDING',
+                        'HOW ATTENDANCE WORKS',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
@@ -491,7 +443,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
             // 🟦 MNW (Official Work Outside)
             Expanded(
               child: _kpiMetricCard(
-                title: 'MNW (OFFICIAL)',
+                title: 'FIELD VISITS (MNW)',
                 value: '$mnwDays Days',
                 subtext: 'Official client & field visits',
                 bgColor: const Color(0xFFDBEAFE),
@@ -616,7 +568,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'RECENT ATTENDANCE PERFORMANCE',
+                            'LAST 7 DAYS',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
@@ -773,7 +725,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '$monthTitle ATTENDANCE LEDGER',
+                      '$monthTitle CALENDAR',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.bold,
@@ -1338,7 +1290,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                           const SizedBox(width: 5),
                           Flexible(
                             child: Text(
-                              'Green Factor',
+                              'Status',
                               style: TextStyle(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -1395,7 +1347,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Sovereign Green Light Impact',
+                          'Impact on your overall status',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -1404,7 +1356,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Pillar 4 attendance & leaves tally into your monthly Sovereign Tier scoring',
+                          'Attendance and leaves count towards your monthly score',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             color: AppColors.textMuted,
@@ -1442,3 +1394,9 @@ String _ordinal(int n) {
       return '${n}th';
   }
 }
+
+String _titleCase(String s) => s
+    .toLowerCase()
+    .split(' ')
+    .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+    .join(' ');

@@ -49,8 +49,8 @@ void main() {
 
       // 4. Konar Book Banner
       expect(find.textContaining('Konar Book'), findsWidgets);
-      expect(find.text('View Full Book'), findsOneWidget);
-      expect(find.text('Download Book'), findsOneWidget);
+      expect(find.byTooltip('Download PDF'), findsOneWidget);
+      expect(find.byTooltip('Share PDF'), findsOneWidget);
 
       // 5. Personal To-Do List Section uses real counts
       expect(find.text('Add To Do'), findsOneWidget);
@@ -285,7 +285,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Steps and calories come from the real logs
-      expect(find.text('Steps today'), findsOneWidget);
+      expect(find.text('Steps'), findsOneWidget);
       expect(find.text('4,444'), findsOneWidget);
       expect(find.text('Calories'), findsOneWidget);
       expect(find.text('1500 / 2000'), findsOneWidget);

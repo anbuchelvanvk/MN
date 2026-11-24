@@ -969,9 +969,9 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
   }
 
   String _getActionTextForPillar(String title) {
-    if (title.contains('Health')) return 'Go to Pillar 1 (Health)';
-    if (title.contains('Family')) return 'Go to Pillar 2 (Family)';
-    if (title.contains('Profile')) return 'Go to Pillar 3 (Profile)';
+    if (title.contains('Health')) return 'Open Health';
+    if (title.contains('Family')) return 'Open Family Time';
+    if (title.contains('Profile')) return 'Open Work';
     return 'Go to Pillar 4 (Attendance)';
   }
 

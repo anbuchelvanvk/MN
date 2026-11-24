@@ -21,6 +21,7 @@ import '../ceo/ceo_suite_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_books_directory_screen.dart';
+import '../../core/widgets/employee_avatar.dart';
 
 class HrPortalScreen extends StatefulWidget {
   const HrPortalScreen({super.key});
@@ -158,18 +159,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            (isCeo ? eco.currentEmployee.initials : hrEmp.initials).isNotEmpty
-                                ? (isCeo ? eco.currentEmployee.initials : hrEmp.initials)
-                                : 'MG',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                        child: EmployeeAvatar(avatar: (isCeo ? eco.currentEmployee : hrEmp).avatar, initials: (isCeo ? eco.currentEmployee : hrEmp).initials, size: 48),
                       ),
                       const SizedBox(width: 12),
                       Expanded(

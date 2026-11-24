@@ -14,6 +14,7 @@ import 'hr_biometric_punch_audit_screen.dart';
 import 'hr_employee_inspection_screen.dart';
 import 'hr_management_widgets.dart';
 import '../../core/utils/password_generator.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 // ============================================================================
 // 1. REUSABLE HR SUBPAGE SCAFFOLD (Standard Top-Left Back Button Architecture)
@@ -38,40 +39,10 @@ class HrSubpageScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-            if (subtitle != null && subtitle!.isNotEmpty)
-              Text(
-                subtitle!,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  color: AppColors.textMuted,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-          ],
-        ),
+      appBar: MnAppBar(
+        title: title,
+        subtitle: subtitle,
         actions: actions,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFE2E8F0), height: 1),
-        ),
       ),
       floatingActionButton: floatingActionButton,
       body: SingleChildScrollView(
@@ -1550,7 +1521,7 @@ class HrSocialCausesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return HrSubpageScaffold(
       title: 'Social Causes',
-      subtitle: 'Pillar 5 Workforce Approval',
+      subtitle: 'Review staff good deeds',
       body: HrSocialCauseApprovalSection(
         reviewerName: '${context.read<EcosystemProvider>().currentEmployee.name} (HR)',
         reviewerRole: 'HR Manager & Custodian',

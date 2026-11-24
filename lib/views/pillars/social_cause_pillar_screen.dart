@@ -8,6 +8,7 @@ import '../../models/social_cause_models.dart';
 import '../../services/image_optimization_service.dart';
 import '../../core/widgets/social_cause_detail_dialog.dart';
 import '../ceo/ceo_subpages.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 class SocialCausePillarScreen extends StatefulWidget {
   final bool isStandalone;
@@ -151,37 +152,14 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyCard,
-        elevation: 0,
-        titleSpacing: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Social Cause',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.sandGold,
-              ),
-            ),
-            const Text(
-              'Pillar 5 • Occasional Cadence',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ],
-        ),
+      appBar: MnAppBar(
+        title: 'Social Cause',
+        subtitle: 'Good deeds and community service',
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: AppColors.sandGold),
-            tooltip: 'Post Good Deed',
-            onPressed: () => _showPostSocialCauseDialog(context, eco),
+          MnHeaderPill(
+            icon: Icons.add_rounded,
+            label: 'Post',
+            onTap: () => _showPostSocialCauseDialog(context, eco),
           ),
         ],
       ),
@@ -233,7 +211,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                     ),
                     const SizedBox(height: 2),
                     const Text(
-                      'Kindness, Community Service & Good Deeds • Occasional Cadence',
+                      'Kindness, community service & good deeds',
                       style: TextStyle(fontSize: 11.5, color: Color(0xFFE11D48), fontWeight: FontWeight.w600),
                     ),
                   ],

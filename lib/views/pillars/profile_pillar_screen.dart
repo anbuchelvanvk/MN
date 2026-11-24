@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
-import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../models/employee_model.dart';
 import '../../models/profile_document_models.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -13,6 +12,7 @@ import '../dept_head/dept_head_subpages.dart';
 import '../employee/employee_subpages.dart';
 import 'tier_pillar_screen.dart';
 import '../../core/widgets/employee_avatar.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 class ProfilePillarScreen extends StatefulWidget {
   const ProfilePillarScreen({super.key});
@@ -54,43 +54,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'WORK & OPERATIONS',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 140),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: LiquidGlassPill(
-                label: employee.dept.toUpperCase(),
-                color: AppColors.sandGold,
-                icon: Icons.badge_outlined,
-              ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      appBar: MnAppBar(
+        title: 'Work',
+        subtitle: '${employee.dept} • tasks, documents and grooming',
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -159,10 +125,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
             // 5. Direct Gateway to Pillar 4: Tier Rating
             _buildPillar4Gateway(context, provider),
-            const SizedBox(height: 12),
-
-            // Logout Button
-            LogoutConfirmDialog.buildButton(context),
             const SizedBox(height: 24),
           ],
         ),
@@ -265,22 +227,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.sandGold.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
-                      ),
-                      child: Text(
-                        'Occasional',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.sandGold,
-                        ),
-                      ),
-                    ),
+                    const SizedBox.shrink(),
                   ],
                 ),
               ],
@@ -322,7 +269,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'MY WORK & TO-DO TASKS',
+                            'MY TASKS',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
@@ -463,7 +410,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        'WORK & OPERATIONS RINGS',
+                        'YOUR WORK OVERVIEW',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -477,27 +424,12 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.sandGold.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-                ),
-                child: Text(
-                  'WORK PILLAR 3',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.sandGold,
-                  ),
-                ),
-              ),
+              const SizedBox.shrink(),
             ],
           ),
           const SizedBox(height: 6),
           Text(
-            'Tap any ring to inspect individual subsystem audits, policies, and actions.',
+            'Tap a ring for details.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11.5,
               color: AppColors.textMuted,
@@ -759,21 +691,21 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     if (employee.isOtm) {
       // Praveenkumar (OTM) guides his Online Department team
       tabs = [
-        {'index': 0, 'label': '1. Team Attendance Overview', 'icon': Icons.fact_check_outlined},
-        {'index': 1, 'label': '2. Team Vault Custody', 'icon': Icons.shield_outlined},
-        {'index': 2, 'label': '3. Team Grooming Inspection', 'icon': Icons.face_retouching_natural},
+        {'index': 0, 'label': 'Team Attendance Overview', 'icon': Icons.fact_check_outlined},
+        {'index': 1, 'label': 'Team Vault Custody', 'icon': Icons.shield_outlined},
+        {'index': 2, 'label': 'Team Grooming Inspection', 'icon': Icons.face_retouching_natural},
       ];
     } else if (employee.isCeo) {
       // CEO inspects staff attendance and document vault custody
       tabs = [
-        {'index': 0, 'label': '1. Staff Attendance Overview', 'icon': Icons.fact_check_outlined},
-        {'index': 1, 'label': '2. Staff Document Vault Ledger', 'icon': Icons.lock_clock_outlined},
+        {'index': 0, 'label': 'Staff Attendance Overview', 'icon': Icons.fact_check_outlined},
+        {'index': 1, 'label': 'Staff Document Vault Ledger', 'icon': Icons.lock_clock_outlined},
       ];
     } else {
       tabs = [
-        {'index': 0, 'label': '1. Calendar Attendance', 'icon': Icons.fact_check_outlined},
-        {'index': 1, 'label': '2. Vault Custody', 'icon': Icons.lock_clock_outlined},
-        {'index': 2, 'label': '3. Grooming & Attire', 'icon': Icons.face_retouching_natural},
+        {'index': 0, 'label': 'Calendar Attendance', 'icon': Icons.fact_check_outlined},
+        {'index': 1, 'label': 'Vault Custody', 'icon': Icons.lock_clock_outlined},
+        {'index': 2, 'label': 'Grooming & Attire', 'icon': Icons.face_retouching_natural},
       ];
     }
 
@@ -2546,7 +2478,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             children: [
               Flexible(
                 child: LiquidGlassPill(
-                  label: 'GREEN FACTOR',
+                  label: 'STATUS',
                   color: AppColors.magentaPrimary,
                   icon: Icons.light_mode,
                 ),

@@ -1,14 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/network_connectivity_service.dart';
 import 'core/services/push_notification_service.dart';
+import 'core/services/session_store.dart';
 import 'core/widgets/internet_connection_banner.dart';
 import 'core/widgets/app_notification_host.dart';
 import 'providers/ecosystem_provider.dart';
@@ -32,21 +31,14 @@ void main() async {
   // Initialize Network Connectivity Monitoring
   NetworkConnectivityService().initialize();
 
-  // S-08: Only restore session if Firebase Auth has an authentic active user session
+  // Restore the signed-in session (stays logged in until the user taps Logout).
   String? initialEmpId;
   String? initialRole;
   try {
-    // On web the persisted user is restored asynchronously, so wait briefly
-    // for the first auth state instead of reading currentUser immediately.
-    final restoredUser = FirebaseAuth.instance.currentUser ??
-        await FirebaseAuth.instance
-            .authStateChanges()
-            .first
-            .timeout(const Duration(seconds: 3), onTimeout: () => null);
-    if (restoredUser != null) {
-      final prefs = await SharedPreferences.getInstance();
-      initialEmpId = prefs.getString('saved_emp_id');
-      initialRole = prefs.getString('saved_role');
+    final session = await SessionStore.restore();
+    if (session != null) {
+      initialEmpId = session.empId;
+      initialRole = session.role;
     }
   } catch (_) {}
 

@@ -90,7 +90,7 @@ void main() {
 
       // Must navigate to ProfilePillarScreen (Pillar 3 Work & Operations Suite)
       expect(find.byType(ProfilePillarScreen), findsOneWidget);
-      expect(find.text('WORK & OPERATIONS'), findsOneWidget);
+      expect(find.text('Work'), findsOneWidget);
     });
 
     testWidgets('AttendancePillarScreen displays Exemption card for External Support Staff', (tester) async {

@@ -21,6 +21,7 @@ import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../konar/konar_book_detail_screen.dart';
 import '../media/creative_media_review_board_screen.dart';
 import '../home/modern_home_screen.dart';
+import '../../core/widgets/employee_avatar.dart';
 
 class DeptHeadPortalScreen extends StatefulWidget {
   const DeptHeadPortalScreen({super.key});
@@ -56,19 +57,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
     final opsTasks = eco.operationsDeptTasks;
     final openCount = opsTasks.where((t) => t.isPending).length;
     final postponedCount = opsTasks.where((t) => t.isPostponed).length;
-    final curDept = eco.currentEmployee.dept.trim().toLowerCase();
-    final teamMembers = eco.employees.where((e) {
-      final isCeo = e.roleType == 'ceo' || e.role.toLowerCase().contains('ceo') || e.id.toUpperCase().contains('CEO');
-      final isHr = e.roleType == 'hr' || e.role.toLowerCase().contains('hr') || e.id.toUpperCase().contains('HR');
-      final isSelf = e.id == eco.currentEmployee.id;
-      if (isCeo || isHr || isSelf) return false;
-      if (curDept.isEmpty) return true;
-      final eDept = e.dept.trim().toLowerCase();
-      if (curDept.contains('online')) {
-        return eDept.contains('online') || eDept.contains('operation');
-      }
-      return eDept == curDept;
-    }).toList();
+    final teamMembers = eco.myTeamMembers;
     final teamAbsentees = teamMembers.where((m) => eco.isEmployeeAbsent(m.id)).toList();
 
     return Scaffold(
@@ -124,16 +113,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                               ),
                             ],
                           ),
-                          child: Center(
-                            child: Text(
-                              eco.currentEmployee.initials,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 17,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          child: EmployeeAvatar(avatar: eco.currentEmployee.avatar, initials: eco.currentEmployee.initials, size: 50),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -261,7 +241,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'TEAM OPERATIONS PORTALS',
+                          'TEAM TOOLS',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
@@ -273,7 +253,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Direct Access',
+                        '',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -285,11 +265,11 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                   const SizedBox(height: 12),
                   Column(
                     children: [
-                      _verticalTabTile(const ModernHomeScreen(), 'OTM Home Dashboard', Icons.dashboard_customize_outlined, 'V2'),
+                      _verticalTabTile(const ModernHomeScreen(), 'Home Dashboard', Icons.dashboard_customize_outlined, ''),
                       const SizedBox(height: 8),
                       _verticalTabTile(const ChatHubScreen(), 'Team Chat', Icons.chat_bubble_outline_rounded, eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : ''),
                       const SizedBox(height: 8),
-                      _verticalTabTile(const CreativeMediaReviewBoardScreen(), 'Media Review Board', Icons.video_collection_outlined, eco.pendingMediaApprovalsCount > 0 ? '${eco.pendingMediaApprovalsCount}' : 'DAM'),
+                      _verticalTabTile(const CreativeMediaReviewBoardScreen(), 'Media Review Board', Icons.video_collection_outlined, eco.pendingMediaApprovalsCount > 0 ? '${eco.pendingMediaApprovalsCount}' : ''),
                       const SizedBox(height: 8),
                       _verticalTabTile(
                         KonarBookDetailScreen(
@@ -299,14 +279,14 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                         ),
                         'KONAR Book',
                         Icons.menu_book_rounded,
-                        eco.currentEmployee.dept.toLowerCase().contains('online') ? 'OTM' : 'SOP',
+                        '',
                       ),
                       const SizedBox(height: 8),
                       _verticalTabTile(
                         const MonthlyScorecardScreen(),
                         'Monthly Scorecard',
                         Icons.assessment_outlined,
-                        eco.currentEmployee.dept.toLowerCase().contains('online') ? 'OTM' : 'SOP',
+                        '',
                       ),
                       const SizedBox(height: 8),
                       _verticalTabTile(const TlTeamTasksScreen(), 'Team Tasks', Icons.assignment_outlined, opsTasks.isNotEmpty ? '${opsTasks.length}' : ''),

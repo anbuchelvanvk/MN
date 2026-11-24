@@ -37,6 +37,7 @@ import '../pillars/family_pillar_screen.dart';
 import 'admin_role_access_management_screen.dart';
 import '../media/creative_media_review_board_screen.dart';
 import '../../core/utils/password_generator.dart';
+import '../../core/widgets/employee_avatar.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   const CeoSuiteScreen({super.key});
@@ -193,16 +194,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                               ),
                             ],
                           ),
-                          child: Center(
-                            child: Text(
-                              ceoEmp.initials,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          child: EmployeeAvatar(avatar: ceoEmp.avatar, initials: ceoEmp.initials, size: 50),
                         ),
                         const SizedBox(width: 14),
                         Expanded(

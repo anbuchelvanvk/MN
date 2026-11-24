@@ -30,7 +30,7 @@ void main() {
 
       // Brand title should be present
       expect(find.text('MN JEWEL PARK'), findsOneWidget);
-      expect(find.text('EXECUTIVE SUITE'), findsOneWidget);
+      expect(find.text('CEO SUITE'), findsOneWidget);
 
       // Hamburger button should be present
       expect(find.byKey(const ValueKey('role_app_bar_hamburger')), findsOneWidget);

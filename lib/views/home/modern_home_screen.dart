@@ -732,7 +732,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ringLabel: 'BMI',
         ringColor: bmiColor,
         stats: [
-          ('Steps today', stepsFormatted),
+          ('Steps', stepsFormatted),
           ('Calories', '${todayCal.round()} / ${targetCal.round()}'),
         ],
         onTap: () => _open(context, const HealthPillarScreen()),
@@ -763,7 +763,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ringColor: workPercentColor,
         stats: [
           ('Pending', '$pendingTasks'),
-          ('Postponed', '$postponedTasks'),
+          ('Later', '$postponedTasks'),
         ],
         onTap: () => _open(context, const ProfilePillarScreen()),
       ),
@@ -971,15 +971,18 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               Row(
                                 children: [
                                   Expanded(
+                                    flex: 5,
                                     child: Text(
                                       stats[i].$1,
                                       maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      softWrap: false,
+                                      overflow: TextOverflow.fade,
                                       style: GoogleFonts.outfit(fontSize: 12, color: muted),
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(width: 4),
                                   Flexible(
+                                    flex: 4,
                                     child: FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: Alignment.centerRight,
@@ -1072,181 +1075,96 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   }
 
   Widget _buildKonarBookBanner(BuildContext context, EcosystemProvider eco) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: const Color(0xFFFFE4E6).withOpacity(0.8),
-          width: 1.2,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 14,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      child: Row(
-        children: [
-          // Stylized Maroon Book Graphic
-          SizedBox(
-            width: 52,
-            height: 60,
-            child: CustomPaint(
-              painter: _KonarBookIconPainter(),
+    void openBook() => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => KonarBookDetailScreen(
+              department: eco.currentEmployee.dept.isNotEmpty
+                  ? eco.currentEmployee.dept
+                  : 'Online Department',
             ),
           ),
-          const SizedBox(width: 12),
+        );
 
-          // Title & Action Buttons
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${_deptLabel(eco.currentEmployee.dept)} Konar Book',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF881337),
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Official department handbook',
-                  style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFF64748B)),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+    Widget roundAction(IconData icon, String tip, VoidCallback onTap) => Tooltip(
+          message: tip,
+          child: Material(
+            color: const Color(0xFFFDF2F8),
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onTap,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(icon, size: 20, color: const Color(0xFF881337)),
+              ),
+            ),
+          ),
+        );
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: openBook,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFF5D0E0), width: 1.2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x14881337), blurRadius: 18, offset: Offset(0, 6)),
+            ],
+          ),
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 46,
+                height: 54,
+                child: CustomPaint(painter: _KonarBookIconPainter()),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // View Full Book Button
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => KonarBookDetailScreen(
-                              department: eco.currentEmployee.dept.isNotEmpty
-                                  ? eco.currentEmployee.dept
-                                  : 'Online Department',
-                            ),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF881337),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.menu_book_rounded,
-                              size: 13,
-                              color: Color(0xFFFDE68A),
-                            ),
-                            const SizedBox(width: 5),
-                            Flexible(
-                              child: Text(
-                              'View Full Book',
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.outfit(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            ),
-                          ],
-                        ),
+                    Text(
+                      '${_deptLabel(eco.currentEmployee.dept)} Konar Book',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF881337),
+                        height: 1.15,
                       ),
                     ),
-
-                    // Download Book Button
-                    InkWell(
-                      onTap: () => _downloadKonarBook(context, eco, share: false),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF881337),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.file_download_outlined,
-                              size: 13,
-                              color: Color(0xFFFDE68A),
-                            ),
-                            const SizedBox(width: 5),
-                            Flexible(
-                              child: Text(
-                              'Download Book',
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.outfit(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Share Icon Button
-                    InkWell(
-                      onTap: () => _downloadKonarBook(context, eco, share: true),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF881337),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.reply_rounded,
-                          size: 16,
-                          color: Color(0xFFFDE68A),
-                        ),
-                      ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Your department handbook • tap to open',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(fontSize: 12.5, color: const Color(0xFF756A80)),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              roundAction(Icons.file_download_outlined, 'Download PDF',
+                  () => _downloadKonarBook(context, eco, share: false)),
+              const SizedBox(width: 6),
+              roundAction(Icons.share_outlined, 'Share PDF',
+                  () => _downloadKonarBook(context, eco, share: true)),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // ==========================================
-  // PERSONAL TO-DO LIST SECTION (WITH TIMELINE)
-  // ==========================================
   Widget _buildPersonalTodoListSection(
     BuildContext context,
     EcosystemProvider eco,
@@ -1626,23 +1544,20 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               Container(
                 width: 26,
                 height: 26,
+                // Done = filled green tick; to do = empty ring (no tick)
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
+                  color: isCompleted ? const Color(0xFF059669) : Colors.white,
                   border: Border.all(
                     color: isCompleted
                         ? const Color(0xFF059669)
-                        : const Color(0xFFEF4444),
+                        : const Color(0xFFE7A4BC),
                     width: 2,
                   ),
                 ),
-                child: Icon(
-                  Icons.check_rounded,
-                  size: 16,
-                  color: isCompleted
-                      ? const Color(0xFF059669)
-                      : const Color(0xFFEF4444),
-                ),
+                child: isCompleted
+                    ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
+                    : null,
               ),
 
               // Dashed connecting line

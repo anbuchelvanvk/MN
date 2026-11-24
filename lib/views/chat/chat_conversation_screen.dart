@@ -1043,7 +1043,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   itemBuilder: (context, idx) {
                     final emp = employees[idx];
                     final initials = emp.name.isNotEmpty
-                        ? emp.name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
+                        ? emp.name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).map((p) => p[0]).take(2).join().toUpperCase()
                         : '??';
                     final isSelf = emp.id.toLowerCase() == eco.activeEmpId.toLowerCase();
 
@@ -1324,7 +1324,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                 itemBuilder: (context, idx) {
                   final emp = _mentionMatches[idx];
                   final initials = emp.name.isNotEmpty
-                      ? emp.name.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase()
+                      ? emp.name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).map((p) => p[0]).take(2).join().toUpperCase()
                       : '??';
 
                   return InkWell(

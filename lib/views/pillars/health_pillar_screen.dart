@@ -7,6 +7,7 @@ import '../../core/widgets/liquid_glass.dart';
 import '../../models/health_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../services/food_api_service.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 class HealthPillarScreen extends StatefulWidget {
   const HealthPillarScreen({super.key});
@@ -139,57 +140,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'HEALTH PILLAR • DAILY',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+      appBar: MnAppBar(
+        title: 'Health',
+        subtitle: 'Food, activity, steps and BMI',
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: Center(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: () => _showRecalibrateConfirmDialog(context, eco),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.burgundySurface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.sandBorder),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.refresh, size: 14, color: AppColors.sandGold),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Recalibrate',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandGold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          MnHeaderPill(
+            icon: Icons.tune_rounded,
+            label: 'Recalibrate',
+            onTap: () => _showRecalibrateConfirmDialog(context, eco),
           ),
         ],
       ),
@@ -499,7 +457,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             backgroundColor: AppColors.burgundyPrimary,
-                            content: Text('Biometrics calibrated & stored successfully! Welcome to Pillar 1.'),
+                            content: Text('Height and weight saved. Your health dashboard is ready.'),
                           ),
                         );
 
@@ -1435,7 +1393,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'PILLAR 1 MODULES',
+          'TODAY AT A GLANCE',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -1472,7 +1430,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               index: 2,
               title: 'Weight / Height',
               value: eco.userWeightKg > 0 ? '${eco.userWeightKg.toStringAsFixed(1)} kg' : '0.0 kg',
-              subtitle: eco.userHeightCm > 0 ? 'Occasional (${eco.userHeightCm.toStringAsFixed(0)} cm)' : 'Occasional Cadence',
+              subtitle: eco.userHeightCm > 0 ? 'Height ${eco.userHeightCm.toStringAsFixed(0)} cm' : 'Not set yet',
               icon: Icons.straighten,
               iconColor: AppColors.sandGold,
             ),
@@ -1692,7 +1650,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       const SizedBox(width: 5),
                       Expanded(
                         child: Text(
-                          'Public Open Food API Active • Global & Indian Dishes',
+                          'Search Indian and international dishes',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             color: AppColors.sandPrimary,

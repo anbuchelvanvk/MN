@@ -155,7 +155,7 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Health',
-                    pillarBadge: 'Pillar 1',
+                    pillarBadge: 'Food & steps',
                     cadence: 'Daily',
                     icon: Icons.health_and_safety_outlined,
                     onTap: () {
@@ -168,7 +168,7 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Family',
-                    pillarBadge: 'Pillar 2',
+                    pillarBadge: 'Time together',
                     cadence: 'Daily',
                     icon: Icons.family_restroom,
                     onTap: () {
@@ -181,7 +181,7 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Work',
-                    pillarBadge: 'Pillar 3',
+                    pillarBadge: 'Tasks & docs',
                     cadence: 'Occasional',
                     icon: Icons.work_outline_rounded,
                     onTap: () {
@@ -194,7 +194,7 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Attendance',
-                    pillarBadge: 'Pillar 4',
+                    pillarBadge: 'Check-in',
                     cadence: 'Daily',
                     icon: Icons.fingerprint,
                     onTap: () {
@@ -207,7 +207,7 @@ class PillarsPopupDialog extends StatelessWidget {
                   _pillarButton(
                     context: context,
                     title: 'Social Cause',
-                    pillarBadge: 'Pillar 5',
+                    pillarBadge: 'Good deeds',
                     cadence: 'Occasional',
                     icon: Icons.volunteer_activism,
                     onTap: () {

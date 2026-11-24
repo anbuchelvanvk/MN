@@ -246,9 +246,9 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const Text(
-                          'EXECUTIVE SUITE',
-                          style: TextStyle(
+                        Text(
+                          roleName.toUpperCase(),
+                          style: const TextStyle(
                             fontSize: 10,
                             letterSpacing: 1.1,
                             color: AppColors.magentaPrimary,

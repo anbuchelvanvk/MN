@@ -3336,6 +3336,23 @@ class EcosystemProvider extends ChangeNotifier {
     return getTasksForEmployee(_activeEmpId);
   }
 
+  /// The signed-in team lead's team (used by the TL portal, Team Directory
+  /// and Absentees screens so they always agree). The Online Team Manager
+  /// leads the whole online/operations team; other leads see their department.
+  List<Employee> get myTeamMembers {
+    final me = currentEmployee;
+    final curDept = me.dept.trim().toLowerCase();
+    final wholeOnlineTeam = me.isOtm ||
+        me.roleCode == 'OTM' ||
+        curDept.contains('online') ||
+        curDept.contains('operation');
+    return _employees.where((e) {
+      if (e.isCeo || e.isHr || e.id == me.id) return false;
+      if (wholeOnlineTeam || curDept.isEmpty) return true;
+      return e.dept.trim().toLowerCase() == curDept;
+    }).toList();
+  }
+
   List<TaskItem> get operationsDeptTasks {
     final curDept = currentEmployee.dept.toLowerCase();
     final isLead = isTeamLead;

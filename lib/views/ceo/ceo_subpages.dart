@@ -16,6 +16,7 @@ import '../../services/ceo_excel_backup_service.dart';
 import '../hr/hr_management_widgets.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 import '../hr/hr_portal_subpages.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 /// Reusable Luxury Executive Scaffold for CEO Subpages (Executive Burgundy & Sand Gold theme with top-left back button)
 class CeoSubpageScaffold extends StatelessWidget {
@@ -38,46 +39,10 @@ class CeoSubpageScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.sandGold, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.sandLight,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (subtitle != null && subtitle!.isNotEmpty)
-              Text(
-                subtitle!,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  color: AppColors.sandGold.withOpacity(0.85),
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-          ],
-        ),
+      appBar: MnAppBar(
+        title: title,
+        subtitle: subtitle,
         actions: actions,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.sandGold.withOpacity(0.2), height: 1),
-        ),
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -1702,7 +1667,7 @@ class CeoSocialCausesScreen extends StatelessWidget {
 
     return CeoSubpageScaffold(
       title: 'Social Causes',
-      subtitle: 'Pillar 5 CSR Proposals & Approvals',
+      subtitle: 'Review staff good deeds',
       body: HrSocialCauseApprovalSection(
         reviewerName: ceoEmp.name,
         reviewerRole: ceoEmp.role,

@@ -2,10 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../../core/services/session_store.dart';
 import '../employee/employee_portal_screen.dart';
 import '../dept_head/dept_head_portal_screen.dart';
 import '../hr/hr_portal_screen.dart';
@@ -27,10 +27,7 @@ class SessionManager {
       try {
         await FirebaseAuth.instance.signOut();
       } catch (_) {}
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('saved_role');
-      await prefs.remove('saved_emp_id');
-      await prefs.remove('saved_email');
+      await SessionStore.clear();
     } catch (_) {}
     if (context.mounted) {
       Navigator.pushAndRemoveUntil(
@@ -59,39 +56,27 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _checkSavedSession() async {
     if (widget.isSwitchAccount) return;
     try {
-      // S-08: Ensure Firebase Auth token is authentic before trusting saved session
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove('saved_role');
-        await prefs.remove('saved_emp_id');
-        await prefs.remove('saved_email');
-        return;
-      }
+      // Firebase may restore the user a moment after launch; wait for it.
+      // The saved session is never wiped here - only the Logout action clears it.
+      final session = await SessionStore.restore();
+      if (session == null) return;
+      final savedEmail = session.email;
+      final savedRole = session.role;
+      final savedEmpId = session.empId;
 
-      final prefs = await SharedPreferences.getInstance();
-      final savedEmail = prefs.getString('saved_email');
-      final savedRole = prefs.getString('saved_role');
-      final savedEmpId = prefs.getString('saved_emp_id');
-
-      if (savedEmpId != null && savedEmpId.isNotEmpty && mounted) {
+      if (savedEmpId.isNotEmpty && mounted) {
         final eco = context.read<EcosystemProvider>();
         eco.setLoggedIn(true);
-        eco.setActiveEmpId(savedEmpId);
+        eco.setActiveEmpId(savedEmpId, fallbackRole: savedRole);
         await eco.loadEmployeeFourPillars(savedEmpId);
 
         if (!mounted) return;
         Widget targetScreen;
-        final resolvedRole = savedRole ??
-            (savedEmpId == 'MN-CEO01'
-                ? 'ceo'
-                : (savedEmpId == '7' || savedEmpId == 'MN-HR1001'
-                    ? 'hr'
-                    : (savedEmpId == 'MN-TL1002' ? 'team_lead' : 'employee')));
+        final resolvedRole = savedRole;
 
         if (savedEmpId == 'MN-CEO01' ||
             resolvedRole == 'ceo' ||
-            (savedEmail != null && savedEmail.toLowerCase().contains('ceoofmn'))) {
+            savedEmail.toLowerCase().contains('ceoofmn')) {
           targetScreen = const CeoSuiteScreen();
         } else {
           switch (resolvedRole) {
@@ -159,10 +144,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Category 3, Item 12: Persist session to local storage
       try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('saved_role', detectedRole);
-        await prefs.setString('saved_emp_id', eco.activeEmpId);
-        await prefs.setString('saved_email', email);
+        await SessionStore.save(
+          empId: eco.activeEmpId,
+          role: detectedRole,
+          email: FirebaseAuth.instance.currentUser?.email ?? email,
+        );
       } catch (err) {
         debugPrint('Session saving note: $err');
       }

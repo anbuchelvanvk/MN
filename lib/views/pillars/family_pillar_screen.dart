@@ -8,6 +8,7 @@ import '../../core/widgets/image_preview_dialog.dart';
 import '../../models/family_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../services/image_optimization_service.dart';
+import '../../core/widgets/mn_app_bar.dart';
 
 /// User-friendly duration formatter:
 /// - Under 1 hour (e.g. 0.8 hrs): represented as minutes (48 mins)
@@ -192,55 +193,9 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'FAMILY PILLAR • ${_formatDayShort(_selectedDate).toUpperCase()}',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.sandBorder),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.family_restroom, size: 14, color: AppColors.sandGold),
-                    const SizedBox(width: 5),
-                    Text(
-                      '${formatDuration(eco.getTotalSocialHoursForDate(_selectedDate))} Total',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.sandGold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+      appBar: MnAppBar(
+        title: 'Family Time',
+        subtitle: '${_formatDayShort(_selectedDate)} • ${formatDuration(eco.getTotalSocialHoursForDate(_selectedDate))} logged',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -270,12 +225,12 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
       ),
       floatingActionButton: _selectedSectionIndex != 2
           ? FloatingActionButton.extended(
-              backgroundColor: AppColors.sandGold,
-              foregroundColor: AppColors.burgundyBg,
-              elevation: 4,
-              icon: const Icon(Icons.add_circle, size: 20),
+              backgroundColor: AppColors.magentaPrimary,
+              foregroundColor: Colors.white,
+              elevation: 3,
+              icon: const Icon(Icons.add_rounded, size: 22),
               label: Text(
-                'Log Time / Activity',
+                'Log time',
                 style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12.5),
               ),
               onPressed: () {
