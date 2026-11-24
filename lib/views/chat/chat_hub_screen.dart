@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -84,62 +85,20 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        elevation: 0.8,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textDark,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.pop(context);
-            } else {
-              widget.onClose?.call();
-            }
-          },
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'MN Team Chat',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    currentEmp.straightCutRole,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4F46E5),
-                    ),
-                  ),
-                ),
-                ),
-              ],
-            ),
-            Text(
-              'Logged in as ${currentEmp.name}',
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-            ),
-          ],
-        ),
+      appBar: MnAppBar(
+        title: 'Team Chat',
+        subtitle: currentEmp.straightCutRole.isNotEmpty
+            ? '${currentEmp.name} • ${currentEmp.straightCutRole}'
+            : currentEmp.name,
+        onBack: widget.onClose == null
+            ? null
+            : () {
+                if (Navigator.of(context).canPop()) {
+                  Navigator.pop(context);
+                } else {
+                  widget.onClose?.call();
+                }
+              },
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
@@ -339,7 +298,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
               height: 46,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF831843), Color(0xFFB45309)],
+                  colors: [Color(0xFF1E1B4B), Color(0xFFB45309)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

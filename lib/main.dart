@@ -12,10 +12,7 @@ import 'core/widgets/internet_connection_banner.dart';
 import 'core/widgets/app_notification_host.dart';
 import 'providers/ecosystem_provider.dart';
 import 'views/auth/login_screen.dart';
-import 'views/employee/employee_portal_screen.dart';
-import 'views/dept_head/dept_head_portal_screen.dart';
-import 'views/hr/hr_portal_screen.dart';
-import 'views/ceo/ceo_suite_screen.dart';
+import 'views/shell/main_shell.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -124,21 +121,10 @@ class _MnFamilyAppState extends State<MnFamilyApp> with WidgetsBindingObserver {
     if (widget.initialEmpId == null || widget.initialEmpId!.isEmpty) {
       return const LoginScreen();
     }
-    if (widget.initialEmpId == 'MN-CEO01' || widget.initialRole == 'ceo') {
-      return const CeoSuiteScreen();
+    if (widget.initialEmpId == 'MN-CEO01') {
+      return const MainShell(role: 'ceo');
     }
-    switch (widget.initialRole) {
-      case 'hr':
-        return const HrPortalScreen();
-      case 'dept_head':
-      case 'team_lead':
-        return const DeptHeadPortalScreen();
-      case 'ceo':
-        return const CeoSuiteScreen();
-      case 'employee':
-      default:
-        return const EmployeePortalScreen();
-    }
+    return MainShell.forRole(widget.initialRole);
   }
 
   @override

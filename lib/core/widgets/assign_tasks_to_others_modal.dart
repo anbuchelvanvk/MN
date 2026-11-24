@@ -836,16 +836,16 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFFE11D48) : AppColors.cardSurface,
+                      color: isSelected ? const Color(0xFF4338CA) : AppColors.cardSurface,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFFE11D48) : AppColors.sandBorder,
+                        color: isSelected ? const Color(0xFF4338CA) : AppColors.sandBorder,
                         width: isSelected ? 1.4 : 1.0,
                       ),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: const Color(0xFFE11D48).withOpacity(0.25),
+                                color: const Color(0xFF4338CA).withOpacity(0.25),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               )

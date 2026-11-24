@@ -104,9 +104,9 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF1F4),
+                        color: const Color(0xFFEEF0FF),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFFECDD3)),
+                        border: Border.all(color: const Color(0xFFC7D2FE)),
                       ),
                       child: const Icon(Icons.notifications_active, color: AppColors.magentaPrimary, size: 20),
                     ),
@@ -193,7 +193,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                           side: BorderSide(color: AppColors.magentaPrimary.withOpacity(0.4)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          backgroundColor: const Color(0xFFFFF1F4),
+                          backgroundColor: const Color(0xFFEEF0FF),
                         ),
                       ),
                     ),
@@ -881,7 +881,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                         icon: const Icon(Icons.shopping_bag_outlined, size: 14, color: Colors.white),
                         label: const Text('View Orders', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE11D48),
+                          backgroundColor: const Color(0xFF4338CA),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),

@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -73,35 +74,9 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
 
     return Scaffold(
       backgroundColor: AppColors.whiteBg,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Employee Dossier',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-            Text(
-              '${emp.name} • #${emp.id}',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
-            ),
-          ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFF1F5F9), height: 1),
-        ),
+      appBar: MnAppBar(
+        title: 'Employee Details',
+        subtitle: '${emp.name} • #${emp.id}',
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -162,10 +137,10 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                               decoration: BoxDecoration(
-                                color: isAbsent ? const Color(0xFFFFF1F2) : const Color(0xFFECFDF5),
+                                color: isAbsent ? const Color(0xFFEEF0FF) : const Color(0xFFECFDF5),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: isAbsent ? const Color(0xFFFECDD3) : const Color(0xFFA7F3D0),
+                                  color: isAbsent ? const Color(0xFFC7D2FE) : const Color(0xFFA7F3D0),
                                 ),
                               ),
                               child: Text(
@@ -173,7 +148,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
+                                  color: isAbsent ? const Color(0xFF4338CA) : const Color(0xFF059669),
                                 ),
                               ),
                             ),
@@ -495,9 +470,9 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     ...docs.map((d) {
                       final isSubmitted = d.status == DocumentSubmissionStatus.submitted;
                       final isPending = d.status == DocumentSubmissionStatus.pending;
-                      final badgeColor = isSubmitted ? const Color(0xFF059669) : (isPending ? const Color(0xFFE11D48) : const Color(0xFFD97706));
-                      final badgeBg = isSubmitted ? const Color(0xFFECFDF5) : (isPending ? const Color(0xFFFFF1F2) : const Color(0xFFFFFBEB));
-                      final badgeBorder = isSubmitted ? const Color(0xFFA7F3D0) : (isPending ? const Color(0xFFFECDD3) : const Color(0xFFFDE68A));
+                      final badgeColor = isSubmitted ? const Color(0xFF059669) : (isPending ? const Color(0xFF4338CA) : const Color(0xFFD97706));
+                      final badgeBg = isSubmitted ? const Color(0xFFECFDF5) : (isPending ? const Color(0xFFEEF0FF) : const Color(0xFFFFFBEB));
+                      final badgeBorder = isSubmitted ? const Color(0xFFA7F3D0) : (isPending ? const Color(0xFFC7D2FE) : const Color(0xFFFDE68A));
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -623,7 +598,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         child: _attendanceMetricTile(
                           'Today Status',
                           weekRecords.isNotEmpty ? weekRecords.first.status : (isAbsent ? 'Absent' : 'Present'),
-                          weekRecords.isNotEmpty ? weekRecords.first.statusColor : (isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669)),
+                          weekRecords.isNotEmpty ? weekRecords.first.statusColor : (isAbsent ? const Color(0xFF4338CA) : const Color(0xFF059669)),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -633,7 +608,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                           '$realAttendancePercent%',
                           realAttendancePercent >= 80
                               ? const Color(0xFF059669)
-                              : (realAttendancePercent > 0 ? const Color(0xFFD97706) : const Color(0xFFE11D48)),
+                              : (realAttendancePercent > 0 ? const Color(0xFFD97706) : const Color(0xFF4338CA)),
                           tuesdayOvertimeCount > 0 ? '+$tuesdayOvertimeCount Tuesday OT' : null,
                         ),
                       ),
@@ -754,10 +729,10 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isFemale ? const Color(0xFFFDF2F8) : const Color(0xFFEFF6FF),
+                  color: isFemale ? const Color(0xFFEEF0FF) : const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: isFemale ? const Color(0xFFFBCFE8) : const Color(0xFFBFDBFE),
+                    color: isFemale ? const Color(0xFFC7D2FE) : const Color(0xFFBFDBFE),
                   ),
                 ),
                 child: Text(
@@ -792,7 +767,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     fontWeight: FontWeight.bold,
                     color: isPendingAudit
                         ? AppColors.textMuted
-                        : (isCompliant ? const Color(0xFF059669) : const Color(0xFFE11D48)),
+                        : (isCompliant ? const Color(0xFF059669) : const Color(0xFF4338CA)),
                   ),
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
@@ -886,7 +861,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                       decoration: BoxDecoration(
-                        color: isChecked ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2),
+                        color: isChecked ? const Color(0xFFECFDF5) : const Color(0xFFEEF0FF),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -894,7 +869,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isChecked ? const Color(0xFF059669) : const Color(0xFFE11D48),
+                          color: isChecked ? const Color(0xFF059669) : const Color(0xFF4338CA),
                         ),
                       ),
                     ),

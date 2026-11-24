@@ -466,7 +466,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
           children: [
             Expanded(
               child: Text(
-                'PILLAR MODULES',
+                'QUICK LOG',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -675,7 +675,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '1. FAMILY TIME',
+                    'FAMILY TIME',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5,
                       fontWeight: FontWeight.bold,
@@ -781,7 +781,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                           Icon(
                             familyHours > 0 ? Icons.favorite_rounded : Icons.family_restroom_rounded,
                             size: 18,
-                            color: familyHours > 0 ? const Color(0xFFEC4899) : AppColors.sandGold,
+                            color: familyHours > 0 ? const Color(0xFF7C3AED) : AppColors.sandGold,
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -2469,9 +2469,9 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF1F4),
+                  color: const Color(0xFFEEF0FF),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFBCFE8)),
+                  border: Border.all(color: const Color(0xFFC7D2FE)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -2479,7 +2479,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                     const Icon(
                       Icons.access_time_rounded,
                       size: 10.5,
-                      color: Color(0xFFBE185D),
+                      color: Color(0xFF4F46E5),
                     ),
                     const SizedBox(width: 3.5),
                     Text(
@@ -2487,7 +2487,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFFBE185D),
+                        color: const Color(0xFF4F46E5),
                       ),
                     ),
                   ],
@@ -2739,23 +2739,9 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'EMPLOYEE FAMILY ACTIVITIES',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-        ),
+      appBar: const MnAppBar(
+        title: 'Staff Family Time',
+        subtitle: 'Family time logged by the team',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -3068,12 +3054,12 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                           decoration: BoxDecoration(
                                             color: isFam
                                                 ? const Color(0xFFFAF5FF)
-                                                : const Color(0xFFFFF1F4),
+                                                : const Color(0xFFEEF0FF),
                                             borderRadius: BorderRadius.circular(10),
                                             border: Border.all(
                                               color: isFam
                                                   ? const Color(0xFFE9D5FF)
-                                                  : const Color(0xFFFCE7F3),
+                                                  : const Color(0xFFE0E7FF),
                                             ),
                                           ),
                                           child: Center(
@@ -3106,10 +3092,10 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                     padding: const EdgeInsets.symmetric(
                                                         horizontal: 8, vertical: 3.5),
                                                     decoration: BoxDecoration(
-                                                      color: const Color(0xFFFFF1F4),
+                                                      color: const Color(0xFFEEF0FF),
                                                       borderRadius: BorderRadius.circular(16),
                                                       border: Border.all(
-                                                          color: const Color(0xFFFBCFE8)),
+                                                          color: const Color(0xFFC7D2FE)),
                                                     ),
                                                     child: Row(
                                                       mainAxisSize: MainAxisSize.min,
@@ -3117,7 +3103,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                         const Icon(
                                                           Icons.access_time_rounded,
                                                           size: 10.5,
-                                                          color: Color(0xFFBE185D),
+                                                          color: Color(0xFF4F46E5),
                                                         ),
                                                         const SizedBox(width: 3.5),
                                                         Text(
@@ -3125,7 +3111,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                           style: GoogleFonts.plusJakartaSans(
                                                             fontSize: 11.5,
                                                             fontWeight: FontWeight.w700,
-                                                            color: const Color(0xFFBE185D),
+                                                            color: const Color(0xFF4F46E5),
                                                             letterSpacing: 0.2,
                                                           ),
                                                         ),
@@ -3143,7 +3129,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                     decoration: BoxDecoration(
                                                       color: isFam
                                                           ? const Color(0xFFA855F7)
-                                                          : const Color(0xFFBE185D),
+                                                          : const Color(0xFF4F46E5),
                                                       shape: BoxShape.circle,
                                                     ),
                                                   ),
@@ -3156,7 +3142,7 @@ class _EmployeeFamilyActivitiesScreenState extends State<EmployeeFamilyActivitie
                                                         fontWeight: FontWeight.w600,
                                                         color: isFam
                                                             ? const Color(0xFFA855F7)
-                                                            : const Color(0xFFBE185D),
+                                                            : const Color(0xFF4F46E5),
                                                       ),
                                                       maxLines: 1,
                                                       overflow: TextOverflow.ellipsis,

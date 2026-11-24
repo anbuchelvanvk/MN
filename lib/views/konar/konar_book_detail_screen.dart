@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -65,14 +66,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
     if (!book.isVisible && !isCeo) {
       return Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF0F172A),
-          elevation: 0,
-          title: Text(
-            'KONAR Book • ${book.department}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+        appBar: MnAppBar(
+          title: 'Konar Book',
+          subtitle: book.department,
         ),
         body: Center(
           child: Padding(
@@ -112,36 +108,15 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'KONAR Book',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-            Text(
-              book.department,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-            ),
-          ],
-        ),
+      appBar: MnAppBar(
+        title: 'Konar Book',
+        subtitle: book.department,
         actions: [
           if (isCeo)
-            IconButton(
-              icon: Icon(
-                book.isVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-                color: book.isVisible ? const Color(0xFF059669) : const Color(0xFFDC2626),
-              ),
+            MnGlassIconButton(
+              icon: book.isVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
               tooltip: book.isVisible ? 'Hide from Staff' : 'Show to Staff',
-              onPressed: () {
+              onTap: () {
                 final next = !book.isVisible;
                 eco.toggleKonarBookVisibility(book.id, next);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -156,16 +131,19 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                 );
               },
             ),
-          if (canEdit)
-            IconButton(
-              icon: const Icon(Icons.edit_note_rounded, color: AppColors.magentaPrimary, size: 24),
+          if (canEdit) ...[
+            const SizedBox(width: 8),
+            MnGlassIconButton(
+              icon: Icons.edit_note_rounded,
               tooltip: 'Update KONAR Book',
-              onPressed: () => _showEditBookModal(context, eco, book),
+              onTap: () => _showEditBookModal(context, eco, book),
             ),
-          IconButton(
-            icon: const Icon(Icons.print_rounded, color: Color(0xFF475569), size: 21),
+          ],
+          const SizedBox(width: 8),
+          MnGlassIconButton(
+            icon: Icons.print_rounded,
             tooltip: 'View / Print PDF',
-            onPressed: () => _handlePrintPdf(book),
+            onTap: () => _handlePrintPdf(book),
           ),
         ],
       ),
@@ -198,14 +176,14 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF831843), Color(0xFF9D174D)],
+                        colors: [Color(0xFF1E1B4B), Color(0xFF3730A3)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF831843).withOpacity(0.25),
+                          color: const Color(0xFF1E1B4B).withOpacity(0.25),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -333,9 +311,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFDF2F8),
+                            color: const Color(0xFFEEF0FF),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFFFCE7F3)),
+                            border: Border.all(color: const Color(0xFFE0E7FF)),
                           ),
                           child: const Icon(Icons.summarize_rounded, size: 20, color: AppColors.magentaPrimary),
                         ),
@@ -374,9 +352,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFDF2F8),
+                              color: const Color(0xFFEEF0FF),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFFBCFE8)),
+                              border: Border.all(color: const Color(0xFFC7D2FE)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -385,7 +363,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                   '${book.sections.length} Architectures',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
-                                    color: const Color(0xFF831843),
+                                    color: const Color(0xFF1E1B4B),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -393,7 +371,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 Icon(
                                   _allExpanded ? Icons.unfold_less_rounded : Icons.unfold_more_rounded,
                                   size: 14,
-                                  color: const Color(0xFF831843),
+                                  color: const Color(0xFF1E1B4B),
                                 ),
                               ],
                             ),
@@ -456,19 +434,19 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                 height: 46,
                                 child: OutlinedButton.icon(
                                   onPressed: () => _handlePrintPdf(book),
-                                  icon: const Icon(Icons.visibility_rounded, size: 18, color: Color(0xFF831843)),
+                                  icon: const Icon(Icons.visibility_rounded, size: 18, color: Color(0xFF1E1B4B)),
                                   label: Text(
                                     'View Full Book',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12.5,
-                                      color: const Color(0xFF831843),
+                                      color: const Color(0xFF1E1B4B),
                                     ),
                                   ),
                                   style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Color(0xFFFBCFE8), width: 1.2),
-                                    backgroundColor: const Color(0xFFFDF2F8),
-                                    foregroundColor: const Color(0xFF831843),
+                                    side: const BorderSide(color: Color(0xFFC7D2FE), width: 1.2),
+                                    backgroundColor: const Color(0xFFEEF0FF),
+                                    foregroundColor: const Color(0xFF1E1B4B),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     padding: const EdgeInsets.symmetric(horizontal: 10),
                                   ),
@@ -561,7 +539,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFDF2F8),
+              color: const Color(0xFFEEF0FF),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.bookmark_rounded, size: 17, color: AppColors.magentaPrimary),
@@ -610,7 +588,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.rule_rounded, size: 14, color: Color(0xFF831843)),
+                              Icon(Icons.rule_rounded, size: 14, color: Color(0xFF1E1B4B)),
                               SizedBox(width: 6),
                               Expanded(
                                 child: Text(
@@ -619,7 +597,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF831843),
+                                    color: Color(0xFF1E1B4B),
                                     letterSpacing: 0.3,
                                   ),
                                 ),
@@ -633,7 +611,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('• ', style: TextStyle(color: Color(0xFF831843), fontWeight: FontWeight.bold)),
+                                  const Text('• ', style: TextStyle(color: Color(0xFF1E1B4B), fontWeight: FontWeight.bold)),
                                   Expanded(
                                     child: Text(
                                       rule,
@@ -899,9 +877,9 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFDF2F8),
+                        color: const Color(0xFFEEF0FF),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFFBCFE8)),
+                        border: Border.all(color: const Color(0xFFC7D2FE)),
                       ),
                       child: Row(
                         children: [

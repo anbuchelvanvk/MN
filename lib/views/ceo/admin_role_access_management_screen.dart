@@ -238,7 +238,7 @@ class _AdminRoleAccessManagementScreenState
                 label: 'Standard Staff',
                 value: '$standardStaffCount',
                 icon: Icons.badge_outlined,
-                bgColor: const Color(0xFFFCE7F3),
+                bgColor: const Color(0xFFE0E7FF),
                 accentColor: AppColors.magentaPrimary,
               ),
             ],

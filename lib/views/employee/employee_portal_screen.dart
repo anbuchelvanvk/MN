@@ -51,7 +51,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
     final emp = eco.currentEmployee;
 
     return Scaffold(
-      backgroundColor: _activeBottomNav == 0 ? const Color(0xFFFBFBFC) : AppColors.burgundyBg,
+      backgroundColor: _activeBottomNav == 0 ? const Color(0xFFF4F5FA) : AppColors.burgundyBg,
       appBar: _activeBottomNav == 0
           ? null
           : RoleAppBar(

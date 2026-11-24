@@ -1231,19 +1231,19 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
     final isRed = color == AppColors.ragRed;
     final isGreen = color == AppColors.ragGreen;
     final pillBg = isRed
-        ? const Color(0xFFFFF1F2)
+        ? const Color(0xFFEEF0FF)
         : (isGreen ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB));
     final pillBorder = isRed
-        ? const Color(0xFFFECDD3)
+        ? const Color(0xFFC7D2FE)
         : (isGreen ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A));
     final pillTextColor = isRed
-        ? const Color(0xFFE11D48)
+        ? const Color(0xFF4338CA)
         : (isGreen ? const Color(0xFF059669) : const Color(0xFFD97706));
 
     final isAttendanceOnTime = provider.hasLoggedAttendanceToday && provider.isAttendanceOnTime;
-    final statusPillBg = isAttendanceOnTime ? const Color(0xFFECFDF5) : const Color(0xFFFFF1F2);
-    final statusPillBorder = isAttendanceOnTime ? const Color(0xFFA7F3D0) : const Color(0xFFFECDD3);
-    final statusPillTextColor = isAttendanceOnTime ? const Color(0xFF059669) : const Color(0xFFE11D48);
+    final statusPillBg = isAttendanceOnTime ? const Color(0xFFECFDF5) : const Color(0xFFEEF0FF);
+    final statusPillBorder = isAttendanceOnTime ? const Color(0xFFA7F3D0) : const Color(0xFFC7D2FE);
+    final statusPillTextColor = isAttendanceOnTime ? const Color(0xFF059669) : const Color(0xFF4338CA);
 
     return Material(
       color: Colors.transparent,

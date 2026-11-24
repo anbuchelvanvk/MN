@@ -30,8 +30,8 @@ class QuickPillarNavRow extends StatelessWidget {
                   child: _PillarItem(
                     title: 'Health',
                     icon: Icons.favorite_rounded,
-                    primaryColor: const Color(0xFFE11D48),
-                    bgColor: const Color(0xFFFFF1F2),
+                    primaryColor: const Color(0xFF4338CA),
+                    bgColor: const Color(0xFFEEF0FF),
                     badgeCount: eco.healthPillarBadgeCount,
                     onTap: () {
                       Navigator.push(

@@ -6,10 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../core/services/session_store.dart';
-import '../employee/employee_portal_screen.dart';
-import '../dept_head/dept_head_portal_screen.dart';
-import '../hr/hr_portal_screen.dart';
-import '../ceo/ceo_suite_screen.dart';
+import '../shell/main_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isSwitchAccount;
@@ -77,22 +74,22 @@ class _LoginScreenState extends State<LoginScreen> {
         if (savedEmpId == 'MN-CEO01' ||
             resolvedRole == 'ceo' ||
             savedEmail.toLowerCase().contains('ceoofmn')) {
-          targetScreen = const CeoSuiteScreen();
+          targetScreen = const MainShell(role: 'ceo');
         } else {
           switch (resolvedRole) {
             case 'hr':
-              targetScreen = const HrPortalScreen();
+              targetScreen = const MainShell(role: 'hr');
               break;
             case 'dept_head':
             case 'team_lead':
-              targetScreen = const DeptHeadPortalScreen();
+              targetScreen = const MainShell(role: 'dept_head');
               break;
             case 'ceo':
-              targetScreen = const CeoSuiteScreen();
+              targetScreen = const MainShell(role: 'ceo');
               break;
             case 'employee':
             default:
-              targetScreen = const EmployeePortalScreen();
+              targetScreen = const MainShell(role: 'employee');
               break;
           }
         }
@@ -157,22 +154,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
       Widget targetScreen;
       if (eco.activeEmpId == 'MN-CEO01' || detectedRole == 'ceo' || email.toLowerCase().contains('ceoofmn')) {
-        targetScreen = const CeoSuiteScreen();
+        targetScreen = const MainShell(role: 'ceo');
       } else {
         switch (detectedRole) {
           case 'hr':
-            targetScreen = const HrPortalScreen();
+            targetScreen = const MainShell(role: 'hr');
             break;
           case 'dept_head':
           case 'team_lead':
-            targetScreen = const DeptHeadPortalScreen();
+            targetScreen = const MainShell(role: 'dept_head');
             break;
           case 'ceo':
-            targetScreen = const CeoSuiteScreen();
+            targetScreen = const MainShell(role: 'ceo');
             break;
           case 'employee':
           default:
-            targetScreen = const EmployeePortalScreen();
+            targetScreen = const MainShell(role: 'employee');
             break;
         }
       }
@@ -222,22 +219,15 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF5F8),
+      backgroundColor: AppColors.midnight,
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFFF1F4), // Radiant soft rose blush
-              Color(0xFFFAF5FF), // Subtle luxury lilac
-              Color(0xFFF8FAFC), // Neutral crisp center
-              Color(0xFFFFF7ED), // Warm champagne gold
-              Color(0xFFFFEEF4), // Rich rose blush
-            ],
-            stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF14123A), Color(0xFF1E1B4B), Color(0xFF312E81)],
           ),
         ),
         child: Stack(
@@ -253,8 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.magentaPrimary.withOpacity(0.18),
-                      AppColors.magentaPrimary.withOpacity(0.0),
+                      AppColors.gold.withOpacity(0.22),
+                      AppColors.gold.withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -270,8 +260,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFFC026D3).withOpacity(0.14),
-                      const Color(0xFFC026D3).withOpacity(0.0),
+                      AppColors.primaryBright.withOpacity(0.30),
+                      AppColors.primaryBright.withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -304,8 +294,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.magentaDark.withOpacity(0.12),
-                      AppColors.magentaDark.withOpacity(0.0),
+                      AppColors.violet.withOpacity(0.25),
+                      AppColors.violet.withOpacity(0.0),
                     ],
                   ),
                 ),
@@ -328,7 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.sandGold,
+                          foregroundColor: AppColors.goldBright,
                           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         ),
                         icon: const Icon(Icons.arrow_back_ios_new, size: 16),
@@ -350,19 +340,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 92,
+                          height: 92,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.magentaPrimary,
-                              width: 2.2,
+                              color: AppColors.gold,
+                              width: 2.4,
                             ),
                             color: Colors.black,
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.magentaPrimary.withOpacity(0.25),
-                                blurRadius: 20,
+                                color: AppColors.gold.withOpacity(0.35),
+                                blurRadius: 28,
                                 offset: const Offset(0, 6),
                               ),
                             ],
@@ -383,19 +373,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           'MN JEWEL PARK',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
-                            letterSpacing: 1.8,
+                            fontSize: 25,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 2.2,
                           ),
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'Internal Enterprise Ecosystem & Staff Portal',
+                          'MN Family • Staff app',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppColors.sandPrimary,
+                            fontSize: 13,
+                            color: AppColors.goldBright,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.3,
                           ),
@@ -408,19 +398,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Login Form Liquid Glass Card
                   LiquidGlassCard(
                     padding: const EdgeInsets.all(24),
-                    borderRadius: 22,
+                    borderRadius: 28,
                     backgroundColor: Colors.white,
-                    borderColor: const Color(0xFFFCE7F3),
+                    borderColor: Colors.white,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.isSwitchAccount ? 'Switch Account' : 'Sign In to Enterprise Portal',
+                          widget.isSwitchAccount ? 'Switch Account' : 'Sign in',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
-                            letterSpacing: 0.5,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.midnight,
                           ),
                         ),
                         const SizedBox(height: 4),

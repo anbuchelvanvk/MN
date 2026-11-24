@@ -1,8 +1,8 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/liquid_glass.dart';
 import '../../models/profile_document_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import 'health_pillar_screen.dart';
@@ -52,37 +52,9 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'YOUR STATUS',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: Center(
-              child: LiquidGlassPill(
-                label: 'STATUS',
-                color: tierColor,
-                icon: Icons.light_mode,
-              ),
-            ),
-          ),
-        ],
+      appBar: const MnAppBar(
+        title: 'Your Status',
+        subtitle: 'How your month is going',
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -460,9 +432,9 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF1F4),
+              color: const Color(0xFFEEF0FF),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFECDD3)),
+              border: Border.all(color: const Color(0xFFC7D2FE)),
             ),
             child: const Icon(Icons.balance, color: AppColors.magentaPrimary, size: 22),
           ),

@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
-import '../../core/widgets/role_app_bar.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../models/employee_model.dart';
 import '../../models/hr_attendance_sheet_models.dart';
@@ -403,11 +403,9 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: RoleAppBar(
-        roleName: 'Profile',
-        userName: '${emp.name} (${emp.straightCutRole})',
-        roleColor: AppColors.sandGold,
-        roleIcon: Icons.badge_outlined,
+      appBar: MnAppBar(
+        title: 'My Profile',
+        subtitle: emp.straightCutRole.isNotEmpty ? '${emp.name} • ${emp.straightCutRole}' : emp.name,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),

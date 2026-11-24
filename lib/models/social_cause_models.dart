@@ -62,7 +62,7 @@ class SocialCauseType {
       case medicalHelp:
         return const Color(0xFF06B6D4);
       case clothDonation:
-        return const Color(0xFFEC4899);
+        return const Color(0xFF7C3AED);
       case treePlanting:
         return const Color(0xFF22C55E);
       default:

@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
 
-/// The app's standard page header: back chevron, clear Title-Case title, an
-/// optional one-line subtitle and compact actions. Used by every pillar and
-/// sub-page so headers look the same across the app.
+/// The app's standard page header: a midnight-indigo gradient bar with a
+/// round back button, a clear title, an optional one-line subtitle and compact
+/// actions. Used by every pillar and sub-page so headers look the same.
 class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? subtitle;
   final List<Widget>? actions;
   final VoidCallback? onBack;
   final bool showBack;
+  final PreferredSizeWidget? bottom;
+
+  /// Kept for backwards compatibility; the header always uses the hero gradient.
   final Color background;
 
   const MnAppBar({
@@ -21,31 +25,49 @@ class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.onBack,
     this.showBack = true,
+    this.bottom,
     this.background = AppColors.pureWhite,
   });
 
+  double get _barHeight => subtitle == null ? 64 : 72;
+
   @override
-  Size get preferredSize => Size.fromHeight(subtitle == null ? 60 : 66);
+  Size get preferredSize => Size.fromHeight(_barHeight + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
+    final hasBack = showBack && (canPop || onBack != null);
     return AppBar(
-      backgroundColor: background,
+      backgroundColor: AppColors.indigoDeep,
       surfaceTintColor: Colors.transparent,
+      foregroundColor: Colors.white,
       elevation: 0,
-      scrolledUnderElevation: 0.6,
-      shadowColor: const Color(0x1F881337),
+      scrolledUnderElevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       automaticallyImplyLeading: false,
-      toolbarHeight: preferredSize.height,
-      titleSpacing: (showBack && (canPop || onBack != null)) ? 0 : 16,
-      leading: (showBack && (canPop || onBack != null))
-          ? IconButton(
-              tooltip: 'Back',
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.textDark),
-              onPressed: onBack ?? () => Navigator.maybePop(context),
+      toolbarHeight: _barHeight,
+      bottom: bottom,
+      titleSpacing: hasBack ? 4 : 18,
+      iconTheme: const IconThemeData(color: Colors.white),
+      actionsIconTheme: const IconThemeData(color: Colors.white),
+      flexibleSpace: const DecoratedBox(
+        decoration: BoxDecoration(gradient: AppColors.heroGradient),
+        child: _HeaderGlow(),
+      ),
+      leading: hasBack
+          ? Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Center(
+                child: MnGlassIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  tooltip: 'Back',
+                  onTap: onBack ?? () => Navigator.maybePop(context),
+                ),
+              ),
             )
           : null,
+      leadingWidth: hasBack ? 58 : null,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -57,32 +79,121 @@ class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 19,
               fontWeight: FontWeight.w800,
-              color: AppColors.textDark,
+              color: Colors.white,
               letterSpacing: -0.2,
             ),
           ),
           if (subtitle != null && subtitle!.isNotEmpty)
-            Text(
-              subtitle!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textMuted,
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                subtitle!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFFC9CBEA),
+                ),
               ),
             ),
         ],
       ),
       actions: [
-        if (actions != null) ...actions!,
-        const SizedBox(width: 8),
+        if (actions != null)
+          ...actions!.map((a) => IconTheme.merge(
+                data: const IconThemeData(color: Colors.white),
+                child: a,
+              )),
+        const SizedBox(width: 10),
       ],
-      bottom: const PreferredSize(
-        preferredSize: Size.fromHeight(1),
-        child: Divider(height: 1, thickness: 1, color: Color(0xFFF3E8EE)),
+    );
+  }
+}
+
+/// Soft gold glow in the corner of the header for depth.
+class _HeaderGlow extends StatelessWidget {
+  const _HeaderGlow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Stack(
+      children: [
+        Positioned(
+          right: -40,
+          top: -60,
+          child: SizedBox(
+            width: 180,
+            height: 180,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [Color(0x33C9A24B), Color(0x00C9A24B)],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Round translucent icon button for use on the dark header.
+class MnGlassIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final String? tooltip;
+  final bool dot;
+  final double size;
+  const MnGlassIconButton({
+    super.key,
+    required this.icon,
+    this.onTap,
+    this.onLongPress,
+    this.tooltip,
+    this.dot = false,
+    this.size = 40,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final btn = Material(
+      color: const Color(0x1FFFFFFF),
+      shape: const CircleBorder(side: BorderSide(color: Color(0x26FFFFFF))),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(icon, size: size * 0.48, color: Colors.white),
+              if (dot)
+                Positioned(
+                  top: size * 0.22,
+                  right: size * 0.24,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppColors.gold,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.indigoDeep, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
+    return tooltip == null ? btn : Tooltip(message: tooltip!, child: btn);
   }
 }
 
@@ -97,24 +208,24 @@ class MnHeaderPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Material(
-        color: AppColors.magentaSubtle,
-        shape: const StadiumBorder(side: BorderSide(color: Color(0xFFF3C6D6))),
+        color: const Color(0x1FFFFFFF),
+        shape: const StadiumBorder(side: BorderSide(color: Color(0x40E2C26E))),
         child: InkWell(
           customBorder: const StadiumBorder(),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 15, color: AppColors.magentaPrimary),
-                const SizedBox(width: 5),
+                Icon(icon, size: 15, color: AppColors.goldBright),
+                const SizedBox(width: 6),
                 Text(
                   label,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.magentaPrimary,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -122,6 +233,45 @@ class MnHeaderPill extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Section title used inside pages: bold label with an optional trailing action.
+class MnSectionTitle extends StatelessWidget {
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  const MnSectionTitle(this.title, {super.key, this.actionLabel, this.onAction});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 18,
+          decoration: BoxDecoration(
+            gradient: AppColors.goldGradientBright,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.midnight,
+            ),
+          ),
+        ),
+        if (actionLabel != null)
+          TextButton(onPressed: onAction, child: Text(actionLabel!)),
+      ],
     );
   }
 }

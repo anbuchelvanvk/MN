@@ -51,9 +51,9 @@ class _HrBroadcastSectionState extends State<HrBroadcastSection> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF1F4),
+              color: const Color(0xFFEEF0FF),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFFECDD3), width: 1.2),
+              border: Border.all(color: const Color(0xFFC7D2FE), width: 1.2),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,9 +500,9 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFDF2F8),
+                  color: const Color(0xFFEEF0FF),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFFBCFE8)),
+                  border: Border.all(color: const Color(0xFFC7D2FE)),
                 ),
                 child: Text(
                   '₹${cause.amountSpent.toStringAsFixed(0)} Spent',

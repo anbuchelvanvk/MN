@@ -24,7 +24,10 @@ import '../home/modern_home_screen.dart';
 import '../../core/widgets/employee_avatar.dart';
 
 class DeptHeadPortalScreen extends StatefulWidget {
-  const DeptHeadPortalScreen({super.key});
+  /// True when shown as a tab inside the main shell (start-up popups are
+  /// handled by the shell instead).
+  final bool embedded;
+  const DeptHeadPortalScreen({super.key, this.embedded = false});
 
   @override
   State<DeptHeadPortalScreen> createState() => _DeptHeadPortalScreenState();
@@ -35,7 +38,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (mounted) {
+      if (mounted && !widget.embedded) {
         context.read<EcosystemProvider>().setLoggedIn(true);
         await BirthdayCelebrationDialog.showIfNeeded(context);
         if (mounted) {
@@ -194,9 +197,13 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                                         children: [
                                           const Icon(Icons.business_center_outlined, size: 10, color: AppColors.magentaPrimary),
                                           const SizedBox(width: 4),
-                                          Text(
-                                            eco.currentEmployee.dept,
-                                            style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                          Flexible(
+                                            child: Text(
+                                              eco.currentEmployee.dept,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -265,10 +272,13 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                   const SizedBox(height: 12),
                   Column(
                     children: [
-                      _verticalTabTile(const ModernHomeScreen(), 'Home Dashboard', Icons.dashboard_customize_outlined, ''),
-                      const SizedBox(height: 8),
-                      _verticalTabTile(const ChatHubScreen(), 'Team Chat', Icons.chat_bubble_outline_rounded, eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : ''),
-                      const SizedBox(height: 8),
+                      // Home and Team Chat are bottom-bar tabs when shown inside the main shell.
+                      if (!widget.embedded) ...[
+                        _verticalTabTile(const ModernHomeScreen(), 'Home Dashboard', Icons.dashboard_customize_outlined, ''),
+                        const SizedBox(height: 8),
+                        _verticalTabTile(const ChatHubScreen(), 'Team Chat', Icons.chat_bubble_outline_rounded, eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : ''),
+                        const SizedBox(height: 8),
+                      ],
                       _verticalTabTile(const CreativeMediaReviewBoardScreen(), 'Media Review Board', Icons.video_collection_outlined, eco.pendingMediaApprovalsCount > 0 ? '${eco.pendingMediaApprovalsCount}' : ''),
                       const SizedBox(height: 8),
                       _verticalTabTile(
@@ -375,8 +385,8 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
               LiquidGlassCard(
                 borderRadius: 14,
                 padding: const EdgeInsets.all(12),
-                backgroundColor: const Color(0xFFFFF1F2),
-                borderColor: const Color(0xFFFECDD3),
+                backgroundColor: const Color(0xFFEEF0FF),
+                borderColor: const Color(0xFFC7D2FE),
                 child: Row(
                   children: [
                     const Icon(Icons.warning_amber_rounded, color: AppColors.ragRed, size: 24),

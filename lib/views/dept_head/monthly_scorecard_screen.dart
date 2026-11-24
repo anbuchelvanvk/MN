@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -147,18 +148,9 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => Scaffold(
-          appBar: AppBar(
-            title: Text(
-              'PDF Preview • ${_model.monthName} ${_model.year}',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            backgroundColor: AppColors.pureWhite,
-            foregroundColor: AppColors.textDark,
-            elevation: 1,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            ),
+          appBar: MnAppBar(
+            title: 'Scorecard PDF',
+            subtitle: '${_model.monthName} ${_model.year}',
           ),
           body: PdfPreview(
             build: (format) => MonthlyScorecardPdfService.generatePdf(_model),
@@ -274,53 +266,22 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          title: Text('Monthly Scorecard', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
-          backgroundColor: AppColors.pureWhite,
-          foregroundColor: AppColors.textDark,
-        ),
+        appBar: const MnAppBar(title: 'Monthly Scorecard'),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Monthly Scorecard',
-              style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFFDC2626)),
-            ),
-            Text(
-              'Online Department TL (OTM)',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF64748B)),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.pureWhite,
-        foregroundColor: AppColors.textDark,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: MnAppBar(
+        title: 'Monthly Scorecard',
+        subtitle: 'Online Department TL (OTM)',
         actions: [
-          IconButton(
+          MnGlassIconButton(
+            icon: Icons.edit_outlined,
             tooltip: 'Edit Scorecard Values',
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF1F2),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFECDD3)),
-              ),
-              child: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFFDC2626)),
-            ),
-            onPressed: _openEditModal,
+            onTap: _openEditModal,
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(

@@ -148,8 +148,8 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Color(0xFF831843),
-                          Color(0xFFBE185D),
+                          Color(0xFF1E1B4B),
+                          Color(0xFF4F46E5),
                           Color(0xFFB45309),
                         ],
                         begin: Alignment.topLeft,
@@ -218,7 +218,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF9D174D),
+                            color: const Color(0xFF3730A3),
                           ),
                         ),
                         const SizedBox(height: 10),

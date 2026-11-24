@@ -1385,7 +1385,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFDF2F8),
+              color: const Color(0xFFEEF0FF),
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
               border: Border(top: BorderSide(color: AppColors.sandBorder)),
             ),
@@ -1760,7 +1760,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
       subtitle: _activeViewTab == 0 ? 'HR Google Sheets Master Ledger' : 'Live Biometrics & Shift Punches',
       actions: [
         IconButton(
-          icon: const Icon(Icons.campaign_outlined, color: AppColors.sandGold),
+          icon: const Icon(Icons.campaign_outlined, color: AppColors.goldBright),
           tooltip: 'Broadcast Update to Staff',
           onPressed: () => _showBroadcastUpdateDialog(context, eco),
         ),
@@ -1769,9 +1769,9 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.sandGold),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                 )
-              : const Icon(Icons.sync_rounded, color: AppColors.sandGold),
+              : const Icon(Icons.sync_rounded, color: Colors.white),
           tooltip: 'Sync Google Sheets Attendance',
           onPressed: () async {
             await eco.syncGoogleSheetsAttendance(notifyIfUpdated: true);
@@ -2203,7 +2203,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                       color: AppColors.burgundyCard,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isEmpAbsent ? const Color(0xFFFECDD3).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.4),
+                        color: isEmpAbsent ? const Color(0xFFC7D2FE).withOpacity(0.5) : AppColors.sandBorder.withOpacity(0.4),
                       ),
                     ),
                     child: Row(

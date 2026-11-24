@@ -61,38 +61,94 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  @override
-  Size get preferredSize => const Size.fromHeight(84);
+  Size get preferredSize => const Size.fromHeight(96);
+
+  Widget _glassButton({
+    required Key key,
+    required IconData icon,
+    required VoidCallback onTap,
+    int badge = 0,
+    bool dotOnly = false,
+  }) {
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Material(
+            color: const Color(0x1FFFFFFF),
+            shape: const CircleBorder(side: BorderSide(color: Color(0x26FFFFFF))),
+            child: InkWell(
+              key: key,
+              customBorder: const CircleBorder(),
+              onTap: onTap,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Icon(icon, size: 20, color: Colors.white),
+              ),
+            ),
+          ),
+          if (badge > 0)
+            Positioned(
+              top: -2,
+              right: -2,
+              child: dotOnly
+                  ? Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.indigoDeep, width: 1.5),
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.indigoDeep, width: 1.5),
+                      ),
+                      child: Text(
+                        badge > 99 ? '99+' : '$badge',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppColors.midnight,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+            ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final canGoBack = showBackButton ?? Navigator.canPop(context);
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        color: AppColors.pureWhite,
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFF1F5F9),
-            width: 1.0,
-          ),
-        ),
+        gradient: AppColors.heroGradient,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
         boxShadow: [
-          BoxShadow(
-            color: Color(0x060F172A),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Color(0x2914123A), blurRadius: 18, offset: Offset(0, 6)),
         ],
       ),
       child: SafeArea(
         bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Top Executive Identity & Switch Strip
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 3.5),
-              color: AppColors.pureWhite,
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Signed-in user + switch role
+              Row(
                 children: [
                   Expanded(
                     child: InkWell(
@@ -107,11 +163,11 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       child: Row(
                         children: [
                           Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: roleColor,
+                              color: AppColors.gold,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -119,9 +175,9 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                             child: Text(
                               userName,
                               style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textDark,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFC9CBEA),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -132,25 +188,26 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 8),
                   InkWell(
+                    borderRadius: BorderRadius.circular(20),
                     onTap: () => _handleSwitchRole(context),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.magentaSubtle,
+                        color: const Color(0x1FFFFFFF),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.magentaBorder, width: 0.8),
+                        border: Border.all(color: const Color(0x40E2C26E), width: 0.8),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.swap_horiz_rounded, size: 10, color: AppColors.magentaPrimary),
+                        children: [
+                          Icon(Icons.swap_horiz_rounded, size: 12, color: AppColors.goldBright),
                           SizedBox(width: 4),
                           Text(
                             'Switch Role',
                             style: TextStyle(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.magentaPrimary,
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -159,78 +216,40 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ],
               ),
-            ),
-
-            // Main Brand and Actions Hub
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                right: 12,
-                top: 2,
-                bottom: 6,
-              ),
-              child: Row(
+              const SizedBox(height: 8),
+              // Brand + actions
+              Row(
                 children: [
-                  if (showBackButton ?? Navigator.canPop(context)) ...[
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        key: const ValueKey('role_app_bar_back_button'),
-                        onTap: () => Navigator.maybePop(context),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: const Color(0xFFE2E8F0),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            size: 16,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ),
+                  if (canGoBack) ...[
+                    _glassButton(
+                      key: const ValueKey('role_app_bar_back_button'),
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      onTap: () => Navigator.maybePop(context),
                     ),
+                    const SizedBox(width: 10),
                   ],
                   Container(
-                    width: 38,
-                    height: 38,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: AppColors.magentaPrimary.withOpacity(0.5),
-                        width: 1.2,
-                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.gold, width: 1.2),
                       color: Colors.black,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.magentaPrimary.withOpacity(0.18),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(9),
+                      borderRadius: BorderRadius.circular(11),
                       child: Image.asset(
                         'assets/images/logo.png',
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.diamond_outlined,
-                          color: AppColors.magentaPrimary,
+                          color: AppColors.gold,
                           size: 18,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,19 +258,19 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                         Text(
                           'MN JEWEL PARK',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textDark,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
                             letterSpacing: 0.8,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           roleName.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            letterSpacing: 1.1,
-                            color: AppColors.magentaPrimary,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            letterSpacing: 1.2,
+                            color: AppColors.goldBright,
                             fontWeight: FontWeight.w700,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -259,160 +278,35 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ],
                     ),
                   ),
-
                   const SizedBox(width: 4),
-
-                  // Notification Section Button (Replaces Chat Icon)
                   Consumer<EcosystemProvider>(
-                    builder: (context, eco, _) {
-                      final unreadNotifications = eco.unreadNotificationCount;
-                      return SizedBox(
-                        width: 36,
-                        height: 36,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                key: const ValueKey('role_app_bar_notification_button'),
-                                borderRadius: BorderRadius.circular(10),
-                                onTap: () {
-                                  if (onBellPressed != null) {
-                                    onBellPressed!();
-                                  } else {
-                                    CompanyNotificationSheet.show(context);
-                                  }
-                                },
-                                child: Container(
-                                  width: 34,
-                                  height: 34,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.pureWhite,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: unreadNotifications > 0
-                                          ? AppColors.magentaPrimary
-                                          : const Color(0xFFE2E8F0),
-                                      width: 1.1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.magentaPrimary.withOpacity(0.08),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.notifications_none_rounded,
-                                      size: 19,
-                                      color: Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (unreadNotifications > 0)
-                              Positioned(
-                                top: 1,
-                                right: 1,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEF4444),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Colors.white, width: 1.2),
-                                  ),
-                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                  child: Text(
-                                    unreadNotifications > 99 ? '99+' : '$unreadNotifications',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
+                    builder: (context, eco, _) => _glassButton(
+                      key: const ValueKey('role_app_bar_notification_button'),
+                      icon: Icons.notifications_none_rounded,
+                      badge: eco.unreadNotificationCount,
+                      onTap: () {
+                        if (onBellPressed != null) {
+                          onBellPressed!();
+                        } else {
+                          CompanyNotificationSheet.show(context);
+                        }
+                      },
+                    ),
                   ),
-                  const SizedBox(width: 6),
-
-                  // Hamburger Toggle Button
+                  const SizedBox(width: 8),
                   Consumer<EcosystemProvider>(
-                    builder: (context, eco, _) {
-                      final unread = eco.unreadNotificationCount;
-                      return SizedBox(
-                        width: 36,
-                        height: 36,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                key: const ValueKey('role_app_bar_hamburger'),
-                                borderRadius: BorderRadius.circular(10),
-                                onTap: () => _openMenuSheet(context),
-                                child: Container(
-                                  width: 34,
-                                  height: 34,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.pureWhite,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: unread > 0
-                                          ? AppColors.ragRed
-                                          : AppColors.magentaPrimary.withOpacity(0.35),
-                                      width: 1.1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.magentaPrimary.withOpacity(0.1),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.menu_rounded,
-                                      size: 20,
-                                      color: AppColors.magentaPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (unread > 0)
-                              Positioned(
-                                top: 2,
-                                right: 2,
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.ragRed,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: AppColors.pureWhite, width: 1.2),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
+                    builder: (context, eco, _) => _glassButton(
+                      key: const ValueKey('role_app_bar_hamburger'),
+                      icon: Icons.menu_rounded,
+                      badge: eco.unreadNotificationCount,
+                      dotOnly: true,
+                      onTap: () => _openMenuSheet(context),
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -439,7 +333,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x1A991B52),
+                color: Color(0x1A211B99),
                 blurRadius: 24,
                 offset: Offset(0, -4),
               ),

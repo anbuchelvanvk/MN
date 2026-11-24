@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/services/konar_pdf_service.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/widgets/mn_app_bar.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/employee_avatar.dart';
 import '../../models/konar_book_model.dart';
@@ -138,57 +141,64 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
       }
     }
 
-    final bottomOffset = widget.isEmbedded ? 74.0 : 18.0;
-
     final content = Scaffold(
-      backgroundColor: const Color(0xFFFBFBFC),
+      backgroundColor: AppColors.canvas,
       drawer: _buildAppDrawer(context, eco, emp),
-      body: SafeArea(
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
         child: Stack(
           children: [
             // 1. Scrollable Main Content
             Positioned.fill(
               child: RefreshIndicator(
-                color: const Color(0xFF881337),
+                color: AppColors.primary,
                 backgroundColor: Colors.white,
                 onRefresh: () => eco.refreshAllData(),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
-                  padding: EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 10,
-                    bottom: widget.isEmbedded ? 140 : 110, // Extra clearance so sticky dock does not obscure bottom items
-                  ),
+                  padding: const EdgeInsets.only(bottom: 110), // clearance for the chat dock
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Top Bar
-                      _buildTopBar(context, eco, emp),
-                      const SizedBox(height: 16),
-
-                      // User Identity Header (Centered)
-                      _buildIdentityHeader(emp),
-                      const SizedBox(height: 20),
-
-                      // 4 Pillar Metric Cards (2x2 Grid)
-                      _buildPillarsGrid(context, eco),
+                      // Hero: brand, greeting, today strip
+                      _buildHero(context, eco, emp),
                       const SizedBox(height: 18),
 
-                      // Official Online Department Konar Book Banner
-                      _buildKonarBookBanner(context, eco),
+                      // Quick actions
+                      _buildQuickActions(context, eco),
                       const SizedBox(height: 22),
 
+                      // 4 pillar cards (2x2 grid)
+                      _sectionHeader('Your month', trailing: 'Tap a card for details'),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _buildPillarsGrid(context, eco),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Department Konar Book
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _buildKonarBookBanner(context, eco),
+                      ),
+                      const SizedBox(height: 24),
+
                       // To-Do List Section with Timeline
-                      _buildPersonalTodoListSection(context, eco),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _buildPersonalTodoListSection(context, eco),
+                      ),
                       const SizedBox(height: 26),
 
-
                       // Cross-Department Blocker Escalation
-                      CrossDeptBlockerSection(
-                        department: emp.dept.isNotEmpty ? emp.dept : 'Online Department',
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: CrossDeptBlockerSection(
+                          department: emp.dept.isNotEmpty ? emp.dept : 'Online Department',
+                        ),
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -197,10 +207,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               ),
             ),
 
-            // 2. STICKY CHAT DOCK (PINNED AT BOTTOM-RIGHT, NEVER MOVES ON SCROLL)
+            // 2. Sticky chat dock (pinned bottom-right, never moves on scroll)
             Positioned(
               right: 14,
-              bottom: bottomOffset,
+              bottom: 16 + (widget.isEmbedded ? 0 : MediaQuery.of(context).padding.bottom),
               child: _buildStickyChatDock(context, eco),
             ),
           ],
@@ -212,150 +222,444 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   }
 
   // ==========================================
-  // TOP APP BAR
+  // HERO HEADER (brand, actions, greeting, today strip)
   // ==========================================
-  Widget _buildTopBar(BuildContext context, EcosystemProvider eco, dynamic emp) {
-    // Laid out at real size (it used to be drawn at 480px and scaled down,
-    // which made the logo, title and buttons ~25% smaller on phones).
-    Widget roundButton({
-      required IconData icon,
-      required VoidCallback onTap,
-      VoidCallback? onLongPress,
-      bool dot = false,
-    }) {
-      return Material(
-        color: const Color(0xFFFDF2F8),
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onTap,
-          onLongPress: onLongPress,
-          child: SizedBox(
-            width: 42,
-            height: 42,
-            child: Stack(
-              alignment: Alignment.center,
+  static String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  static String _todayLabel() {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final n = DateTime.now();
+    return '${days[n.weekday - 1]}, ${n.day} ${months[n.month - 1]}';
+  }
+
+  /// Display role for the signed-in user (CEO, HR, OTM, role acronym...).
+  static String _roleLabel(dynamic emp) {
+    final bool hasLoggedInUser = emp != null && emp.name.isNotEmpty && emp.name != 'Guest User';
+    if (!hasLoggedInUser) return 'Not signed in';
+    if (emp.isCeo) return 'CEO';
+    if (emp.isHr) return 'HR';
+    if (emp.isOtm) return 'OTM';
+    if (emp.roleAcronym.isNotEmpty && emp.roleAcronym != 'Employee') return emp.roleAcronym;
+    if (emp.straightCutRole.isNotEmpty) return emp.straightCutRole;
+    return emp.role.isNotEmpty ? emp.role : 'Employee';
+  }
+
+  Widget _buildHero(BuildContext context, EcosystemProvider eco, dynamic emp) {
+    final topInset = MediaQuery.of(context).padding.top;
+    final bool hasLoggedInUser = emp != null && emp.name.isNotEmpty && emp.name != 'Guest User';
+    final String name = hasLoggedInUser ? emp.name : 'Guest';
+    final String role = _roleLabel(emp);
+
+    final now = DateTime.now();
+    final steps = eco.getStepsForDate(now);
+    final pendingTasks = eco.currentEmployeeTasks
+        .where((t) => t.status == 'pending' || t.status == 'postponed')
+        .length;
+    final famToday = eco.totalFamilyHoursToday;
+    String fmtSteps(int v) => v.toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+    String fmtHours(double h) =>
+        h == h.roundToDouble() ? '${h.toStringAsFixed(0)}h' : '${h.toStringAsFixed(1)}h';
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: AppColors.heroGradient,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+      ),
+      child: Stack(
+        children: [
+          // Decorative gold glow + rings
+          Positioned(
+            right: -70,
+            top: -50,
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(colors: [Color(0x40C9A24B), Color(0x00C9A24B)]),
+              ),
+            ),
+          ),
+          Positioned(
+            left: -60,
+            bottom: -80,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0x14FFFFFF), width: 28),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(18, topInset + 12, 18, 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(icon, size: 23, color: const Color(0xFF881337)),
-                if (dot)
-                  Positioned(
-                    top: 9,
-                    right: 10,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE11D48),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
+                // Brand + actions
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CustomPaint(painter: _MnDiamondLogoPainter(color: AppColors.goldBright)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Welcome',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFB9BCE0),
+                              height: 1.1,
+                            ),
+                          ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'MN Family',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 21,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: -0.3,
+                                height: 1.2,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    MnGlassIconButton(
+                      icon: Icons.notifications_none_rounded,
+                      tooltip: 'Notifications',
+                      onTap: () => _onBellTapped(context, eco),
+                      onLongPress: () => CompanyNotificationSheet.show(context),
+                      dot: eco.activeCompanyNotifications.isNotEmpty,
+                      size: 42,
+                    ),
+                    const SizedBox(width: 8),
+                    Builder(
+                      builder: (ctx) => MnGlassIconButton(
+                        icon: Icons.menu_rounded,
+                        tooltip: 'Menu',
+                        onTap: () => Scaffold.of(ctx).openDrawer(),
+                        size: 42,
+                      ),
+                    ),
+                  ],
+                ),
+                // Latest notification slides in under the bell for a few seconds
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: _buildFloatingNotificationPill(context, eco),
                   ),
+                ),
+                const SizedBox(height: 14),
+
+                // Greeting + avatar
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${_greeting()},',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFFC9CBEA),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 27,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                              height: 1.15,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.goldGradientBright,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  role,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.midnight,
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.calendar_today_rounded, size: 13, color: Color(0xFFB9BCE0)),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    _todayLabel(),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFFC9CBEA),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Profile photo (opens profile)
+                    Material(
+                      color: Colors.transparent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppColors.goldGradientBright,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.indigoDeep,
+                            ),
+                            child: EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 64),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+
+                // Today strip
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0x14FFFFFF),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0x1FFFFFFF)),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        _heroStat(Icons.directions_walk_rounded, fmtSteps(steps), 'Steps today'),
+                        const VerticalDivider(color: Color(0x26FFFFFF), width: 1, thickness: 1),
+                        _heroStat(Icons.task_alt_rounded, '$pendingTasks', 'To-dos open'),
+                        const VerticalDivider(color: Color(0x26FFFFFF), width: 1, thickness: 1),
+                        _heroStat(Icons.favorite_rounded, fmtHours(famToday), 'Family today'),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-      );
-    }
+        ],
+      ),
+    );
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            // Brand: diamond crest + divider + Welcome / MN Family
-            const SizedBox(
-              width: 42,
-              height: 42,
-              child: CustomPaint(painter: _MnDiamondLogoPainter()),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 3,
-              height: 34,
-              decoration: BoxDecoration(
-                color: const Color(0xFF881337),
-                borderRadius: BorderRadius.circular(2),
+  Widget _heroStat(IconData icon, String value, String label) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 17, color: AppColors.goldBright),
+          const SizedBox(height: 5),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Welcome',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF756A80),
-                      height: 1.1,
-                    ),
-                  ),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'MN Family',
-                      style: GoogleFonts.outfit(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF881337),
-                        letterSpacing: -0.3,
-                        height: 1.15,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            roundButton(
-              icon: Icons.notifications_none_rounded,
-              onTap: () => _onBellTapped(context, eco),
-              onLongPress: () => CompanyNotificationSheet.show(context),
-              dot: eco.activeCompanyNotifications.isNotEmpty,
-            ),
-            const SizedBox(width: 8),
-            Builder(
-              builder: (ctx) => roundButton(
-                icon: Icons.menu_rounded,
-                onTap: () => Scaffold.of(ctx).openDrawer(),
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Profile photo (opens profile)
-            Material(
-              color: Colors.transparent,
-              shape: const CircleBorder(),
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EmployeeProfileScreen()),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFF3C6D6), width: 1.5),
-                  ),
-                  child: EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 44),
-                ),
-              ),
-            ),
-          ],
-        ),
-        // Latest-notification pill slides in under the bell for a few seconds
-        Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: _buildFloatingNotificationPill(context, eco),
           ),
-        ),
-      ],
+          const SizedBox(height: 1),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFB9BCE0),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // QUICK ACTIONS
+  // ==========================================
+  Widget _buildQuickActions(BuildContext context, EcosystemProvider eco) {
+    final emp = eco.currentEmployee;
+    final items = <(IconData, String, Color, VoidCallback)>[
+      (Icons.fingerprint_rounded, 'Attendance', const Color(0xFF0E9F6E),
+          () => _open(context, const AttendancePillarScreen())),
+      (Icons.menu_book_rounded, 'Konar Book', AppColors.goldDeep,
+          () => _open(
+                context,
+                KonarBookDetailScreen(
+                  department: emp.dept.isNotEmpty ? emp.dept : 'Online Department',
+                ),
+              )),
+      (Icons.sticky_note_2_rounded, 'Notes', AppColors.violet,
+          () => _open(context, const PersonalNotesScreen())),
+      (Icons.shopping_bag_rounded, 'Orders', const Color(0xFFD97706),
+          () => _open(context, const OnlineOrdersHandlerScreen())),
+      (Icons.video_collection_rounded, 'Media', const Color(0xFF2563EB),
+          () => _open(context, const CreativeMediaReviewBoardScreen())),
+    ];
+    return SizedBox(
+      height: 92,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, i) {
+          final (icon, label, color, onTap) = items[i];
+          return SizedBox(
+            width: 78,
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: onTap,
+                child: Ink(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(icon, size: 20, color: color),
+                      ),
+                      const SizedBox(height: 7),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String title, {String? trailing}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 18,
+            decoration: BoxDecoration(
+              gradient: AppColors.goldGradientBright,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.midnight,
+              ),
+            ),
+          ),
+          if (trailing != null)
+            Flexible(
+              child: Text(
+              trailing,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -495,64 +799,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ),
         ),
       ),
-    );
-  }
-
-  // ==========================================
-  // IDENTITY HEADER
-  // ==========================================
-  Widget _buildIdentityHeader(dynamic emp) {
-    // Read logged-in account holder's name; fallback to 'Iniya Praveen' for guest/unauthenticated
-    final bool hasLoggedInUser = emp != null &&
-        emp.name.isNotEmpty &&
-        emp.name != 'Guest User';
-
-    final String name = hasLoggedInUser ? emp.name : 'Guest';
-
-    // Designation of the logged-in user: CEO, HR, OTM, or straight-cut role
-    final String role;
-    if (hasLoggedInUser) {
-      if (emp.isCeo) {
-        role = 'CEO';
-      } else if (emp.isHr) {
-        role = 'HR';
-      } else if (emp.isOtm) {
-        role = 'OTM';
-      } else if (emp.roleAcronym.isNotEmpty && emp.roleAcronym != 'Employee') {
-        role = emp.roleAcronym;
-      } else if (emp.straightCutRole.isNotEmpty) {
-        role = emp.straightCutRole;
-      } else {
-        role = emp.role.isNotEmpty ? emp.role : 'Employee';
-      }
-    } else {
-      role = 'Not signed in';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          name,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(
-            fontSize: 34,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF881337),
-            letterSpacing: -0.5,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          role,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFF1E293B),
-          ),
-        ),
-      ],
     );
   }
 
@@ -719,7 +965,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ? const Color(0xFF94A3B8)
         : (currentBmi >= 18.5 && currentBmi < 25.0)
             ? const Color(0xFF059669)
-            : const Color(0xFFE11D48);
+            : const Color(0xFF4338CA);
 
     final cards = <Widget>[
       _pillarCard(
@@ -736,6 +982,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Calories', '${todayCal.round()} / ${targetCal.round()}'),
         ],
         onTap: () => _open(context, const HealthPillarScreen()),
+        tint: const Color(0xFF0E9F6E),
       ),
       _pillarCard(
         title: 'Family Time',
@@ -751,6 +998,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Friends', '${hrs(monthFriendsHours)}h'),
         ],
         onTap: () => _open(context, const FamilyPillarScreen()),
+        tint: AppColors.violet,
       ),
       _pillarCard(
         title: 'Work',
@@ -766,6 +1014,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Later', '$postponedTasks'),
         ],
         onTap: () => _open(context, const ProfilePillarScreen()),
+        tint: AppColors.primary,
       ),
       _pillarCard(
         title: 'Social Cause',
@@ -781,6 +1030,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Approved', '$approvedCauses'),
         ],
         onTap: () => _open(context, const SocialCausePillarScreen()),
+        tint: const Color(0xFFB7791F),
       ),
     ];
 
@@ -826,186 +1076,218 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     required Color ringColor,
     required List<(String, String)> stats,
     required VoidCallback onTap,
+    Color tint = AppColors.primary,
   }) {
-    const ink = Color(0xFF1E1B2E);
-    const muted = Color(0xFF64748B);
+    const ink = AppColors.midnight;
+    const muted = AppColors.textMuted;
+    final pct = (int.tryParse(percent.replaceAll('%', '')) ?? 0).clamp(0, 100) / 100.0;
     return SizedBox(
-      height: 256,
+      height: 250,
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        elevation: 0,
+        borderRadius: BorderRadius.circular(24),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(24),
           child: Ink(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFF5D0E0), width: 1.2),
-              boxShadow: const [
-                BoxShadow(color: Color(0x14881337), blurRadius: 18, offset: Offset(0, 6)),
-              ],
+              borderRadius: BorderRadius.circular(24),
               color: Colors.white,
+              border: Border.all(color: AppColors.line),
+              boxShadow: AppColors.softShadow,
             ),
-            child: LayoutBuilder(
-              builder: (context, c) {
-                final ring = c.maxWidth < 165 ? 54.0 : 62.0;
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header: icon + title + chevron
-                      Row(
+            child: Stack(
+              children: [
+                // Soft tinted corner
+                Positioned(
+                  right: -38,
+                  top: -38,
+                  child: Container(
+                    width: 84,
+                    height: 84,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: tint.withOpacity(0.06),
+                    ),
+                  ),
+                ),
+                LayoutBuilder(
+                  builder: (context, c) {
+                    final ring = c.maxWidth < 165 ? 58.0 : 66.0;
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: accent.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(9),
-                            ),
-                            child: Icon(icon, size: 17, color: accent),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              title,
-                              // Wrap long titles onto a second line instead of cutting them off
-                              maxLines: 2,
-                              softWrap: true,
-                              overflow: TextOverflow.fade,
-                              style: GoogleFonts.outfit(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w700,
-                                color: ink,
+                          Row(
+                            children: [
+                              Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [tint, Color.lerp(tint, Colors.black, 0.25)!],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(11),
+                                  boxShadow: [
+                                    BoxShadow(color: tint.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
+                                  ],
+                                ),
+                                child: Icon(icon, size: 18, color: Colors.white),
                               ),
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFFCBD5E1)),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Month percentage + today ring
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                percent,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w800,
-                                  color: accent,
-                                  height: 1.0,
-                                  letterSpacing: -0.5,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  maxLines: 2,
+                                  softWrap: true,
+                                  overflow: TextOverflow.fade,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: ink,
+                                    height: 1.15,
+                                  ),
                                 ),
                               ),
-                            ),
+                              const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFFB9BCD3)),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                          Container(
-                            width: ring,
-                            height: ring,
-                            padding: EdgeInsets.all(ring * 0.16),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: ringColor.withOpacity(0.06),
-                              border: Border.all(color: ringColor, width: 2.5),
-                            ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    ringValue,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: ink,
-                                      height: 1.05,
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              // Month progress ring with percentage
+                              SizedBox(
+                                width: ring,
+                                height: ring,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    SizedBox.expand(
+                                      child: CircularProgressIndicator(
+                                        value: pct,
+                                        strokeWidth: 6,
+                                        strokeCap: StrokeCap.round,
+                                        backgroundColor: tint.withOpacity(0.10),
+                                        valueColor: AlwaysStoppedAnimation(accent),
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    ringLabel,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: muted,
-                                      height: 1.1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        caption,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: muted,
-                          height: 1.25,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFDF2F8),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            for (int i = 0; i < stats.length; i++) ...[
-                              if (i > 0) const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 5,
-                                    child: Text(
-                                      stats[i].$1,
-                                      maxLines: 1,
-                                      softWrap: false,
-                                      overflow: TextOverflow.fade,
-                                      style: GoogleFonts.outfit(fontSize: 12, color: muted),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    flex: 4,
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerRight,
-                                      child: Text(
-                                        stats[i].$2,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: ink,
+                                    Padding(
+                                      padding: const EdgeInsets.all(9),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          percent,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                            color: ink,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              // Today value
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ringLabel,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: muted,
+                                      ),
+                                    ),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        ringValue,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
+                                          color: ringColor,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            caption,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: muted,
+                              height: 1.3,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: tint.withOpacity(0.06),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Column(
+                              children: [
+                                for (int i = 0; i < stats.length; i++) ...[
+                                  if (i > 0) const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 5,
+                                        child: Text(
+                                          stats[i].$1,
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          overflow: TextOverflow.fade,
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: muted, fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        flex: 4,
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          alignment: Alignment.centerRight,
+                                          child: Text(
+                                            stats[i].$2,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: ink,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ),
@@ -1049,7 +1331,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     messenger.showSnackBar(
       SnackBar(
         content: Text('Preparing ${book.department} Konar Book PDF...'),
-        backgroundColor: const Color(0xFF881337),
+        backgroundColor: const Color(0xFF1E1B4B),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -1089,43 +1371,48 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     Widget roundAction(IconData icon, String tip, VoidCallback onTap) => Tooltip(
           message: tip,
           child: Material(
-            color: const Color(0xFFFDF2F8),
-            shape: const CircleBorder(),
+            color: const Color(0x1FFFFFFF),
+            shape: const CircleBorder(side: BorderSide(color: Color(0x33E2C26E))),
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: onTap,
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(icon, size: 20, color: const Color(0xFF881337)),
+                child: Icon(icon, size: 20, color: AppColors.goldBright),
               ),
             ),
           ),
         );
 
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(22),
+      color: AppColors.indigoDeep,
+      borderRadius: BorderRadius.circular(24),
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(24),
         onTap: openBook,
         child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFF5D0E0), width: 1.2),
+            borderRadius: BorderRadius.circular(24),
+            gradient: AppColors.heroGradient,
             boxShadow: const [
-              BoxShadow(color: Color(0x14881337), blurRadius: 18, offset: Offset(0, 6)),
+              BoxShadow(color: Color(0x3314123A), blurRadius: 20, offset: Offset(0, 8)),
             ],
           ),
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              SizedBox(
-                width: 46,
-                height: 54,
+              Container(
+                width: 50,
+                height: 58,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.goldSoft,
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 child: CustomPaint(painter: _KonarBookIconPainter()),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1135,19 +1422,19 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       '${_deptLabel(eco.currentEmployee.dept)} Konar Book',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF881337),
-                        height: 1.15,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       'Your department handbook • tap to open',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(fontSize: 12.5, color: const Color(0xFF756A80)),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFFC9CBEA)),
                     ),
                   ],
                 ),
@@ -1232,7 +1519,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF881337),
+                        color: const Color(0xFF1E1B4B),
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -1259,10 +1546,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF1F2),
+                    color: const Color(0xFFEEF0FF),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFFFFE4E6),
+                      color: const Color(0xFFE0E7FF),
                       width: 1.1,
                     ),
                   ),
@@ -1272,7 +1559,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       const Icon(
                         Icons.add_circle_outline_rounded,
                         size: 14,
-                        color: Color(0xFF881337),
+                        color: Color(0xFF1E1B4B),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -1280,7 +1567,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF881337),
+                          color: const Color(0xFF1E1B4B),
                         ),
                       ),
                     ],
@@ -1360,7 +1647,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   'Show ${visible.length - shown.length} more',
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF881337),
+                    color: const Color(0xFF1E1B4B),
                   ),
                 ),
               ),
@@ -1381,7 +1668,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           'Add Personal To-Do',
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF881337),
+            color: const Color(0xFF1E1B4B),
           ),
         ),
         content: Column(
@@ -1413,7 +1700,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(
-                    color: Color(0xFF881337),
+                    color: Color(0xFF1E1B4B),
                     width: 1.5,
                   ),
                 ),
@@ -1431,7 +1718,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF881337),
+              backgroundColor: const Color(0xFF1E1B4B),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1449,7 +1736,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('To-Do "$text" added.'),
-                  backgroundColor: const Color(0xFF881337),
+                  backgroundColor: const Color(0xFF1E1B4B),
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -1480,7 +1767,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF881337) : const Color(0xFFE2E8F0),
+          color: isSelected ? const Color(0xFF1E1B4B) : const Color(0xFFE2E8F0),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -1528,7 +1815,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF756A80),
+                    color: const Color(0xFF6B6F86),
                     height: 1.2,
                   ),
                 ),
@@ -1551,7 +1838,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   border: Border.all(
                     color: isCompleted
                         ? const Color(0xFF059669)
-                        : const Color(0xFFE7A4BC),
+                        : const Color(0xFFA7A4E7),
                     width: 2,
                   ),
                 ),
@@ -1608,8 +1895,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             child: Container(
               width: 34,
               height: 34,
-              decoration: const BoxDecoration(color: Color(0xFFFDF2F8), shape: BoxShape.circle),
-              child: Icon(icon, size: 19, color: const Color(0xFF881337)),
+              decoration: const BoxDecoration(color: Color(0xFFEEF0FF), shape: BoxShape.circle),
+              child: Icon(icon, size: 19, color: const Color(0xFF1E1B4B)),
             ),
           ),
         );
@@ -1628,9 +1915,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: const Color(0xFFF3C6D6), width: 1.2),
+              border: Border.all(color: const Color(0xFFC7D2FE), width: 1.2),
               boxShadow: const [
-                BoxShadow(color: Color(0x22881337), blurRadius: 18, offset: Offset(0, 5)),
+                BoxShadow(color: Color(0x221E1B4B), blurRadius: 18, offset: Offset(0, 5)),
               ],
             ),
             child: Row(
@@ -1647,7 +1934,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF756A80),
+                        color: const Color(0xFF6B6F86),
                       ),
                     ),
                   ),
@@ -1673,7 +1960,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     CustomPaint(
                       size: const Size(58, 58),
                       painter: _ChatBubbleTailPainter(
-                        color: const Color(0xFFBE185D),
+                        color: const Color(0xFF4F46E5),
                         strokeColor: Colors.white,
                         strokeWidth: 2.8,
                       ),
@@ -1689,7 +1976,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE11D48),
+                            color: const Color(0xFF4338CA),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: Colors.white, width: 1.5),
                           ),
@@ -1749,7 +2036,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
-                color: Color(0xFF881337),
+                gradient: AppColors.heroGradient,
               ),
               child: Row(
                 children: [
@@ -1787,12 +2074,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 children: [
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.home_outlined, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.home_outlined, color: Color(0xFF1E1B4B)),
                     title: Text('Home Dashboard', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () => Navigator.pop(context),
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.forum_outlined, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.forum_outlined, color: Color(0xFF1E1B4B)),
                     title: Text('Team Chat Hub', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -1800,7 +2087,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.menu_book_rounded, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.menu_book_rounded, color: Color(0xFF1E1B4B)),
                     title: Text('${_deptLabel(emp.dept)} Konar Book', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -1815,7 +2102,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.person_outline, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.person_outline, color: Color(0xFF1E1B4B)),
                     title: Text('Employee Profile', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -1826,7 +2113,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.fact_check_outlined, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.fact_check_outlined, color: Color(0xFF1E1B4B)),
                     title: Text('My Attendance', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -1837,7 +2124,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF1E1B4B)),
                     title: Text('Online Orders', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -1848,7 +2135,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.sticky_note_2_outlined, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.sticky_note_2_outlined, color: Color(0xFF1E1B4B)),
                     title: Text('Personal Notes', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -1859,7 +2146,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     },
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
-                    leading: const Icon(Icons.video_collection_outlined, color: Color(0xFF881337)),
+                    leading: const Icon(Icons.video_collection_outlined, color: Color(0xFF1E1B4B)),
                     title: Text('Media Review Board', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
@@ -1892,7 +2179,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'MN Family App v2.0',
+                'MN Family • v1.1',
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   color: const Color(0xFF94A3B8),
@@ -1912,12 +2199,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
 
 /// Diamond crest logo painter for MN Family
 class _MnDiamondLogoPainter extends CustomPainter {
-  const _MnDiamondLogoPainter();
+  final Color color;
+  const _MnDiamondLogoPainter({this.color = const Color(0xFF1E1B4B)});
 
   @override
   void paint(Canvas canvas, Size size) {
     final strokePaint = Paint()
-      ..color = const Color(0xFF881337)
+      ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round
@@ -1953,7 +2241,7 @@ class _MnDiamondLogoPainter extends CustomPainter {
         style: GoogleFonts.outfit(
           fontSize: 10,
           fontWeight: FontWeight.w900,
-          color: const Color(0xFF881337),
+          color: color,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -2004,7 +2292,7 @@ class _KonarBookIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final bookPaint = Paint()
-      ..color = const Color(0xFF881337)
+      ..color = const Color(0xFF1E1B4B)
       ..style = PaintingStyle.fill;
 
     final goldBorderPaint = Paint()
@@ -2026,7 +2314,7 @@ class _KonarBookIconPainter extends CustomPainter {
 
     // Spine Line
     final spinePaint = Paint()
-      ..color = const Color(0xFF6B0E2B)
+      ..color = const Color(0xFF130E6B)
       ..style = PaintingStyle.fill;
     canvas.drawRRect(
       RRect.fromRectAndCorners(

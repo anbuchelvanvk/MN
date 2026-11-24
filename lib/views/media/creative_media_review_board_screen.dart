@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,41 +44,14 @@ class _CreativeMediaReviewBoardScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: AppColors.pureWhite,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.textDark, size: 18),
-          onPressed: () => Navigator.maybePop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Creative & Media Review Board',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-            Text(
-              'DAM Pipeline • Photoshoot & Reel Sign-Off',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11.5,
-                color: AppColors.magentaPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+      appBar: MnAppBar(
+        title: 'Media Review',
+        subtitle: 'Photoshoots and reels for sign-off',
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_photo_alternate_outlined,
-                color: AppColors.magentaPrimary),
-            tooltip: 'Upload Media Draft',
-            onPressed: () => _openSubmitAssetSheet(context),
+          MnGlassIconButton(
+            icon: Icons.add_photo_alternate_outlined,
+            tooltip: 'Upload media',
+            onTap: () => _openSubmitAssetSheet(context),
           ),
         ],
       ),
@@ -142,8 +116,8 @@ class _CreativeMediaReviewBoardScreenState
                         _metricTile(
                           label: 'Revisions',
                           value: '$revisionCount',
-                          color: const Color(0xFFE11D48),
-                          bgColor: const Color(0xFFFFE4E6),
+                          color: const Color(0xFF4338CA),
+                          bgColor: const Color(0xFFE0E7FF),
                         ),
                         const SizedBox(width: 8),
                         _metricTile(
@@ -436,8 +410,8 @@ class _CreativeMediaReviewBoardScreenState
       statusBg = const Color(0xFFD1FAE5);
       statusIcon = Icons.check_circle_outline_rounded;
     } else if (asset.isRevisionsRequested) {
-      statusColor = const Color(0xFFE11D48);
-      statusBg = const Color(0xFFFFE4E6);
+      statusColor = const Color(0xFF4338CA);
+      statusBg = const Color(0xFFE0E7FF);
       statusIcon = Icons.edit_note_rounded;
     } else if (asset.isPublished) {
       statusColor = const Color(0xFF2563EB);
@@ -472,7 +446,7 @@ class _CreativeMediaReviewBoardScreenState
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF66001F),
+                    color: const Color(0xFF050066),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -847,8 +821,8 @@ class _CreativeMediaReviewBoardScreenState
                   if (!asset.isApprovedByCeo && !asset.isPublished) ...[
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFFE11D48),
-                        side: const BorderSide(color: Color(0xFFFDA4AF)),
+                        foregroundColor: const Color(0xFF4338CA),
+                        side: const BorderSide(color: Color(0xFFA5B4FC)),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         textStyle: GoogleFonts.plusJakartaSans(
@@ -968,7 +942,7 @@ class _CreativeMediaReviewBoardScreenState
           style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFFE11D48)),
+              color: const Color(0xFF4338CA)),
         ),
         content: TextField(
           controller: controller,
@@ -987,7 +961,7 @@ class _CreativeMediaReviewBoardScreenState
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE11D48),
+              backgroundColor: const Color(0xFF4338CA),
               foregroundColor: Colors.white,
             ),
             onPressed: () {
@@ -1092,7 +1066,7 @@ class _CreativeMediaReviewBoardScreenState
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFE4E6),
+                          color: const Color(0xFFE0E7FF),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(Icons.cloud_upload_outlined,

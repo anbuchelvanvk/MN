@@ -109,7 +109,7 @@ class KonarPdfService {
                       style: pw.TextStyle(
                         fontSize: 13,
                         fontWeight: pw.FontWeight.bold,
-                        color: PdfColor.fromInt(0xFF831843), // Burgundy
+                        color: PdfColor.fromInt(0xFF1E1B4B), // Burgundy
                       ),
                     ),
                     pw.Text(
@@ -124,16 +124,16 @@ class KonarPdfService {
                 pw.Container(
                   padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: pw.BoxDecoration(
-                    color: PdfColor.fromInt(0xFFFDF2F8),
+                    color: PdfColor.fromInt(0xFFEEF0FF),
                     borderRadius: pw.BorderRadius.circular(6),
-                    border: pw.Border.all(color: PdfColor.fromInt(0xFFFBCFE8)),
+                    border: pw.Border.all(color: PdfColor.fromInt(0xFFC7D2FE)),
                   ),
                   child: pw.Text(
                     '${book.departmentCode} • ${book.version}',
                     style: pw.TextStyle(
                       fontSize: 8.5,
                       fontWeight: pw.FontWeight.bold,
-                      color: PdfColor.fromInt(0xFF9D174D),
+                      color: PdfColor.fromInt(0xFF3730A3),
                     ),
                   ),
                 ),
@@ -231,7 +231,7 @@ class KonarPdfService {
                       style: pw.TextStyle(
                         fontSize: 12.5,
                         fontWeight: pw.FontWeight.bold,
-                        color: PdfColor.fromInt(0xFF831843),
+                        color: PdfColor.fromInt(0xFF1E1B4B),
                       ),
                     ),
                     if (sec.subtitle.isNotEmpty) ...[
@@ -279,7 +279,7 @@ class KonarPdfService {
                                   child: pw.Row(
                                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                                     children: [
-                                      pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF831843))),
+                                      pw.Text('• ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF1E1B4B))),
                                       pw.Expanded(
                                         child: pw.Text(
                                           r,

@@ -73,13 +73,13 @@ class _EmployeeThingsToDoScreenState extends State<EmployeeThingsToDoScreen> {
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: ElevatedButton.icon(
-            icon: const Icon(Icons.add, size: 14, color: Colors.white),
-            label: const Text('Add Task', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white)),
+            icon: const Icon(Icons.add, size: 14, color: AppColors.midnight),
+            label: const Text('Add Task', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.midnight)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.magentaPrimary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.midnight,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              shape: const StadiumBorder(),
             ),
             onPressed: () => _openAddPersonalTaskDialog(context, eco),
           ),
@@ -372,7 +372,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
       subtitle: 'Official Workforce Credentials & Custody',
       actions: [
         IconButton(
-          icon: const Icon(Icons.badge_outlined, color: AppColors.magentaPrimary),
+          icon: const Icon(Icons.badge_outlined, color: Colors.white),
           tooltip: 'Open Full Profile',
           onPressed: () {
             Navigator.push(
@@ -393,13 +393,13 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.magentaPrimary, Color(0xFFBE185D)],
+                  colors: [AppColors.magentaPrimary, Color(0xFF4F46E5)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x22E11D48), blurRadius: 14, offset: Offset(0, 6)),
+                  BoxShadow(color: Color(0x224338CA), blurRadius: 14, offset: Offset(0, 6)),
                 ],
               ),
               child: Column(

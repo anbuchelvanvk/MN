@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -47,27 +48,9 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'KONAR Books',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16.5,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-            const Text(
-              'Department Operational Manuals & SOPs',
-              style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-            ),
-          ],
-        ),
+      appBar: const MnAppBar(
+        title: 'Konar Books',
+        subtitle: 'Department handbooks and SOPs',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -203,7 +186,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                       height: 44,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF831843), Color(0xFF9D174D)],
+                          colors: [Color(0xFF1E1B4B), Color(0xFF3730A3)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -507,7 +490,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: const [
-            Icon(Icons.people_outline_rounded, color: Color(0xFF9D174D), size: 24),
+            Icon(Icons.people_outline_rounded, color: Color(0xFF3730A3), size: 24),
             SizedBox(width: 8),
             Flexible(child: Text('Staff Disposition')),
           ],
@@ -538,8 +521,8 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
           ),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF9D174D),
-              side: const BorderSide(color: Color(0xFF9D174D)),
+              foregroundColor: const Color(0xFF3730A3),
+              side: const BorderSide(color: Color(0xFF3730A3)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
@@ -658,10 +641,10 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFCE7F3),
+                        color: const Color(0xFFE0E7FF),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.swap_horiz_rounded, color: Color(0xFF9D174D), size: 24),
+                      child: const Icon(Icons.swap_horiz_rounded, color: Color(0xFF3730A3), size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -756,7 +739,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
                           radius: 18,
-                          backgroundColor: const Color(0xFF831843),
+                          backgroundColor: const Color(0xFF1E1B4B),
                           child: Text(
                             emp.initials.toString().isNotEmpty ? emp.initials.toString() : 'MN',
                             style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
@@ -770,7 +753,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                           '${emp.role} • ID: ${emp.id}',
                           style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF9D174D)),
+                        trailing: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF3730A3)),
                       ));
                     },
                   ),
@@ -784,7 +767,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                   height: 48,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF831843),
+                      backgroundColor: const Color(0xFF1E1B4B),
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 2,

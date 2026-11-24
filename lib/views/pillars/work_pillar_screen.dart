@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
@@ -32,37 +33,9 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'WORK PILLAR',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: Center(
-              child: LiquidGlassPill(
-                label: 'PILLAR 3',
-                color: AppColors.sandGold,
-                icon: Icons.work_outline,
-              ),
-            ),
-          ),
-        ],
+      appBar: const MnAppBar(
+        title: 'Work',
+        subtitle: 'Tasks and daily routines',
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -90,9 +63,9 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF1F4),
+                      color: const Color(0xFFEEF0FF),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFFECDD3)),
+                      border: Border.all(color: const Color(0xFFC7D2FE)),
                     ),
                     child: const Icon(Icons.precision_manufacturing_outlined, color: AppColors.magentaPrimary, size: 28),
                   ),

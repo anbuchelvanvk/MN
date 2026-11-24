@@ -24,7 +24,10 @@ import '../konar/konar_books_directory_screen.dart';
 import '../../core/widgets/employee_avatar.dart';
 
 class HrPortalScreen extends StatefulWidget {
-  const HrPortalScreen({super.key});
+  /// True when shown as a tab inside the main shell (start-up popups are
+  /// handled by the shell instead).
+  final bool embedded;
+  const HrPortalScreen({super.key, this.embedded = false});
 
   @override
   State<HrPortalScreen> createState() => _HrPortalScreenState();
@@ -35,7 +38,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
+      if (!mounted || widget.embedded) return;
       final eco = context.read<EcosystemProvider>();
       // M N Naveenraaj is the Managing Director & CEO, strictly not HR.
       // If CEO credentials are active, seamlessly redirect to the Executive CEO Suite.
@@ -242,7 +245,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'HR MANAGEMENT PORTALS',
+                            'YOUR TOOLS',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               fontWeight: FontWeight.bold,
@@ -266,19 +269,22 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                     const SizedBox(height: 12),
                     Column(
                       children: [
-                        _portalDirectAccessTile(
-                          context: context,
-                          label: 'Team Chat',
-                          icon: Icons.chat_bubble_outline_rounded,
-                          badge: eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : '',
-                          destination: const ChatHubScreen(),
-                        ),
-                        const SizedBox(height: 8),
+                        // Team Chat is a bottom-bar tab inside the main shell.
+                        if (!widget.embedded) ...[
+                          _portalDirectAccessTile(
+                            context: context,
+                            label: 'Team Chat',
+                            icon: Icons.chat_bubble_outline_rounded,
+                            badge: eco.unreadTotalChatCount > 0 ? '${eco.unreadTotalChatCount}' : '',
+                            destination: const ChatHubScreen(),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                         _portalDirectAccessTile(
                           context: context,
                           label: 'KONAR Books',
                           icon: Icons.menu_book_rounded,
-                          badge: 'SOP',
+                          badge: '',
                           destination: const KonarBooksDirectoryScreen(),
                         ),
                         const SizedBox(height: 8),

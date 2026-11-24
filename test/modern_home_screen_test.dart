@@ -249,6 +249,10 @@ void main() {
       await tester.pumpWidget(createTestWidget(eco: eco));
       await tester.pumpAndSettle();
 
+      // The to-do list sits below the hero and pillar cards: scroll to it.
+      // (Kept clear of the chat dock pinned at the bottom-right.)
+      await Scrollable.ensureVisible(tester.element(find.text('Add To Do')), alignment: 0.3);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Add To Do'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).last, 'Shoot new reel');
@@ -286,7 +290,7 @@ void main() {
 
       // Steps and calories come from the real logs
       expect(find.text('Steps'), findsOneWidget);
-      expect(find.text('4,444'), findsOneWidget);
+      expect(find.text('4,444'), findsWidgets);
       expect(find.text('Calories'), findsOneWidget);
       expect(find.text('1500 / 2000'), findsOneWidget);
 

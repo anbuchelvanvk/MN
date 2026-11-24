@@ -2950,7 +2950,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFF1F4),
+                              color: const Color(0xFFEEF0FF),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(selectedActivity.icon, color: AppColors.magentaPrimary, size: 22),
@@ -4677,25 +4677,9 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: AppBar(
-        backgroundColor: AppColors.burgundyBg,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.sandPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'EMPLOYEE HEALTH ACTIVITIES',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.8,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+      appBar: const MnAppBar(
+        title: 'Staff Health',
+        subtitle: 'Health activity logged by the team',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -4876,7 +4860,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                         title: 'EXERCISE TODAY',
                         value: '$workoutMins mins',
                         subText: '${workouts.length} workouts logged',
-                        accentColor: const Color(0xFFEC4899),
+                        accentColor: const Color(0xFF7C3AED),
                       ),
                     ),
                   ],

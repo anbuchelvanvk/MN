@@ -1,3 +1,4 @@
+import '../../core/widgets/mn_app_bar.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
-import '../../core/widgets/role_app_bar.dart';
 import '../../models/online_order_model.dart';
 import '../../providers/ecosystem_provider.dart';
 
@@ -54,11 +54,9 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
-      appBar: RoleAppBar(
-        roleName: 'Orders',
-        userName: '${eco.currentEmployee.name} • Online Orders',
-        roleColor: const Color(0xFFF59E0B),
-        roleIcon: Icons.shopping_bag_outlined,
+      appBar: const MnAppBar(
+        title: 'Online Orders',
+        subtitle: 'Track, pack and dispatch',
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),

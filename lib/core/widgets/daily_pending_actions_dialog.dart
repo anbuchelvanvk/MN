@@ -91,12 +91,12 @@ class DailyPendingActionsDialog extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF2F2),
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFFECDD3)),
+                          border: Border.all(color: const Color(0xFFC7D2FE)),
                         ),
                         child: const Icon(
                           Icons.notification_important_rounded,
                           size: 20,
-                          color: Color(0xFFE11D48),
+                          color: Color(0xFF4338CA),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -143,8 +143,8 @@ class DailyPendingActionsDialog extends StatelessWidget {
                       title: 'Health Log Pending',
                       subtitle: 'Calorie, hydration, steps, or workout check-in has not been recorded today.',
                       badgeText: 'Health Pillar',
-                      primaryColor: const Color(0xFFE11D48),
-                      bgColor: const Color(0xFFFFF1F2),
+                      primaryColor: const Color(0xFF4338CA),
+                      bgColor: const Color(0xFFEEF0FF),
                       actionLabel: 'Log Health',
                       onAction: () {
                         Navigator.pop(context);

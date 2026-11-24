@@ -47,7 +47,7 @@ void main() {
 
       // Verify HR Portal Screen renders
       expect(find.byType(HrPortalScreen), findsOneWidget);
-      expect(find.text('HR MANAGEMENT PORTALS'), findsOneWidget);
+      expect(find.text('YOUR TOOLS'), findsOneWidget);
       expect(find.text('Direct Access'), findsOneWidget);
 
       // Verify all Direct Access tiles exist
@@ -130,7 +130,7 @@ void main() {
 
       // Verify navigated to HrBiometricPunchAuditScreen
       expect(find.byType(HrBiometricPunchAuditScreen), findsOneWidget);
-      expect(find.text('Biometric Punch Audit'), findsOneWidget);
+      expect(find.text('Punch Audit'), findsOneWidget);
       expect(find.text('Attendance Rate'), findsOneWidget);
       expect(find.text('On-Time Punctuality'), findsOneWidget);
 

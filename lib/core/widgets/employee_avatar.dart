@@ -55,7 +55,7 @@ class EmployeeAvatar extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFBE185D), Color(0xFF881337)],
+          colors: [Color(0xFF4F46E5), Color(0xFF1E1B4B)],
         ),
       ),
       alignment: Alignment.center,

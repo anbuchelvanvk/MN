@@ -110,8 +110,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Screen Title
-      expect(find.text('Creative & Media Review Board'), findsOneWidget);
-      expect(find.textContaining('DAM Pipeline'), findsOneWidget);
+      expect(find.text('Media Review'), findsOneWidget);
+      expect(find.textContaining('Photoshoots and reels'), findsOneWidget);
 
       // Verify Metrics starting at 0
       expect(find.text('Total Drafts'), findsOneWidget);
