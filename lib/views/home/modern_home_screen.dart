@@ -9,6 +9,7 @@ import '../../core/services/konar_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../../core/widgets/mn_brand_logo.dart';
+import '../../core/widgets/birthday_crown.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/employee_avatar.dart';
 import '../../models/konar_book_model.dart';
@@ -255,6 +256,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   }
 
   Widget _buildHero(BuildContext context, EcosystemProvider eco, dynamic emp) {
+    final birthdayToday = eco.isLoggedIn && isBirthdayToday('${emp.dob}', parse: EcosystemProvider.parseDob);
     final topInset = MediaQuery.of(context).padding.top;
     final bool hasLoggedInUser = emp != null && emp.name.isNotEmpty && emp.name != 'Guest User';
     final String name = hasLoggedInUser ? emp.name : 'Guest';
@@ -410,6 +412,19 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             runSpacing: 6,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
+                              if (birthdayToday)
+                                Container(
+                                  key: const Key('birthday_chip'),
+                                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(colors: [Color(0xFFFFE082), Color(0xFFF59E0B)]),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    '🎂 Happy birthday',
+                                    style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF7C2D12)),
+                                  ),
+                                ),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
                                 decoration: BoxDecoration(
@@ -446,8 +461,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Profile photo (opens profile)
-                    Material(
+                    // Profile photo (opens profile). On their birthday: a crown.
+                    BirthdayCrown(
+                      show: birthdayToday,
+                      size: 74,
+                      child: Material(
                       color: Colors.transparent,
                       shape: const CircleBorder(),
                       child: InkWell(
@@ -472,6 +490,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                           ),
                         ),
                       ),
+                    ),
                     ),
                   ],
                 ),
