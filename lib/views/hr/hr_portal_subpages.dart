@@ -1053,7 +1053,8 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          'Employee ID "${empIdController.text.trim()}" is already registered as ${alreadyHiredStaff!.name} (${alreadyHiredStaff!.role}, ${alreadyHiredStaff!.dept}).',
+                                          'Already filled up in the name ${alreadyHiredStaff!.name} under the employee number '
+                                          '${alreadyHiredStaff!.empNo.trim().isNotEmpty ? alreadyHiredStaff!.empNo.trim() : alreadyHiredStaff!.id}.',
                                           style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF7F1D1D)),
                                         ),
                                         const SizedBox(height: 2),
@@ -1152,21 +1153,41 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             ),
                           ]
 
-                          // Instant Search Feedback 3: CUSTOM / MANUAL ID
+                          // Instant Search Feedback 3: NOT IN THE ATTENDANCE SHEET
                           else if (empIdController.text.trim().isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.info_outline, size: 13, color: Color(0xFF64748B)),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    'Custom ID "${empIdController.text.trim()}". Enter details below.',
-                                    style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF64748B)),
-                                  ),
+                            const SizedBox(height: 8),
+                            if ((isCustomDept ? customDeptController.text : selectedDept)
+                                .toLowerCase()
+                                .contains('external support'))
+                              Text(
+                                'Outside support has no thumb impression, so the attendance sheet is not checked.',
+                                style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF64748B)),
+                              )
+                            else
+                              Container(
+                                key: const Key('new_hire_not_in_sheet'),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF2F2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFFCA5A5)),
                                 ),
-                              ],
-                            ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.fingerprint, color: Color(0xFFDC2626), size: 16),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        eco.allGoogleSheetEmployees.isEmpty
+                                            ? 'Attendance sheet not loaded yet. Tap "Sync Sheets" to check this number.'
+                                            : EcosystemProvider.newHireNotInSheetMessage,
+                                        style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF7F1D1D)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         ],
                       ),
@@ -1435,7 +1456,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                               : 'Register Staff & Grant Access',
                           style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           final cleanEmpId = empIdController.text.trim();
                           if (cleanEmpId.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -1447,15 +1468,57 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             return;
                           }
 
-                          final already = eco.findHiredEmployeeByIdOrEmpNo(cleanEmpId);
-                          if (already != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: const Color(0xFFEF4444),
-                                content: Text('Cannot hire: Employee ID "$cleanEmpId" is already hired (${already.name}).'),
+                          // Checkpoint: number + name must be in the attendance
+                          // Google Sheet, and not already in the database.
+                          final isOutside = (isCustomDept ? customDeptController.text : selectedDept)
+                              .toLowerCase()
+                              .contains('external support');
+                          if (!isOutside && eco.allGoogleSheetEmployees.isEmpty) {
+                            setModalState(() => isSyncingSheets = true);
+                            await eco.refreshGoogleSheetsAttendance();
+                            if (!context.mounted) return;
+                            setModalState(() => isSyncingSheets = false);
+                          }
+                          final check = eco.checkNewHire(
+                            empNo: cleanEmpId,
+                            name: nameController.text,
+                            outsideSupport: isOutside,
+                          );
+                          if (!check.ok) {
+                            await showDialog<void>(
+                              context: context,
+                              builder: (dctx) => AlertDialog(
+                                icon: Icon(
+                                  check.result == NewHireCheckResult.alreadyHired
+                                      ? Icons.how_to_reg_rounded
+                                      : Icons.fingerprint,
+                                  color: const Color(0xFFDC2626),
+                                ),
+                                title: Text(switch (check.result) {
+                                  NewHireCheckResult.alreadyHired => 'Already added',
+                                  NewHireCheckResult.notInSheet => 'Not in the attendance sheet',
+                                  NewHireCheckResult.nameMismatch => 'Name does not match the sheet',
+                                  NewHireCheckResult.sheetUnavailable => 'Attendance sheet not reachable',
+                                  _ => 'Check the details',
+                                }),
+                                content: Text(check.message),
+                                actions: [
+                                  if (check.result == NewHireCheckResult.nameMismatch && check.sheetEntry != null)
+                                    TextButton(
+                                      onPressed: () {
+                                        nameController.text = check.sheetEntry!.name.trim();
+                                        Navigator.pop(dctx);
+                                      },
+                                      child: const Text('Use sheet name'),
+                                    ),
+                                  FilledButton(onPressed: () => Navigator.pop(dctx), child: const Text('OK')),
+                                ],
                               ),
                             );
                             return;
+                          }
+                          if (nameController.text.trim().isEmpty && check.sheetEntry != null) {
+                            nameController.text = check.sheetEntry!.name.trim();
                           }
 
                           if (nameController.text.trim().isEmpty) {

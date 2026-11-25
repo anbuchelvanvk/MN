@@ -988,6 +988,63 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  static const newHireNotInSheetMessage =
+      'No name or employee number found in the attendance. Make a new entry in Thumb impression '
+      'and update in google sheets along with the employee number and name.';
+
+  /// New Hire checkpoint. A new staff member can only be added when their
+  /// employee number (with a name) is in the HR attendance Google Sheet and
+  /// nobody with that number or name is in the database yet.
+  /// Outside support staff have no thumb impression, so they skip the sheet.
+  NewHireCheck checkNewHire({required String empNo, required String name, bool outsideSupport = false}) {
+    final number = empNo.trim();
+    final cleanName = _normName(name);
+    if (number.isEmpty) {
+      return const NewHireCheck(NewHireCheckResult.missingNumber,
+          'Enter the employee number from the attendance sheet.');
+    }
+
+    final existing = findHiredEmployeeByIdOrEmpNo(number) ??
+        (cleanName.isEmpty ? null : _employees.firstWhereOrNull((e) => _normName(e.name) == cleanName));
+    if (existing != null) {
+      final existingNo = existing.empNo.trim().isNotEmpty ? existing.empNo.trim() : existing.id;
+      return NewHireCheck(
+        NewHireCheckResult.alreadyHired,
+        'Already filled up in the name ${existing.name} under the employee number $existingNo.',
+        existing: existing,
+      );
+    }
+    if (outsideSupport) return const NewHireCheck(NewHireCheckResult.ok, '');
+
+    final sheetStaff = allGoogleSheetEmployees;
+    if (sheetStaff.isEmpty) {
+      return const NewHireCheck(NewHireCheckResult.sheetUnavailable,
+          'Could not read the attendance Google Sheet. Check the internet and tap "Sync Sheets", then try again.');
+    }
+    final digits = number.replaceAll(RegExp(r'[^0-9]'), '');
+    final entry = sheetStaff.firstWhereOrNull((e) {
+      final no = e.empNo.trim();
+      if (no.isEmpty || e.name.trim().isEmpty) return false;
+      if (no.toLowerCase() == number.toLowerCase()) return true;
+      final noDigits = no.replaceAll(RegExp(r'[^0-9]'), '');
+      return digits.isNotEmpty && noDigits.isNotEmpty && int.tryParse(noDigits) == int.tryParse(digits);
+    });
+    if (entry == null) {
+      return const NewHireCheck(NewHireCheckResult.notInSheet, newHireNotInSheetMessage);
+    }
+    if (cleanName.isNotEmpty && _normName(entry.name) != cleanName) {
+      return NewHireCheck(
+        NewHireCheckResult.nameMismatch,
+        'Employee number ${entry.empNo.trim()} is in the attendance sheet as "${entry.name.trim()}". '
+        'Use that name, or correct the Google Sheet first.',
+        sheetEntry: entry,
+      );
+    }
+    return NewHireCheck(NewHireCheckResult.ok, '', sheetEntry: entry);
+  }
+
+  static String _normName(String n) => n.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
   /// Check whether an employee ID/Number is already registered in the active workforce
   Employee? findHiredEmployeeByIdOrEmpNo(String query) {
     final clean = query.trim().toLowerCase();
@@ -9953,4 +10010,16 @@ class EcosystemProvider extends ChangeNotifier {
     _konarBooksSubscription?.cancel();
     super.dispose();
   }
+}
+
+enum NewHireCheckResult { ok, missingNumber, alreadyHired, sheetUnavailable, notInSheet, nameMismatch }
+
+/// Outcome of the New Hire checkpoint ([EcosystemProvider.checkNewHire]).
+class NewHireCheck {
+  final NewHireCheckResult result;
+  final String message;
+  final Employee? existing;
+  final GoogleSheetEmployeeEntry? sheetEntry;
+  const NewHireCheck(this.result, this.message, {this.existing, this.sheetEntry});
+  bool get ok => result == NewHireCheckResult.ok;
 }
