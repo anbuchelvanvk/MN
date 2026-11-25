@@ -169,10 +169,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       _buildHero(context, eco, emp),
                       const SizedBox(height: 18),
 
-                      // Quick actions
-                      _buildQuickActions(context, eco),
-                      const SizedBox(height: 22),
-
                       // 4 pillar cards (2x2 grid)
                       _sectionHeader('Your month', trailing: 'Tap a card for details'),
                       const SizedBox(height: 12),
@@ -180,7 +176,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: _buildPillarsGrid(context, eco),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
+
+                      // Quick actions
+                      _buildQuickActions(context, eco),
+                      const SizedBox(height: 22),
 
                       // Department Konar Book
                       Padding(
