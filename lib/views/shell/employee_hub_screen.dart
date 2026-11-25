@@ -15,6 +15,7 @@ import '../pillars/health_pillar_screen.dart';
 import '../pillars/profile_pillar_screen.dart';
 import '../pillars/social_cause_pillar_screen.dart';
 import 'role_hub_widgets.dart';
+import 'my_todo_list_card.dart';
 
 /// Staff member's third tab: their day's work and every personal tool.
 class EmployeeHubScreen extends StatelessWidget {
@@ -86,11 +87,7 @@ class EmployeeHubScreen extends StatelessWidget {
                   onTap: () => openHubScreen(context, const SocialCausePillarScreen())),
             ]),
             const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => showAddPersonalTodoDialog(context, eco),
-              icon: const Icon(Icons.add_task_rounded, size: 18),
-              label: const Text('Add a to-do'),
-            ),
+            const MyTodoListCard(),
             const SizedBox(height: 22),
             const MnSectionTitle('Everything for you'),
             const SizedBox(height: 12),

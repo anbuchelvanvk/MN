@@ -8,6 +8,7 @@ import 'package:mn_family_app/core/services/daily_scorecard_service.dart';
 import 'package:mn_family_app/core/widgets/employee_avatar.dart';
 import 'package:mn_family_app/core/widgets/person_avatar.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
+import 'package:mn_family_app/views/shell/my_todo_list_card.dart';
 import 'package:mn_family_app/views/shell/roles_screen.dart';
 
 void main() {
@@ -129,5 +130,24 @@ void main() {
     expect(guide.duties, isNotEmpty);
     final lead = RoleGuide.of(eco.currentEmployee, eco);
     expect(lead.label, contains('Team Lead'));
+  });
+
+  testWidgets('every role sees the whole to-do list, not just the top few', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(420, 9000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    for (final email in ['praveenkumarotm@mnj.com', 'ceoofmn@mnjpark.com']) {
+      final eco = EcosystemProvider();
+      await eco.loginWithFirebase(email: email, password: 'x');
+      final tasks = eco.currentEmployeeTasks;
+      await tester.pumpWidget(ChangeNotifierProvider.value(
+        value: eco,
+        child: const MaterialApp(home: Scaffold(body: SingleChildScrollView(child: MyTodoListCard()))),
+      ));
+      await tester.pump();
+      for (final t in tasks) {
+        expect(find.text(t.title), findsWidgets, reason: '$email: ${t.title}');
+      }
+      expect(find.byKey(const Key('work_add_todo')), findsOneWidget);
+    }
   });
 }

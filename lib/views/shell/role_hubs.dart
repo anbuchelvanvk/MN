@@ -20,6 +20,7 @@ import '../media/creative_media_review_board_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import 'role_hub_widgets.dart';
+import 'my_todo_list_card.dart';
 import '../../models/attendance_models.dart';
 import '../dept_head/daily_scorecard_screen.dart';
 
@@ -134,6 +135,8 @@ class _RoleHub extends StatelessWidget {
                 ],
               ],
             ),
+            const SizedBox(height: 16),
+            const MyTodoListCard(),
             const SizedBox(height: 22),
             const MnSectionTitle('Tools'),
             const SizedBox(height: 12),

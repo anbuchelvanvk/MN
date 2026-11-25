@@ -19,6 +19,7 @@ import '../orders/online_orders_handler_screen.dart';
 import 'dept_head_portal_screen.dart';
 import 'dept_head_subpages.dart';
 import 'daily_scorecard_screen.dart';
+import '../shell/my_todo_list_card.dart';
 
 /// The team lead's "My Team" tab: who is on the team today, what needs
 /// attention, and every team tool in one place.
@@ -197,6 +198,8 @@ class TeamHubScreen extends StatelessWidget {
               icon: const Icon(Icons.campaign_rounded, size: 18),
               label: const Text('Announce to team'),
             ),
+            const SizedBox(height: 16),
+            const MyTodoListCard(),
             const SizedBox(height: 22),
 
             const MnSectionTitle('Team tools'),
