@@ -19,7 +19,6 @@ class HrEmployeeInspectionScreen extends StatefulWidget {
 }
 
 class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen> {
-  bool _isPasswordRevealed = false;
   final Map<String, bool> _groomingChecks = {};
 
   @override
@@ -49,7 +48,6 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
     final totalDocsCount = docs.length;
     final submissionPercent = totalDocsCount == 0 ? 0 : ((submittedDocsCount / totalDocsCount) * 100).toInt();
 
-    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored — reset via Password Requests';
     final isTargetCeo = emp.roleType.toLowerCase() == 'ceo' || emp.id.toUpperCase() == 'MN-CEO01';
 
     // Real Attendance Calculations from Past 1-Week Ledger (Full Calendar Days)
@@ -293,46 +291,6 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       ],
                     ),
                     const Divider(color: Color(0xFFF1F5F9), height: 20),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.key, size: 15, color: AppColors.textMuted),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Active Password: ',
-                            style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              _isPasswordRevealed ? empPassword : '••••••••',
-                              style: GoogleFonts.outfit(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textDark,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              _isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
-                              size: 17,
-                              color: AppColors.magentaPrimary,
-                            ),
-                            onPressed: () => setState(() => _isPasswordRevealed = !_isPasswordRevealed),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

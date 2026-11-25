@@ -29,6 +29,7 @@ import '../chat/floating_chat_window.dart';
 import '../auth/pillars_popup_dialog.dart';
 import '../employee/employee_profile_screen.dart';
 import '../konar/konar_book_detail_screen.dart';
+import '../konar/konar_books_directory_screen.dart';
 
 /// Modern Home Page Screen matching the official MN Family App redesign specification.
 /// Features the sticky chat dock at the bottom-right that stays pinned while scrolling.
@@ -80,8 +81,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     });
     _notifAnimController.forward(from: 0.0);
 
-    // Float for 5 seconds, then ease out kind of dropdown
-    _notifDismissTimer = Timer(const Duration(seconds: 5), () {
+    // Show for 6 seconds, then ease out
+    _notifDismissTimer = Timer(const Duration(seconds: 6), () {
       if (mounted) {
         _dismissFloatingNotification();
       }
@@ -666,6 +667,13 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   // FLOATING NOTIFICATION PILL
   // Floats out from the bell icon for 5 seconds, then eases out with a dropdown animation
   // ==========================================
+  /// Drops leading emojis/symbols so the pill stays short.
+  static String _shortNoticeTitle(String title) {
+    final t = title.trimLeft();
+    final i = t.indexOf(RegExp(r'[A-Za-z0-9஀-௿]'));
+    return (i > 0 ? t.substring(i) : t).trim();
+  }
+
   Widget _buildFloatingNotificationPill(BuildContext context, EcosystemProvider eco) {
     final activeNotifs = eco.activeCompanyNotifications;
     if (activeNotifs.isEmpty || !_isFloatingNotifVisible) {
@@ -673,11 +681,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     }
 
     final latestNotif = activeNotifs.first;
-    final bool hasLeadingEmoji = latestNotif.title.isNotEmpty &&
-        (latestNotif.title.startsWith('🎉') ||
-            latestNotif.title.startsWith('💍') ||
-            latestNotif.title.startsWith('📋') ||
-            latestNotif.title.startsWith('📢'));
 
     return AnimatedBuilder(
       animation: _notifAnimController,
@@ -729,8 +732,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             },
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 280),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
+              constraints: const BoxConstraints(maxWidth: 230),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -769,23 +772,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     ),
                   ),
 
-                  // Clipboard or notification emoji matching user's image
-                  if (!hasLeadingEmoji) ...[
-                    const Text(
-                      '📋',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-
-                  // Notification Title
+                  // Notification title: one short line
                   Flexible(
                     child: Text(
-                      latestNotif.title,
-                      maxLines: 2,
+                      _shortNoticeTitle(latestNotif.title),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.15),
                       style: GoogleFonts.outfit(
-                        fontSize: 12.5,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF1E293B),
                         letterSpacing: -0.2,
@@ -1365,14 +1360,19 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
   }
 
   Widget _buildKonarBookBanner(BuildContext context, EcosystemProvider eco) {
+    // The CEO looks after every department's book.
+    final allBooks = eco.isCeo || eco.activeRole.toLowerCase() == 'ceo';
+    final bookCount = eco.konarBooks.length;
     void openBook() => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => KonarBookDetailScreen(
-              department: eco.currentEmployee.dept.isNotEmpty
-                  ? eco.currentEmployee.dept
-                  : 'Online Department',
-            ),
+            builder: (_) => allBooks
+                ? const KonarBooksDirectoryScreen()
+                : KonarBookDetailScreen(
+                    department: eco.currentEmployee.dept.isNotEmpty
+                        ? eco.currentEmployee.dept
+                        : 'Online Department',
+                  ),
           ),
         );
 
@@ -1427,7 +1427,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '${_deptLabel(eco.currentEmployee.dept)} Konar Book',
+                      allBooks ? 'All Konar Books' : '${_deptLabel(eco.currentEmployee.dept)} Konar Book',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(
@@ -1439,7 +1439,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Your department handbook • tap to open',
+                      allBooks
+                          ? '$bookCount department${bookCount == 1 ? '' : 's'} • view, add and manage'
+                          : 'Your department handbook • tap to open',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFFFFD6E5)),
@@ -1448,11 +1450,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 ),
               ),
               const SizedBox(width: 8),
-              roundAction(Icons.file_download_outlined, 'Download PDF',
-                  () => _downloadKonarBook(context, eco, share: false)),
-              const SizedBox(width: 6),
-              roundAction(Icons.share_outlined, 'Share PDF',
-                  () => _downloadKonarBook(context, eco, share: true)),
+              if (allBooks)
+                roundAction(Icons.arrow_forward_rounded, 'Open all books', openBook)
+              else ...[
+                roundAction(Icons.file_download_outlined, 'Download PDF',
+                    () => _downloadKonarBook(context, eco, share: false)),
+                const SizedBox(width: 6),
+                roundAction(Icons.share_outlined, 'Share PDF',
+                    () => _downloadKonarBook(context, eco, share: true)),
+              ],
             ],
           ),
         ),

@@ -141,7 +141,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Floating notification floats for 5 seconds then eases out with dropdown animation', (tester) async {
+    testWidgets('Floating notification floats for 6 seconds then eases out with dropdown animation', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -159,11 +159,11 @@ void main() {
       // Visible during the 5 second float period
       expect(find.textContaining('Important Gold Rate Notice'), findsOneWidget);
 
-      // Advance past 5 seconds for ease-out dropdown exit
-      await tester.pump(const Duration(seconds: 5));
+      // Advance past 6 seconds for ease-out dropdown exit
+      await tester.pump(const Duration(seconds: 6));
       await tester.pump(const Duration(milliseconds: 600));
 
-      // After 5s ease-out dropdown, the pill is hidden
+      // After 6s ease-out dropdown, the pill is hidden
       expect(find.textContaining('Important Gold Rate Notice'), findsNothing);
 
       // Tapping the bell icon re-triggers the floating notification dropdown

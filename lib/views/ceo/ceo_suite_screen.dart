@@ -1,6 +1,5 @@
 import '../hr/hr_password_requests_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -72,7 +71,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   String _attendanceFilter = 'all'; // 'all', 'present', 'absent'
   String _attendanceTabFilter = 'all'; // 'all', 'present', 'absent', 'ontime', 'late', 'lunch'
   String? _selectedAttendanceInspectorEmpId;
-  final Map<String, bool> _revealedPasswords = {};
 
   @override
   void dispose() {
@@ -3449,8 +3447,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
 
   Widget _buildCeoStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
     final isAbsent = eco.isEmployeeAbsent(emp.id);
-    final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
-    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored — reset via Password Requests';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -3544,65 +3540,6 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.lock_outline, size: 13, color: AppColors.sandGold),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Password: ',
-                      style: GoogleFonts.outfit(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.sandGold,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        isPasswordRevealed ? empPassword : '••••••••',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isPasswordRevealed ? AppColors.sandLight : AppColors.textSecondary,
-                          letterSpacing: isPasswordRevealed ? 0 : 1.5,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    InkWell(
-                      onTap: () => setState(() => _revealedPasswords[emp.id] = !isPasswordRevealed),
-                      borderRadius: BorderRadius.circular(6),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Icon(
-                          isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
-                          size: 15,
-                          color: AppColors.sandGold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    InkWell(
-                      onTap: () {
-                        if (emp.password.isEmpty) return;
-                        Clipboard.setData(ClipboardData(text: empPassword));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Password for ${emp.name} copied to clipboard!'),
-                            backgroundColor: const Color(0xFF10B981),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.copy_rounded, size: 14, color: AppColors.sandLight),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
                 Wrap(
                   alignment: WrapAlignment.end,
                   crossAxisAlignment: WrapCrossAlignment.center,

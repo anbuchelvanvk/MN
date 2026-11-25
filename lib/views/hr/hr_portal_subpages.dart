@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -73,7 +72,6 @@ class HrStaffDirectoryScreen extends StatefulWidget {
 class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
   String _searchQuery = '';
   final String _deptFilter = 'all';
-  final Map<String, bool> _revealedPasswords = {};
 
   @override
   Widget build(BuildContext context) {
@@ -287,8 +285,6 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
         ? 'OUTSIDE SUPPORT'
         : (todayState == TodayAttendance.notTracked ? null : todayState.label.toUpperCase());
     final badgeColor = emp.isExternalSupport ? const Color(0xFF6D28D9) : todayState.color;
-    final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
-    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored — reset via Password Requests';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -458,69 +454,6 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
               ),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.lock_outline, size: 13, color: AppColors.magentaPrimary),
-                      const SizedBox(width: 5),
-                      Text(
-                        'Password: ',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.magentaPrimary,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          isPasswordRevealed ? empPassword : '••••••••',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDark,
-                            letterSpacing: isPasswordRevealed ? 0 : 1.5,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      InkWell(
-                        onTap: () {
-                          setState(() {
-                            _revealedPasswords[emp.id] = !isPasswordRevealed;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Icon(
-                            isPasswordRevealed ? Icons.visibility_off : Icons.visibility,
-                            size: 15,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      InkWell(
-                        onTap: () {
-                          if (emp.password.isEmpty) return;
-                        Clipboard.setData(ClipboardData(text: empPassword));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFF10B981),
-                              content: Text('Password for ${emp.name} copied to clipboard!'),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4),
-                          child: Icon(Icons.copy_rounded, size: 14, color: AppColors.textSecondary),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
                   Wrap(
                     alignment: WrapAlignment.end,
                     crossAxisAlignment: WrapCrossAlignment.center,

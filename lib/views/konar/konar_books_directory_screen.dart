@@ -97,13 +97,30 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
 
             const SizedBox(height: 18),
 
-            Text(
-              'Available Departments (${books.length})',
-              style: GoogleFonts.outfit(
-                fontSize: 13.5,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF0F172A),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Available Departments (${books.length})',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ),
+                if (isCeo)
+                  FilledButton.icon(
+                    key: const Key('add_konar_book'),
+                    style: FilledButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                    ),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text('Add Konar Book'),
+                    onPressed: () => _openAddBookSheet(context, eco, books),
+                  ),
+              ],
             ),
             const SizedBox(height: 10),
 
@@ -137,6 +154,151 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
             // Live Department Cards fetched from Firebase
             ...books.map((book) => _buildDepartmentCard(context, book, isCeo, eco)),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// CEO: create a Konar Book for a department that does not have one yet.
+  Future<void> _openAddBookSheet(BuildContext context, EcosystemProvider eco, List<KonarBookModel> books) async {
+    final have = books.map((b) => b.department.trim().toLowerCase()).toSet();
+    final missing = eco.availableDepartments
+        .where((d) => !have.contains(d.trim().toLowerCase()))
+        .where((d) => !(d.toLowerCase().contains('online') && have.any((h) => h.contains('online'))))
+        .toList()
+      ..sort();
+    if (missing.isEmpty) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          icon: const Icon(Icons.menu_book_rounded, color: AppColors.primary),
+          title: const Text('Every department has a book'),
+          content: const Text(
+              'All departments already have a Konar Book. Open one to edit it, or add a new department first.'),
+          actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
+      return;
+    }
+    String dept = missing.first;
+    final titleCtrl = TextEditingController(text: '$dept KONAR Book');
+    final descCtrl = TextEditingController(text: 'Official handbook and SOPs for $dept.');
+    String? error;
+    bool saving = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: const Color(0xFFE5D5DE), borderRadius: BorderRadius.circular(4)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('New Konar Book',
+                  style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.midnight)),
+              const SizedBox(height: 4),
+              Text('Pick a department that has no book yet. You can add sections or a PDF next.',
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                key: const Key('konar_new_dept'),
+                value: dept,
+                decoration: const InputDecoration(labelText: 'Department'),
+                items: [for (final d in missing) DropdownMenuItem(value: d, child: Text(d))],
+                onChanged: (v) => setSheet(() {
+                  dept = v ?? dept;
+                  titleCtrl.text = '$dept KONAR Book';
+                  descCtrl.text = 'Official handbook and SOPs for $dept.';
+                }),
+              ),
+              const SizedBox(height: 12),
+              TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Book title')),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descCtrl,
+                minLines: 2,
+                maxLines: 4,
+                decoration: const InputDecoration(labelText: 'Short description'),
+              ),
+              if (error != null) ...[
+                const SizedBox(height: 10),
+                Text(error!, style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.ragRed)),
+              ],
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                key: const Key('konar_create'),
+                style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                icon: saving
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.check_rounded),
+                label: Text(saving ? 'Creating…' : 'Create book'),
+                onPressed: saving
+                    ? null
+                    : () async {
+                        if (titleCtrl.text.trim().isEmpty) {
+                          setSheet(() => error = 'Enter a title.');
+                          return;
+                        }
+                        setSheet(() {
+                          error = null;
+                          saving = true;
+                        });
+                        final me = eco.currentEmployee;
+                        final slug = dept.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_').replaceAll(RegExp(r'^_+|_+$'), '');
+                        final code = dept
+                            .split(RegExp(r'\s+'))
+                            .where((w) => w.isNotEmpty && w != '&')
+                            .map((w) => w[0].toUpperCase())
+                            .join();
+                        final book = KonarBookModel(
+                          id: slug,
+                          department: dept,
+                          departmentCode: code.isEmpty ? 'DEPT' : code,
+                          title: titleCtrl.text.trim(),
+                          description: descCtrl.text.trim(),
+                          version: 'v1.0',
+                          lastUpdated: DateTime.now(),
+                          updatedByName: me.name,
+                          updatedByRole: me.role,
+                          updatedByEmpId: me.id,
+                          sections: const [],
+                          attachmentFileName: '${slug}_KONAR_Book.pdf',
+                        );
+                        try {
+                          await eco.updateKonarBook(book, updaterName: me.name, updaterRole: me.role, updaterEmpId: me.id);
+                        } catch (_) {
+                          setSheet(() {
+                            saving = false;
+                            error = 'Could not save. Check the internet and try again.';
+                          });
+                          return;
+                        }
+                        if (!ctx.mounted) return;
+                        Navigator.pop(ctx);
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Konar Book created for $dept. Add sections or a PDF now.')),
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => KonarBookDetailScreen(department: dept)),
+                        );
+                      },
+              ),
+            ],
+          ),
         ),
       ),
     );
