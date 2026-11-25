@@ -9,6 +9,7 @@ import '../../models/health_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../services/food_api_service.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import 'auto_steps_panel.dart';
 
 class HealthPillarScreen extends StatefulWidget {
   const HealthPillarScreen({super.key});
@@ -90,6 +91,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _checkAndShowTargetCaloriePopup(context);
+        context.read<EcosystemProvider>().syncAutoSteps();
       }
     });
   }
@@ -1135,6 +1137,10 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             ),
           ),
           const SizedBox(height: 12),
+
+          // Automatic steps from Health Connect / Apple Health
+          const AutoStepsPanel(),
+          const SizedBox(height: 10),
 
           // SEPARATE DEDICATED SECTION TO ADD / EDIT GOAL STEPS
           Container(

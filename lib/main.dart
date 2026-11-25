@@ -118,6 +118,7 @@ class _MnFamilyAppState extends State<MnFamilyApp> with WidgetsBindingObserver {
       if (!eco.isLoggedIn) return;
       eco.checkAndResetDailySops();
       eco.checkAndDispatchCelebrations();
+      eco.syncAutoSteps();
     }
   }
 

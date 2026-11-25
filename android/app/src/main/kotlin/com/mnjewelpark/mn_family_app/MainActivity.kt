@@ -6,11 +6,16 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import io.flutter.embedding.android.FlutterActivity
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+// FlutterFragmentActivity is needed for the Health Connect permission screen.
+class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "com.mnjewelpark.mn_family_app/background_permissions"
     private val NOTIFICATION_CHANNEL = "com.mnjewelpark.mn_family_app/notification_clicks"
     private var initialPayload: String? = null
@@ -92,6 +97,22 @@ class MainActivity : FlutterActivity() {
                     } catch (e: Exception) {
                         result.error("SERVICE_ERROR", e.message, null)
                     }
+                }
+                "hasActivityRecognition" -> {
+                    result.success(
+                        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                            ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) ==
+                            PackageManager.PERMISSION_GRANTED
+                    )
+                }
+                "requestActivityRecognition" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) !=
+                        PackageManager.PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 4107)
+                    }
+                    result.success(true)
                 }
                 else -> result.notImplemented()
             }

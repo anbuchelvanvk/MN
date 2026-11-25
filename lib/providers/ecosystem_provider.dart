@@ -31,6 +31,7 @@ import '../models/creative_media_asset_model.dart';
 import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
 import '../core/services/push_notification_service.dart';
+import '../core/services/auto_steps_service.dart';
 import '../core/utils/password_generator.dart';
 
 class EcosystemProvider extends ChangeNotifier {
@@ -129,6 +130,10 @@ class EcosystemProvider extends ChangeNotifier {
     _salesRecords = [];
     _originalDocuments = [];
     _dailyStepsMap = {};
+    _autoStepsEnabled = false;
+    _autoStepsStatus = AutoStepsStatus.off;
+    _autoStepsLastSync = null;
+    _autoStepDays.clear();
     _dailyFoodLogs = [];
     _dailyWorkoutLogs = [];
     _familyActivityLogs = [];
@@ -5784,6 +5789,127 @@ class EcosystemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ---- Automatic steps (Health Connect on Android, Apple Health on iPhone) ----
+  bool _autoStepsEnabled = false;
+  AutoStepsStatus _autoStepsStatus = AutoStepsStatus.off;
+  DateTime? _autoStepsLastSync;
+  bool _autoStepsSyncing = false;
+  bool _autoStepsNoData = false;
+  final Set<String> _autoStepDays = {};
+
+  bool get autoStepsSupported => AutoStepsService.isSupported;
+  bool get autoStepsEnabled => _autoStepsEnabled;
+  AutoStepsStatus get autoStepsStatus => _autoStepsEnabled ? _autoStepsStatus : AutoStepsStatus.off;
+  DateTime? get autoStepsLastSync => _autoStepsLastSync;
+  bool get autoStepsSyncing => _autoStepsSyncing;
+
+  /// True when sync worked but the phone returned no steps at all this week
+  /// (on iPhone this usually means Health access was not allowed).
+  bool get autoStepsNoData => _autoStepsNoData;
+  String get autoStepsSourceName => AutoStepsService.sourceName;
+  bool isAutoStepsDay(DateTime date) => _autoStepDays.contains(_stepDayKey(date));
+
+  String _stepDayKey(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  String get _autoStepsPrefKey => 'auto_steps_$_activeEmpId';
+
+  Future<void> _loadAutoStepsPref() async {
+    final empId = _activeEmpId;
+    if (empId.isEmpty || !AutoStepsService.isSupported) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (empId != _activeEmpId) return;
+      _autoStepsEnabled = prefs.getBool(_autoStepsPrefKey) ?? false;
+    } catch (_) {
+      return;
+    }
+    if (_autoStepsEnabled) {
+      notifyListeners();
+      await syncAutoSteps(force: true);
+    }
+  }
+
+  Future<void> _saveAutoStepsPref() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_autoStepsPrefKey, _autoStepsEnabled);
+    } catch (_) {}
+  }
+
+  /// Turns automatic steps on: asks the phone for step access, then syncs.
+  Future<AutoStepsStatus> enableAutoSteps() async {
+    final status = await AutoStepsService.enable();
+    _autoStepsStatus = status;
+    _autoStepsEnabled = status == AutoStepsStatus.on;
+    await _saveAutoStepsPref();
+    notifyListeners();
+    if (_autoStepsEnabled) await syncAutoSteps(force: true);
+    return status;
+  }
+
+  Future<void> disableAutoSteps() async {
+    _autoStepsEnabled = false;
+    _autoStepsStatus = AutoStepsStatus.off;
+    _autoStepsNoData = false;
+    await _saveAutoStepsPref();
+    notifyListeners();
+  }
+
+  Future<void> openHealthConnectInstall() => AutoStepsService.installHealthConnect();
+
+  /// Reads the last 7 days of steps from the phone. A higher number typed in
+  /// by hand is kept. Runs at most every 90 seconds unless [force] is set.
+  Future<void> syncAutoSteps({bool force = false}) async {
+    if (!_autoStepsEnabled || _autoStepsSyncing || _activeEmpId.isEmpty) return;
+    final last = _autoStepsLastSync;
+    if (!force && last != null && DateTime.now().difference(last).inSeconds < 90) return;
+    final empId = _activeEmpId;
+    _autoStepsSyncing = true;
+    notifyListeners();
+    try {
+      _autoStepsStatus = await AutoStepsService.check();
+      if (_autoStepsStatus != AutoStepsStatus.on) return;
+      final today = DateTime.now();
+      var changed = false;
+      var anySteps = false;
+      for (var i = 0; i < 7; i++) {
+        final day = DateTime(today.year, today.month, today.day).subtract(Duration(days: i));
+        final steps = await AutoStepsService.stepsForDay(day);
+        if (empId != _activeEmpId) return; // account switched mid-sync
+        if (steps == null) continue;
+        if (steps > 0) anySteps = true;
+        final key = _stepDayKey(day);
+        _autoStepDays.add(key);
+        final clamped = steps.clamp(0, 100000);
+        if (clamped > (_dailyStepsMap[key] ?? 0)) {
+          _dailyStepsMap[key] = clamped;
+          changed = true;
+        }
+      }
+      _autoStepsNoData = !anySteps;
+      _autoStepsLastSync = DateTime.now();
+      if (changed) _saveHealthSteps();
+    } finally {
+      _autoStepsSyncing = false;
+      notifyListeners();
+    }
+  }
+
+  void _saveHealthSteps() {
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'health',
+      data: {
+        'heightCm': _userHeightCm,
+        'weightKg': _userWeightKg,
+        'onboarded': _healthOnboarded,
+        if (_dailyCalorieTarget != null)
+          'dailyCalorieTarget': _dailyCalorieTarget,
+        'dailySteps': _dailyStepsMap,
+      },
+    ).catchError((Object e) => debugPrint('Saving steps failed: $e'));
+  }
+
   void recordDailySteps({required DateTime date, required int steps}) {
     steps = steps.clamp(0, 100000);
     final key =
@@ -5944,7 +6070,7 @@ class EcosystemProvider extends ChangeNotifier {
       // degrading the session to 'guest'.
       _activeRole = emp?.roleType ?? fallbackRole ?? _activeRole;
     }
-    loadEmployeeFourPillars(empId);
+    loadEmployeeFourPillars(empId).catchError((_) {}).then((_) => _loadAutoStepsPref());
     _resubscribeChats();
     try {
       PushNotificationService().syncActiveUserToNative(

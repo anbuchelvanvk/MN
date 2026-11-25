@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Mn Family App</string>
+	<string>MN Family</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -40,6 +40,22 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>MN Family reads your step count from Apple Health so your daily steps fill in automatically on the Health pillar.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>MN Family only reads your steps. It does not change your Apple Health data.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>MN Family uses motion data to count your steps for the Health pillar.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>MN Family uses the camera to take photos for your profile, tasks and social causes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MN Family lets you choose photos for your profile, tasks and social causes.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>MN Family saves exported reports and images to your photos when you ask it to.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
