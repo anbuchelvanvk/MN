@@ -70,7 +70,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: '2020-01-01',
-      password: 'adminnaandhan',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1980-05-15',
       relationshipStatus: 'Married',
       anniversaryDate: '2008-11-20',
@@ -104,7 +104,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'hr@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1992-04-10',
       relationshipStatus: 'Married',
       anniversaryDate: '2019-06-12',
@@ -130,7 +130,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'praveen@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1994-08-22',
       relationshipStatus: 'Single',
       trainer: { name: 'Executive CEO', role: 'Managing Director' },
@@ -155,7 +155,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'gokul@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1995-12-05',
       relationshipStatus: 'Married',
       anniversaryDate: '2022-02-14',
@@ -181,7 +181,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'aravind@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1996-03-18',
       relationshipStatus: 'Single',
       trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
@@ -206,7 +206,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'mithra@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1997-09-25',
       relationshipStatus: 'Married',
       anniversaryDate: '2023-01-20',
@@ -232,7 +232,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'ece@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1996-11-14',
       relationshipStatus: 'Single',
       trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
@@ -257,7 +257,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'kaaviya@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1998-02-18',
       relationshipStatus: 'Single',
       trainer: { name: 'Mr. K. Gokulakrishnan', role: 'OSH' },
@@ -282,7 +282,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'nisha@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1999-07-30',
       relationshipStatus: 'Single',
       trainer: { name: 'Mr. K. Gokulakrishnan', role: 'OSH' },
@@ -307,7 +307,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'midhun@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1995-10-12',
       relationshipStatus: 'Married',
       anniversaryDate: '2021-05-18',
@@ -333,7 +333,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'subash@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1997-06-08',
       relationshipStatus: 'Single',
       trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
@@ -358,7 +358,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'eshwar@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1996-01-28',
       relationshipStatus: 'Single',
       trainer: { name: 'Mr. M. Praveen Kumar', role: 'Team Lead' },
@@ -383,7 +383,7 @@ const DEFAULT_ECOSYSTEM_DATA = {
       probationWeeks: 0,
       probationStatus: 'cleared',
       probationEndDate: 'Completed',
-      password: 'samroy@mnj123',
+      password: '', // never stored here; sign-in uses Firebase Authentication
       dob: '1998-08-19',
       relationshipStatus: 'Single',
       trainer: { name: 'Mr. Y. Aravinda Samy', role: 'VPE' },

@@ -4,32 +4,36 @@ with open('lib/providers/ecosystem_provider.dart', encoding='utf-8') as f:
     text = f.read()
 
 accounts_to_check = [
-    ('CEO', 'ceoofmn@mnjpark.com', 'adminnaandhan'),
-    ('HR', 'hr@mnj.com', 'hr@mnj123'),
-    ('OTM', 'praveenkumarotm@mnj.com', 'praveen@mnj123'),
-    ('OSH', 'gokulakrishnanosh@mnj.com', 'gokul@mnj123'),
-    ('VPE', 'aravindasamyvpe@mnj.com', 'aravind@mnj123'),
-    ('Ass.VPE', 'mithraassvpe@mnj.com', 'mithra@mnj123'),
-    ('ECE', 'ece@mnj.com', 'ece@mnj123'),
-    ('OS1', 'kaaviyaos1@mnj.com', 'kaaviya@mnj123'),
-    ('OS2', 'nishaos2@mnj.com', 'nisha@mnj123'),
-    ('AC', 'midhunkumarac@mnj.com', 'midhun@mnj123'),
-    ('OSS', 'subashoss@mnj.com', 'subash@mnj123'),
-    ('DVP', 'eshwardvp@mnj.com', 'eshwar@mnj123'),
-    ('CC', 'samroycc@mnj.com', 'samroy@mnj123'),
+    ('CEO', 'ceoofmn@mnjpark.com'),
+    ('HR', 'hr@mnj.com'),
+    ('OTM', 'praveenkumarotm@mnj.com'),
+    ('OSH', 'gokulakrishnanosh@mnj.com'),
+    ('VPE', 'aravindasamyvpe@mnj.com'),
+    ('Ass.VPE', 'mithraassvpe@mnj.com'),
+    ('ECE', 'ece@mnj.com'),
+    ('OS1', 'kaaviyaos1@mnj.com'),
+    ('OS2', 'nishaos2@mnj.com'),
+    ('AC', 'midhunkumarac@mnj.com'),
+    ('OSS', 'subashoss@mnj.com'),
+    ('DVP', 'eshwardvp@mnj.com'),
+    ('CC', 'samroycc@mnj.com'),
 ]
 
+# Passwords are never kept in this repo. Flag any password-like literal instead.
+PASSWORD_PATTERN = re.compile(r"[a-z]+@mnj(park)?\d{3}")
+
 print("=== Checking 13 Target Accounts in ecosystem_provider.dart ===")
-for code, acc, pwd in accounts_to_check:
+for code, acc in accounts_to_check:
     acc_found = acc in text
-    pwd_found = pwd in text
-    print(f"[{code}] {acc} -> Email: {'YES' if acc_found else 'NO'}, Pwd: {'YES' if pwd_found else 'NO'}")
+    print(f"[{code}] {acc} -> Email: {'YES' if acc_found else 'NO'}")
+leaks = PASSWORD_PATTERN.findall(text)
+print(f"Hard-coded password-like strings: {'NONE' if not leaks else len(leaks)}")
 
 with open('lib/services/firebase_employee_service.dart', encoding='utf-8') as f:
     fb_text = f.read()
 
 print("\n=== Checking 13 Target Accounts in firebase_employee_service.dart ===")
-for code, acc, pwd in accounts_to_check:
+for code, acc in accounts_to_check:
     acc_found = acc in fb_text
     print(f"[{code}] {acc} -> in FirebaseService: {'YES' if acc_found else 'NO'}")
 
