@@ -76,7 +76,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       children: [
                         Text(
                           'Operations & Craftsmanship Gate',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -85,7 +85,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                         const SizedBox(height: 2),
                         Text(
                           'SOP discipline, hallmarking precision, and master craftsmanship records.',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             color: AppColors.textSecondary,
                           ),
@@ -108,7 +108,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                 children: [
                   Text(
                     'Daily Operational Inputs',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -119,7 +119,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
 
                   Text(
                     'Department Unit',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.sandLight,
@@ -130,7 +130,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                     isExpanded: true,
                     value: _department,
                     dropdownColor: AppColors.burgundySurface,
-                    style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12.5),
+                    style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 12.5),
                     icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.sandPrimary),
                     decoration: InputDecoration(
                       filled: true,
@@ -202,7 +202,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       checkColor: Colors.white,
                       title: Text(
                         '0.001g Bullion Balance Calibrated',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textDark,
@@ -210,7 +210,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       ),
                       subtitle: Text(
                         'Certified electronic scale zeroed with official weights',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       value: _scaleCalibrated,
                       onChanged: (v) => setState(() => _scaleCalibrated = v ?? false),
@@ -230,7 +230,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       checkColor: Colors.white,
                       title: Text(
                         'Daily Shift SOP Checklist Signed',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textDark,
@@ -238,7 +238,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                       ),
                       subtitle: Text(
                         'Shift opening checklist physically and digitally verified',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       value: _sopAcknowledged,
                       onChanged: (v) => setState(() => _sopAcknowledged = v ?? false),
@@ -248,7 +248,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
 
                   Text(
                     'Operational Observations & Notes',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
                       color: AppColors.sandLight,
@@ -258,10 +258,10 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
                   TextField(
                     controller: _notesController,
                     maxLines: 2,
-                    style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12),
+                    style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 12),
                     decoration: InputDecoration(
                       hintText: 'Enter scale readings, tray numbers, or tool maintenance logs...',
-                      hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                      hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 11.5),
                       filled: true,
                       fillColor: AppColors.burgundySurface,
                       border: OutlineInputBorder(
@@ -310,7 +310,7 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 11.5,
             fontWeight: FontWeight.w600,
             color: AppColors.sandLight,
@@ -319,11 +319,11 @@ class _WorkPillarScreenState extends State<WorkPillarScreen> {
         const SizedBox(height: 5),
         TextField(
           controller: controller,
-          style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 12.5),
+          style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 12.5),
           decoration: InputDecoration(
             prefixIcon: Icon(icon, size: 16, color: AppColors.sandGold),
             hintText: hint,
-            hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
+            hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 11),
             filled: true,
             fillColor: AppColors.burgundySurface,
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),

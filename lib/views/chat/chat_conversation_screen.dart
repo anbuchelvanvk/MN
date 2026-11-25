@@ -1015,7 +1015,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         children: [
                           Text(
                             'MN All-Hands Workforce',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -1077,7 +1077,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                                     Flexible(
                                       child: Text(
                                         emp.name,
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: GoogleFonts.outfit(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.textDark,
@@ -1217,7 +1217,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
               const SizedBox(height: 10),
               Text(
                 widget.peerName,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
@@ -1302,7 +1302,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   const SizedBox(width: 6),
                   Text(
                     'Mention Colleague',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.magentaPrimary,
@@ -1350,7 +1350,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                           Expanded(
                             child: Text(
                               emp.name,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textDark,
@@ -2077,7 +2077,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   children: [
                     Text(
                       widget.peerName,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
@@ -2190,7 +2190,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Say Hello to ${widget.peerName}!',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,

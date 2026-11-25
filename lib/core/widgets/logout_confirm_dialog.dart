@@ -18,7 +18,7 @@ class LogoutConfirmDialog {
             const SizedBox(width: 8),
             Text(
               'Logout',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF0F172A),
@@ -28,7 +28,7 @@ class LogoutConfirmDialog {
         ),
         content: Text(
           'Do you want to logout?',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             color: const Color(0xFF475569),
           ),
@@ -38,7 +38,7 @@ class LogoutConfirmDialog {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF64748B),
@@ -58,7 +58,7 @@ class LogoutConfirmDialog {
             },
             child: Text(
               'Logout',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -85,7 +85,7 @@ class LogoutConfirmDialog {
         icon: const Icon(Icons.logout_rounded, size: 18, color: Color(0xFFE11D48)),
         label: Text(
           'Logout',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.bold,
             color: const Color(0xFFE11D48),

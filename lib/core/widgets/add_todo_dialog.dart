@@ -82,7 +82,7 @@ class _AddTodoDialogState extends State<_AddTodoDialog> {
         padding: const EdgeInsets.only(bottom: 6),
         child: Text(
           text,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 12.5,
             fontWeight: FontWeight.w700,
             color: AppColors.textSecondary,
@@ -90,9 +90,45 @@ class _AddTodoDialogState extends State<_AddTodoDialog> {
         ),
       );
 
+  Widget _priorityButton(String p) {
+    final selected = _priority == p;
+    final color = switch (p) {
+      'High' => const Color(0xFFD97706),
+      'Critical SLA' => AppColors.ragRed,
+      _ => AppColors.primary,
+    };
+    return Material(
+      color: selected ? color : Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => setState(() => _priority = p),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: selected ? color : AppColors.line),
+          ),
+          child: Center(
+            child: Text(
+              p == 'Critical SLA' ? 'Critical' : p,
+              maxLines: 1,
+              style: GoogleFonts.outfit(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : AppColors.textDark,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       titlePadding: const EdgeInsets.fromLTRB(22, 22, 22, 6),
       contentPadding: const EdgeInsets.fromLTRB(22, 8, 22, 4),
       actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -111,7 +147,7 @@ class _AddTodoDialogState extends State<_AddTodoDialog> {
           Expanded(
             child: Text(
               'New to-do',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 19,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textDark,
@@ -152,8 +188,10 @@ class _AddTodoDialogState extends State<_AddTodoDialog> {
                     label: Text(c),
                     selected: _categoryCtrl.text == c,
                     showCheckmark: false,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     selectedColor: AppColors.primary,
-                    labelStyle: GoogleFonts.plusJakartaSans(
+                    labelStyle: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
                       color: _categoryCtrl.text == c ? Colors.white : AppColors.textDark,
@@ -163,51 +201,46 @@ class _AddTodoDialogState extends State<_AddTodoDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            _label('Due time'),
+            Material(
+              color: const Color(0xFFFDFAFC),
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: _pickTime,
+                child: Ink(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  child: Row(
                     children: [
-                      _label('Due time'),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(14),
-                        onTap: _pickTime,
-                        child: InputDecorator(
-                          decoration: const InputDecoration(
-                            suffixIcon: Icon(Icons.schedule_rounded, size: 20),
-                          ),
-                          child: Text(
-                            _fmt(_due),
-                            style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.textDark),
-                          ),
+                      const Icon(Icons.schedule_rounded, size: 20, color: AppColors.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _fmt(_due),
+                          style: GoogleFonts.outfit(fontSize: 15.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _label('Priority'),
-                      DropdownButtonFormField<String>(
-                        value: _priority,
-                        isExpanded: true,
-                        borderRadius: BorderRadius.circular(14),
-                        style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.textDark),
-                        items: [
-                          for (final p in _priorities) DropdownMenuItem(value: p, child: Text(p)),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) setState(() => _priority = v);
-                        },
+                      Text(
+                        'Change',
+                        style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary),
                       ),
                     ],
                   ),
                 ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _label('Priority'),
+            Row(
+              children: [
+                for (int i = 0; i < _priorities.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(child: _priorityButton(_priorities[i])),
+                ],
               ],
             ),
           ],

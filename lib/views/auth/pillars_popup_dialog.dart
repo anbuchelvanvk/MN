@@ -79,7 +79,7 @@ class PillarsPopupDialog extends StatelessWidget {
                           children: [
                             Text(
                               'MN FAMILY PILLARS',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF0F172A),
@@ -91,7 +91,7 @@ class PillarsPopupDialog extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               'Vital Inputs & Operations',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.magentaPrimary,
@@ -124,7 +124,7 @@ class PillarsPopupDialog extends StatelessWidget {
 
                   Text(
                     'Select Pillar:',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       color: const Color(0xFF64748B),
                       fontWeight: FontWeight.w600,
@@ -264,7 +264,7 @@ class PillarsPopupDialog extends StatelessWidget {
                                             Flexible(
                                               child: Text(
                                                 'YOUR STATUS',
-                                                style: GoogleFonts.plusJakartaSans(
+                                                style: GoogleFonts.outfit(
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.bold,
                                                   color: const Color(0xFF0F172A),
@@ -295,7 +295,7 @@ class PillarsPopupDialog extends StatelessWidget {
                                         const SizedBox(height: 3),
                                         Text(
                                           tierName,
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.outfit(
                                             fontSize: 11.5,
                                             fontWeight: FontWeight.bold,
                                             color: isRed ? const Color(0xFFE11D48) : const Color(0xFF047857),
@@ -337,7 +337,7 @@ class PillarsPopupDialog extends StatelessWidget {
                           child: Center(
                             child: Text(
                               'Continue to Enterprise Portal',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.magentaPrimary,
@@ -408,7 +408,7 @@ class PillarsPopupDialog extends StatelessWidget {
                           Flexible(
                             child: Text(
                               title,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF0F172A),
@@ -423,7 +423,7 @@ class PillarsPopupDialog extends StatelessWidget {
                         pillarBadge,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: const Color(0xFF64748B),
@@ -455,7 +455,7 @@ class PillarsPopupDialog extends StatelessWidget {
                             const SizedBox(width: 5),
                             Text(
                               isDaily ? 'Daily' : 'Occasional',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: isDaily ? const Color(0xFF047857) : const Color(0xFFB45309),

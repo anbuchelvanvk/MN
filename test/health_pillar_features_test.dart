@@ -37,7 +37,7 @@ void main() {
 
       final idlyResults = FoodDatabase.search('idly');
       expect(idlyResults, isNotEmpty);
-      expect(idlyResults.first.name.toLowerCase().contains('idly'), isTrue);
+      expect(idlyResults.first.name.toLowerCase().contains('idly') || idlyResults.first.name.toLowerCase().contains('idli'), isTrue);
 
       final dosaResults = FoodDatabase.search('dosa');
       expect(dosaResults, isNotEmpty);

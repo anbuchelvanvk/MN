@@ -181,7 +181,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
             const SizedBox(width: 8),
             Text(
               'Audit Preview (${lines.length} Lines)',
-              style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 15, fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -200,7 +200,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
               child: SingleChildScrollView(
                 child: SelectableText(
                   previewLines.join('\n'),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     color: const Color(0xFFF8FAFC),
                     height: 1.4,
@@ -216,7 +216,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
               Navigator.pop(ctx);
               _handleExport(eco, copyOnly: true);
             },
-            child: Text('Copy CSV', style: GoogleFonts.plusJakartaSans(color: AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
+            child: Text('Copy CSV', style: GoogleFonts.outfit(color: AppColors.magentaPrimary, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.magentaPrimary, foregroundColor: Colors.white),
@@ -224,7 +224,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
               Navigator.pop(ctx);
               _handleExport(eco, copyOnly: false);
             },
-            child: Text('Export File', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+            child: Text('Export File', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -283,11 +283,11 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                     children: [
                       Text(
                         widget.isTeamLead ? 'Export Team Audit' : 'Export Audit Ledger',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                        style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                       ),
                       Text(
                         widget.isTeamLead ? 'Team Tasks & Attendance' : 'Corporate CSV Reports',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                     ],
                   ),
@@ -568,7 +568,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.sandLight),
           ),
         ),
       ],
@@ -607,7 +607,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                       color: isSelected ? color : AppColors.textDark,
@@ -615,7 +615,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       color: isSelected ? AppColors.textDark : AppColors.textMuted,
                     ),

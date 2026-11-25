@@ -141,7 +141,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
             const SizedBox(height: 16),
             Text(
               _searchQuery.isNotEmpty ? 'No notes matching your search' : 'No personal notes yet',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
@@ -233,7 +233,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                   Expanded(
                     child: Text(
                       note.title,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: colorOption.textDark,
@@ -386,7 +386,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                         children: [
                           Text(
                             note.title,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: colorOption.textDark,
@@ -626,7 +626,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'Share Note Card',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
@@ -769,7 +769,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                     children: [
                       Text(
                         'MN JEWEL PARK',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.4,
@@ -816,7 +816,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                       // Full Author Name without truncation
                       Text(
                         author.name,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF0F172A),
@@ -870,7 +870,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                 // Title
                 Text(
                   note.title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: colorOption.textDark,
@@ -1035,7 +1035,7 @@ class _PersonalNotesScreenState extends State<PersonalNotesScreen> {
                             const SizedBox(width: 8),
                             Text(
                               existing != null ? 'Edit Personal Note' : 'New Personal Note',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,

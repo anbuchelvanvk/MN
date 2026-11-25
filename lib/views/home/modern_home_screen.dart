@@ -26,6 +26,7 @@ import '../../core/widgets/task_action_dialogs.dart';
 import '../../models/task_model.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../chat/floating_chat_window.dart';
+import '../auth/pillars_popup_dialog.dart';
 import '../employee/employee_profile_screen.dart';
 import '../konar/konar_book_detail_screen.dart';
 
@@ -320,7 +321,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         children: [
                           Text(
                             'Welcome',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFFFFD6E5),
@@ -332,7 +333,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             alignment: Alignment.centerLeft,
                             child: Text(
                               'MN Family',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 21,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -383,7 +384,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         children: [
                           Text(
                             '${_greeting()},',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: const Color(0xFFFFD6E5),
@@ -394,7 +395,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             name,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 27,
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
@@ -416,7 +417,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                 ),
                                 child: Text(
                                   role,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.midnight,
@@ -430,7 +431,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                   const SizedBox(width: 5),
                                   Text(
                                     _todayLabel(),
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
                                       color: const Color(0xFFFFD6E5),
@@ -514,7 +515,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             fit: BoxFit.scaleDown,
             child: Text(
               value,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -526,7 +527,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: const Color(0xFFFFD6E5),
@@ -601,7 +602,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                           label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textPrimary,
@@ -636,7 +637,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
                 color: AppColors.midnight,
@@ -649,7 +650,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               trailing,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textMuted,
@@ -783,7 +784,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       latestNotif.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF1E293B),
@@ -1151,7 +1152,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                   maxLines: 2,
                                   softWrap: true,
                                   overflow: TextOverflow.fade,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.w800,
                                     color: ink,
@@ -1187,7 +1188,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                         fit: BoxFit.scaleDown,
                                         child: Text(
                                           percent,
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.outfit(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800,
                                             color: ink,
@@ -1208,7 +1209,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                       ringLabel,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w600,
                                         color: muted,
@@ -1219,7 +1220,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                       alignment: Alignment.centerLeft,
                                       child: Text(
                                         ringValue,
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: GoogleFonts.outfit(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w800,
                                           color: ringColor,
@@ -1237,7 +1238,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             caption,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w500,
                               color: muted,
@@ -1264,7 +1265,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                           maxLines: 1,
                                           softWrap: false,
                                           overflow: TextOverflow.fade,
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: muted, fontWeight: FontWeight.w500),
+                                          style: GoogleFonts.outfit(fontSize: 11.5, color: muted, fontWeight: FontWeight.w500),
                                         ),
                                       ),
                                       const SizedBox(width: 4),
@@ -1275,7 +1276,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                           alignment: Alignment.centerRight,
                                           child: Text(
                                             stats[i].$2,
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: GoogleFonts.outfit(
                                               fontSize: 12.5,
                                               fontWeight: FontWeight.w800,
                                               color: ink,
@@ -1429,7 +1430,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       '${_deptLabel(eco.currentEmployee.dept)} Konar Book',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
@@ -1441,7 +1442,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       'Your department handbook • tap to open',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFFFFD6E5)),
+                      style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFFFFD6E5)),
                     ),
                   ],
                 ),
@@ -1523,7 +1524,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   children: [
                     Text(
                       'To-Do List',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF881337),
@@ -1533,7 +1534,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     const SizedBox(height: 2),
                     Text(
                       '${pending.length} pending,  ${completed.length} completed',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w400,
                         color: const Color(0xFF64748B),
@@ -1571,7 +1572,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       const SizedBox(width: 4),
                       Text(
                         'Add To Do',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF881337),
@@ -1630,7 +1631,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   _selectedFilter == 'all'
                       ? 'No tasks yet. Tap "Add To Do" to create one.'
                       : 'Nothing here right now.',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 13,
                     color: const Color(0xFF94A3B8),
                   ),
@@ -1652,7 +1653,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 onPressed: () => setState(() => _todoShowCount += 10),
                 child: Text(
                   'Show ${visible.length - shown.length} more',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF881337),
                   ),
@@ -1688,7 +1689,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
             color: isSelected ? Colors.white : const Color(0xFF334155),
@@ -1718,7 +1719,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               children: [
                 Text(
                   time,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF0F172A),
@@ -1728,7 +1729,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   date,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF756A80),
@@ -1783,7 +1784,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 onTap: onTap,
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF0F172A),
@@ -1847,7 +1848,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Text(
                       'Type here',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: const Color(0xFF756A80),
@@ -1964,7 +1965,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       children: [
                         Text(
                           drawerName,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -1972,7 +1973,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         ),
                         Text(
                           drawerRole,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 12,
                             color: const Color(0xFFFDE68A),
                           ),
@@ -1991,12 +1992,22 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 children: [
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.home_outlined, color: Color(0xFF881337)),
-                    title: Text('Home Dashboard', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('Home Dashboard', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () => Navigator.pop(context),
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
+                    key: const ValueKey('drawer_pillars'),
+                    leading: const Icon(Icons.auto_awesome_mosaic_rounded, color: Color(0xFF881337)),
+                    title: Text('My Pillars', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    subtitle: Text('Health, Family, Work, Attendance, Social', style: GoogleFonts.outfit(fontSize: 12)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      PillarsPopupDialog.show(context);
+                    },
+                  )),
+                  Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.forum_outlined, color: Color(0xFF881337)),
-                    title: Text('Team Chat Hub', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('Team Chat Hub', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       FloatingChatWindow.show(context);
@@ -2004,7 +2015,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.menu_book_rounded, color: Color(0xFF881337)),
-                    title: Text('${_deptLabel(emp.dept)} Konar Book', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('${_deptLabel(emp.dept)} Konar Book', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2019,7 +2030,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.person_outline, color: Color(0xFF881337)),
-                    title: Text('Employee Profile', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('Employee Profile', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2030,7 +2041,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.fact_check_outlined, color: Color(0xFF881337)),
-                    title: Text('My Attendance', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('My Attendance', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2041,7 +2052,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF881337)),
-                    title: Text('Online Orders', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('Online Orders', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2052,7 +2063,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.sticky_note_2_outlined, color: Color(0xFF881337)),
-                    title: Text('Personal Notes', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('Personal Notes', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2063,7 +2074,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   )),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.video_collection_outlined, color: Color(0xFF881337)),
-                    title: Text('Media Review Board', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                    title: Text('Media Review Board', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -2077,7 +2088,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
                     title: Text(
                       'Logout',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFFDC2626),
                       ),
@@ -2096,7 +2107,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               padding: const EdgeInsets.all(16),
               child: Text(
                 'MN Family • v1.1',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   color: const Color(0xFF94A3B8),
                 ),

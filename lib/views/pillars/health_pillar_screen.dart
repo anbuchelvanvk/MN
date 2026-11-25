@@ -1,3 +1,4 @@
+import '../../core/widgets/pillar_hero_card.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -219,7 +220,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     const SizedBox(height: 14),
                     Text(
                       'FIRST-TIME HEALTH CALIBRATION',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandLight,
@@ -230,7 +231,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     Text(
                       'Welcome ${eco.currentEmployee.name}! Please enter your baseline biometric parameters to calibrate your daily health targets and BMI profile.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: AppColors.sandPrimary,
                         height: 1.45,
@@ -253,7 +254,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   children: [
                     Text(
                       'Physical Baseline Metrics',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandLight,
@@ -269,7 +270,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             children: [
                               Text(
                                 'Height (cm)',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.sandLight,
@@ -279,7 +280,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               TextField(
                                 controller: _initialHeightController,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
@@ -305,7 +306,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             children: [
                               Text(
                                 'Weight (kg)',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.sandLight,
@@ -315,7 +316,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               TextField(
                                 controller: _initialWeightController,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
@@ -356,7 +357,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 children: [
                                   Text(
                                     'CALCULATED BMI',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textMuted,
@@ -366,7 +367,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     hasBoth ? liveBmi.toStringAsFixed(1) : '--',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 26,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.sandGold,
@@ -421,7 +422,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   hasBoth
                                       ? 'Ideal Weight Range for ${heightVal.toStringAsFixed(0)} cm: ${minIdeal.toStringAsFixed(1)} kg – ${maxIdeal.toStringAsFixed(1)} kg'
                                       : 'Enter height and weight above to calculate ideal range',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     color: AppColors.sandLight,
                                   ),
@@ -482,6 +483,32 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   // 2. MAIN HEALTH DASHBOARD: 4 GRIDS (Calories, Workout, Weight/Height, BMI)
   // =========================================================================
 
+  Widget _buildHealthHero(EcosystemProvider eco) {
+    final now = DateTime.now();
+    final cal = eco.getCaloriesConsumedForDate(now);
+    final target = eco.dailyCalorieTarget > 0 ? eco.dailyCalorieTarget : 2000.0;
+    final steps = eco.getStepsForDate(now);
+    final bmi = eco.currentBmi;
+    final meals = eco.dailyFoodLogs
+        .where((f) => f.timestamp.year == now.year && f.timestamp.month == now.month && f.timestamp.day == now.day)
+        .length;
+    final left = (target - cal).round();
+    String fmt(num v) => v.round().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+    return PillarHeroCard(
+      icon: Icons.local_fire_department_rounded,
+      eyebrow: 'Today',
+      headline: '${fmt(cal)} of ${fmt(target)} kcal',
+      caption: left >= 0 ? '${fmt(left)} kcal left for today' : '${fmt(-left)} kcal over today\'s target',
+      progress: target > 0 ? cal / target : 0,
+      ringLabel: '${(target > 0 ? (cal / target * 100) : 0).clamp(0, 999).round()}%',
+      stats: [
+        PillarHeroStat(fmt(steps), 'Steps'),
+        PillarHeroStat(bmi > 0 ? bmi.toStringAsFixed(1) : '--', 'BMI'),
+        PillarHeroStat('$meals', meals == 1 ? 'Meal logged' : 'Meals logged'),
+      ],
+    );
+  }
+
   Widget _buildMainDashboard(BuildContext context, EcosystemProvider eco) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -489,6 +516,9 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _buildHealthHero(eco),
+          const SizedBox(height: 16),
+
           // 1. Horizontal Date Strip (Date is first)
           _buildHorizontalDateStrip(eco),
           const SizedBox(height: 16),
@@ -551,7 +581,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               children: [
                 Text(
                   'EMPLOYEE HEALTH ACTIVITIES',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandLight,
@@ -561,7 +591,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 const SizedBox(height: 2),
                 Text(
                   'Inspect team calorie targets, BMI, workouts & meals',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     color: AppColors.textMuted,
                   ),
@@ -585,7 +615,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             },
             child: Text(
               'Inspect',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -662,7 +692,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           Flexible(
                             child: Text(
                               'DAILY CALORIE TARGET',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandLight,
@@ -678,7 +708,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       const SizedBox(height: 2),
                       Text(
                         '${_formatDayLabel(_selectedDate)} • $progressStatus • Tap to adjust target',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           color: AppColors.sandPrimary,
                         ),
@@ -696,7 +726,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ),
                   child: Text(
                     '$displayPct%',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
                       color: progressColor,
@@ -719,7 +749,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     children: [
                       Text(
                         '${consumedKcal.toInt()}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
                           color: AppColors.sandLight,
@@ -728,7 +758,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       Flexible(
                         child: Text(
                           ' of ${targetKcal.toInt()} kcal',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.sandPrimary,
@@ -741,7 +771,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 ),
                 Text(
                   '${burnedKcal.toInt()} burned • ${netKcal >= 0 ? '+' : ''}${netKcal.toInt()} net',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.sandGold,
@@ -836,7 +866,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         child: Text(
                         '${_months[_selectedDate.month - 1]} ${_selectedDate.year}',
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -871,7 +901,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         ),
                         child: Text(
                           'Today',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -940,7 +970,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         children: [
                           Text(
                             _weekdays[date.weekday - 1],
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                               color: isSelected
@@ -951,7 +981,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           const SizedBox(height: 4),
                           Text(
                             date.day.toString(),
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: isSelected ? Colors.white : AppColors.sandLight,
@@ -1018,7 +1048,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   children: [
                     Text(
                       'DAILY STEP COUNT TRACKER',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandLight,
@@ -1028,7 +1058,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     const SizedBox(height: 2),
                     Text(
                       '${_formatDayLabel(_selectedDate)} • Goal: $stepGoal steps',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                      style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
                     ),
                   ],
                 ),
@@ -1050,7 +1080,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       const SizedBox(width: 4),
                       Text(
                         'Log Steps',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -1073,7 +1103,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 child: Text(
                 '$recordedSteps steps',
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: AppColors.sandLight,
@@ -1083,7 +1113,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               const SizedBox(width: 8),
               Text(
                 '${(pct * 100).toInt()}% of daily goal',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11.5,
                   fontWeight: FontWeight.bold,
                   color: pct >= 1.0 ? const Color(0xFF10B981) : AppColors.sandGold,
@@ -1135,7 +1165,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           children: [
                             Text(
                               'DAILY STEP TARGET GOAL',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
@@ -1145,7 +1175,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             const SizedBox(height: 1),
                             Text(
                               '$stepGoal steps / day',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.sandLight,
@@ -1163,7 +1193,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   icon: const Icon(Icons.tune, size: 13, color: AppColors.burgundyBg),
                   label: Text(
                     'Set Goal',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: AppColors.burgundyBg,
@@ -1227,7 +1257,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   Expanded(
                     child: Text(
                       'Daily Step Target Goal',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandLight,
@@ -1243,14 +1273,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   children: [
                     Text(
                       'Set your daily walking step goal. A higher goal increases endurance and daily metabolic balance.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                      style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
                     ),
                     const SizedBox(height: 14),
 
                     // Quick Preset Chips
                     Text(
                       'QUICK PRESETS',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -1266,7 +1296,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         return ChoiceChip(
                           label: Text(
                             '$preset steps',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
                               color: isSel ? AppColors.burgundyBg : AppColors.sandLight,
@@ -1297,7 +1327,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     // Custom input field
                     Text(
                       'CUSTOM STEP TARGET',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -1308,14 +1338,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     TextField(
                       controller: controller,
                       keyboardType: TextInputType.number,
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 14, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 14, fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: AppColors.burgundySurface,
                         hintText: 'e.g. 7500',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary.withOpacity(0.5)),
+                        hintStyle: GoogleFonts.outfit(color: AppColors.sandPrimary.withOpacity(0.5)),
                         suffixText: 'steps / day',
-                        suffixStyle: GoogleFonts.plusJakartaSans(color: AppColors.sandGold, fontSize: 11),
+                        suffixStyle: GoogleFonts.outfit(color: AppColors.sandGold, fontSize: 11),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandGold, width: 1.5)),
@@ -1338,7 +1368,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   onPressed: () => Navigator.pop(ctx),
                   child: Text(
                     'Cancel',
-                    style: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 12),
+                    style: GoogleFonts.outfit(color: AppColors.sandPrimary, fontSize: 12),
                   ),
                 ),
                 ElevatedButton(
@@ -1356,7 +1386,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         SnackBar(
                           content: Text(
                             'Daily step goal updated to $entered steps!',
-                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
                           ),
                           backgroundColor: const Color(0xFF10B981),
                           behavior: SnackBarBehavior.floating,
@@ -1368,7 +1398,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   },
                   child: Text(
                     'Save Goal',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.burgundyBg,
@@ -1394,7 +1424,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       children: [
         Text(
           'TODAY AT A GLANCE',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.bold,
             color: AppColors.sandGold,
@@ -1508,7 +1538,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     ),
                     child: Text(
                       'ACTIVE',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -1527,7 +1557,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: isSelected ? Colors.white : AppColors.textDark,
@@ -1537,7 +1567,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: isSelected ? Colors.white : AppColors.textDark,
@@ -1547,7 +1577,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 const SizedBox(height: 1),
                 Text(
                   subtitle,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     color: isSelected ? Colors.white.withOpacity(0.9) : AppColors.textMuted,
                   ),
@@ -1629,7 +1659,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 children: [
                   Text(
                     'CALORIES & NUTRITIONAL INTAKE',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -1651,7 +1681,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       Expanded(
                         child: Text(
                           'Search Indian and international dishes',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             color: AppColors.sandPrimary,
                             fontWeight: FontWeight.w600,
@@ -1682,11 +1712,11 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           ),
           child: TextField(
             controller: _foodSearchController,
-            style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+            style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
             onChanged: _onFoodSearchChanged,
             decoration: InputDecoration(
-              hintText: 'Type something to search food (e.g. Pizza, Dosa, Rice)...',
-              hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
+              hintText: 'Search Tamil & Indian food — idli, meen kuzhambu, இட்லி…',
+              hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 12),
               prefixIcon: const Icon(Icons.search, color: AppColors.sandGold, size: 20),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1744,7 +1774,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   selected: isCatSelected,
                   selectedColor: AppColors.magentaPrimary,
                   backgroundColor: AppColors.pureWhite,
-                  labelStyle: GoogleFonts.plusJakartaSans(
+                  labelStyle: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: isCatSelected ? FontWeight.bold : FontWeight.w500,
                     color: isCatSelected ? Colors.white : AppColors.textDark,
@@ -1790,7 +1820,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           Expanded(
                             child: Text(
                               'POPULAR EVERYDAY INDIAN FOODS & BEVERAGES',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
@@ -1814,7 +1844,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             leading: Text(item.iconEmoji, style: const TextStyle(fontSize: 20)),
                             title: Text(
                               item.name,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.sandLight,
@@ -1823,7 +1853,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             ),
                             subtitle: Text(
                               '${item.caloriesPer100g.toStringAsFixed(0)} kcal / 100g • ${item.servingUnit}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                              style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                             ),
                             trailing: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -1834,7 +1864,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               ),
                               child: Text(
                                 '+ Log',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandGold,
@@ -1860,7 +1890,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   ? 'Searching public open food database API...'
                                   : 'No matching food items found.\nTap "+" above to log a custom food item.',
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
+                              style: GoogleFonts.outfit(fontSize: 12, color: AppColors.sandPrimary),
                             ),
                             if (!_isSearchingApi && queryText.isNotEmpty) ...[
                               const SizedBox(height: 12),
@@ -1885,7 +1915,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                       const SizedBox(width: 6),
                                       Text(
                                         'Log "$queryText" as custom food',
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: GoogleFonts.outfit(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.sandGold,
@@ -1916,7 +1946,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           Expanded(
                             child: Text(
                               item.name,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.sandLight,
@@ -1935,7 +1965,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               ),
                               child: Text(
                                 'Open API',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 10,
                                   color: AppColors.sandGold,
                                   fontWeight: FontWeight.bold,
@@ -1946,7 +1976,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       ),
                       subtitle: Text(
                         '${item.caloriesPer100g.toStringAsFixed(0)} kcal / 100g • ${item.servingUnit}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -1957,7 +1987,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         ),
                         child: Text(
                           '+ Log',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -1978,7 +2008,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             Expanded(
               child: Text(
                 "INTAKE DIARY • ${_formatDayLabel(_selectedDate).toUpperCase()} (${selectedDateLogs.length})",
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -1990,7 +2020,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             const SizedBox(width: 8),
             Text(
               'Total: ${selectedDateCalories.toInt()} kcal',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandLight,
@@ -2012,7 +2042,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               child: Text(
                 'No meals logged for ${_formatDayLabel(_selectedDate)}.\nSelect an item from the catalog above to add.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
+                style: GoogleFonts.outfit(fontSize: 12, color: AppColors.sandPrimary),
               ),
             ),
           )
@@ -2038,7 +2068,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       ),
                       child: Text(
                         log.mealType,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -2052,7 +2082,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         children: [
                           Text(
                             log.foodName,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
                               color: AppColors.sandLight,
@@ -2060,14 +2090,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           ),
                           Text(
                             '${log.portionSize} • ${log.quantity != 1.0 ? "Qty: ${log.quantity % 1 == 0 ? log.quantity.toInt() : log.quantity.toStringAsFixed(1)} • " : ""}${log.grams.toStringAsFixed(0)}g • ${log.timeString}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
                       ),
                     ),
                     Text(
                       '${log.calories.toStringAsFixed(0)} kcal',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -2156,7 +2186,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               children: [
                                 Text(
                                   item.name,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandLight,
@@ -2165,7 +2195,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   '${item.caloriesPer100g.toStringAsFixed(0)} kcal / 100g • ${item.category}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                                  style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
                                 ),
                               ],
                             ),
@@ -2183,7 +2213,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       // 1. Meal Category Selection (Required first)
                       Text(
                         '1. Choose Meal Timing',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.sandGold,
@@ -2227,7 +2257,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       // 2. Portion Size Selection
                       Text(
                         item.isBeverage ? '2. Cup / Serving Size' : '2. Portion Size',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.sandGold,
@@ -2283,7 +2313,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 children: [
                                   Text(
                                     '3. Quantity / Count',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.sandGold,
@@ -2293,7 +2323,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     '$portionLabel x ${quantity % 1 == 0 ? quantity.toInt() : quantity.toStringAsFixed(1)} = ${totalGrams.toInt()}g total',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       color: AppColors.sandPrimary,
                                     ),
@@ -2336,7 +2366,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                       controller: quantityController,
                                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                                       textAlign: TextAlign.center,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.sandLight,
@@ -2394,7 +2424,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               children: [
                                 Text(
                                   'CALCULATED ENERGY',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandGold,
@@ -2404,7 +2434,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   '${totalGrams.toInt()}g • $selectedMealType',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     color: AppColors.sandPrimary,
                                   ),
@@ -2417,7 +2447,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               children: [
                                 Text(
                                   calculatedKcal.toStringAsFixed(0),
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.sandGold,
@@ -2426,7 +2456,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 const SizedBox(width: 4),
                                 Text(
                                   'kcal',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandLight,
@@ -2451,7 +2481,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               onPressed: () => Navigator.pop(ctx),
                               child: Text(
                                 'Cancel',
-                                style: GoogleFonts.plusJakartaSans(color: AppColors.sandPrimary, fontSize: 12),
+                                style: GoogleFonts.outfit(color: AppColors.sandPrimary, fontSize: 12),
                               ),
                             ),
                           ),
@@ -2462,7 +2492,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               icon: const Icon(Icons.add, size: 16),
                               label: Text(
                                 'Add to Diary ($selectedMealType)',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -2539,12 +2569,12 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               children: [
                 Text(
                   'Add Custom Food Item',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                  style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                 ),
                 const SizedBox(height: 14),
                 TextField(
                   controller: nameCtrl,
-                  style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                  style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                   decoration: InputDecoration(
                     labelText: 'Food Name',
                     labelStyle: const TextStyle(color: AppColors.sandPrimary, fontSize: 12),
@@ -2562,7 +2592,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       child: TextField(
                         controller: gramsCtrl,
                         keyboardType: TextInputType.number,
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                        style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                         decoration: InputDecoration(
                           labelText: 'Grams',
                           hintText: 'e.g. 100',
@@ -2579,7 +2609,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       child: TextField(
                         controller: kcalCtrl,
                         keyboardType: TextInputType.number,
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                        style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                         decoration: InputDecoration(
                           labelText: 'Total Calories',
                           hintText: 'e.g. 150',
@@ -2662,7 +2692,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 children: [
                   Text(
                     'WORKOUT & PHYSICAL ACTIVITY',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -2671,7 +2701,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ),
                   Text(
                     'Track steps, walk duration & stamina allocations',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                    style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
                   ),
                 ],
               ),
@@ -2680,7 +2710,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               icon: const Icon(Icons.add, size: 16),
               label: Text(
                 'Record Session',
-                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.sandGold,
@@ -2695,7 +2725,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
         Text(
           'QUICK LOG FAVORITE EXERCISE',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 11.5,
             fontWeight: FontWeight.bold,
             color: AppColors.textMuted,
@@ -2732,7 +2762,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       Text(
                         displayName,
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -2754,7 +2784,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           children: [
             Text(
               "WORKOUTS • ${_formatDayLabel(_selectedDate).toUpperCase()} (${selectedDateWorkouts.length})",
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandGold,
@@ -2763,7 +2793,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             ),
             Text(
               '${selectedDateWorkoutMins}m • $selectedDateWorkoutSteps steps',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandLight,
@@ -2785,7 +2815,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               child: Text(
                 'No workout sessions recorded for ${_formatDayLabel(_selectedDate)}.\nTap "Record Session" above to add your activity.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
+                style: GoogleFonts.outfit(fontSize: 12, color: AppColors.sandPrimary),
               ),
             ),
           )
@@ -2820,7 +2850,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             children: [
                               Text(
                                 w.activityName,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
@@ -2844,14 +2874,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           const SizedBox(height: 2),
                           Text(
                             '${w.durationMinutes} mins • ${w.laps > 0 ? '${w.laps} laps • ' : ''}${w.sets > 0 ? '${w.sets} sets • ' : ''}${w.rounds > 0 ? '${w.rounds} rounds • ' : ''}${w.steps > 0 ? '${w.steps} steps • ' : ''}${w.distanceKm > 0 ? '${w.distanceKm.toStringAsFixed(1)} km • ' : ''}${w.customMetric.isNotEmpty ? '${w.customMetric} • ' : ''}${w.timeAllocation}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                            style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                           ),
                           if (w.notes.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: Text(
                                 w.notes,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
+                                style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandPrimary),
                               ),
                             ),
                         ],
@@ -2862,7 +2892,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       children: [
                         Text(
                           '${w.caloriesBurned.toStringAsFixed(0)} kcal',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF10B981),
@@ -2962,7 +2992,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               children: [
                                 Text(
                                   'Record Workout Session',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textDark,
@@ -2971,7 +3001,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 const SizedBox(height: 1),
                                 Text(
                                   'MET formula calibrated for ${eco.userWeightKg.toStringAsFixed(1)} kg body weight',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                                  style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                                 ),
                               ],
                             ),
@@ -2989,7 +3019,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       // Activity Type Dropdown
                       Text(
                         'Activity Type',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textDark,
@@ -3000,7 +3030,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         value: selectedActivity,
                         isExpanded: true,
                         dropdownColor: AppColors.pureWhite,
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12.5),
+                        style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12.5),
                         icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
                         decoration: InputDecoration(
                           filled: true,
@@ -3034,7 +3064,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       // Health Time Allocation
                       Text(
                         'Health Time Allocation',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textDark,
@@ -3046,7 +3076,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         isExpanded: true,
                         isDense: true,
                         dropdownColor: AppColors.pureWhite,
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12.5),
+                        style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12.5),
                         icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
                         decoration: InputDecoration(
                           filled: true,
@@ -3102,14 +3132,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Stroke Style',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                         ),
                         const SizedBox(height: 5),
                         DropdownButtonFormField<String>(
                           value: strokeStyle,
                           isExpanded: true,
                           dropdownColor: AppColors.pureWhite,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                           decoration: _inputDecoration(),
                           items: const [
                             DropdownMenuItem(value: 'Freestyle / Crawl', child: Text('Freestyle / Front Crawl')),
@@ -3149,14 +3179,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Walking Pace',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                         ),
                         const SizedBox(height: 5),
                         DropdownButtonFormField<String>(
                           value: walkingPace,
                           isExpanded: true,
                           dropdownColor: AppColors.pureWhite,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                           decoration: _inputDecoration(),
                           items: const [
                             DropdownMenuItem(value: 'Casual Walk (4.0 km/h)', child: Text('Casual Walk (~4.0 km/h)')),
@@ -3210,14 +3240,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 children: [
                                   Text(
                                     'Running Style',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                                    style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                                   ),
                                   const SizedBox(height: 5),
                                   DropdownButtonFormField<String>(
                                     value: runningStyle,
                                     isExpanded: true,
                                     dropdownColor: AppColors.pureWhite,
-                                    style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                                    style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                                     decoration: _inputDecoration(),
                                     items: const [
                                       DropdownMenuItem(value: 'Steady Jogging', child: Text('Jogging')),
@@ -3261,14 +3291,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Cycling Terrain / Mode',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                         ),
                         const SizedBox(height: 5),
                         DropdownButtonFormField<String>(
                           value: cyclingMode,
                           isExpanded: true,
                           dropdownColor: AppColors.pureWhite,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                           decoration: _inputDecoration(),
                           items: const [
                             DropdownMenuItem(value: 'Road Cycling', child: Text('Outdoor Road Cycling')),
@@ -3306,14 +3336,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Target Muscle Focus',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                         ),
                         const SizedBox(height: 5),
                         DropdownButtonFormField<String>(
                           value: targetMuscle,
                           isExpanded: true,
                           dropdownColor: AppColors.pureWhite,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                           decoration: _inputDecoration(),
                           items: const [
                             DropdownMenuItem(value: 'Full Body & Core', child: Text('Full Body & Core')),
@@ -3353,14 +3383,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Practice Style',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                         ),
                         const SizedBox(height: 5),
                         DropdownButtonFormField<String>(
                           value: yogaStyle,
                           isExpanded: true,
                           dropdownColor: AppColors.pureWhite,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                           decoration: _inputDecoration(),
                           items: const [
                             DropdownMenuItem(value: 'Hatha Yoga & Asanas', child: Text('Hatha Yoga & Postures')),
@@ -3399,14 +3429,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Match Format',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                         ),
                         const SizedBox(height: 5),
                         DropdownButtonFormField<String>(
                           value: badmintonFormat,
                           isExpanded: true,
                           dropdownColor: AppColors.pureWhite,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                           decoration: _inputDecoration(),
                           items: const [
                             DropdownMenuItem(value: 'Doubles Rally Match', child: Text('Doubles Rally Match')),
@@ -3429,7 +3459,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Session Intensity',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textDark,
@@ -3440,7 +3470,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                           value: intensity,
                           isExpanded: true,
                           dropdownColor: AppColors.pureWhite,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12.5),
+                          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12.5),
                           decoration: _inputDecoration(),
                           items: const [
                             DropdownMenuItem(value: 'Light', child: Text('Light Pace')),
@@ -3457,10 +3487,10 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       // Optional workout notes
                       TextField(
                         controller: notesController,
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12),
+                        style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12),
                         decoration: InputDecoration(
                           hintText: 'Optional workout notes (e.g. morning park session)...',
-                          hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11),
+                          hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 11),
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
@@ -3499,7 +3529,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 children: [
                                   Text(
                                     'ESTIMATED CALORIES BURNED',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFF9A3412),
@@ -3509,7 +3539,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     'Calibrated with MET metabolic formula',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       color: const Color(0xFFC2410C),
                                     ),
@@ -3526,7 +3556,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                 children: [
                                   Text(
                                     calculatedKcal.toStringAsFixed(0),
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w900,
                                       color: const Color(0xFFC2410C),
@@ -3535,7 +3565,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   const SizedBox(width: 4),
                                   Text(
                                     'kcal',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFFEA580C),
@@ -3561,7 +3591,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               onPressed: () => Navigator.pop(ctx),
                               child: Text(
                                 'Cancel',
-                                style: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 12),
+                                style: GoogleFonts.outfit(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 12),
                               ),
                             ),
                           ),
@@ -3572,7 +3602,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               icon: const Icon(Icons.check_circle_outline, size: 16, color: Colors.white),
                               label: Text(
                                 'Save Workout',
-                                style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5),
+                                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.magentaPrimary,
@@ -3654,7 +3684,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       children: [
         Text(
           'UPDATE WEIGHT & HEIGHT',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: AppColors.sandLight,
@@ -3663,7 +3693,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
         ),
         Text(
           'Update your weight and height whenever needed to recalibrate BMI',
-          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
         ),
         const SizedBox(height: 14),
 
@@ -3685,7 +3715,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       children: [
                         Text(
                           'Height (cm)',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: AppColors.sandLight,
@@ -3695,7 +3725,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         TextField(
                           controller: _updateHeightController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             color: AppColors.sandLight,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -3720,7 +3750,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       children: [
                         Text(
                           'Weight (kg)',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: AppColors.sandLight,
@@ -3730,7 +3760,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         TextField(
                           controller: _updateWeightController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             color: AppColors.sandLight,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -3757,7 +3787,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ActionChip(
                     label: const Text('-0.5 kg'),
                     backgroundColor: AppColors.burgundySurface,
-                    labelStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
+                    labelStyle: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandGold),
                     onPressed: () {
                       final curW = double.tryParse(_updateWeightController.text) ?? eco.userWeightKg;
                       _updateWeightController.text = (curW - 0.5).clamp(20.0, 300.0).toStringAsFixed(1);
@@ -3768,7 +3798,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ActionChip(
                     label: const Text('+0.5 kg'),
                     backgroundColor: AppColors.burgundySurface,
-                    labelStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
+                    labelStyle: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandGold),
                     onPressed: () {
                       final curW = double.tryParse(_updateWeightController.text) ?? eco.userWeightKg;
                       _updateWeightController.text = (curW + 0.5).clamp(20.0, 300.0).toStringAsFixed(1);
@@ -3805,7 +3835,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       },
                       child: Text(
                         'Save BMI',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 12),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -3820,7 +3850,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
         Text(
           'BIOMETRIC HISTORY LOG',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 12.5,
             fontWeight: FontWeight.bold,
             color: AppColors.sandGold,
@@ -3848,7 +3878,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       const SizedBox(width: 8),
                       Text(
                         rec.dateString,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           color: AppColors.sandLight,
                           fontWeight: FontWeight.w600,
@@ -3858,7 +3888,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   ),
                   Text(
                     '${rec.weightKg.toStringAsFixed(1)} kg • ${rec.heightCm.toStringAsFixed(0)} cm',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
+                    style: GoogleFonts.outfit(fontSize: 12, color: AppColors.sandPrimary),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -3869,7 +3899,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     ),
                     child: Text(
                       'BMI ${rec.bmi.toStringAsFixed(1)}',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -3912,7 +3942,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       children: [
         Text(
           'BODY MASS INDEX (BMI) ANALYTICS',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: AppColors.sandLight,
@@ -3921,7 +3951,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
         ),
         Text(
           'Calculated using standard World Health Organization formula: Weight (kg) / Height (m)²',
-          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
         ),
         const SizedBox(height: 14),
 
@@ -3949,7 +3979,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                     children: [
                       Text(
                         'CURRENT BMI SCORE',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textMuted,
@@ -3959,7 +3989,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       const SizedBox(height: 2),
                       Text(
                         bmi.toStringAsFixed(1),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 34,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -4047,10 +4077,10 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('<18.5 Underweight', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
-                      Text('18.5 - 24.9 Normal', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF10B981))),
-                      Text('25 - 29.9 Overweight', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
-                      Text('≥30 Obese', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                      Text('<18.5 Underweight', style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMuted)),
+                      Text('18.5 - 24.9 Normal', style: GoogleFonts.outfit(fontSize: 10, color: const Color(0xFF10B981))),
+                      Text('25 - 29.9 Overweight', style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMuted)),
+                      Text('≥30 Obese', style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMuted)),
                     ],
                   ),
                 ],
@@ -4066,7 +4096,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   Expanded(
                     child: Text(
                       'Current: ${userW.toStringAsFixed(1)} kg • Ideal for ${eco.userHeightCm.toStringAsFixed(0)} cm: ${minIdeal.toStringAsFixed(1)} kg – ${maxIdeal.toStringAsFixed(1)} kg',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.sandLight,
@@ -4083,7 +4113,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                   Expanded(
                     child: Text(
                       advice,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         color: AppColors.sandPrimary,
                         height: 1.4,
@@ -4101,7 +4131,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           icon: const Icon(Icons.edit, size: 16, color: AppColors.sandGold),
           label: Text(
             'Adjust Weight / Height to Recalculate',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppColors.sandGold,
@@ -4134,11 +4164,11 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           ),
           title: Text(
             'Recalibrate Health Profile?',
-            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.sandLight),
           ),
           content: Text(
             'This will re-open the initial setup screen to re-enter your baseline height and weight.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.sandPrimary),
+            style: GoogleFonts.outfit(fontSize: 12, color: AppColors.sandPrimary),
           ),
           actions: [
             TextButton(
@@ -4210,7 +4240,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                               children: [
                                 Text(
                                   isFirstTime ? 'SET DAILY CALORIE TARGET' : 'EDIT DAILY CALORIE GOAL',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandLight,
@@ -4222,7 +4252,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                                   isFirstTime
                                       ? 'Calibrated from your height & weight'
                                       : 'Adjust your daily expected calorie intake',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     color: AppColors.sandPrimary,
                                   ),
@@ -4256,7 +4286,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                             Expanded(
                               child: Text(
                                 'Based on your height (${eco.userHeightCm.toStringAsFixed(0)} cm) & weight (${eco.userWeightKg.toStringAsFixed(1)} kg), we suggest ${suggested.toInt()} kcal/day.',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   color: AppColors.sandLight,
                                   height: 1.4,
@@ -4270,7 +4300,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
                       Text(
                         'Target Calories (kcal/day)',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -4280,7 +4310,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                       TextField(
                         controller: targetCtrl,
                         keyboardType: TextInputType.number,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           color: AppColors.sandLight,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -4365,7 +4395,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                         },
                         child: Text(
                           isFirstTime ? 'Save Target & Start Tracking' : 'Update Calorie Target',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
@@ -4395,7 +4425,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
             color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
@@ -4429,7 +4459,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           ),
           title: Text(
             'Record Steps for ${_formatDayLabel(_selectedDate)}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+            style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -4437,13 +4467,13 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             children: [
               Text(
                 'Enter total steps walked on this date:',
-                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandPrimary),
+                style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandPrimary),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: ctrl,
                 keyboardType: TextInputType.number,
-                style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: AppColors.burgundySurface,
@@ -4512,7 +4542,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               const SizedBox(height: 2),
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11.5,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   color: isSelected ? AppColors.burgundyBg : AppColors.sandLight,
@@ -4549,7 +4579,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
           children: [
             Text(
               sublabel,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: isSelected ? AppColors.sandGold : AppColors.sandLight,
@@ -4559,7 +4589,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11,
                 color: isSelected ? AppColors.sandLight : AppColors.sandPrimary,
               ),
@@ -4584,13 +4614,13 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
         ),
         const SizedBox(height: 5),
         TextField(
           controller: controller,
           keyboardType: isDecimal ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.number,
-          style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 13, fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 13, fontWeight: FontWeight.w600),
           onChanged: (_) => onChanged(),
           decoration: InputDecoration(
             filled: true,
@@ -4691,7 +4721,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
               // Employee Horizontal Selector
               Text(
                 'SELECT EMPLOYEE',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   color: AppColors.sandGold,
@@ -4738,7 +4768,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                               const SizedBox(width: 6),
                               Text(
                                 emp.name,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                   color: isSel ? Colors.white : AppColors.sandLight,
@@ -4779,7 +4809,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                         children: [
                           Text(
                             selectedStaff.name,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -4787,7 +4817,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                           ),
                           Text(
                             selectedStaff.role.isNotEmpty ? selectedStaff.role : selectedStaff.dept,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandPrimary),
+                            style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
                           ),
                         ],
                       ),
@@ -4801,7 +4831,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                       ),
                       child: Text(
                         calTarget != null && calTarget > 0 ? '${calTarget.toStringAsFixed(0)} kcal Target' : 'No Target Set',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                        style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
                       ),
                     ),
                   ],
@@ -4870,7 +4900,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                 // Logged Workouts & Exercises
                 Text(
                   'LOGGED WORKOUTS & EXERCISES (${workouts.length})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.sandGold,
@@ -4889,7 +4919,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                     child: Center(
                       child: Text(
                         'No workout sessions recorded yet by ${selectedStaff.name}.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                     ),
                   )
@@ -4913,7 +4943,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                               children: [
                                 Text(
                                   w.activityName,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandLight,
@@ -4921,7 +4951,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                                 ),
                                 Text(
                                   '${w.durationMinutes} mins • ${w.intensity} • ${w.caloriesBurned.toInt()} kcal • ${w.timeString}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                                  style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                                 ),
                               ],
                             ),
@@ -4936,7 +4966,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                 // Logged Meals & Food Intake
                 Text(
                   'LOGGED MEALS & FOOD INTAKE (${meals.length})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.sandGold,
@@ -4955,7 +4985,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                     child: Center(
                       child: Text(
                         'No meal intake recorded yet by ${selectedStaff.name}.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                     ),
                   )
@@ -4980,7 +5010,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                               children: [
                                 Text(
                                   m.foodName,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandLight,
@@ -4988,7 +5018,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                                 ),
                                 Text(
                                   '${m.mealType} • $qtyDisplay${m.portionSize} (${m.grams.toInt()}g) • ${m.timeString}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                                  style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                                 ),
                               ],
                             ),
@@ -5001,7 +5031,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
                             ),
                             child: Text(
                               '${m.calories.toInt()} kcal',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFFF97316),
@@ -5045,7 +5075,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: AppColors.sandPrimary,
@@ -5059,7 +5089,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: AppColors.sandLight,
@@ -5070,7 +5100,7 @@ class _EmployeeHealthActivitiesScreenState extends State<EmployeeHealthActivitie
           const SizedBox(height: 2),
           Text(
             subText,
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: accentColor),
+            style: GoogleFonts.outfit(fontSize: 11, color: accentColor),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

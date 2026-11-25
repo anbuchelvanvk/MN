@@ -175,7 +175,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                                 Expanded(
                                   child: Text(
                                     isCeo ? eco.currentEmployee.name : hrEmp.name,
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textDark,
@@ -194,7 +194,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                                   ),
                                   child: Text(
                                     isCeo ? 'CEO' : 'HR ADMIN',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: isCeo ? const Color(0xFFD97706) : const Color(0xFF059669),
@@ -206,7 +206,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                             const SizedBox(height: 2),
                             Text(
                               '${isCeo ? eco.currentEmployee.role : hrEmp.role} • ID: ${isCeo ? eco.currentEmployee.id : hrEmp.id}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                              style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -247,7 +247,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         Expanded(
                           child: Text(
                             'YOUR TOOLS',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -259,7 +259,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         const SizedBox(width: 8),
                         Text(
                           'Direct Access',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textMuted,
@@ -377,7 +377,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                       children: [
                         Text(
                           'Workforce & Credentials Management',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandLight,
@@ -387,7 +387,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         const SizedBox(height: 2),
                         Text(
                           'Staff Directory & Credentials',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),
@@ -523,7 +523,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
               Expanded(
                 child: Text(
                   label,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textDark,
@@ -542,7 +542,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                   ),
                   child: Text(
                     badge,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

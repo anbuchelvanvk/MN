@@ -210,7 +210,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               Expanded(
                 child: Text(
                   'ACTIVE / ON DUTY STAFF (${activeAssignees.length})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF10B981),
@@ -264,7 +264,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                 Expanded(
                   child: Text(
                     'No Active Recipients',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontStyle: FontStyle.italic,
                       color: AppColors.textMuted,
@@ -301,7 +301,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               Expanded(
                 child: Text(
                   'OFF DUTY STAFF (${offDutyAssignees.length})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFFEF4444),
@@ -477,7 +477,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     children: [
                       Text(
                         'ASSIGN TASKS TO OTHERS',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -487,7 +487,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                       const SizedBox(height: 2),
                       Text(
                         'Absentee Task Reassignment',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           color: AppColors.textMuted,
                         ),
@@ -529,7 +529,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                           : (isHr
                               ? 'HR (${activeEmp.name})'
                               : 'Team Lead (${activeEmp.name})'),
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: AppColors.sandLight,
@@ -549,7 +549,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     ),
                     label: Text(
                       _showNewTaskForm ? 'Absent Tasks' : 'New Task',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.goldBright,
@@ -736,7 +736,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               const SizedBox(height: 14),
               Text(
                 isFiltered ? 'No Staff Found' : 'All Staff Present Today',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -748,7 +748,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                     ? 'No absent employees matched your filter. Try adjusting your search query or department filter.'
                     : 'No absent staff members found. All daily SOP tasks are covered by active present team members.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 12,
                   color: AppColors.textMuted,
                   height: 1.4,
@@ -794,7 +794,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               Expanded(
                 child: Text(
                   'ABSENT STAFF (A TO Z)',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandLight,
@@ -981,7 +981,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                         const SizedBox(width: 6),
                         Text(
                           'Reassign All (${absentTasks.length}) Tasks',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.goldBright,
@@ -1081,7 +1081,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
               children: [
                 Text(
                   'PENDING TASKS (${absentTasks.length})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandLight,
@@ -1337,7 +1337,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
         children: [
           Text(
             'DISPATCH NEW TASK TO OTHERS',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: AppColors.sandGold,

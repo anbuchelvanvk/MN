@@ -87,7 +87,7 @@ class _HowItWorks extends StatelessWidget {
               'When someone taps "Forgot password" they get a 5-character code. '
               'Confirm it is really them, then enter their code here. '
               'Their phone will then let them set a new password.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textSecondary, height: 1.45),
+              style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.textSecondary, height: 1.45),
             ),
           ),
         ],
@@ -139,20 +139,20 @@ class _RequestCard extends StatelessWidget {
                   name.isEmpty ? email : name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                  style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.textDark),
                 ),
                 Text(
                   '$email • ${_ago(data['createdAt'] as num?)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+                  style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
                 ),
                 if (approved)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       'Verified • waiting for them to set a new password',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.ragGreen),
+                      style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.ragGreen),
                     ),
                   ),
               ],
@@ -215,7 +215,7 @@ class _RequestCard extends StatelessWidget {
               children: [
                 Text(
                   'Ask them to read out the code shown on their phone.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary),
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 14),
                 TextField(
@@ -231,7 +231,7 @@ class _RequestCard extends StatelessWidget {
                       (o, n) => n.copyWith(text: n.text.toUpperCase()),
                     ),
                   ],
-                  style: GoogleFonts.plusJakartaSans(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 8),
+                  style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 8),
                   decoration: InputDecoration(counterText: '', hintText: 'ABC12', errorText: error),
                   onSubmitted: (_) => submit(),
                 ),
@@ -269,7 +269,7 @@ class _Message extends StatelessWidget {
           Text(
             text,
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.textMuted),
+            style: GoogleFonts.outfit(fontSize: 13.5, color: AppColors.textMuted),
           ),
         ],
       ),

@@ -141,7 +141,7 @@ class _CreativeMediaReviewBoardScreenState
                         controller: _searchController,
                         onChanged: (val) =>
                             setState(() => _searchQuery = val.trim()),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                             fontSize: 12, color: AppColors.textDark),
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.search,
@@ -156,7 +156,7 @@ class _CreativeMediaReviewBoardScreenState
                                 )
                               : null,
                           hintText: 'Search by title, creator, or collection...',
-                          hintStyle: GoogleFonts.plusJakartaSans(
+                          hintStyle: GoogleFonts.outfit(
                               fontSize: 11.5, color: const Color(0xFF94A3B8)),
                           border: InputBorder.none,
                           contentPadding:
@@ -206,7 +206,7 @@ class _CreativeMediaReviewBoardScreenState
                         child: ChoiceChip(
                           label: Text(
                             cat,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: isSelected
                                   ? FontWeight.bold
@@ -259,7 +259,7 @@ class _CreativeMediaReviewBoardScreenState
         icon: const Icon(Icons.cloud_upload_outlined, color: Colors.white),
         label: Text(
           'Submit Media Draft',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
         ),
         onPressed: () => _openSubmitAssetSheet(context),
@@ -285,7 +285,7 @@ class _CreativeMediaReviewBoardScreenState
           children: [
             Text(
               value,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: color,
@@ -294,7 +294,7 @@ class _CreativeMediaReviewBoardScreenState
             const SizedBox(height: 2),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: color.withOpacity(0.9),
@@ -334,7 +334,7 @@ class _CreativeMediaReviewBoardScreenState
             children: [
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight:
                       isSelected ? FontWeight.bold : FontWeight.w600,
@@ -354,7 +354,7 @@ class _CreativeMediaReviewBoardScreenState
                 ),
                 child: Text(
                   '$count',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -378,7 +378,7 @@ class _CreativeMediaReviewBoardScreenState
           const SizedBox(height: 12),
           Text(
             'No Media Assets Found',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 15,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF334155),
@@ -387,7 +387,7 @@ class _CreativeMediaReviewBoardScreenState
           const SizedBox(height: 4),
           Text(
             'Upload a new photoshoot or reel draft to initiate CEO review.',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11,
               color: const Color(0xFF64748B),
             ),
@@ -461,7 +461,7 @@ class _CreativeMediaReviewBoardScreenState
                       const SizedBox(width: 4),
                       Text(
                         asset.category.toUpperCase(),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -485,7 +485,7 @@ class _CreativeMediaReviewBoardScreenState
                     ),
                     child: Text(
                       asset.collectionTag,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF92400E),
@@ -510,7 +510,7 @@ class _CreativeMediaReviewBoardScreenState
                       const SizedBox(width: 4),
                       Text(
                         asset.displayStatus,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: statusColor,
@@ -531,7 +531,7 @@ class _CreativeMediaReviewBoardScreenState
               children: [
                 Text(
                   asset.title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF0F172A),
@@ -540,7 +540,7 @@ class _CreativeMediaReviewBoardScreenState
                 const SizedBox(height: 3),
                 Text(
                   asset.description,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     color: const Color(0xFF475569),
                     height: 1.35,
@@ -568,7 +568,7 @@ class _CreativeMediaReviewBoardScreenState
                     Expanded(
                       child: Text(
                         asset.captionDraft,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontStyle: FontStyle.italic,
                           color: const Color(0xFF334155),
@@ -609,7 +609,7 @@ class _CreativeMediaReviewBoardScreenState
                     asset.creatorName.isNotEmpty
                         ? asset.creatorName.substring(0, 1)
                         : 'M',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF0F172A),
@@ -619,7 +619,7 @@ class _CreativeMediaReviewBoardScreenState
                 const SizedBox(width: 6),
                 Text(
                   '${asset.creatorName} (${asset.creatorRole})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF334155),
@@ -639,7 +639,7 @@ class _CreativeMediaReviewBoardScreenState
                     ),
                     child: Text(
                       ch,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF475569),
@@ -695,7 +695,7 @@ class _CreativeMediaReviewBoardScreenState
                     Expanded(
                       child: Text(
                         'Google Drive: ${asset.driveUrl}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF1D4ED8),
@@ -721,7 +721,7 @@ class _CreativeMediaReviewBoardScreenState
                 children: [
                   Text(
                     'REVIEW LOG (${asset.comments.length})',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
@@ -765,7 +765,7 @@ class _CreativeMediaReviewBoardScreenState
                                   TextSpan(
                                     text:
                                         '${comment.authorName} (${comment.authorRole}): ',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: comment.isExecutiveNote
@@ -775,7 +775,7 @@ class _CreativeMediaReviewBoardScreenState
                                   ),
                                   TextSpan(
                                     text: comment.comment,
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       color: const Color(0xFF334155),
                                     ),
@@ -809,7 +809,7 @@ class _CreativeMediaReviewBoardScreenState
                     side: const BorderSide(color: Color(0xFFCBD5E1)),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 6),
-                    textStyle: GoogleFonts.plusJakartaSans(
+                    textStyle: GoogleFonts.outfit(
                         fontSize: 11, fontWeight: FontWeight.bold),
                   ),
                   onPressed: () => _openFeedbackDialog(context, asset, eco),
@@ -825,7 +825,7 @@ class _CreativeMediaReviewBoardScreenState
                         side: const BorderSide(color: Color(0xFFFDA4AF)),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
-                        textStyle: GoogleFonts.plusJakartaSans(
+                        textStyle: GoogleFonts.outfit(
                             fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () => _openRequestRevisionsDialog(
@@ -841,7 +841,7 @@ class _CreativeMediaReviewBoardScreenState
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
-                        textStyle: GoogleFonts.plusJakartaSans(
+                        textStyle: GoogleFonts.outfit(
                             fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () {
@@ -869,7 +869,7 @@ class _CreativeMediaReviewBoardScreenState
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
-                        textStyle: GoogleFonts.plusJakartaSans(
+                        textStyle: GoogleFonts.outfit(
                             fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () =>
@@ -893,13 +893,13 @@ class _CreativeMediaReviewBoardScreenState
       builder: (ctx) => AlertDialog(
         title: Text(
           'Add Creative Feedback',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
               fontSize: 14, fontWeight: FontWeight.bold),
         ),
         content: TextField(
           controller: controller,
           maxLines: 3,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12),
+          style: GoogleFonts.outfit(fontSize: 12),
           decoration: const InputDecoration(
             hintText: 'Enter feedback note, lighting tweak, or edit request...',
             border: OutlineInputBorder(),
@@ -939,7 +939,7 @@ class _CreativeMediaReviewBoardScreenState
       builder: (ctx) => AlertDialog(
         title: Text(
           'Request Creative Revisions',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: const Color(0xFFE11D48)),
@@ -947,7 +947,7 @@ class _CreativeMediaReviewBoardScreenState
         content: TextField(
           controller: controller,
           maxLines: 3,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12),
+          style: GoogleFonts.outfit(fontSize: 12),
           decoration: const InputDecoration(
             hintText:
                 'Specify required changes (e.g. angle out of focus, adjust color grading)...',
@@ -989,12 +989,12 @@ class _CreativeMediaReviewBoardScreenState
       builder: (ctx) => AlertDialog(
         title: Text(
           'Mark Post as Live & Published',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
               fontSize: 14, fontWeight: FontWeight.bold),
         ),
         content: TextField(
           controller: controller,
-          style: GoogleFonts.plusJakartaSans(fontSize: 12),
+          style: GoogleFonts.outfit(fontSize: 12),
           decoration: const InputDecoration(
             hintText: 'Paste live Instagram Reel URL or post link...',
             border: OutlineInputBorder(),
@@ -1079,7 +1079,7 @@ class _CreativeMediaReviewBoardScreenState
                           children: [
                             Text(
                               'Submit Media Draft for Review',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF0F172A),
@@ -1087,7 +1087,7 @@ class _CreativeMediaReviewBoardScreenState
                             ),
                             Text(
                               'Uploaded to Google Drive for CEO sign-off',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 color: const Color(0xFF64748B),
                               ),
@@ -1105,14 +1105,14 @@ class _CreativeMediaReviewBoardScreenState
 
                   // Title
                   Text('ASSET TITLE *',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
                   const SizedBox(height: 4),
                   TextField(
                     controller: titleController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                    style: GoogleFonts.outfit(fontSize: 12),
                     decoration: const InputDecoration(
                       hintText: 'e.g. 22K Antique Lakshmi Choker 4K Reel',
                       border: OutlineInputBorder(),
@@ -1122,14 +1122,14 @@ class _CreativeMediaReviewBoardScreenState
 
                   // Category
                   Text('CATEGORY',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: category,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                         fontSize: 12, color: AppColors.textDark),
                     decoration: const InputDecoration(
                         border: OutlineInputBorder()),
@@ -1146,7 +1146,7 @@ class _CreativeMediaReviewBoardScreenState
                   // Media Asset File Upload Header
                   Text(
                     'UPLOAD MEDIA FILE *',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF475569),
@@ -1234,7 +1234,7 @@ class _CreativeMediaReviewBoardScreenState
                                 const SizedBox(width: 10),
                                 Text(
                                   'Uploading Media File...',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF16A34A),
@@ -1253,7 +1253,7 @@ class _CreativeMediaReviewBoardScreenState
                                     uploadedDriveFileName != null
                                         ? 'Uploaded: $uploadedDriveFileName (Tap to replace)'
                                         : 'Upload Media File',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFF15803D),
@@ -1277,7 +1277,7 @@ class _CreativeMediaReviewBoardScreenState
                   // Option B: Or paste Google Drive Link manually
                   Text(
                     'OR PASTE MEDIA LINK / SHARING URL',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF64748B),
@@ -1286,7 +1286,7 @@ class _CreativeMediaReviewBoardScreenState
                   const SizedBox(height: 4),
                   TextField(
                     controller: driveController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                    style: GoogleFonts.outfit(fontSize: 12),
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.link, size: 16),
                       hintText: 'https://drive.google.com/file/d/...',
@@ -1297,7 +1297,7 @@ class _CreativeMediaReviewBoardScreenState
 
                   // Description
                   Text('PRODUCTION NOTES / SCOPE',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
@@ -1305,7 +1305,7 @@ class _CreativeMediaReviewBoardScreenState
                   TextField(
                     controller: descController,
                     maxLines: 2,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                    style: GoogleFonts.outfit(fontSize: 12),
                     decoration: const InputDecoration(
                       hintText: 'Describe shoot angles, models, or lighting...',
                       border: OutlineInputBorder(),
@@ -1315,7 +1315,7 @@ class _CreativeMediaReviewBoardScreenState
 
                   // Caption Draft
                   Text('SOCIAL MEDIA CAPTION & HASHTAGS DRAFT',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF475569))),
@@ -1323,7 +1323,7 @@ class _CreativeMediaReviewBoardScreenState
                   TextField(
                     controller: captionController,
                     maxLines: 2,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                    style: GoogleFonts.outfit(fontSize: 12),
                     decoration: const InputDecoration(
                       hintText: 'e.g. 916 Hallmark Gold. DM for custom bridal orders. #MNJewelPark',
                       border: OutlineInputBorder(),
@@ -1341,7 +1341,7 @@ class _CreativeMediaReviewBoardScreenState
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.magentaPrimary,
                         foregroundColor: Colors.white,
-                        textStyle: GoogleFonts.plusJakartaSans(
+                        textStyle: GoogleFonts.outfit(
                             fontSize: 12, fontWeight: FontWeight.bold),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),

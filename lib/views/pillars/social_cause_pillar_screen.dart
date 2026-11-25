@@ -1,3 +1,4 @@
+import '../../core/widgets/pillar_hero_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -50,29 +51,30 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Hero Impact Banner
-          _buildHeroBanner(totalSpent, approvedCount, allCauses.length),
-          const SizedBox(height: 16),
-
-          // 2. Action Button to Post
-          ElevatedButton.icon(
-            icon: const Icon(Icons.add_circle_outline, size: 18, color: AppColors.burgundyBg),
-            label: Text(
-              'Post Social Cause',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: AppColors.burgundyBg,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sandGold,
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              elevation: 4,
-            ),
-            onPressed: () => _showPostSocialCauseDialog(context, eco),
-          ),
+          // 1. Summary + post action
+          Builder(builder: (context) {
+            final now = DateTime.now();
+            final monthApproved = allCauses
+                .where((c) => c.isApproved && c.date.year == now.year && c.date.month == now.month)
+                .fold(0.0, (sum, c) => sum + c.amountSpent);
+            final pendingCount = allCauses.where((c) => c.isPending).length;
+            String rs(double v) => '₹${v.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+            return PillarHeroCard(
+              icon: Icons.volunteer_activism_rounded,
+              eyebrow: 'This month',
+              headline: '${rs(monthApproved)} in good deeds',
+              caption: monthApproved >= 5000 ? 'Monthly goal reached — thank you!' : 'Goal ${rs(5000)} • approved deeds count',
+              progress: monthApproved / 5000,
+              ringLabel: '${(monthApproved / 5000 * 100).clamp(0, 100).round()}%',
+              stats: [
+                PillarHeroStat('$approvedCount', 'Approved'),
+                PillarHeroStat('$pendingCount', 'Waiting'),
+                PillarHeroStat(rs(totalSpent), 'All time'),
+              ],
+              actionLabel: 'Post a good deed',
+              onAction: () => _showPostSocialCauseDialog(context, eco),
+            );
+          }),
           if (eco.isCeo || eco.activeRole == 'ceo' || eco.activeRole == 'hr') ...[
             const SizedBox(height: 10),
             OutlinedButton.icon(
@@ -97,7 +99,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               ),
               label: Text(
                 'Approve Pending Social Causes (${eco.pendingSocialCauses.length})',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -155,124 +157,8 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
       appBar: MnAppBar(
         title: 'Social Cause',
         subtitle: 'Good deeds and community service',
-        actions: [
-          MnHeaderPill(
-            icon: Icons.add_rounded,
-            label: 'Post',
-            onTap: () => _showPostSocialCauseDialog(context, eco),
-          ),
-        ],
       ),
       body: content,
-    );
-  }
-
-  Widget _buildHeroBanner(double totalApprovedSpent, int approvedCount, int totalCount) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF1F4),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFECDD3)),
-                ),
-                child: const Icon(Icons.volunteer_activism, color: Color(0xFFE11D48), size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'MN Social Cause Initiative',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Kindness, community service & good deeds',
-                      style: TextStyle(fontSize: 11.5, color: Color(0xFFE11D48), fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Whether providing food for an elderly person, blood donation, eye pledging, or medical help — record your good deeds here. Once verified by HR or CEO, your deed is celebrated across the company!',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              color: const Color(0xFF475569),
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              children: [
-                Expanded(child: _metricColumn('Total Value', '₹${totalApprovedSpent.toStringAsFixed(0)}', const Color(0xFFE11D48))),
-                Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
-                Expanded(child: _metricColumn('Approved', '$approvedCount', const Color(0xFF10B981))),
-                Container(width: 1, height: 26, color: const Color(0xFFE2E8F0)),
-                Expanded(child: _metricColumn('Total Posted', '$totalCount', const Color(0xFF0F172A))),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _metricColumn(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 
@@ -367,7 +253,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                         children: [
                           Text(
                             cause.employeeName,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF0F172A),
@@ -496,7 +382,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                       // Deed Title
                       Text(
                         cause.title,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF1E293B),
@@ -796,7 +682,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               const SizedBox(width: 8),
               Text(
                 'Post a Social Cause',
-                style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
               ),
             ],
           ),

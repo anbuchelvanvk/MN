@@ -7,13 +7,12 @@ import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
-import '../ceo/ceo_suite_screen.dart';
 import '../chat/chat_hub_screen.dart';
 import '../dept_head/team_hub_screen.dart';
 import '../employee/employee_profile_screen.dart';
 import '../home/modern_home_screen.dart';
-import '../hr/hr_portal_screen.dart';
-import '../pillars/social_cause_pillar_screen.dart';
+import 'role_hubs.dart';
+import 'employee_hub_screen.dart';
 
 /// The app's main frame for every signed-in user.
 ///
@@ -48,13 +47,13 @@ class _MainShellState extends State<MainShell> {
   List<_ShellTab> get _tabs {
     final workspace = switch (widget.role) {
       'ceo' => _ShellTab('CEO Suite', Icons.workspace_premium_outlined, Icons.workspace_premium_rounded,
-          (_) => const CeoSuiteScreen(embedded: true)),
+          (_) => const CeoHubScreen()),
       'hr' => _ShellTab('HR Desk', Icons.badge_outlined, Icons.badge_rounded,
-          (_) => const HrPortalScreen(embedded: true)),
+          (_) => const HrHubScreen()),
       'dept_head' || 'team_lead' => _ShellTab('My Team', Icons.groups_outlined, Icons.groups_rounded,
           (_) => const TeamHubScreen()),
-      _ => _ShellTab('Social', Icons.volunteer_activism_outlined, Icons.volunteer_activism_rounded,
-          (_) => const SocialCausePillarScreen()),
+      _ => _ShellTab('My Work', Icons.work_outline_rounded, Icons.work_rounded,
+          (_) => const EmployeeHubScreen()),
     };
     return [
       _ShellTab('Home', Icons.home_outlined, Icons.home_rounded,
@@ -249,7 +248,7 @@ class _NavItem extends StatelessWidget {
               tab.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11.5,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 color: selected ? Colors.white : const Color(0xFFFFD6E5),

@@ -144,7 +144,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                       children: [
                         Text(
                           'EMERGENCY MEDICAL LEAVE',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -171,7 +171,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
               // Days Selector
               Text(
                 'Leave Duration (Days):',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -229,7 +229,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
               // Reason
               Text(
                 'Diagnosis / Reason for Medical Leave:',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.magentaPrimary,
@@ -262,7 +262,7 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                 children: [
                   Text(
                     'Doctor Prescription (Mandatory):',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandGold,

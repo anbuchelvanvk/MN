@@ -61,7 +61,7 @@ class EmployeeAvatar extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         initials.trim().isNotEmpty ? initials.trim() : '?',
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.outfit(
           fontWeight: FontWeight.w700,
           fontSize: size * 0.36,
           color: Colors.white,

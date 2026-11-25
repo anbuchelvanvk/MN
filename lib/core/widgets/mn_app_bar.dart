@@ -76,7 +76,7 @@ class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 19,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -90,7 +90,7 @@ class MnAppBar extends StatelessWidget implements PreferredSizeWidget {
                 subtitle!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,
                   color: const Color(0xFFFFD6E5),
@@ -222,7 +222,7 @@ class MnHeaderPill extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   label,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -262,7 +262,7 @@ class MnSectionTitle extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 17,
               fontWeight: FontWeight.w800,
               color: AppColors.midnight,

@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/health_models.dart';
 
-/// Service that queries public open-source food databases (Open Food Facts & Open API)
-/// to fetch real-world nutritional metrics and calories per 100g for any food.
+/// Food search: the built-in Tamil & Indian dish list first, then packaged
+/// foods sold in India from Open Food Facts (free public database).
 class FoodApiService {
   static final Map<String, List<FoodItem>> _cache = {};
 
-  /// Searches public open food databases for any food query (Multi-source: DummyJSON Recipes, TheMealDB, Open Food Facts)
+  /// Searches the local Tamil/Indian list, then Open Food Facts India.
   static Future<List<FoodItem>> searchOnline(String query) async {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return [];
@@ -30,99 +30,30 @@ class FoodApiService {
       }
     }
 
-    // 1. Query DummyJSON Recipes API (Lightning fast, reliable, includes calories)
-    try {
-      final dummyJsonUrl = Uri.parse(
-        'https://dummyjson.com/recipes/search?q=${Uri.encodeComponent(q)}&limit=8',
-      );
-      final response = await http.get(dummyJsonUrl).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final recipes = data['recipes'] as List<dynamic>? ?? [];
-        for (var r in recipes) {
-          final name = (r['name'] as String? ?? '').trim();
-          if (name.isEmpty) continue;
-          final cleaned = _toTitleCase(name);
-          final dedupeKey = cleaned.toLowerCase();
-          if (seenNames.contains(dedupeKey)) continue;
-          seenNames.add(dedupeKey);
-
-          final calPerServing = (r['caloriesPerServing'] as num?)?.toDouble() ?? 250.0;
-          final cuisine = (r['cuisine'] as String? ?? 'Global');
-          final mealType = (r['mealType'] as List<dynamic>?)?.isNotEmpty == true
-              ? r['mealType'][0].toString()
-              : 'Meal';
-
-          results.add(
-            FoodItem(
-              id: 'api_dj_${r['id']}_${results.length}',
-              name: cleaned,
-              category: _inferCategory(cleaned, '$cuisine $mealType'),
-              caloriesPer100g: calPerServing > 0 ? calPerServing : 220.0,
-              defaultServingGrams: 150.0,
-              servingUnit: '1 serving (~${calPerServing.toInt()} kcal)',
-              iconEmoji: _inferEmoji(cleaned),
-            ),
-          );
-        }
-      }
-    } catch (_) {}
-
-    // 2. Query TheMealDB Public API
-    try {
-      final mealDbUrl = Uri.parse(
-        'https://www.themealdb.com/api/json/v1/1/search.php?s=${Uri.encodeComponent(q)}',
-      );
-      final response = await http.get(mealDbUrl).timeout(const Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final meals = data['meals'] as List<dynamic>? ?? [];
-        for (var m in meals) {
-          if (results.length >= 12) break;
-          final name = (m['strMeal'] as String? ?? '').trim();
-          if (name.isEmpty) continue;
-          final cleaned = _toTitleCase(name);
-          final dedupeKey = cleaned.toLowerCase();
-          if (seenNames.contains(dedupeKey)) continue;
-          seenNames.add(dedupeKey);
-
-          final cat = m['strCategory'] as String? ?? 'Main Course';
-          final area = m['strArea'] as String? ?? '';
-
-          results.add(
-            FoodItem(
-              id: 'api_mdb_${m['idMeal']}_${results.length}',
-              name: cleaned,
-              category: _inferCategory(cleaned, '$cat $area'),
-              caloriesPer100g: 185.0,
-              defaultServingGrams: 150.0,
-              servingUnit: '1 plate (~280 kcal)',
-              iconEmoji: _inferEmoji(cleaned),
-            ),
-          );
-        }
-      }
-    } catch (_) {}
-
-    // 3. Query Open Food Facts with standard mobile browser headers
+    // 2. Open Food Facts — packaged foods sold in India (biscuits, snacks,
+    //    ready mixes, drinks...). Free, no key. Only items with real
+    //    calorie data are shown.
     try {
       final offUrl = Uri.parse(
-        'https://world.openfoodfacts.org/cgi/search.pl?search_terms=${Uri.encodeComponent(q)}&search_simple=1&action=process&json=1&page_size=8&sort_by=unique_scans_n',
+        'https://in.openfoodfacts.org/cgi/search.pl?search_terms=${Uri.encodeComponent(q)}'
+        '&search_simple=1&action=process&json=1&page_size=20&sort_by=unique_scans_n'
+        '&tagtype_0=countries&tag_contains_0=contains&tag_0=india'
+        '&fields=code,product_name,product_name_en,generic_name,brands,nutriments,serving_quantity,serving_size,categories',
       );
       final response = await http.get(
         offUrl,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+          'User-Agent': 'MNFamilyApp/1.1 (Android; food search)',
           'Accept': 'application/json',
         },
-      ).timeout(const Duration(seconds: 4));
+      ).timeout(const Duration(seconds: 6));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final foodsList = data['products'] as List<dynamic>? ?? [];
 
         for (var item in foodsList) {
-          if (results.length >= 16) break;
+          if (results.length >= 30) break;
           final rawName = (item['product_name'] as String? ??
                   item['product_name_en'] as String? ??
                   item['generic_name'] as String? ??
@@ -144,7 +75,8 @@ class FoodApiService {
             if (val > 0) calories100g = val / 4.184;
           }
 
-          if (calories100g <= 0 || calories100g > 950) calories100g = 195.0;
+          // Skip products without trustworthy calorie data.
+          if (calories100g <= 0 || calories100g > 950) continue;
 
           double servingGrams = 100.0;
           if (item['serving_quantity'] != null) {
@@ -156,7 +88,10 @@ class FoodApiService {
             servingUnit = '${servingGrams.toInt()}g serving';
           }
 
-          final cleanedName = _toTitleCase(rawName);
+          final brand = ((item['brands'] as String?) ?? '').split(',').first.trim();
+          final cleanedName = _toTitleCase(
+            brand.isNotEmpty && !rawName.toLowerCase().contains(brand.toLowerCase()) ? '$brand $rawName' : rawName,
+          );
           final dedupeKey = cleanedName.toLowerCase();
           if (seenNames.contains(dedupeKey)) continue;
           seenNames.add(dedupeKey);

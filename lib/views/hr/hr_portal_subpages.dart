@@ -111,7 +111,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
               shape: const StadiumBorder(),
             ),
             icon: const Icon(Icons.person_add_alt_1, size: 16),
-            label: Text('New Hire', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold)),
+            label: Text('New Hire', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold)),
             onPressed: () => openAddHireDialog(context, eco),
           ),
         ),
@@ -136,10 +136,10 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    style: GoogleFonts.plusJakartaSans(color: AppColors.textDark, fontSize: 12.5),
+                    style: GoogleFonts.outfit(color: AppColors.textDark, fontSize: 12.5),
                     decoration: InputDecoration(
                       hintText: 'Search staff by name, role, email, phone, ID...',
-                      hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                      hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 11.5),
                       border: InputBorder.none,
                     ),
                     onChanged: (val) => setState(() => _searchQuery = val),
@@ -166,7 +166,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
               alignment: Alignment.center,
               child: Text(
                 'No staff members found matching filter.',
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+                style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
               ),
             )
           else ...[
@@ -226,7 +226,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 12.5,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
@@ -243,7 +243,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
             ),
             child: Text(
               '$count Staff',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11.5,
                 fontWeight: FontWeight.bold,
                 color: accent,
@@ -283,7 +283,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                     backgroundColor: isAbsent ? const Color(0xFFFDA4AF) : AppColors.magentaPrimary,
                     child: Text(
                       emp.initials,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                         color: Colors.white,
@@ -297,7 +297,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       children: [
                         Text(
                           emp.name,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -308,7 +308,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                         const SizedBox(height: 2),
                         Text(
                           emp.role,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             color: AppColors.textSecondary,
                           ),
@@ -342,7 +342,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                         const SizedBox(width: 4),
                         Text(
                           isAbsent ? 'ABSENT' : 'PRESENT',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
@@ -375,7 +375,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'Mobile: ${emp.phone.isNotEmpty ? emp.phone : 'Not provided'}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -384,7 +384,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'Email: ${emp.email}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -398,7 +398,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'DOB: ${emp.dob.isNotEmpty ? emp.dob : 'Not provided'}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -407,7 +407,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           'Gender: ${emp.gender.isNotEmpty ? emp.gender : 'Male'}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark),
+                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textDark),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -434,7 +434,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       const SizedBox(width: 5),
                       Text(
                         'Password: ',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.magentaPrimary,
@@ -443,7 +443,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       Expanded(
                         child: Text(
                           isPasswordRevealed ? empPassword : '••••••••',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textDark,
@@ -514,7 +514,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                               const SizedBox(width: 3),
                               Text(
                                 'Reset',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.magentaPrimary,
@@ -542,7 +542,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                 const SizedBox(width: 3),
                                 Text(
                                   'Relieve Staff',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFFDC2626),
@@ -576,14 +576,14 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
             const SizedBox(width: 8),
             Text(
               'Relieve Staff Member',
-              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+              style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
             ),
           ],
         ),
         content: Text(
           'Are you sure you want to officially relieve ${emp.name} (EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id}) from MN Jewel Park?\n\n'
           'This will revoke app login credentials, relieve them from duties, and remove them from active workforce rosters.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textDark),
+          style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.textDark),
         ),
         actions: [
           TextButton(
@@ -625,18 +625,18 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Reset Password',
-          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Reset password for ${emp.name} (#${emp.id}):', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+            Text('Reset password for ${emp.name} (#${emp.id}):', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
             const SizedBox(height: 10),
             Text(
               'A secure reset link will be emailed to ${emp.email.isNotEmpty ? emp.email : 'their login email'}. '
               'They set the new password themselves, so it is never shared or visible to HR/CEO.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+              style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -770,7 +770,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                               Expanded(
                                 child: Text(
                                   'Add New Staff',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                  style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -821,7 +821,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                     const SizedBox(width: 4),
                                     Text(
                                       isSyncingSheets ? 'Syncing...' : 'Sync Sheets',
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.magentaPrimary,
@@ -852,7 +852,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                         ),
                         child: Text(
                           syncStatusMessage!,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: syncStatusMessage!.startsWith('✓') ? const Color(0xFF047857) : const Color(0xFFB91C1C),
@@ -863,7 +863,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                     const SizedBox(height: 10),
 
                     // Role Type Toggle
-                    Text('Assign Role Type:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                    Text('Assign Role Type:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -936,7 +936,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                   const SizedBox(width: 6),
                                   Text(
                                     'Employee ID (Manual Entry):',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textDark,
@@ -953,7 +953,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                   ),
                                   child: Text(
                                     'Sheet Match',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: const Color(0xFF15803D),
@@ -965,17 +965,17 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           const SizedBox(height: 4),
                           Text(
                             'Type the Employee ID manually. It will instantly search database and Google Sheets.',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: empIdController,
                             keyboardType: TextInputType.text,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                            style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark),
                             decoration: InputDecoration(
                               labelText: 'Enter Employee ID / Number',
                               hintText: 'e.g. 75, 10, MN-1011...',
-                              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                              hintStyle: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                               fillColor: Colors.white,
@@ -1016,7 +1016,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                       children: [
                                         Text(
                                           'ALREADY HIRED IN DATABASE',
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.outfit(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
                                             color: const Color(0xFF991B1B),
@@ -1025,12 +1025,12 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                         const SizedBox(height: 2),
                                         Text(
                                           'Employee ID "${empIdController.text.trim()}" is already registered as ${alreadyHiredStaff!.name} (${alreadyHiredStaff!.role}, ${alreadyHiredStaff!.dept}).',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF7F1D1D)),
+                                          style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF7F1D1D)),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           'Cannot add duplicate Employee ID.',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFFDC2626)),
+                                          style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFFDC2626)),
                                         ),
                                       ],
                                     ),
@@ -1059,7 +1059,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                       const SizedBox(width: 6),
                                       Text(
                                         'FOUND IN GOOGLE SHEETS (${matchedSheetStaff.length} match)',
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: GoogleFonts.outfit(
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
                                           color: const Color(0xFF15803D),
@@ -1095,7 +1095,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                             Expanded(
                                               child: Text(
                                                 'EMP #${sheetEmp.empNo} — ${sheetEmp.name}',
-                                                style: GoogleFonts.plusJakartaSans(
+                                                style: GoogleFonts.outfit(
                                                   fontSize: 11.5,
                                                   fontWeight: FontWeight.w600,
                                                   color: const Color(0xFF14532D),
@@ -1133,7 +1133,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                 Expanded(
                                   child: Text(
                                     'Custom ID "${empIdController.text.trim()}". Enter details below.',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF64748B)),
+                                    style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF64748B)),
                                   ),
                                 ),
                               ],
@@ -1145,11 +1145,11 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                     const SizedBox(height: 12),
 
                     // Full Name
-                    Text('Staff Full Name:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                    Text('Staff Full Name:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: nameController,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
+                      style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textDark),
                       decoration: InputDecoration(
                         hintText: 'e.g. Ramesh Chandran',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1165,7 +1165,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Gender:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                              Text('Gender:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                               const SizedBox(height: 4),
                               DropdownButtonFormField<String>(
                                 value: selectedGender,
@@ -1187,7 +1187,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Date of Birth:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                              Text('Date of Birth:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                               const SizedBox(height: 4),
                               TextField(
                                 controller: dobController,
@@ -1238,7 +1238,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                   children: [
                                     Text(
                                       'Department:',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
+                                      style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -1296,11 +1296,11 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Role Title:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                                    Text('Role Title:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                                     const SizedBox(height: 4),
                                     TextField(
                                       controller: roleController,
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                                      style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textDark),
                                       decoration: InputDecoration(
                                         hintText: 'e.g. Sales Executive',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1316,11 +1316,11 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             const SizedBox(height: 8),
                             TextField(
                               controller: customDeptController,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                              style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textDark),
                               decoration: InputDecoration(
                                 labelText: 'New Department Name',
                                 hintText: 'e.g. Logistics, Retail Store, Manufacturing...',
-                                hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                                hintStyle: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                               ),
@@ -1338,11 +1338,11 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Official Email (Login ID):', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                              Text('Official Email (Login ID):', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                               const SizedBox(height: 4),
                               TextField(
                                 controller: emailController,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                                style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textDark),
                                 decoration: InputDecoration(
                                   hintText: 'user@mnj.com',
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1357,12 +1357,12 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Phone Number:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                              Text('Phone Number:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                               const SizedBox(height: 4),
                               TextField(
                                 controller: phoneController,
                                 keyboardType: TextInputType.phone,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                                style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textDark),
                                 decoration: InputDecoration(
                                   hintText: '+91 98450 XXXXX',
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1377,11 +1377,11 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                     const SizedBox(height: 12),
 
                     // Password
-                    Text('App Login Password:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                    Text('App Login Password:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                     const SizedBox(height: 4),
                     TextField(
                       controller: passwordController,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                      style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textDark),
                       decoration: InputDecoration(
                         hintText: 'Enter password (min 6 characters)',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1404,7 +1404,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           alreadyHiredStaff != null
                               ? 'Employee ID Already Hired'
                               : 'Register Staff & Grant Access',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13),
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                         onPressed: () {
                           final cleanEmpId = empIdController.text.trim();
@@ -1873,7 +1873,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           Flexible(
                             child: Text(
                               'Master Sheet',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: _activeViewTab == 0 ? AppColors.textDark : AppColors.textMuted,
@@ -1911,7 +1911,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           Flexible(
                             child: Text(
                               'Today\'s Shifts',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: _activeViewTab == 1 ? AppColors.textDark : AppColors.textMuted,
@@ -1959,7 +1959,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           children: [
                             Text(
                               '${hrSheet?.monthTitle ?? "November 2026"} HR Master Sheet',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
@@ -1967,7 +1967,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                             ),
                             Text(
                               '${allSheetRows.length} Workforce Rows • Live Synced',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 color: AppColors.textMuted,
                               ),
@@ -2014,10 +2014,10 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textDark),
+                      style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.textDark),
                       decoration: InputDecoration(
                         hintText: 'Search staff by name or EMP NO...',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                        hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 11.5),
                         border: InputBorder.none,
                       ),
                       onChanged: (v) => setState(() => _searchQuery = v),
@@ -2038,7 +2038,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 alignment: Alignment.center,
-                child: Text('No employee sheet records match query.', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted)),
+                child: Text('No employee sheet records match query.', style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted)),
               )
             else
               ...filteredSheetRows.map((r) {
@@ -2069,7 +2069,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                                     ),
                                     child: Text(
                                       'EMP #${r.empNo}',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                      style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -2077,7 +2077,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                                 Expanded(
                                   child: Text(
                                     r.name,
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -2086,7 +2086,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           ),
                           Text(
                             'S.No ${r.sNo}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
                       ),
@@ -2159,7 +2159,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                 Expanded(
                   child: Text(
                     'Today: ${DateTime.now().day} ${_monthName(DateTime.now().month)} ${DateTime.now().year}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textDark,
@@ -2176,7 +2176,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                   ),
                   child: Text(
                     isTuesday ? '$weekOffCount WEEK OFF' : '$activeDutyCount ON DUTY',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.bold,
                       color: isTuesday ? const Color(0xFF64748B) : const Color(0xFF10B981),
@@ -2221,10 +2221,10 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textDark),
+                    style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.textDark),
                     decoration: InputDecoration(
                       hintText: 'Search by staff name, ID or role...',
-                      hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                      hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 11.5),
                       border: InputBorder.none,
                     ),
                     onChanged: (v) => setState(() => _searchQuery = v),
@@ -2245,7 +2245,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               alignment: Alignment.center,
-              child: Text('No attendance records found matching query.', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted)),
+              child: Text('No attendance records found matching query.', style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted)),
             )
           else
             ...filteredSummaries.map((s) {
@@ -2274,7 +2274,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           backgroundColor: !s.isPresent ? const Color(0xFFFDA4AF) : AppColors.magentaPrimary,
                           child: Text(
                             s.initials,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -2284,12 +2284,12 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                             children: [
                               Text(
                                 s.employeeName,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 '${s.employeeId} • ${s.department}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                                style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -2304,7 +2304,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                           ),
                           child: Text(
                             s.statusBadgeText,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: s.statusBadgeColor,
@@ -2336,7 +2336,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                             children: [
                               Text(
                                 'View Biometric Punch Audit',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                                style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
                               ),
                               const SizedBox(width: 3),
                               const Icon(Icons.arrow_forward_ios_rounded, size: 9, color: AppColors.magentaPrimary),
@@ -2408,7 +2408,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
                     Flexible(
                       child: Text(
                         'SELECT ATTENDANCE MONTH',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.sandGold,
@@ -2504,7 +2504,7 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
               const SizedBox(width: 6),
               Text(
                 'FILTER BY EMPLOYEE',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w800,
                   color: AppColors.sandGold,
@@ -2572,14 +2572,14 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
               Expanded(
                 child: Text(
                   label,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 2),
-          Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+          Text(value, style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
@@ -2669,7 +2669,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
               children: [
                 Text(
                   'Select Staff Member to Audit:',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
                 ),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
@@ -2729,7 +2729,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                               Expanded(
                                 child: Text(
                                   selectedEmp.name,
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                  style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -2742,7 +2742,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                                 ),
                                 child: Text(
                                   isFemale ? 'FEMALE (SAREE/UNIFORM)' : 'MALE (FORMAL SUIT)',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                     color: isFemale ? const Color(0xFFBE185D) : const Color(0xFF1D4ED8),
@@ -2753,7 +2753,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text('Daily 50 Pts Scale • Score: $percentage% ($earnedPoints/50 Pts)',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isScoreGood ? const Color(0xFF059669) : const Color(0xFFD97706))),
+                              style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w600, color: isScoreGood ? const Color(0xFF059669) : const Color(0xFFD97706))),
                         ],
                       ),
                     ),
@@ -2836,7 +2836,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                           Expanded(
                             child: Text(
                               item,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: isChecked ? FontWeight.w600 : FontWeight.normal,
                                 color: isChecked ? const Color(0xFF065F46) : AppColors.textDark,
@@ -2851,7 +2851,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                             ),
                             child: Text(
                               '+10 Pts',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: isChecked ? const Color(0xFF059669) : const Color(0xFF64748B),
@@ -2868,10 +2868,10 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                 // Remarks Field
                 TextField(
                   controller: _groomingRemarksCtrl,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                  style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textDark),
                   decoration: InputDecoration(
                     hintText: 'Optional audit remarks (e.g. Ironing neat, hair trimmed)',
-                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                    hintStyle: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
@@ -2894,7 +2894,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                     icon: const Icon(Icons.check_circle_outline, size: 18),
                     label: Text(
                       'Save Grooming Audit ($earnedPoints/50 Pts • $percentage%)',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold),
                     ),
                     onPressed: () {
                       final remarks = _groomingRemarksCtrl.text.trim().isNotEmpty
@@ -2934,11 +2934,11 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text('COMPANY-WIDE GROOMING AUDIT LOG', overflow: TextOverflow.ellipsis, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark))),
+                    Expanded(child: Text('COMPANY-WIDE GROOMING AUDIT LOG', overflow: TextOverflow.ellipsis, style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark))),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(color: AppColors.magentaSubtle, borderRadius: BorderRadius.circular(6)),
-                      child: Text('${auditHistory.length} Audits', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
+                      child: Text('${auditHistory.length} Audits', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
                     ),
                   ],
                 ),
@@ -2946,7 +2946,7 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                 if (auditHistory.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text('No grooming audits recorded yet today.', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                    child: Text('No grooming audits recorded yet today.', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                   )
                 else
                   ...auditHistory.map((audit) {
@@ -2970,8 +2970,8 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                             ),
                             child: Column(
                               children: [
-                                Text('${audit.percentage}%', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: isPass ? const Color(0xFF059669) : const Color(0xFFE11D48))),
-                                Text('${audit.pointsEarned}/${audit.maxPoints}', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted)),
+                                Text('${audit.percentage}%', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: isPass ? const Color(0xFF059669) : const Color(0xFFE11D48))),
+                                Text('${audit.pointsEarned}/${audit.maxPoints}', style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMuted)),
                               ],
                             ),
                           ),
@@ -2980,13 +2980,13 @@ class _HrGroomingAuditScreenState extends State<HrGroomingAuditScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('${emp.name} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                Text('${emp.name} • ${emp.dept}', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                                 const SizedBox(height: 2),
-                                Text(audit.reason, style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                                Text(audit.reason, style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                               ],
                             ),
                           ),
-                          Text('Followed: ${audit.followedItems.length}/5', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF059669), fontWeight: FontWeight.bold)),
+                          Text('Followed: ${audit.followedItems.length}/5', style: GoogleFonts.outfit(fontSize: 11, color: const Color(0xFF059669), fontWeight: FontWeight.bold)),
                         ],
                       ),
                     );

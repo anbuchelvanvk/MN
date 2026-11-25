@@ -1,11 +1,9 @@
-import '../../core/widgets/add_todo_dialog.dart';
+import '../../core/widgets/personal_todo_section.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
-import '../../core/widgets/task_action_dialogs.dart';
-import '../../models/task_model.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../pillars/social_cause_pillar_screen.dart';
 import 'employee_profile_screen.dart';
@@ -52,244 +50,26 @@ class EmployeeThingsToDoScreen extends StatefulWidget {
 }
 
 class _EmployeeThingsToDoScreenState extends State<EmployeeThingsToDoScreen> {
-  String _taskFilter = 'all'; // 'all', 'pending', 'completed'
-
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final allTasks = eco.currentEmployeeTasks;
-    final filteredTasks = allTasks.where((t) {
-      if (_taskFilter == 'pending') return t.status == 'pending';
-      if (_taskFilter == 'completed') return t.status == 'completed';
-      return true;
-    }).toList();
-
-    final pendingCount = allTasks.where((t) => t.status == 'pending').length;
-    final completedCount = allTasks.where((t) => t.status == 'completed').length;
-
     return EmployeeSubpageScaffold(
-      title: 'Things To Do',
-      subtitle: 'Daily SOP Routines & Personal Action Items',
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.add, size: 14, color: AppColors.magentaPrimary),
-            label: const Text('Add Task', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.magentaPrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              shape: const StadiumBorder(),
-            ),
-            onPressed: () => _openAddPersonalTaskDialog(context, eco),
-          ),
-        ),
-      ],
+      title: 'My Tasks',
+      subtitle: 'Daily routines, to-dos & follow-ups',
       body: RefreshIndicator(
         color: AppColors.magentaPrimary,
         backgroundColor: Colors.white,
         onRefresh: () => eco.refreshAllData(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Filter Tabs (All, Pending, Completed)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
-                    _filterButton('all', 'All (${allTasks.length})'),
-                    const SizedBox(width: 8),
-                    _filterButton('pending', 'Pending ($pendingCount)'),
-                    const SizedBox(width: 8),
-                    _filterButton('completed', 'Done ($completedCount)'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              if (filteredTasks.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        const Icon(Icons.check_circle_outline_rounded, size: 40, color: Color(0xFF10B981)),
-                        const SizedBox(height: 10),
-                        Text(
-                          'No Tasks Found',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'All tasks in this category are completely cleared!',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                ...filteredTasks.map((task) => _taskCard(context, eco, task)),
-              const SizedBox(height: 24),
-            ],
-          ),
+        child: const SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 28),
+          child: PersonalTodoSectionWidget(),
         ),
       ),
     );
-  }
-
-  Widget _filterButton(String key, String label) {
-    final isSelected = _taskFilter == key;
-    return InkWell(
-      onTap: () => setState(() => _taskFilter = key),
-      borderRadius: BorderRadius.circular(10),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.magentaPrimary : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected ? AppColors.magentaPrimary : const Color(0xFFE2E8F0),
-          ),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : AppColors.textDark,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _taskCard(BuildContext context, EcosystemProvider eco, TaskItem task) {
-    final isDone = task.status == 'completed';
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDone ? const Color(0xFFD1FAE5) : const Color(0xFFE2E8F0),
-          width: 1.0,
-        ),
-        boxShadow: const [
-          BoxShadow(color: Color(0x040F172A), blurRadius: 6, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: isDone ? const Color(0xFFECFDF5) : AppColors.magentaSubtle,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isDone ? Icons.check_circle_rounded : Icons.pending_actions_rounded,
-                  size: 16,
-                  color: isDone ? const Color(0xFF10B981) : AppColors.magentaPrimary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      task.title,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: isDone ? AppColors.textMuted : AppColors.textDark,
-                        decoration: isDone ? TextDecoration.lineThrough : null,
-                      ),
-                    ),
-                    Text(
-                      '${task.category} • Due: ${task.due} • ${task.priority}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                decoration: BoxDecoration(
-                  color: isDone ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  isDone ? 'DONE' : 'PENDING',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isDone ? const Color(0xFF059669) : const Color(0xFFD97706),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (task.proof != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Proof: ${task.proof!.content} (${task.proof!.timestamp})',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF059669), fontStyle: FontStyle.italic),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (isDone) ...[
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.undo_rounded, size: 13, color: Color(0xFF64748B)),
-                  label: const Text('Revert to Pending', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFCBD5E1)),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  ),
-                  onPressed: () => TaskActionDialogs.showRevertDialog(context, eco, task),
-                ),
-              ] else ...[
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.check_rounded, size: 14, color: Colors.white),
-                  label: const Text('Mark Complete', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: () => TaskActionDialogs.showCompletionModal(context, eco, task),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openAddPersonalTaskDialog(BuildContext context, EcosystemProvider eco) {
-    showAddPersonalTodoDialog(context, eco);
   }
 }
+
 
 // 2. SOCIAL CAUSE SUBPAGE
 class EmployeeSocialCauseScreen extends StatelessWidget {
@@ -362,7 +142,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                           Flexible(child: Text(
                             'MN JEWEL PARK',
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -379,7 +159,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                         ),
                         child: Text(
                           'OFFICIAL ID',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                     ],
@@ -402,7 +182,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                           children: [
                             Text(
                               emp.name,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -411,11 +191,11 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               emp.role,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: Colors.white.withOpacity(0.85)),
+                              style: GoogleFonts.outfit(fontSize: 11.5, color: Colors.white.withOpacity(0.85)),
                             ),
                             Text(
                               'ID: ${emp.id} • ${emp.dept}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: Colors.white.withOpacity(0.75)),
+                              style: GoogleFonts.outfit(fontSize: 11.5, color: Colors.white.withOpacity(0.75)),
                             ),
                           ],
                         ),
@@ -432,8 +212,8 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Flexible(child: Text('Vault Security Status', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: Colors.white.withOpacity(0.85)))),
-                        Text('VERIFIED ACTIVE', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Flexible(child: Text('Vault Security Status', style: GoogleFonts.outfit(fontSize: 11.5, color: Colors.white.withOpacity(0.85)))),
+                        Text('VERIFIED ACTIVE', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.white)),
                       ],
                     ),
                   ),
@@ -454,7 +234,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                     children: [
                       Expanded(child: Text(
                         'Personal & Contact Details',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       )),
                       InkWell(
                         onTap: () {
@@ -465,7 +245,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                         },
                         child: Text(
                           'Edit Profile',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                          style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
                         ),
                       ),
                     ],
@@ -494,7 +274,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Portal Access & Credentials',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                   ),
                   const Divider(color: Color(0xFFF1F5F9), height: 20),
                   Row(
@@ -505,7 +285,7 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
                         child: Text(
                           'Login & password',
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textMuted),
+                          style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.textMuted),
                         ),
                       ),
                       OutlinedButton(
@@ -538,11 +318,11 @@ class EmployeeDigitalIdScreen extends StatelessWidget {
       children: [
         Icon(icon, size: 15, color: AppColors.magentaPrimary),
         const SizedBox(width: 8),
-        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 130), child: Text('$label: ', overflow: TextOverflow.ellipsis, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted))),
+        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 130), child: Text('$label: ', overflow: TextOverflow.ellipsis, style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted))),
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
             overflow: TextOverflow.ellipsis,
           ),
         ),

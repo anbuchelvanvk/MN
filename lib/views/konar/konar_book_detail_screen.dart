@@ -87,7 +87,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'Access Restricted',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF0F172A),
@@ -247,7 +247,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                         const SizedBox(height: 12),
                         Text(
                           book.title,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 16.5,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -324,7 +324,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             children: [
                               Text(
                                 'Department Core Architecture',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFF0F172A),
@@ -333,7 +333,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 '5 Operational Pillars: Purpose, Goals, Process, Structure, System',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   color: const Color(0xFF64748B),
                                   fontWeight: FontWeight.w500,
@@ -361,7 +361,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               children: [
                                 Text(
                                   '${book.sections.length} Architectures',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     color: const Color(0xFF881337),
                                     fontWeight: FontWeight.bold,
@@ -414,7 +414,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             Expanded(
                               child: Text(
                                 'Official ${book.department} Manual (${book.version})',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFF0F172A),
@@ -437,7 +437,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                   icon: const Icon(Icons.visibility_rounded, size: 18, color: Color(0xFF881337)),
                                   label: Text(
                                     'View Full Book',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12.5,
                                       color: const Color(0xFF881337),
@@ -463,7 +463,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                                   icon: const Icon(Icons.file_download_rounded, size: 18, color: Colors.white),
                                   label: Text(
                                     'Download Book',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12.5,
                                       color: Colors.white,
@@ -490,7 +490,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                             icon: const Icon(Icons.share_rounded, size: 17, color: Color(0xFF334155)),
                             label: Text(
                               'Share Official KONAR Book (PDF)',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12.5,
                                 color: const Color(0xFF334155),
@@ -546,7 +546,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
           ),
           title: Text(
             section.title,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 12.5,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF0F172A),
@@ -770,7 +770,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                       const SizedBox(width: 8),
                       Text(
                         'Update KONAR Book',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF0F172A),

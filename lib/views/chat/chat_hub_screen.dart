@@ -317,7 +317,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
                       Flexible(
                         child: Text(
                           '🏛️ MN All-Hands Workforce',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -438,7 +438,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
         leading: EmployeeAvatar(avatar: peer.avatar, initials: initials, size: 44),
         title: Text(
           peer.name,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 13.5,
             fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.w600,
             color: AppColors.textDark,
@@ -560,7 +560,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
               children: [
                 Text(
                   emp.name,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,

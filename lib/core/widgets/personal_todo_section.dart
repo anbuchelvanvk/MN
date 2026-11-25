@@ -1,9 +1,9 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'add_todo_dialog.dart';
 import 'task_action_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_colors.dart';
-import 'liquid_glass.dart';
 import '../../models/task_model.dart';
 import '../../providers/ecosystem_provider.dart';
 
@@ -32,247 +32,200 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
     final eco = context.watch<EcosystemProvider>();
     final targetEmpId = widget.empId ?? eco.activeEmpId;
     final allUserTasks = eco.getTasksForEmployee(targetEmpId);
-    final categories = ['All', ...allUserTasks.map((t) => t.category).toSet()];
+    final categories = ['All', ...allUserTasks.map((t) => t.category).where((c) => c.trim().isNotEmpty).toSet()];
+    if (!categories.contains(_selectedCategory)) _selectedCategory = 'All';
 
     final filteredTasks = allUserTasks.where((t) {
       if (_filter == 'pending' && t.status == 'completed') return false;
       if (_filter == 'completed' && t.status != 'completed') return false;
       if (_selectedCategory != 'All' && t.category != _selectedCategory) return false;
       return true;
-    }).toList();
+    }).toList()
+      ..sort((a, b) {
+        // Open tasks first, then by priority
+        final ac = a.status == 'completed' ? 1 : 0;
+        final bc = b.status == 'completed' ? 1 : 0;
+        if (ac != bc) return ac - bc;
+        return _priorityRank(a.priority) - _priorityRank(b.priority);
+      });
 
     final pendingCount = allUserTasks.where((t) => t.status != 'completed').length;
     final completedCount = allUserTasks.where((t) => t.status == 'completed').length;
+    final total = allUserTasks.length;
+    final progress = total == 0 ? 0.0 : completedCount / total;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Section Header Card
-        LiquidGlassCard(
-          borderRadius: 16,
+        // Progress summary + add button
+        Container(
           padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.line),
+            boxShadow: AppColors.softShadow,
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
                   Expanded(
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: AppColors.sandGold.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.checklist_rounded, color: AppColors.sandGold, size: 16),
+                        Text(
+                          total == 0
+                              ? 'Nothing planned yet'
+                              : pendingCount == 0
+                                  ? 'All done for now 🎉'
+                                  : '$pendingCount to do',
+                          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.title,
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$pendingCount Pending • $completedCount Completed',
-                                style: const TextStyle(fontSize: 11.5, color: AppColors.sandLight),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$completedCount of $total completed',
+                          style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textMuted),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () => _showAddTodoDialog(context, eco, targetEmpId),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                      decoration: BoxDecoration(
-                        gradient: AppColors.magentaGradient,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.magentaPrimary.withOpacity(0.25),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.add_rounded, size: 14, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text(
-                            'Add To-Do',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
+                  FilledButton.icon(
+                    onPressed: () => _showAddTodoDialog(context, eco, targetEmpId),
+                    style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10)),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text('Add To-Do'),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                widget.subtitle,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8), height: 1.3),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 8,
+                  backgroundColor: AppColors.primarySoft,
+                  valueColor: const AlwaysStoppedAnimation(AppColors.ragGreen),
+                ),
               ),
               const SizedBox(height: 14),
-
-              // Filter Chips
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _filterChip('all', 'All (${allUserTasks.length})'),
-                  _filterChip('pending', 'Pending ($pendingCount)'),
-                  _filterChip('completed', 'Completed ($completedCount)'),
-                ],
+              // Status filter (segmented)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF6EEF2),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    _segment('all', 'All', total),
+                    _segment('pending', 'To do', pendingCount),
+                    _segment('completed', 'Done', completedCount),
+                  ],
+                ),
               ),
               if (categories.length > 2) ...[
                 const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Row(
-                    children: categories.map((cat) {
-                      final isSelected = _selectedCategory == cat;
-                      final catTasks = cat == 'All'
-                          ? allUserTasks
-                          : allUserTasks.where((t) => t.category == cat).toList();
-                      final completedInCat = catTasks.where((t) => t.status == 'completed').length;
-                      final countBadge = '$completedInCat/${catTasks.length}';
-
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: InkWell(
-                          onTap: () => setState(() => _selectedCategory = cat),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.magentaSubtle : AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder,
-                              ),
+                SizedBox(
+                  height: 34,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      for (final cat in categories)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(cat),
+                            selected: _selectedCategory == cat,
+                            showCheckmark: false,
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            selectedColor: AppColors.primary,
+                            labelStyle: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: _selectedCategory == cat ? Colors.white : AppColors.textSecondary,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  cat,
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? AppColors.magentaPrimary : AppColors.textSecondary,
-                                  ),
-                                ),
-                                const SizedBox(width: 5),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder.withOpacity(0.5),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    countBadge,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            onSelected: (_) => setState(() => _selectedCategory = cat),
                           ),
                         ),
-                      );
-                    }).toList(),
+                    ],
                   ),
                 ),
               ],
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
-        // Task List or Empty State
-        if (filteredTasks.isEmpty) ...[
-          LiquidGlassCard(
-            borderRadius: 14,
+        if (filteredTasks.isEmpty)
+          Container(
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(
-                    _filter == 'completed' ? Icons.check_circle_outline : Icons.task_alt,
-                    size: 40,
-                    color: AppColors.sandGold.withOpacity(0.4),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _filter == 'completed' ? 'No completed tasks yet.' : 'No pending to-dos on your checklist.',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Tap "+ Add To-Do" above to log a personal follow-up or priority.',
-                    style: TextStyle(fontSize: 11, color: AppColors.textMuted),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.line),
             ),
-          ),
-        ] else ...[
+            child: Column(
+              children: [
+                Icon(
+                  _filter == 'completed' ? Icons.check_circle_outline_rounded : Icons.task_alt_rounded,
+                  size: 42,
+                  color: AppColors.primary.withOpacity(0.35),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _filter == 'completed' ? 'Nothing completed yet' : 'No open to-dos here',
+                  style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Tap "Add To-Do" to plan something.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textMuted),
+                ),
+              ],
+            ),
+          )
+        else
           ...filteredTasks.map((task) => _buildTodoCard(context, eco, task)),
-        ],
       ],
     );
   }
 
-  Widget _filterChip(String filterKey, String label) {
-    final isSelected = _filter == filterKey;
-    return InkWell(
-      onTap: () => setState(() => _filter = filterKey),
-      borderRadius: BorderRadius.circular(16),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.5),
-        decoration: BoxDecoration(
-          gradient: isSelected ? AppColors.magentaGradient : null,
-          color: isSelected ? null : AppColors.cardSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? Colors.transparent : AppColors.sandBorder,
+  static int _priorityRank(String p) {
+    final l = p.toLowerCase();
+    if (l.contains('critical')) return 0;
+    if (l.contains('high')) return 1;
+    return 2;
+  }
+
+  Widget _segment(String key, String label, int count) {
+    final selected = _filter == key;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _filter = key),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(11),
+            boxShadow: selected
+                ? const [BoxShadow(color: Color(0x14881337), blurRadius: 8, offset: Offset(0, 2))]
+                : null,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.magentaPrimary.withOpacity(0.25),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : AppColors.textSecondary,
+          child: Text(
+            '$label ($count)',
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            style: GoogleFonts.outfit(
+              fontSize: 13.5,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+              color: selected ? AppColors.primary : AppColors.textSecondary,
+            ),
           ),
         ),
       ),
@@ -281,118 +234,125 @@ class _PersonalTodoSectionWidgetState extends State<PersonalTodoSectionWidget> {
 
   Widget _buildTodoCard(BuildContext context, EcosystemProvider eco, TaskItem task) {
     final isCompleted = task.status == 'completed';
-    Color priorityColor = AppColors.sandGold;
-    if (task.priority.toLowerCase().contains('critical')) {
-      priorityColor = AppColors.ragRed;
-    } else if (task.priority.toLowerCase().contains('high')) {
-      priorityColor = const Color(0xFFF97316);
-    }
+    final p = task.priority.toLowerCase();
+    final Color priorityColor = p.contains('critical')
+        ? AppColors.ragRed
+        : p.contains('high')
+            ? const Color(0xFFD97706)
+            : AppColors.primary;
+    final priorityLabel = p.contains('critical') ? 'Critical' : (task.priority.isEmpty ? 'Standard' : task.priority);
+    final due = task.due.trim();
 
-    return InkWell(
-      onTap: () => TaskActionDialogs.handleTaskTap(context, eco, task),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: isCompleted ? Colors.white.withOpacity(0.03) : AppColors.burgundyCard,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isCompleted ? AppColors.ragGreen.withOpacity(0.4) : AppColors.sandGold.withOpacity(0.25),
-            width: isCompleted ? 1.2 : 1.0,
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Checkbox / Status Indicator with Green Tick
-            InkWell(
-              onTap: () => TaskActionDialogs.handleTaskTap(context, eco, task),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isCompleted ? AppColors.ragGreen : Colors.white.withOpacity(0.05),
-                  border: Border.all(
-                    color: isCompleted ? AppColors.ragGreen : AppColors.sandGold.withOpacity(0.6),
-                    width: 1.5,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: () => TaskActionDialogs.handleTaskTap(context, eco, task),
+          borderRadius: BorderRadius.circular(18),
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: isCompleted ? AppColors.ragGreen.withOpacity(0.35) : AppColors.line),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Priority stripe + check circle
+                Container(
+                  width: 4,
+                  height: 44,
+                  margin: const EdgeInsets.only(right: 10),
+                  decoration: BoxDecoration(
+                    color: isCompleted ? AppColors.ragGreen : priorityColor,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                child: isCompleted
-                    ? const Icon(Icons.check, size: 16, color: Colors.white)
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Title & Details (Strikethrough and green tick when completed)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task.title,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: isCompleted ? const Color(0xFF94A3B8) : AppColors.textDark,
-                      decoration: isCompleted ? TextDecoration.lineThrough : null,
-                      decorationColor: isCompleted ? AppColors.ragGreen : null,
-                      decorationThickness: 2.0,
+                Container(
+                  width: 26,
+                  height: 26,
+                  margin: const EdgeInsets.only(top: 2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isCompleted ? AppColors.ragGreen : Colors.white,
+                    border: Border.all(
+                      color: isCompleted ? AppColors.ragGreen : const Color(0xFFD9C3CF),
+                      width: 2,
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  Row(
+                  child: isCompleted ? const Icon(Icons.check_rounded, size: 16, color: Colors.white) : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: priorityColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          task.priority,
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: priorityColor),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          '${task.category} • Due: ${task.due}',
-                          style: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        task.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w600,
+                          height: 1.25,
+                          color: isCompleted ? AppColors.textMuted : AppColors.textDark,
+                          decoration: isCompleted ? TextDecoration.lineThrough : null,
+                          decorationColor: AppColors.ragGreen,
                         ),
                       ),
-                      if (isCompleted) ...[
-                        const SizedBox(width: 6),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.check_circle, size: 12, color: AppColors.ragGreen),
-                            SizedBox(width: 3),
-                            Text(
-                              'Done',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.ragGreen),
-                            ),
-                          ],
-                        ),
-                      ],
+                      const SizedBox(height: 7),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (due.isNotEmpty) _meta(Icons.schedule_rounded, due, AppColors.textSecondary),
+                          _meta(Icons.flag_rounded, priorityLabel, priorityColor),
+                          if (task.category.trim().isNotEmpty)
+                            _meta(Icons.label_outline_rounded, task.category, AppColors.textMuted, maxWidth: 150),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Color(0xFFB9A3AF)),
+                  tooltip: 'Delete To-Do',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _confirmDeleteDialog(context, eco, task),
+                ),
+              ],
             ),
-
-            // Delete Action
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Color(0xFF94A3B8)),
-              tooltip: 'Delete To-Do',
-              onPressed: () => _confirmDeleteDialog(context, eco, task),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _meta(IconData icon, String text, Color color, {double maxWidth = 200}) {
+    return Container(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+            ),
+          ),
+        ],
       ),
     );
   }

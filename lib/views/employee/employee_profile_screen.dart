@@ -313,7 +313,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                       children: [
                         Text(
                           emp.name,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -321,7 +321,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         ),
                         Text(
                           emp.straightCutDesignation,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                         ),
                         const SizedBox(height: 4),
                         Row(
@@ -355,7 +355,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         Expanded(
                           child: Text(
                             'Personal Information',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -368,7 +368,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Keep your official contact and family milestones up to date.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                      style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                     ),
                     const SizedBox(height: 16),
 
@@ -377,7 +377,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _nameController,
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                      style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                       decoration: _buildInputDecoration('Enter your full legal name', Icons.badge_outlined),
                       validator: (val) => val == null || val.trim().isEmpty ? 'Please enter your name' : null,
                     ),
@@ -389,7 +389,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                      style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                       decoration: _buildInputDecoration('+91 98765 43210', Icons.phone_outlined),
                       validator: (val) => val == null || val.trim().isEmpty ? 'Please enter your mobile number' : null,
                     ),
@@ -402,7 +402,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                       controller: _dobController,
                       readOnly: true,
                       onTap: () => _selectDate(context, _dobController),
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                      style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                       decoration: _buildInputDecoration('YYYY-MM-DD', Icons.cake_outlined, suffix: IconButton(
                         icon: const Icon(Icons.calendar_today, size: 18, color: AppColors.sandPrimary),
                         onPressed: () => _selectDate(context, _dobController),
@@ -417,7 +417,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     DropdownButtonFormField<String>(
                       value: _gender,
                       dropdownColor: AppColors.burgundySurface,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         color: AppColors.sandLight,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -442,7 +442,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     DropdownButtonFormField<String>(
                       value: _relationshipStatus,
                       dropdownColor: AppColors.burgundySurface,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         color: AppColors.sandLight,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -469,7 +469,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         controller: _anniversaryController,
                         readOnly: true,
                         onTap: () => _selectDate(context, _anniversaryController, initial: DateTime(2020, 1, 1)),
-                        style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                        style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                         decoration: _buildInputDecoration('YYYY-MM-DD', Icons.celebration_outlined, suffix: IconButton(
                           icon: const Icon(Icons.calendar_month, size: 18, color: AppColors.sandPrimary),
                           onPressed: () => _selectDate(context, _anniversaryController, initial: DateTime(2020, 1, 1)),
@@ -492,7 +492,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                             : const Icon(Icons.check, size: 18),
                         label: Text(
                           _isSavingProfile ? 'Saving Details...' : 'Save Personal Details',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.sandGold,
@@ -525,7 +525,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                         Expanded(
                           child: Text(
                             'Password Security',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -538,7 +538,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Update your password. Ensure it has at least 6 characters.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                      style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                     ),
                     const SizedBox(height: 16),
 
@@ -548,7 +548,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     TextFormField(
                       controller: _oldPasswordController,
                       obscureText: _obscureOldPassword,
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                      style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                       decoration: _buildInputDecoration(
                         'Enter your existing password',
                         Icons.lock_outline,
@@ -571,7 +571,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     TextFormField(
                       controller: _newPasswordController,
                       obscureText: _obscureNewPassword,
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                      style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                       decoration: _buildInputDecoration(
                         'Enter new password (min 6 characters)',
                         Icons.vpn_key_outlined,
@@ -594,7 +594,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     TextFormField(
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
-                      style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                      style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                       decoration: _buildInputDecoration(
                         'Re-type new password to confirm',
                         Icons.check_circle_outline,
@@ -619,7 +619,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                             : const Icon(Icons.shield_outlined, size: 18),
                         label: Text(
                           _isUpdatingPassword ? 'Updating Password...' : 'Change Password',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.burgundyPrimary,
@@ -643,7 +643,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                             'Forgot password? Reset with HR',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
                               color: AppColors.sandGold,
@@ -704,7 +704,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 children: [
                   Text(
                     'GROOMING & ATTIRE POINTS',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -712,7 +712,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                   ),
                   Text(
                     'Exempt from retail showroom attire & grooming audits',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -738,7 +738,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
               Expanded(
                 child: Text(
                   'GROOMING COMPLIANCE',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandLight,
@@ -759,7 +759,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 ),
                 child: Text(
                   isStar ? '★ Star' : 'Standard',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: isStar ? const Color(0xFF10B981) : AppColors.sandGold,
@@ -785,12 +785,12 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     children: [
                       Text(
                         'Daily Grooming Score',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         '$dailyPoints / 50 Points',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -808,7 +808,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                   ),
                   child: Text(
                     '${((dailyPoints / 50) * 100).toInt()}% Score',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -845,7 +845,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 children: [
                   Text(
                     'ATTENDANCE LOGS',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -853,7 +853,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                   ),
                   Text(
                     'Autonomous Leadership Cadence • Biometrics Waived',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -942,7 +942,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                     Expanded(
                       child: Text(
                         dateLabel,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: AppColors.sandLight,
@@ -963,7 +963,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 ),
                 child: Text(
                   statusLabel,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: statusColor,
@@ -994,7 +994,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                       child: Text(
                         'RECENT ATTENDANCE',
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -1014,7 +1014,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
                 ),
                 child: Text(
                   'PAST 7 DAYS',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandGold,
@@ -1026,7 +1026,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
           const SizedBox(height: 4),
           Text(
             'Official record from HR Google Sheets Master Ledger',
-            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
           ),
           const SizedBox(height: 12),
           ...dayItems,
@@ -1038,7 +1038,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
   Widget _buildFieldLabel(String label) {
     return Text(
       label,
-      style: GoogleFonts.plusJakartaSans(
+      style: GoogleFonts.outfit(
         fontSize: 12,
         fontWeight: FontWeight.w700,
         color: AppColors.sandLight,
@@ -1053,7 +1053,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
       prefixIcon: Icon(icon, size: 18, color: AppColors.sandPrimary),
       suffixIcon: suffix,
       hintText: hint,
-      hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
+      hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.sandBorder),

@@ -169,6 +169,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
+  /// Quit the reset at any step: forget the request on this phone and go back.
+  Future<void> _cancel() async {
+    _poll?.cancel();
+    _tick?.cancel();
+    if (_step != _Step.email) await PasswordResetService.clearPending();
+    if (mounted) Navigator.of(context).pop();
+  }
+
   Future<void> _startOver() async {
     _poll?.cancel();
     _tick?.cancel();
@@ -220,9 +228,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget _title(String t, String sub) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+          Text(t, style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark)),
           const SizedBox(height: 4),
-          Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.textSecondary, height: 1.45)),
+          Text(sub, style: GoogleFonts.outfit(fontSize: 13.5, color: AppColors.textSecondary, height: 1.45)),
           const SizedBox(height: 18),
         ],
       );
@@ -237,7 +245,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const Icon(Icons.error_outline_rounded, size: 18, color: AppColors.ragRed),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(_error!, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.ragRed, fontWeight: FontWeight.w600)),
+                child: Text(_error!, style: GoogleFonts.outfit(fontSize: 13, color: AppColors.ragRed, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -267,6 +275,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 : const Icon(Icons.key_rounded),
             label: const Text('Get my code'),
           ),
+          const SizedBox(height: 8),
+          TextButton(onPressed: _busy ? null : _cancel, child: const Text('Cancel')),
         ],
       );
 
@@ -302,7 +312,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       child: Text(
                         ch,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.indigoDeep),
+                        style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.indigoDeep),
                       ),
                     ),
                 ],
@@ -315,7 +325,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Code copied')));
                 },
                 icon: const Icon(Icons.copy_rounded, size: 16),
-                label: Text('Copy code • valid for $mm:$ss', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+                label: Text('Copy code • valid for $mm:$ss', style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -328,7 +338,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Expanded(
               child: Text(
                 _waitingNote.isNotEmpty ? _waitingNote : 'Waiting for HR to enter the code for ${p.email}…',
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textSecondary),
+                style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textSecondary),
               ),
             ),
           ],
@@ -336,10 +346,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 8),
         Text(
           'You can close the app; this request stays open on this phone.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+          style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
         ),
         const SizedBox(height: 14),
-        OutlinedButton(onPressed: _startOver, child: const Text('Start over')),
+        Row(
+          children: [
+            Expanded(child: OutlinedButton(onPressed: _startOver, child: const Text('New code'))),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextButton(
+                onPressed: _cancel,
+                style: TextButton.styleFrom(foregroundColor: AppColors.ragRed),
+                child: const Text('Cancel reset'),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -381,6 +403,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 : const Icon(Icons.check_rounded),
             label: const Text('Save new password'),
           ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _busy ? null : _cancel,
+            style: TextButton.styleFrom(foregroundColor: AppColors.textMuted),
+            child: const Text('Cancel — keep my old password'),
+          ),
         ],
       );
 
@@ -392,13 +420,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Text(
             'Password changed',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
+            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
           ),
           const SizedBox(height: 6),
           Text(
             'Sign in with your new password. Other phones signed in to this account were signed out.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.textSecondary, height: 1.45),
+            style: GoogleFonts.outfit(fontSize: 13.5, color: AppColors.textSecondary, height: 1.45),
           ),
           const SizedBox(height: 18),
           FilledButton(
@@ -434,7 +462,7 @@ class _StepsBar extends StatelessWidget {
                   labels[i],
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: i == current ? FontWeight.w800 : FontWeight.w600,
                     color: i <= current ? AppColors.textDark : AppColors.textMuted,

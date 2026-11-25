@@ -253,7 +253,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       Expanded(
                         child: Text(
                           'TEAM TOOLS',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -265,7 +265,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       const SizedBox(width: 8),
                       Text(
                         '',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textMuted,
@@ -614,7 +614,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
             Expanded(
               child: Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textDark,
@@ -633,7 +633,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                 ),
                 child: Text(
                   badge,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.magentaPrimary,

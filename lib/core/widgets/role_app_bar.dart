@@ -238,7 +238,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         Text(
                           'MN JEWEL PARK',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -248,7 +248,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ),
                         Text(
                           roleName.toUpperCase(),
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 10.5,
                             letterSpacing: 1.2,
                             color: AppColors.heroAccent,
@@ -373,7 +373,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                 children: [
                                   Text(
                                     userName,
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 13.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.sandLight,
@@ -383,7 +383,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   ),
                                   Text(
                                     roleName,
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.sandGold,
@@ -676,7 +676,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                             Flexible(
                               child: Text(
                                 title,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.bold,
                                   color: isDestructive ? const Color(0xFFEF4444) : AppColors.textDark,
@@ -708,7 +708,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                         const SizedBox(height: 2),
                         Text(
                           subtitle,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             color: isDestructive ? AppColors.ragRed : AppColors.textMuted,
                           ),

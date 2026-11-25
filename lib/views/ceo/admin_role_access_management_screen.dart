@@ -89,7 +89,7 @@ class _AdminRoleAccessManagementScreenState
                 children: [
                   Text(
                     'STAFF DIRECTORY (${filtered.length})',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
@@ -98,7 +98,7 @@ class _AdminRoleAccessManagementScreenState
                   ),
                   Text(
                     'Tap card to edit permissions',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: AppColors.textMuted,
@@ -126,7 +126,7 @@ class _AdminRoleAccessManagementScreenState
                       Text(
                         'No staff members match the selected filters.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           color: AppColors.textSecondary,
                           fontSize: 13.5,
                           fontWeight: FontWeight.w500,
@@ -195,7 +195,7 @@ class _AdminRoleAccessManagementScreenState
                   children: [
                     Text(
                       'Access Policy & Governance',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         color: AppColors.textDark,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -204,7 +204,7 @@ class _AdminRoleAccessManagementScreenState
                     const SizedBox(height: 2),
                     Text(
                       'Changes persist instantly to cloud Firestore & execution runtime.',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         color: AppColors.textSecondary,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
@@ -272,7 +272,7 @@ class _AdminRoleAccessManagementScreenState
                 const SizedBox(width: 4),
                 Text(
                   value,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     color: AppColors.textDark,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -285,7 +285,7 @@ class _AdminRoleAccessManagementScreenState
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 color: AppColors.textSecondary,
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
@@ -313,7 +313,7 @@ class _AdminRoleAccessManagementScreenState
       ),
       child: TextField(
         controller: _searchController,
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.outfit(
           color: AppColors.textDark,
           fontSize: 13.5,
           fontWeight: FontWeight.w500,
@@ -321,7 +321,7 @@ class _AdminRoleAccessManagementScreenState
         onChanged: (_) => setState(() {}),
         decoration: InputDecoration(
           hintText: 'Search by staff name, role code, email, ID...',
-          hintStyle: GoogleFonts.plusJakartaSans(
+          hintStyle: GoogleFonts.outfit(
             color: AppColors.textMuted,
             fontSize: 12.5,
           ),
@@ -368,7 +368,7 @@ class _AdminRoleAccessManagementScreenState
             onSelected: (_) => setState(() => _selectedDept = d),
             selectedColor: AppColors.magentaPrimary,
             backgroundColor: Colors.white,
-            labelStyle: GoogleFonts.plusJakartaSans(
+            labelStyle: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected ? Colors.white : AppColors.textSecondary,
@@ -463,7 +463,7 @@ class _AdminRoleAccessManagementScreenState
                       child: Center(
                         child: Text(
                           emp.initials.isNotEmpty ? emp.initials : '?',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: isCeo ? Colors.white : AppColors.magentaPrimary,
@@ -483,7 +483,7 @@ class _AdminRoleAccessManagementScreenState
                               Flexible(
                                 child: Text(
                                   emp.name,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textDark,
@@ -508,7 +508,7 @@ class _AdminRoleAccessManagementScreenState
                                   emp.roleCode.isNotEmpty
                                       ? emp.roleCode
                                       : emp.straightCutRole,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.magentaPrimary,
@@ -520,7 +520,7 @@ class _AdminRoleAccessManagementScreenState
                           const SizedBox(height: 2),
                           Text(
                             '${emp.straightCutDesignation} • ${emp.dept}',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.w500,
@@ -549,7 +549,7 @@ class _AdminRoleAccessManagementScreenState
                           const SizedBox(width: 4),
                           Text(
                             'Edit',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.magentaPrimary,
@@ -591,7 +591,7 @@ class _AdminRoleAccessManagementScreenState
                         ),
                         child: Text(
                           'Executive Admin (Protected)',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFFB45309),
@@ -610,7 +610,7 @@ class _AdminRoleAccessManagementScreenState
                         ),
                         child: Text(
                           'Executive Access',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF1D4ED8),
@@ -629,7 +629,7 @@ class _AdminRoleAccessManagementScreenState
                         ),
                         child: Text(
                           'HR Admin',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFFE11D48),
@@ -648,7 +648,7 @@ class _AdminRoleAccessManagementScreenState
                         ),
                         child: Text(
                           'Team Lead',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF15803D),
@@ -690,7 +690,7 @@ class _AdminRoleAccessManagementScreenState
           const SizedBox(width: 4),
           Text(
             label,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: active ? AppColors.textDark : AppColors.textMuted,
@@ -925,7 +925,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                     widget.employee.initials.isNotEmpty
                         ? widget.employee.initials
                         : '?',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.bold,
                       color: AppColors.magentaPrimary,
                     ),
@@ -938,7 +938,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                     children: [
                       Text(
                         'Configure Access: ${widget.employee.name}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 15.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textDark,
@@ -948,7 +948,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                       ),
                       Text(
                         'Role: ${widget.employee.straightCutDesignation} • ${widget.employee.dept}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
@@ -976,7 +976,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 // Quick Role Presets
                 Text(
                   'QUICK ROLE PRESETS',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -1003,7 +1003,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 // Role Code Dropdown
                 Text(
                   'ROLE CODE & CLASSIFICATION',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -1026,7 +1026,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                           ? _roleCode
                           : _commonRoleCodes.first,
                       dropdownColor: Colors.white,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                           color: AppColors.textDark, fontSize: 13.5, fontWeight: FontWeight.w600),
                       items: _commonRoleCodes.map((code) {
                         return DropdownMenuItem<String>(
@@ -1045,7 +1045,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 // Department Dropdown
                 Text(
                   'DEPARTMENT ASSIGNMENT',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -1068,7 +1068,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                           ? _dept
                           : _departments.first,
                       dropdownColor: Colors.white,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                           color: AppColors.textDark, fontSize: 13.5, fontWeight: FontWeight.w600),
                       items: _departments.map((dept) {
                         return DropdownMenuItem<String>(
@@ -1090,7 +1090,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                   children: [
                     Text(
                       'CORE PLATFORM MODULES (8)',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.8,
@@ -1099,7 +1099,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                     ),
                     Text(
                       'Granular Routing',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         color: AppColors.textMuted,
                         fontWeight: FontWeight.w600,
@@ -1218,7 +1218,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                   children: [
                     Text(
                       '7 CORE PILLARS OF LIFE (7)',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.8,
@@ -1227,7 +1227,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                     ),
                     Text(
                       'Ecosystem Foundations',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         color: AppColors.textMuted,
                         fontWeight: FontWeight.w600,
@@ -1347,7 +1347,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                       )
                     : Text(
                         'Save Access Permissions',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -1378,7 +1378,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.bold,
             color: effectiveColor,
@@ -1420,7 +1420,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                       Flexible(
                         child: Text(
                           title,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             color: AppColors.textDark,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -1443,7 +1443,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       color: AppColors.textSecondary,
                       fontSize: 11,
                       fontWeight: FontWeight.w500,

@@ -72,7 +72,7 @@ void main() {
     expect(completedTask.proof?.content, 'Audit batch purity verified at 91.6% with laboratory spectrophotometer');
     final completedText = tester.widget<Text>(find.text('Audit gold purity batch #99'));
     expect(completedText.style?.decoration, equals(TextDecoration.lineThrough));
-    expect(find.text('Done'), findsOneWidget);
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget); // green tick
 
     // 6. Click the completed task again -> Revert warning dialog appears
     await tester.tap(find.text('Audit gold purity batch #99'));
@@ -90,7 +90,7 @@ void main() {
     expect(eco.tasks.firstWhere((t) => t.id == 'TEST-TODO-001').isPending, isTrue);
     final revertedText = tester.widget<Text>(find.text('Audit gold purity batch #99'));
     expect(revertedText.style?.decoration, isNull);
-    expect(find.text('Done'), findsNothing);
+    expect(find.byIcon(Icons.check_rounded), findsNothing);
   });
 }
 

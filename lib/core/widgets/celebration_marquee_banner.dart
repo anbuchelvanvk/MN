@@ -134,7 +134,7 @@ class _ActiveCelebrationMarqueeState extends State<_ActiveCelebrationMarquee> {
                   child: _CelebrationTickerText(
                     key: ValueKey('celeb_${activeCelebration.employeeId}_${activeCelebration.type}_$_currentIndex'),
                     text: message,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,

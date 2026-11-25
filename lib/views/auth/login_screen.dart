@@ -147,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
           empId: eco.activeEmpId,
           role: detectedRole,
           email: FirebaseAuth.instance.currentUser?.email ?? email,
+          password: password,
         );
       } catch (err) {
         debugPrint('Session saving note: $err');
@@ -326,7 +327,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         icon: const Icon(Icons.arrow_back_ios_new, size: 16),
                         label: Text(
                           'Back to Current Account',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                           ),
@@ -345,7 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'MN JEWEL PARK',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 25,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -356,7 +357,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           'MN Family • Staff app',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             color: AppColors.heroAccent,
                             fontWeight: FontWeight.w500,
@@ -379,7 +380,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           widget.isSwitchAccount ? 'Switch Account' : 'Sign in',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
                             color: AppColors.midnight,
@@ -390,7 +391,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           widget.isSwitchAccount
                               ? 'Sign in to another account. Tap back above to return to your current session without logging out.'
                               : 'Enter your official credentials to sign in.',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),
@@ -429,7 +430,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         children: [
                                           Text(
                                             'ACTIVE ACCOUNT',
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: GoogleFonts.outfit(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w800,
                                               color: const Color(0xFF10B981),
@@ -438,7 +439,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           Text(
                                             '$currentName ($currentRole)',
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: GoogleFonts.outfit(
                                               fontSize: 11.5,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.sandLight,
@@ -461,7 +462,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Email Address Input
                         Text(
                           'Email',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: AppColors.sandLight,
@@ -475,13 +476,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           textInputAction: TextInputAction.next,
                           autocorrect: false,
                           autofillHints: const [AutofillHints.username, AutofillHints.email],
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                          style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.burgundySurface,
                             prefixIcon: const Icon(Icons.email_outlined, size: 18, color: AppColors.sandPrimary),
                             hintText: 'Official email',
-                            hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
+                            hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: const BorderSide(color: AppColors.sandBorder),
@@ -505,7 +506,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: Text(
                                 'Password',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.sandLight,
@@ -516,7 +517,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               onTap: () => _showForgotPasswordDialog(context),
                               child: Text(
                                 'Forgot Password?',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   color: AppColors.sandGold,
                                   fontWeight: FontWeight.w600,
@@ -537,13 +538,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           onSubmitted: (_) {
                             if (!_isLoading) _handleLogin();
                           },
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13),
+                          style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: AppColors.burgundySurface,
                             prefixIcon: const Icon(Icons.lock_outline, size: 18, color: AppColors.sandPrimary),
                             hintText: 'Password',
-                            hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
+                            hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 12),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -612,7 +613,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       const SizedBox(height: 10),
                                       Text(
                                         'Validating credentials...',
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: GoogleFonts.outfit(
                                           color: AppColors.sandGold,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,

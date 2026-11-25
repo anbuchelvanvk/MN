@@ -122,7 +122,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                               Flexible(
                                 child: Text(
                                   'Notifications & Nudges',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textDark,
@@ -773,7 +773,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                 // Title
                 Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,

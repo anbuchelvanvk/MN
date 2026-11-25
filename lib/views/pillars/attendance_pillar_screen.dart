@@ -118,7 +118,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           const SizedBox(height: 12),
           Text(
             roleHeader,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColors.sandLight,
@@ -129,7 +129,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           const SizedBox(height: 6),
           Text(
             desc,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: AppColors.sandPrimary,
@@ -200,7 +200,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     Expanded(
                       child: Text(
                         'HOW ATTENDANCE WORKS',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.sandGold,
@@ -234,7 +234,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 const SizedBox(height: 5),
                 Text(
                   'Your attendance will be recorded and uploaded by HR. If any queries, please contact HR.',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.sandLight,
@@ -244,7 +244,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                 const SizedBox(height: 6),
                 Text(
                   'HR Department • hr@mnj.com',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     color: AppColors.textMuted,
                   ),
@@ -289,7 +289,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           Expanded(
             child: Text(
               'Google Sheet Synced ($timeStr)',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
@@ -352,7 +352,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     const SizedBox(width: 5),
                     Text(
                       isSyncing ? 'Syncing...' : 'Sync from Sheet',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.magentaPrimary,
@@ -484,7 +484,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800,
                     color: textColor,
@@ -499,7 +499,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 12.5,
               fontWeight: FontWeight.w800,
               color: textColor,
@@ -510,7 +510,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
           const SizedBox(height: 2),
           Text(
             subtext,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: textColor.withOpacity(0.85),
@@ -569,7 +569,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                         children: [
                           Text(
                             'LAST 7 DAYS',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                               color: AppColors.sandGold,
@@ -581,7 +581,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                           const SizedBox(height: 2),
                           Text(
                             'Official Past 7 Days Record from HR Ledger',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               color: AppColors.textMuted,
                             ),
@@ -616,7 +616,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
               child: Center(
                 child: Text(
                   'No recent attendance entries recorded yet.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+                  style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
                 ),
               ),
             )
@@ -651,7 +651,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                               Flexible(
                                 child: Text(
                                   rec.dateLabel,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.sandLight,
@@ -672,7 +672,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                           ),
                           child: Text(
                             rec.status,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: rec.statusColor,
@@ -726,7 +726,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   children: [
                     Text(
                       '$monthTitle CALENDAR',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 12.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -738,7 +738,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     const SizedBox(height: 2),
                     Text(
                       'Tap any day tile to inspect official remarks & HR notes',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         color: AppColors.textMuted,
                       ),
@@ -854,7 +854,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   Expanded(
                     child: Text(
                       'Executive View: You are not assigned to the showroom shift roster. View full workforce sheet in HR Portal.',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         color: AppColors.textMuted,
                       ),
@@ -926,7 +926,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     children: [
                       Text(
                         '$day',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: record.textColor,
@@ -955,7 +955,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
       ),
       child: Text(
         label,
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.outfit(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           color: text,
@@ -1100,7 +1100,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                   ),
                   child: Text(
                     '$day',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       color: record.textColor,
@@ -1114,7 +1114,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                     children: [
                       Text(
                         '$day $monthTitle',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textDark,
@@ -1123,7 +1123,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                       const SizedBox(height: 2),
                       Text(
                         'HR Attendance Classification',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           color: AppColors.textMuted,
                         ),
@@ -1212,7 +1212,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
         ),
         Text(
           value,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 12.5,
             fontWeight: FontWeight.bold,
             color: valueColor,
@@ -1348,7 +1348,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                       children: [
                         Text(
                           'Impact on your overall status',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandLight,
@@ -1357,7 +1357,7 @@ class _AttendancePillarScreenState extends State<AttendancePillarScreen> {
                         const SizedBox(height: 2),
                         Text(
                           'Attendance and leaves count towards your monthly score',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),

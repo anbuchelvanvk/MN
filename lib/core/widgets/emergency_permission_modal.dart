@@ -131,7 +131,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                       children: [
                         Text(
                           'EMERGENCY PERMISSION',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandGold,
@@ -214,7 +214,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
               // Duration selector (15m, 30m, 1hr, 2hr, 4hr, >4h custom)
               Text(
                 'Select Step-Out Duration:',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandGold,
@@ -310,7 +310,7 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
               // Reason input field
               Text(
                 'Reason for Emergency Permission:',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.magentaPrimary,

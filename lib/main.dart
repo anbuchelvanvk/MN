@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -16,6 +17,9 @@ import 'views/shell/main_shell.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The app font (Outfit) is bundled in assets/google_fonts, so text looks
+  // right from the first launch, even offline.
+  GoogleFonts.config.allowRuntimeFetching = false;
   
   try {
     await Firebase.initializeApp(

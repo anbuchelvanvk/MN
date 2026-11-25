@@ -307,7 +307,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                   children: [
                     Text(
                       'Social Cause Approval & Broadcast Hub',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                     ),
                     const SizedBox(height: 2),
                     const Text(
@@ -376,7 +376,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
         // Approved Submissions History
         Text(
           'Recently Approved Good Deeds (${approvedCauses.length})',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+          style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
         ),
         const SizedBox(height: 8),
         ListView.separated(
@@ -415,7 +415,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 '${c.employeeName} (${c.employeeRole})',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                                style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -428,7 +428,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                               ),
                               child: Text(
                                 '₹${c.amountSpent.toStringAsFixed(0)}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
+                                style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
                               ),
                             ),
                           ],
@@ -436,7 +436,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                         const SizedBox(height: 3),
                         Text(
                           '${c.causeType}: ${c.title}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textSecondary),
+                          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 4),
                         Row(
@@ -446,7 +446,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 'Approved & broadcasted by ${c.approvedByName ?? "Management"}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF059669), fontWeight: FontWeight.w500),
+                                style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF059669), fontWeight: FontWeight.w500),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -484,13 +484,13 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                   children: [
                     Text(
                       cause.employeeName,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 1),
                     Text(
                       cause.employeeRole,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                      style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -506,7 +506,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                 ),
                 child: Text(
                   '₹${cause.amountSpent.toStringAsFixed(0)} Spent',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
+                  style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.magentaPrimary),
                 ),
               ),
             ],
@@ -521,19 +521,19 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
             ),
             child: Text(
               cause.causeType,
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+              style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             cause.title,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark),
+            style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark),
           ),
           if (cause.description.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
               cause.description,
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+              style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
           if (cause.imageUrl != null && cause.imageUrl!.isNotEmpty) ...[
@@ -701,7 +701,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                   children: [
                     Text(
                       'Employee To-Do Oversight & Task Deletion',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                     ),
                     const SizedBox(height: 2),
                     const Text(
@@ -923,7 +923,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                             const SizedBox(width: 10),
                             Text(
                               'Task Details & Oversight',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
@@ -961,7 +961,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 ),
                                 child: Text(
                                   task.category,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.magentaPrimary,
@@ -977,7 +977,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 ),
                                 child: Text(
                                   task.priority,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF2563EB),
@@ -989,7 +989,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                           const SizedBox(height: 8),
                           Text(
                             task.title,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -1034,7 +1034,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 task.isCompleted
                                     ? 'STATUS: COMPLETED'
                                     : (task.isPostponed ? 'STATUS: POSTPONED' : 'STATUS: PENDING'),
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: task.isCompleted
@@ -1048,7 +1048,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                             const SizedBox(height: 6),
                             Text(
                               'Remarks: ${task.proof!.content}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark),
+                              style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textDark),
                             ),
                           ],
                         ],
@@ -1070,9 +1070,9 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Due Time & SLA:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                                Text('Due Time & SLA:', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
-                                Text(task.due, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                Text(task.due, style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
                             ),
                           ),
@@ -1080,9 +1080,9 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Assigned By:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                                Text('Assigned By:', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
-                                Text(task.assignedByName, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                Text(task.assignedByName, style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
                             ),
                           ),
@@ -1118,8 +1118,8 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(emp.name, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                                    Text(emp.name, style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                                   ],
                                 ),
                               ),
@@ -1131,7 +1131,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                 ),
                                 child: Text(
                                   isAbsent ? 'ABSENT TODAY' : 'PRESENT',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                                  style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
                                 ),
                               ),
                             ],
@@ -1152,7 +1152,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                                   Expanded(
                                     child: Text(
                                       '${emp.name} is Absent Today. Reassign this task immediately to maintain daily operations.',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                                      style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFFB91C1C), fontWeight: FontWeight.w600),
                                     ),
                                   ),
                                 ],
@@ -1179,7 +1179,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                             icon: const Icon(Icons.swap_horiz_rounded, size: 18),
                             label: Text(
                               'Reassign Task',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold),
                             ),
                             onPressed: () {
                               Navigator.pop(bottomSheetCtx);
@@ -1230,7 +1230,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
             const SizedBox(width: 8),
             Text(
               'Reassign Task',
-              style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+              style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
             ),
           ],
         ),
@@ -1242,7 +1242,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
             children: [
               Text(
                 'Select team member to take over "${task.title}":',
-                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
               ),
               const SizedBox(height: 10),
               Flexible(
@@ -1269,17 +1269,17 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
                       ),
                       title: Text(
                         target.name,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       ),
                       subtitle: Text(
                         '${target.role} • ${target.dept}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                       ),
                       trailing: isTargetAbsent
                           ? Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(4)),
-                              child: Text('Absent', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFFEF4444), fontWeight: FontWeight.bold)),
+                              child: Text('Absent', style: GoogleFonts.outfit(fontSize: 11, color: const Color(0xFFEF4444), fontWeight: FontWeight.bold)),
                             )
                           : const Icon(Icons.chevron_right, size: 16, color: AppColors.textMuted),
                       onTap: () {
@@ -1306,7 +1306,7 @@ class _HrEmployeeTodoManagementSectionState extends State<HrEmployeeTodoManageme
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: Text('Cancel', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted)),
+            child: Text('Cancel', style: GoogleFonts.outfit(color: AppColors.textMuted)),
           ),
         ],
       ),

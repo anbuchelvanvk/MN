@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'tamil_indian_foods.dart';
 
 /// Pre-configured nutritional food item with calories per 100g
 class FoodItem {
@@ -1943,47 +1944,52 @@ class FoodDatabase {
     ),
   ];
 
-  /// Intelligent multi-token scoring search across names, categories, and keywords
+  /// Built-in catalogue plus the Tamil & Indian dish list, without duplicates.
+  static final List<FoodItem> allFoods = () {
+    final seen = <String>{};
+    final out = <FoodItem>[];
+    for (final f in [...tamilIndianFoods, ...catalog]) {
+      final key = normaliseFoodText(f.name.split('(').first);
+      if (seen.add(key)) out.add(f);
+    }
+    return out;
+  }();
+
+  /// Scored search across names (English or Tamil) and categories. Understands
+  /// local spellings: idly/idli, dosai/thosai, sadam/rice, kulambu/kuzhambu...
   static List<FoodItem> search(String query) {
-    if (query.trim().isEmpty) return catalog;
-    final q = query.toLowerCase().trim();
-    final tokens = q.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+    if (query.trim().isEmpty) return allFoods;
+    final q = normaliseFoodText(query);
+    final rawQ = query.toLowerCase().trim();
+    final tokens = q.split(' ').where((t) => t.isNotEmpty).toList();
+    if (tokens.isEmpty && rawQ.isEmpty) return allFoods;
 
     final scored = <MapEntry<FoodItem, int>>[];
-
-    for (final item in catalog) {
-      final nameLower = item.name.toLowerCase();
-      final catLower = item.category.toLowerCase();
+    for (final item in allFoods) {
+      final name = normaliseFoodText(item.name);
+      final rawName = item.name.toLowerCase();
+      final cat = item.category.toLowerCase();
 
       int score = 0;
-
-      // Exact full phrase match
-      if (nameLower == q) {
+      if (name == q) {
         score = 100;
-      } else if (nameLower.startsWith(q)) {
-        score = 80;
-      } else if (nameLower.contains(q)) {
-        score = 60;
+      } else if (name.startsWith(q)) {
+        score = 85;
+      } else if (name.contains(q) || rawName.contains(rawQ)) {
+        score = 65;
       } else {
-        // Multi-word token match
-        int matchedTokens = 0;
-        for (final token in tokens) {
-          if (nameLower.contains(token) || catLower.contains(token)) {
-            matchedTokens++;
-          }
+        int matched = 0;
+        for (final t in tokens) {
+          if (name.contains(t) || cat.contains(t)) matched++;
         }
-        if (matchedTokens == tokens.length) {
-          score = 40;
-        } else if (matchedTokens > 0) {
-          score = 10 * matchedTokens;
+        if (tokens.isNotEmpty && matched == tokens.length) {
+          score = 45;
+        } else if (matched > 0) {
+          score = 10 * matched;
         }
       }
-
-      if (score > 0) {
-        scored.add(MapEntry(item, score));
-      }
+      if (score > 0) scored.add(MapEntry(item, score));
     }
-
     scored.sort((a, b) => b.value.compareTo(a.value));
     return scored.map((e) => e.key).toList();
   }

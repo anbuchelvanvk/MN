@@ -74,7 +74,7 @@ class ImagePreviewDialog extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -85,7 +85,7 @@ class ImagePreviewDialog extends StatelessWidget {
                       if (subtitle != null && subtitle!.isNotEmpty)
                         Text(
                           subtitle!,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             color: AppColors.textMuted,
                           ),
@@ -155,7 +155,7 @@ class ImagePreviewDialog extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     'Close Preview',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandGold,

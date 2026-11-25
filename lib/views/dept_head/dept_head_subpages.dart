@@ -179,7 +179,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                       const SizedBox(width: 8),
                       Text(
                         'All Staff Members (${sortedEmps.length} Total)',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textDark,
@@ -211,7 +211,7 @@ class _TlTeamTasksScreenState extends State<TlTeamTasksScreen> {
                         Expanded(
                           child: Text(
                             '${emp.name} • ${emp.role}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textDark),
+                            style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textDark),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -660,7 +660,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                         children: [
                           Text(
                             'Reallocate Tasks (${selectedEmp.name})',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -668,7 +668,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                           ),
                           Text(
                             'Shift pending tasks to any active team member',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               color: AppColors.textMuted,
                             ),

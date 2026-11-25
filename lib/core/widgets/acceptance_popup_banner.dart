@@ -161,7 +161,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                                     const SizedBox(width: 4),
                                     Text(
                                       categoryTitle,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w800,
                                         color: const Color(0xFF34D399),
@@ -174,7 +174,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                               const SizedBox(width: 8),
                               Text(
                                 '• Just now',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   color: const Color(0xFF94A3B8),
                                   fontWeight: FontWeight.w500,
@@ -245,7 +245,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                                   children: [
                                     Text(
                                       '${popup.employeeName} (${popup.employeeRole})',
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white,
@@ -255,7 +255,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                                     const SizedBox(height: 3),
                                     Text(
                                       '${popup.durationOrDays} • ${popup.reason}',
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w500,
                                         color: const Color(0xFFCBD5E1),
@@ -278,7 +278,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                                           ),
                                           child: Text(
                                             popup.approvedBy,
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: GoogleFonts.outfit(
                                               fontSize: 11.5,
                                               fontWeight: FontWeight.bold,
                                               color: const Color(0xFF34D399),
@@ -309,7 +309,7 @@ class _AcceptancePopupBannerState extends State<AcceptancePopupBanner>
                               Expanded(
                                 child: Text(
                                   'Notified to: HR • CEO • Team Lead',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: const Color(0xFFFBBF24),
@@ -395,7 +395,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
                     children: [
                       Text(
                         isPerm ? 'Permission Accepted' : 'Leave Request Accepted',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                           color: AppColors.textDark,
@@ -404,7 +404,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         'Official Executive Endorsement',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           color: AppColors.textMuted,
                         ),
@@ -449,7 +449,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
                 children: [
                   Text(
                     'OFFICIAL POP-UP NOTIFICATION RECIPIENTS',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
                       color: AppColors.sandGold,
@@ -494,7 +494,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
           width: 110,
           child: Text(
             label,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF64748B),
@@ -505,7 +505,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
               color: textColor ?? AppColors.textDark,
@@ -526,7 +526,7 @@ class AcceptanceNotificationDetailModal extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF334155),

@@ -108,7 +108,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     child: Center(
                       child: Text(
                         emp.initials,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Colors.white,
@@ -126,7 +126,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                             Expanded(
                               child: Text(
                                 emp.name,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textDark,
@@ -145,7 +145,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                               ),
                               child: Text(
                                 isAbsent ? 'ABSENT TODAY' : 'ON DUTY',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
@@ -157,7 +157,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         const SizedBox(height: 3),
                         Text(
                           emp.straightCutDesignation,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
                             color: AppColors.magentaPrimary,
@@ -167,7 +167,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         const SizedBox(height: 2),
                         Text(
                           '${emp.department.isNotEmpty ? emp.department : "Operations"} • #${emp.id}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                         ),
                       ],
                     ),
@@ -191,7 +191,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       Expanded(
                         child: Text(
                           'Personal & KYC Information',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -215,7 +215,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                               const SizedBox(width: 4),
                               Text(
                                 'Edit',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.magentaPrimary,
@@ -261,7 +261,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         Expanded(
                           child: Text(
                             'Portal Access & Credentials',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 13.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -280,7 +280,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                             icon: const Icon(Icons.lock_reset, size: 14, color: AppColors.magentaPrimary),
                             label: Text(
                               'Reset',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.magentaPrimary,
@@ -305,13 +305,13 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                           const SizedBox(width: 8),
                           Text(
                             'Active Password: ',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+                            style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               _isPasswordRevealed ? empPassword : '••••••••',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
@@ -359,7 +359,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         children: [
                           Text(
                             'Executive CEO Governance',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -368,7 +368,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                           const SizedBox(height: 3),
                           Text(
                             'Exempt from retail punch logs and document vault custody.',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 11,
                               color: AppColors.textMuted,
                             ),
@@ -396,7 +396,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                           const SizedBox(width: 8),
                           Text(
                             'Document Vault',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 13.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -414,7 +414,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                             ),
                             child: Text(
                               '$submissionPercent% Submitted ($submittedDocsCount/$totalDocsCount)',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: submissionPercent >= 80 ? const Color(0xFF059669) : const Color(0xFFD97706),
@@ -426,7 +426,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                   const SizedBox(height: 4),
                   Text(
                     'HR Custody of employee certificates & original ID verifications.',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                   ),
                   const Divider(color: Color(0xFFF1F5F9), height: 20),
 
@@ -449,7 +449,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                               children: [
                                 Text(
                                   'No Certificates Deposited Yet',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textDark,
@@ -458,7 +458,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                 const SizedBox(height: 2),
                                 Text(
                                   'Employee has not reported certificate submission in MN Pillar yet. Once deposited, original records will appear here.',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                                  style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                                 ),
                               ],
                             ),
@@ -496,7 +496,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                 children: [
                                   Text(
                                     d.title,
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textDark,
@@ -505,7 +505,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                   const SizedBox(height: 2),
                                   Text(
                                     '${d.category} • Vault: ${d.vaultLockerRef}',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                                   ),
                                 ],
                               ),
@@ -544,7 +544,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                   children: [
                                     Text(
                                       d.status.name.toUpperCase(),
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                         color: badgeColor,
@@ -581,7 +581,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       Expanded(
                         child: Text(
                           'Attendance & Punch Log',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -646,12 +646,12 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
         ),
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
+            style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -670,11 +670,11 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted)),
+          Text(label, style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted)),
           const SizedBox(height: 2),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: color),
+            style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: color),
           ),
           if (subLabel != null) ...[
             const SizedBox(height: 1),
@@ -717,7 +717,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               Expanded(
                 child: Text(
                   'Attire & Grooming Compliance',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textDark,
@@ -737,7 +737,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 ),
                 child: Text(
                   isFemale ? 'FEMALE (SAREE)' : 'MALE (FORMAL)',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: isFemale ? AppColors.magentaPrimary : const Color(0xFF2563EB),
@@ -752,7 +752,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
               Expanded(
                 child: Text(
                   'Gender: ${emp.genderDisplay} • 50 Pts Scale',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textSecondary),
+                  style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -762,7 +762,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                   isPendingAudit
                       ? 'Pending Floor Audit (0/50 Pts)'
                       : 'Score: $livePercentage% ($livePoints/50 Pts)',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: isPendingAudit
@@ -799,7 +799,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                   ),
                   child: Text(
                     'Select All (50 Pts)',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
+                    style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF059669)),
                   ),
                 ),
               ),
@@ -820,7 +820,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                   ),
                   child: Text(
                     'Deselect All',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                    style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                   ),
                 ),
               ),
@@ -850,7 +850,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                     Expanded(
                       child: Text(
                         item,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           color: isChecked ? AppColors.textDark : AppColors.textSecondary,
                           fontWeight: isChecked ? FontWeight.w500 : FontWeight.normal,
@@ -866,7 +866,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       ),
                       child: Text(
                         isChecked ? '+10 Pts' : '0 Pts',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: isChecked ? const Color(0xFF059669) : const Color(0xFFE11D48),
@@ -916,7 +916,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
             const SizedBox(height: 10),
             Text(
               'Recent Audits: ${audits.take(2).map((a) => "${a.pointsChange > 0 ? '+' : ''}${a.pointsChange}pts (${a.category})").join(" • ")}',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+              style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
             ),
           ],
         ],
@@ -932,18 +932,18 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Reset Password',
-          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Reset password for ${emp.name} (#${emp.id}):', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+            Text('Reset password for ${emp.name} (#${emp.id}):', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
             const SizedBox(height: 10),
             Text(
               'A secure reset link will be emailed to ${emp.email.isNotEmpty ? emp.email : 'their login email'}. '
               'They set the new password themselves, so it is never shared or visible to HR/CEO.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+              style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -1013,7 +1013,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         const SizedBox(width: 8),
                         Text(
                           'Edit Staff Profile',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -1029,16 +1029,16 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 ),
                 Text(
                   'Update details for ${emp.name} (#${emp.id}) and sync to Cloud Firestore.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                  style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 14),
 
                 // Name
-                Text('Full Legal Name', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                Text('Full Legal Name', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 const SizedBox(height: 4),
                 TextField(
                   controller: nameCtrl,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textDark),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.badge_outlined, size: 18, color: AppColors.magentaPrimary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1048,12 +1048,12 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 const SizedBox(height: 12),
 
                 // Phone
-                Text('Mobile Phone Number', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                Text('Mobile Phone Number', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 const SizedBox(height: 4),
                 TextField(
                   controller: phoneCtrl,
                   keyboardType: TextInputType.phone,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textDark),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.phone_outlined, size: 18, color: AppColors.magentaPrimary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1063,7 +1063,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 const SizedBox(height: 12),
 
                 // Date of Birth
-                Text('Date of Birth (DOB)', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                Text('Date of Birth (DOB)', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 const SizedBox(height: 4),
                 TextField(
                   controller: dobCtrl,
@@ -1081,7 +1081,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       });
                     }
                   },
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textDark),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.cake_outlined, size: 18, color: AppColors.magentaPrimary),
                     suffixIcon: const Icon(Icons.calendar_today, size: 16, color: AppColors.textMuted),
@@ -1092,11 +1092,11 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 const SizedBox(height: 12),
 
                 // Gender
-                Text('Gender (Attire & Grooming Allocation)', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                Text('Gender (Attire & Grooming Allocation)', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   value: gender,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.wc_outlined, size: 18, color: AppColors.magentaPrimary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1113,11 +1113,11 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                 const SizedBox(height: 12),
 
                 // Relationship Status
-                Text('Relationship Status', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                Text('Relationship Status', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
                   value: relStatus,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textDark, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.favorite_border, size: 18, color: AppColors.magentaPrimary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -1134,7 +1134,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
 
                 if (relStatus == 'Married') ...[
                   const SizedBox(height: 12),
-                  Text('Marriage Anniversary Date', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                  Text('Marriage Anniversary Date', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                   const SizedBox(height: 4),
                   TextField(
                     controller: annivCtrl,
@@ -1152,7 +1152,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         });
                       }
                     },
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.textDark),
+                    style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textDark),
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.celebration_outlined, size: 18, color: AppColors.magentaPrimary),
                       suffixIcon: const Icon(Icons.calendar_month, size: 16, color: AppColors.textMuted),
@@ -1173,7 +1173,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: const Icon(Icons.cloud_upload_outlined, size: 18),
-                    label: Text('Save Profile to Firebase', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13)),
+                    label: Text('Save Profile to Firebase', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13)),
                     onPressed: () async {
                       final updatedName = nameCtrl.text.trim();
                       if (updatedName.isEmpty) return;

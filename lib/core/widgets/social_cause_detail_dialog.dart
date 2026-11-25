@@ -148,7 +148,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                               children: [
                                 Text(
                                   causeType,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
                                     color: categoryColor,
@@ -156,7 +156,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                 ),
                                 Text(
                                   'Act of kindness',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     color: AppColors.textSecondary,
                                   ),
@@ -201,7 +201,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                     employeeName.trim().isNotEmpty
                                         ? employeeName.trim().split(RegExp(r'\s+')).map((e) => e[0]).take(2).join('').toUpperCase()
                                         : 'MN',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
                                       color: Colors.white,
@@ -216,7 +216,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                   children: [
                                     Text(
                                       employeeName,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.textDark,
@@ -224,7 +224,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                     ),
                                     Text(
                                       employeeRole,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11,
                                         color: AppColors.textSecondary,
                                       ),
@@ -242,7 +242,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                   ),
                                   child: Text(
                                     '₹${amountSpent.toStringAsFixed(0)}',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w800,
                                       color: const Color(0xFF047857),
@@ -256,7 +256,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                           // Deed Title
                           Text(
                             title,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -269,7 +269,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                           if (description.isNotEmpty) ...[
                             Text(
                               description,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 color: const Color(0xFF334155),
                                 height: 1.45,
@@ -353,7 +353,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                             totalLikes > 0
                                                 ? '$totalLikes ${totalLikes == 1 ? 'Reaction' : 'Reactions'}'
                                                 : 'Like',
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: GoogleFonts.outfit(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                               color: isLikedByMe ? const Color(0xFFDC2626) : const Color(0xFF475569),
@@ -397,7 +397,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                             notif != null && notif.commentsCount > 0
                                                 ? 'Comments (${notif.commentsCount})'
                                                 : 'Comments',
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: GoogleFonts.outfit(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                               color: const Color(0xFFBE185D),
@@ -418,7 +418,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                 ),
                                 child: Text(
                                   'Close',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textSecondary,
@@ -460,7 +460,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                       children: [
                                         Text(
                                           'CEO Reacted!',
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.outfit(
                                             fontSize: 12.5,
                                             fontWeight: FontWeight.w800,
                                             color: const Color(0xFF92400E),
@@ -469,7 +469,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                         ),
                                         Text(
                                           'M N Naveenraaj (Managing Director & CEO) acknowledged this deed.',
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.outfit(
                                             fontSize: 11.5,
                                             fontWeight: FontWeight.w600,
                                             color: const Color(0xFFB45309),

@@ -253,7 +253,7 @@ class _StatCard extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     value,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textDark,
@@ -266,7 +266,7 @@ class _StatCard extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textMuted,
@@ -317,7 +317,7 @@ class _AbsentBanner extends StatelessWidget {
                   children: [
                     Text(
                       count == 1 ? '1 person absent today' : '$count people absent today',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textDark,
@@ -327,7 +327,7 @@ class _AbsentBanner extends StatelessWidget {
                       '$names • reassign their tasks',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textSecondary),
+                      style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -379,7 +379,7 @@ class _ToolTile extends StatelessWidget {
                       tool.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textDark,
@@ -389,7 +389,7 @@ class _ToolTile extends StatelessWidget {
                       tool.hint,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                      style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                     ),
                   ],
                 ),
@@ -459,7 +459,7 @@ class _MemberCard extends StatelessWidget {
                       employee.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textDark,
@@ -469,7 +469,7 @@ class _MemberCard extends StatelessWidget {
                       employee.straightCutDesignation,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
@@ -503,7 +503,7 @@ class _MemberCard extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+          style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w700, color: color),
         ),
       );
 }
@@ -526,12 +526,12 @@ class _EmptyTeam extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'No team members yet',
-            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
+            style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
           ),
           Text(
             'Members of your department will appear here.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+            style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
           ),
         ],
       ),

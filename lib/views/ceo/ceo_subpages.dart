@@ -187,7 +187,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                     children: [
                       Text(
                         'EXECUTIVE GOVERNANCE',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -197,7 +197,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                       const SizedBox(height: 3),
                       Text(
                         'Promote or reassign workforce roles, departments, and executive privileges across the organization.',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           color: AppColors.sandLight.withOpacity(0.85),
                           height: 1.3,
@@ -226,10 +226,10 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 Expanded(
                   child: TextField(
                     controller: _searchCtrl,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.sandLight),
+                    style: GoogleFonts.outfit(fontSize: 13, color: AppColors.sandLight),
                     decoration: InputDecoration(
                       hintText: 'Search staff by name, role or ID...',
-                      hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
+                      hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 12),
                       border: InputBorder.none,
                     ),
                     onChanged: (_) => setState(() {}),
@@ -248,7 +248,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
           // Staff Selector Carousel / Grid
           Text(
             'SELECT TEAM MEMBER (${filtered.length})',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11.5,
               fontWeight: FontWeight.bold,
               color: AppColors.sandGold,
@@ -303,7 +303,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                         const SizedBox(height: 6),
                         Text(
                           emp.name.split(' ').first,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: isSelected ? Colors.white : AppColors.sandLight,
@@ -313,7 +313,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                         ),
                         Text(
                           emp.id,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             color: isSelected ? Colors.white.withOpacity(0.85) : AppColors.textMuted,
                           ),
@@ -352,11 +352,11 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                         children: [
                           Text(
                             activeEmp.name,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                            style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                           ),
                           Text(
                             'Current: ${activeEmp.role} • ${activeEmp.dept}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandGold),
+                            style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandGold),
                           ),
                         ],
                       ),
@@ -366,7 +366,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const Divider(color: Color(0x33F8FAFC), height: 24),
 
                 // Designation Dropdown
-                Text('ASSIGNED DESIGNATION', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                Text('ASSIGNED DESIGNATION', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -381,13 +381,13 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                       dropdownColor: AppColors.burgundyCard,
                       isExpanded: true,
                       icon: const Icon(Icons.arrow_drop_down, color: AppColors.sandGold),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.sandLight),
+                      style: GoogleFonts.outfit(fontSize: 13, color: AppColors.sandLight),
                       items: dynamicRoles.map((role) {
                         return DropdownMenuItem<String>(
                           value: role,
                           child: Text(
                             role,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 13,
                               color: AppColors.sandLight,
                             ),
@@ -403,7 +403,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const SizedBox(height: 14),
 
                 // Department Dropdown
-                Text('DEPARTMENT / DIVISION', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                Text('DEPARTMENT / DIVISION', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -418,13 +418,13 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                       dropdownColor: AppColors.burgundyCard,
                       isExpanded: true,
                       icon: const Icon(Icons.arrow_drop_down, color: AppColors.sandGold),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.sandLight),
+                      style: GoogleFonts.outfit(fontSize: 13, color: AppColors.sandLight),
                       items: dynamicDepts.map((dept) {
                         return DropdownMenuItem<String>(
                           value: dept,
                           child: Text(
                             dept,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 13,
                               color: AppColors.sandLight,
                             ),
@@ -440,7 +440,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const SizedBox(height: 18),
 
                 // Privilege Perks Toggles
-                Text('EXECUTIVE PRIVILEGES & PERKS', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
+                Text('EXECUTIVE PRIVILEGES & PERKS', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold)),
                 const SizedBox(height: 8),
                 ...[
                   'Can Assign Works to Others',
@@ -484,7 +484,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                             Expanded(
                               child: Text(
                                 perk,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   color: isChecked ? AppColors.sandLight : AppColors.textSecondary,
                                   fontWeight: isChecked ? FontWeight.w600 : FontWeight.normal,
@@ -529,7 +529,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                     },
                     child: Text(
                       'Confirm & Save Role Allocation',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -541,7 +541,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
           // Corporate Departments & Divisions Management
           Text(
             'ORGANIZATIONAL DEPARTMENTS (${eco.availableDepartments.length})',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11.5,
               fontWeight: FontWeight.bold,
               color: AppColors.sandGold,
@@ -566,7 +566,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                     Expanded(
                       child: Text(
                         'Department Master Governance',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -578,7 +578,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const SizedBox(height: 6),
                 Text(
                   'Manage organization divisions. Deleting a department prompts you to either delete or reallocate its assigned workforce.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.sandLight.withOpacity(0.75)),
+                  style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandLight.withOpacity(0.75)),
                 ),
                 const SizedBox(height: 14),
                 ...eco.availableDepartments.map((dept) {
@@ -613,7 +613,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                             children: [
                               Text(
                                 dept,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.sandLight,
@@ -622,7 +622,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 '${deptStaff.length} workforce member(s)',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   color: AppColors.sandLight.withOpacity(0.7),
                                 ),
@@ -649,7 +649,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                             ),
                             child: Text(
                               'CORE',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
@@ -732,7 +732,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
           children: [
             Text(
               'Along with the employees?',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandGold,
@@ -881,7 +881,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                         children: [
                           Text(
                             'Reallocate Department Staff',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -899,7 +899,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const SizedBox(height: 18),
                 Text(
                   'SELECT TARGET DEPARTMENT',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandGold,
@@ -925,7 +925,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                           value: d,
                           child: Text(
                             d,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppColors.sandLight,
@@ -944,7 +944,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'STAFF MEMBERS BEING TRANSFERRED (${deptEmployees.length})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: AppColors.sandGold,
@@ -972,7 +972,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                         ),
                         title: Text(
                           emp.name.toString(),
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.sandLight),
+                          style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.sandLight),
                         ),
                         subtitle: Text(
                           '${emp.role} • ID: ${emp.id}',
@@ -1014,7 +1014,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                     },
                     child: Text(
                       'Reallocate to $selectedTarget & Delete Dept',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -1107,7 +1107,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                     children: [
                       Text(
                         'COMPANY EMPLOYEE DOSSIERS',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -1117,7 +1117,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                       const SizedBox(height: 2),
                       Text(
                         'Select any staff profile to view KYC, document custody, attendance records, and reset portal passwords.',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           color: AppColors.textSecondary,
                           height: 1.3,
@@ -1156,10 +1156,10 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                       Expanded(
                         child: TextField(
                           controller: _searchCtrl,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.sandLight),
+                          style: GoogleFonts.outfit(fontSize: 13.5, color: AppColors.sandLight),
                           decoration: InputDecoration(
                             hintText: 'Search staff by name, role, ID, phone...',
-                            hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12),
+                            hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 12),
                             border: InputBorder.none,
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(vertical: 10),
@@ -1213,7 +1213,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'No staff members found',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -1223,7 +1223,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                   Text(
                     'No staff matched "$_searchQuery". Try searching with another name, ID, phone, or role.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+                    style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
                   ),
                 ],
               ),
@@ -1279,7 +1279,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 12.5,
                 fontWeight: FontWeight.bold,
                 color: accent,
@@ -1296,7 +1296,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
             ),
             child: Text(
               '$count Staff',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: accent),
+              style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: accent),
             ),
           ),
         ],
@@ -1349,7 +1349,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                       children: [
                         Text(
                           emp.name,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.sandLight,
@@ -1360,14 +1360,14 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                         const SizedBox(height: 2),
                         Text(
                           '${emp.straightCutDesignation} • ${emp.dept}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF94A3B8)),
+                          style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF94A3B8)),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${emp.phone} • ${emp.email}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1398,7 +1398,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                     const SizedBox(width: 6),
                     Text(
                       'Password: ',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.sandGold,
@@ -1407,7 +1407,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                     Expanded(
                       child: Text(
                         isPasswordRevealed ? empPassword : '••••••••',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: isPasswordRevealed ? AppColors.sandLight : AppColors.textSecondary,
@@ -1474,7 +1474,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                             const SizedBox(width: 3),
                             Text(
                               'Reset Password',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.sandGold,
@@ -1502,7 +1502,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
                               const SizedBox(width: 3),
                               Text(
                                 'Relieve Staff',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.bold,
                                   color: const Color(0xFFEF4444),
@@ -1537,14 +1537,14 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
             const SizedBox(width: 8),
             Text(
               'Relieve Staff Member',
-              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+              style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
             ),
           ],
         ),
         content: Text(
           'Are you sure you want to officially relieve ${emp.name} (EMP #${emp.empNo.isNotEmpty ? emp.empNo : emp.id}) from MN Jewel Park?\n\n'
           'This will revoke app login credentials, relieve them from duties, and remove them from active workforce rosters.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight, height: 1.4),
+          style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.sandLight, height: 1.4),
         ),
         actions: [
           TextButton(
@@ -1589,7 +1589,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
         ),
         title: Text(
           'Reset Password',
-          style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1597,13 +1597,13 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
           children: [
             Text(
               'Reset portal password for ${emp.name}:',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textSecondary),
+              style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 10),
             Text(
               'A secure reset link will be emailed to ${emp.email.isNotEmpty ? emp.email : 'their login email'}. '
               'They set the new password themselves, so it is never shared or visible to HR/CEO.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted),
+              style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
             ),
           ],
         ),
@@ -1819,7 +1819,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                           Flexible(
                             child: Text(
                               'Master Sheet',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: _activeViewTab == 0 ? AppColors.burgundyBg : AppColors.sandLight,
@@ -1854,7 +1854,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                           Flexible(
                             child: Text(
                               'Today\'s Shifts',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: _activeViewTab == 1 ? AppColors.burgundyBg : AppColors.sandLight,
@@ -1894,10 +1894,10 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.sandLight),
+                      style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.sandLight),
                       decoration: InputDecoration(
                         hintText: 'Search staff by name or EMP NO...',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 11.5),
+                        hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 11.5),
                         border: InputBorder.none,
                       ),
                       onChanged: (v) => setState(() => _searchQuery = v),
@@ -1917,7 +1917,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                   border: Border.all(color: AppColors.sandBorder),
                 ),
                 alignment: Alignment.center,
-                child: Text('No employee records found in this month sheet.', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.textMuted)),
+                child: Text('No employee records found in this month sheet.', style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted)),
               )
             else
               ...filteredSheetRows.map((r) {
@@ -1948,7 +1948,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                                     ),
                                     child: Text(
                                       'EMP #${r.empNo}',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
+                                      style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -1956,7 +1956,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                                 Expanded(
                                   child: Text(
                                     r.name,
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                                    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -1965,7 +1965,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                           ),
                           Text(
                             'S.No ${r.sNo}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
                       ),
@@ -2041,7 +2041,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                 Expanded(
                   child: Text(
                     'Biometric Stream Active • $total Staff Tracked',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandLight,
@@ -2148,7 +2148,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                 border: Border.all(color: AppColors.sandBorder.withOpacity(0.3)),
               ),
               child: Center(
-                child: Text('No staff matching filter criteria.', style: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 12)),
+                child: Text('No staff matching filter criteria.', style: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 12)),
               ),
             )
           else
@@ -2227,13 +2227,13 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                             children: [
                               Text(
                                 s.employeeName,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                                style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 1),
                               Text(
                                 '${s.employeeId} • ${s.department}',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF94A3B8)),
+                                style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF94A3B8)),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
@@ -2302,7 +2302,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
             const SizedBox(height: 6),
             TextField(
               controller: controller,
-              style: GoogleFonts.plusJakartaSans(color: AppColors.sandLight, fontSize: 13, fontWeight: FontWeight.w600),
+              style: GoogleFonts.outfit(color: AppColors.sandLight, fontSize: 13, fontWeight: FontWeight.w600),
               decoration: InputDecoration(
                 hintText: 'e.g. 14 Nov or 12 Nov, 13 Nov',
                 hintStyle: TextStyle(color: AppColors.textMuted.withOpacity(0.6)),
@@ -2397,7 +2397,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
                     Flexible(
                       child: Text(
                         'SELECT ATTENDANCE MONTH',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.sandGold,
@@ -2494,7 +2494,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
               const SizedBox(width: 6),
               Text(
                 'FILTER BY EMPLOYEE',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w800,
                   color: AppColors.sandGold,
@@ -2563,7 +2563,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
               const SizedBox(height: 2),
               Text(
                 value,
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold, color: color),
+                style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold, color: color),
               ),
               Text(
                 label,
@@ -2620,7 +2620,7 @@ class CeoPipelinesBlockersScreen extends StatelessWidget {
                     children: [
                       Text(
                         'PIPELINES & BLOCKER DESK',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandGold,
@@ -2630,7 +2630,7 @@ class CeoPipelinesBlockersScreen extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         'Monitor cross-departmental blocker escalations and shift handovers in real time.',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           color: AppColors.textSecondary,
                           height: 1.3,
@@ -2767,7 +2767,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
             Expanded(
               child: Text(
                 'Confirm Database Reset',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.sandLight,
@@ -2782,7 +2782,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
           children: [
             Text(
               'Are you sure you want to clean operational database records?',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandLight,
@@ -2791,7 +2791,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
             const SizedBox(height: 10),
             Text(
               '• ALL old & current notifications will be permanently deleted from Firebase.\n• ALL social cause feed entries will be cleared.\n\n• STRICTLY PRESERVED: Employee accounts, departments, health metrics (BMI/height/weight/calories), and document vault submissions & safe custody.\n\nEnsure you have downloaded an Excel backup before proceeding.',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11.5,
                 color: AppColors.textMuted,
                 height: 1.4,
@@ -2804,7 +2804,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
               'Cancel',
-              style: GoogleFonts.plusJakartaSans(color: AppColors.sandGold, fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(color: AppColors.sandGold, fontWeight: FontWeight.bold),
             ),
           ),
           ElevatedButton(
@@ -2816,7 +2816,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               'Reset Operational Data',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -2888,7 +2888,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                         children: [
                           Text(
                             'DOWNLOAD MASTER BACKUP (.XLSX)',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -2897,7 +2897,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           ),
                           Text(
                             '8 Comprehensive sheets exported to Microsoft Excel format',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandGold),
                           ),
                         ],
                       ),
@@ -2939,7 +2939,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                         : const Icon(Icons.cloud_download_outlined, size: 18),
                     label: Text(
                       _isDownloading ? 'Generating Excel Workbook...' : 'Download Full Backup (.xlsx)',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                     onPressed: _isDownloading ? null : () => _handleDownloadBackup(eco),
                   ),
@@ -2977,7 +2977,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                         children: [
                           Text(
                             'INSPECT & VERIFY BACKUP (.XLSX)',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.sandLight,
@@ -2986,7 +2986,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           ),
                           Text(
                             'Upload previously generated Excel backup to verify and view data',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.sandGold),
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandGold),
                           ),
                         ],
                       ),
@@ -3012,7 +3012,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                         : const Icon(Icons.file_upload_outlined, size: 18),
                     label: Text(
                       _isUploading ? 'Reading Excel File...' : 'Upload Backup File (.xlsx)',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold),
                     ),
                     onPressed: _isUploading ? null : _handleUploadBackup,
                   ),
@@ -3028,7 +3028,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                       Expanded(
                         child: Text(
                           'Loaded: ${_uploadedFileName ?? "Backup.xlsx"} (${_uploadedSheets.length} sheets)',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF10B981),
@@ -3055,7 +3055,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                             selected: isSelected,
                             selectedColor: AppColors.sandGold,
                             backgroundColor: AppColors.burgundyBg,
-                            labelStyle: GoogleFonts.plusJakartaSans(
+                            labelStyle: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               color: isSelected ? AppColors.burgundyCard : AppColors.sandLight,
@@ -3109,7 +3109,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                         children: [
                           Text(
                             'RESET OPERATIONAL DATA (CLEAN FIREBASE)',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
                               color: const Color(0xFFF87171),
@@ -3118,7 +3118,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           ),
                           Text(
                             'Cleans notifications and social causes while preserving users & documents',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted),
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
                       ),
@@ -3144,7 +3144,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           Expanded(
                             child: Text(
                               'Preserved: All User Accounts, Staff Directory, Departments, Health Profiles (BMI, weight, height, calorie targets), and Document Vault Submissions & Safe Custody.',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFF10B981), height: 1.3),
+                              style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF10B981), height: 1.3),
                             ),
                           ),
                         ],
@@ -3158,7 +3158,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           Expanded(
                             child: Text(
                               'Erased from Firebase: All company and personal notification alerts, social cause posts, and transient logs to keep database performant.',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: const Color(0xFFF87171), height: 1.3),
+                              style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFFF87171), height: 1.3),
                             ),
                           ),
                         ],
@@ -3186,7 +3186,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                         : const Icon(Icons.delete_forever_rounded, size: 18),
                     label: Text(
                       _isResetting ? 'Resetting Firebase Collections...' : 'Reset Operational Data',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold),
                     ),
                     onPressed: _isResetting ? null : () => _confirmAndResetOperationalData(eco),
                   ),
@@ -3207,7 +3207,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
         alignment: Alignment.center,
         child: Text(
           'This sheet contains no data.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textMuted),
+          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
         ),
       );
     }
@@ -3230,12 +3230,12 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
             scrollDirection: Axis.horizontal,
             child: DataTable(
               headingRowColor: WidgetStateProperty.all(AppColors.sandGold.withOpacity(0.15)),
-              headingTextStyle: GoogleFonts.plusJakartaSans(
+              headingTextStyle: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: AppColors.sandGold,
               ),
-              dataTextStyle: GoogleFonts.plusJakartaSans(
+              dataTextStyle: GoogleFonts.outfit(
                 fontSize: 11.5,
                 color: AppColors.sandLight,
               ),
@@ -3290,7 +3290,7 @@ class _DatasetChip extends StatelessWidget {
           const SizedBox(width: 3),
           Text(
             label,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF10B981),

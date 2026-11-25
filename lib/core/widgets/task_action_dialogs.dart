@@ -191,7 +191,7 @@ class TaskActionDialogs {
                               child: Text(
                                 'Task Details & Oversight',
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textDark,
@@ -233,7 +233,7 @@ class TaskActionDialogs {
                                 ),
                                 child: Text(
                                   task.category,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.magentaPrimary,
@@ -251,7 +251,7 @@ class TaskActionDialogs {
                                 ),
                                 child: Text(
                                   task.priority,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
                                     color: task.priority == 'Critical SLA'
@@ -265,7 +265,7 @@ class TaskActionDialogs {
                           const SizedBox(height: 8),
                           Text(
                             task.title,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -310,7 +310,7 @@ class TaskActionDialogs {
                                 task.isCompleted
                                     ? 'STATUS: COMPLETED'
                                     : (task.isPostponed ? 'STATUS: POSTPONED' : 'STATUS: PENDING'),
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: task.isCompleted
@@ -324,7 +324,7 @@ class TaskActionDialogs {
                             const SizedBox(height: 6),
                             Text(
                               'Remarks: ${task.proof!.content}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.textDark),
+                              style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textDark),
                             ),
                           ],
                         ],
@@ -346,9 +346,9 @@ class TaskActionDialogs {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Due Time & SLA:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                                Text('Due Time & SLA:', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
-                                Text(task.due, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                Text(task.due, style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
                             ),
                           ),
@@ -356,9 +356,9 @@ class TaskActionDialogs {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Assigned By:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                                Text('Assigned By:', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                                 const SizedBox(height: 2),
-                                Text(task.assignedByName, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                Text(task.assignedByName, style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                               ],
                             ),
                           ),
@@ -394,8 +394,8 @@ class TaskActionDialogs {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(emp.name, style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textMuted)),
+                                    Text(emp.name, style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                                    Text('${emp.role} • ${emp.dept}', style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted)),
                                   ],
                                 ),
                               ),
@@ -416,7 +416,7 @@ class TaskActionDialogs {
                             const SizedBox(height: 8),
                             Text(
                               '⚠️ Warning: Assignee is marked absent today. Task should be reassigned to prevent operational bottleneck.',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 color: const Color(0xFFB91C1C),
                                 fontWeight: FontWeight.w600,

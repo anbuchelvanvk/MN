@@ -152,7 +152,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
                         children: [
                           Text(
                             'Comments & Wishes',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -226,7 +226,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
                           const SizedBox(height: 14),
                           Text(
                             'No comments yet',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textDark,
@@ -290,7 +290,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
                                       Flexible(
                                         child: Text(
                                           comment.authorName,
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.outfit(
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.textDark,

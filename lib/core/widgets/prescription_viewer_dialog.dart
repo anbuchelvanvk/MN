@@ -86,7 +86,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
                     children: [
                       Text(
                         'Doctor Prescription Review',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           color: AppColors.sandGold,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -128,7 +128,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
                     children: [
                       Text(
                         'Reason for Leave:',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.bold,
                           color: AppColors.sandLight,
@@ -174,7 +174,7 @@ class PrescriptionViewerDialog extends StatelessWidget {
             // Interactive Prescription Image Viewer (Pinch to zoom)
             Text(
               'Doctor Prescription (Pinch to Zoom):',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textMuted,

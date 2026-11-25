@@ -75,7 +75,7 @@ class CrossDeptBlockerSection extends StatefulWidget {
                     children: [
                       Text(
                         'Raise Blocker',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       ),
                       IconButton(icon: const Icon(Icons.close, color: AppColors.textMuted), onPressed: () => Navigator.pop(ctx)),
                     ],
@@ -113,7 +113,7 @@ class CrossDeptBlockerSection extends StatefulWidget {
                                   Expanded(
                                     child: Text(
                                       fromDept,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.textDark,
@@ -146,7 +146,7 @@ class CrossDeptBlockerSection extends StatefulWidget {
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
                               ),
-                              items: availableTargetDepts.map((d) => DropdownMenuItem(value: d, child: Text(d, style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.textDark)))).toList(),
+                              items: availableTargetDepts.map((d) => DropdownMenuItem(value: d, child: Text(d, style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textDark)))).toList(),
                               onChanged: (v) {
                                 if (v != null) setModalState(() => toDept = v);
                               },
@@ -260,7 +260,7 @@ class CrossDeptBlockerSection extends StatefulWidget {
                     children: [
                       Text(
                         'Respond to Blocker Ticket',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDark),
                       ),
                       IconButton(icon: const Icon(Icons.close, color: AppColors.textMuted), onPressed: () => Navigator.pop(ctx)),
                     ],
@@ -405,7 +405,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                 children: [
                   Text(
                     'Blocker Tickets',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: AppColors.sandGold,
@@ -415,7 +415,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                   const SizedBox(height: 2),
                   Text(
                     'Track and resolve issues between teams',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 11.5,
                       color: AppColors.textMuted,
                     ),
@@ -470,7 +470,7 @@ class _CrossDeptBlockerSectionState extends State<CrossDeptBlockerSection> {
                     _activeFilter == 'late'
                         ? 'No Late Blockers'
                         : (_activeFilter == 'all' ? 'Zero Active Blockers' : 'No Tickets in Filter'),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textDark,

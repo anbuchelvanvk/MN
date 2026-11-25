@@ -5970,13 +5970,18 @@ class EcosystemProvider extends ChangeNotifier {
         currentEmployee.name,
       );
     } catch (_) {}
-    SharedPreferences.getInstance()
-        .then((prefs) {
-          prefs.setString('saved_emp_id', _activeEmpId);
-          prefs.setString('saved_role', _activeRole);
-          prefs.setString('saved_email', currentEmployee.email);
-        })
-        .catchError((_) {});
+    // Keep the saved session in step, but never overwrite it with a
+    // half-loaded (guest) profile while the staff directory is still loading.
+    if (_isLoggedIn && _activeRole != 'guest' && _activeEmpId.isNotEmpty) {
+      final email = currentEmployee.email;
+      SharedPreferences.getInstance()
+          .then((prefs) {
+            prefs.setString('saved_emp_id', _activeEmpId);
+            prefs.setString('saved_role', _activeRole);
+            if (email.contains('@')) prefs.setString('saved_email', email);
+          })
+          .catchError((_) {});
+    }
     checkAndDispatchCelebrations();
     notifyListeners();
   }

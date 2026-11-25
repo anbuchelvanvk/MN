@@ -75,7 +75,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                       children: [
                         Text(
                           isCeo ? 'CEO Executive SOP Governance' : 'Department SOP Guidelines',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF78350F),
@@ -99,7 +99,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
 
             Text(
               'Available Departments (${books.length})',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 13.5,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF0F172A),
@@ -122,7 +122,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                     const SizedBox(height: 10),
                     Text(
                       'No KONAR Books Available',
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: const Color(0xFF334155)),
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: const Color(0xFF334155)),
                     ),
                     const SizedBox(height: 4),
                     const Text(
@@ -206,7 +206,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                               Flexible(
                                 child: Text(
                                   book.department,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF0F172A),
@@ -304,7 +304,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                       const SizedBox(width: 6),
                       Text(
                         book.isVisible ? 'Staff Access: ON' : 'Staff Access: OFF',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: book.isVisible ? const Color(0xFF059669) : const Color(0xFFDC2626),
@@ -501,7 +501,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
           children: [
             Text(
               'Along with the employees?',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.outfit(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF0F172A),
@@ -653,7 +653,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                         children: [
                           Text(
                             'Reallocate Department Staff',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: const Color(0xFF0F172A),
@@ -673,7 +673,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                 // Target Department Selector
                 Text(
                   'SELECT TARGET DEPARTMENT',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF475569),
@@ -698,7 +698,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                           value: d,
                           child: Text(
                             d,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF0F172A),
@@ -719,7 +719,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                 // Employees to reallocate list
                 Text(
                   'STAFF MEMBERS BEING TRANSFERRED (${deptEmployees.length})',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF475569),
@@ -747,7 +747,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                         ),
                         title: Text(
                           emp.name.toString(),
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text(
                           '${emp.role} • ID: ${emp.id}',
@@ -792,7 +792,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                     },
                     child: Text(
                       'Reallocate to $selectedTarget & Delete Department',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

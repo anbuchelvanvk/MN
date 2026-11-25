@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A signed-in session that can be restored on app start.
@@ -19,24 +20,63 @@ class SessionStore {
   static const _kEmpId = 'saved_emp_id';
   static const _kRole = 'saved_role';
   static const _kEmail = 'saved_email';
+  static const _kCredEmail = 'mn_cred_email';
+  static const _kCredPass = 'mn_cred_pass';
+
+  // Encrypted with the Android Keystore / iOS Keychain. Used only to sign the
+  // person back in silently if Firebase ever loses its own session.
+  static const FlutterSecureStorage _secure = FlutterSecureStorage();
 
   static Future<void> save({
     required String empId,
     required String role,
     required String email,
+    String? password,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kEmpId, empId);
     await prefs.setString(_kRole, role);
     await prefs.setString(_kEmail, email);
+    if (password != null && password.isNotEmpty) {
+      try {
+        await _secure.write(key: _kCredEmail, value: email.trim().toLowerCase());
+        await _secure.write(key: _kCredPass, value: password);
+      } catch (e) {
+        debugPrint('Secure credential save note: $e');
+      }
+    }
   }
 
-  /// Called only by the Logout action.
+  /// Called only by the Logout action (and when the saved password is rejected).
   static Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kEmpId);
     await prefs.remove(_kRole);
     await prefs.remove(_kEmail);
+    try {
+      await _secure.delete(key: _kCredEmail);
+      await _secure.delete(key: _kCredPass);
+    } catch (_) {}
+  }
+
+  /// Signs back in with the stored credentials. Returns true on success,
+  /// false if the password was rejected, null if it could not be checked
+  /// (offline, nothing stored, ...).
+  static Future<bool?> _silentSignIn() async {
+    try {
+      final email = await _secure.read(key: _kCredEmail);
+      final pass = await _secure.read(key: _kCredPass);
+      if (email == null || pass == null || email.isEmpty || pass.isEmpty) return null;
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: pass)
+          .timeout(const Duration(seconds: 10));
+      return true;
+    } on FirebaseAuthException catch (e) {
+      const rejected = {'wrong-password', 'invalid-credential', 'user-disabled', 'user-not-found', 'invalid-email'};
+      return rejected.contains(e.code) ? false : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Waits for Firebase to restore the signed-in user. On a cold start the
@@ -72,10 +112,25 @@ class SessionStore {
     final user = (savedEmpId != null && savedEmpId.isNotEmpty)
         ? await waitForFirebaseUser()
         : await waitForFirebaseUser(timeout: const Duration(milliseconds: 1500));
-    if (user == null) return null;
+    final hasSaved = savedEmpId != null && savedEmpId.isNotEmpty;
+    if (user == null) {
+      if (!hasSaved) return null;
+      // Firebase did not bring the user back. Sign in again silently; only a
+      // rejected password ends the session — never a slow phone or network.
+      final ok = await _silentSignIn();
+      if (ok == false) {
+        await clear();
+        return null;
+      }
+      return RestoredSession(
+        empId: savedEmpId,
+        role: savedRole ?? 'employee',
+        email: savedEmail.toLowerCase(),
+      );
+    }
 
     final email = (user.email ?? savedEmail).toLowerCase();
-    if (savedEmpId != null && savedEmpId.isNotEmpty) {
+    if (hasSaved) {
       return RestoredSession(
         empId: savedEmpId,
         role: savedRole ?? 'employee',

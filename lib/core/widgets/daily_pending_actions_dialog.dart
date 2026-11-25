@@ -106,7 +106,7 @@ class DailyPendingActionsDialog extends StatelessWidget {
                           children: [
                             Text(
                               'Daily Attention Required',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF0F172A),
@@ -286,7 +286,7 @@ class DailyPendingActionsDialog extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.bold,
                     color: primaryColor,

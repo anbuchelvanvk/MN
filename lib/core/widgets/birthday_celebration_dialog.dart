@@ -183,7 +183,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                         const SizedBox(height: 12),
                         Text(
                           title,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFFFDE68A),
@@ -194,7 +194,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                         Text(
                           event.employeeName,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -215,7 +215,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                         Text(
                           greeting,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF9D174D),
@@ -234,7 +234,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                                 ? 'May this milestone year bring you robust health, great joy, endless prosperity, and continued achievements across your life and career with the MN Jewel Park family! 🌟'
                                 : 'May your shared journey be blessed with everlasting love, happiness, peace, and mutual prosperity throughout the years ahead! 💐',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.outfit(
                               fontSize: 12,
                               color: const Color(0xFF78350F),
                               height: 1.45,
@@ -246,7 +246,7 @@ class BirthdayCelebrationDialog extends StatelessWidget {
                         Text(
                           'Warmest wishes from the entire MN Jewel Park Executive Board & Workforce.',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             color: const Color(0xFF64748B),
                             fontStyle: FontStyle.italic,

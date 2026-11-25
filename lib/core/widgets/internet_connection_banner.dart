@@ -65,7 +65,7 @@ class InternetConnectionBanner extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 'Check your Internet Connection',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.outfit(
                                   color: Colors.white,
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.bold,
@@ -95,7 +95,7 @@ class InternetConnectionBanner extends StatelessWidget {
                                     const SizedBox(width: 4),
                                     Text(
                                       isChecking ? 'Checking' : 'Retry',
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,

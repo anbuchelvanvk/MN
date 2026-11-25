@@ -213,7 +213,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 Expanded(
                   child: Text(
                     'Scorecard PDF saved locally:\n${file.path}',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: Colors.white),
+                    style: GoogleFonts.outfit(fontSize: 11.5, color: Colors.white),
                   ),
                 ),
               ],
@@ -252,7 +252,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
               behavior: SnackBarBehavior.floating,
               content: Text(
                 'Scorecard for ${_model.monthName} updated successfully!',
-                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                style: GoogleFonts.outfit(color: Colors.white),
               ),
             ),
           );
@@ -555,7 +555,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
               children: [
                 Text(
                   '${_model.monthName} ${_model.year}',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF0F172A),
@@ -563,7 +563,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 ),
                 Text(
                   _model.dateRangeTitle,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     color: const Color(0xFF64748B),
                   ),
@@ -665,7 +665,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF1E293B),
@@ -682,7 +682,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 ),
                 child: Text(
                   isAchieved ? 'ACHIEVED' : 'PENDING',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -694,7 +694,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 17,
               fontWeight: FontWeight.w800,
               color: statusColor,
@@ -703,7 +703,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
           const SizedBox(height: 4),
           Text(
             target,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: const Color(0xFF475569),
@@ -767,7 +767,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                   children: [
                     Text(
                       title,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF0F172A),
@@ -775,7 +775,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                     ),
                     Text(
                       subtitle,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         color: const Color(0xFF64748B),
                       ),
@@ -795,7 +795,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 ),
                 child: Text(
                   percentage,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: badgeColor,
@@ -864,7 +864,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
               children: [
                 Text(
                   _formatCompact(actual, padZero: true),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800,
                     color: circleBorderColor,
@@ -878,7 +878,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 ),
                 Text(
                   _formatCompact(target, padZero: true),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF334155),
@@ -893,7 +893,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
               color: const Color(0xFF0F172A),
@@ -911,7 +911,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
               ),
               child: Text(
                 roleTag,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.outfit(
                   fontSize: 7.5,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF64748B),
@@ -977,7 +977,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                   children: [
                     Text(
                       'Designing',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF0F172A),
@@ -985,7 +985,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                     ),
                     Text(
                       'Get 100% Feedback Rating',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         color: const Color(0xFF64748B),
                       ),
@@ -1005,7 +1005,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 ),
                 child: Text(
                   '$dPct%',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     color: dBadgeColor,
@@ -1029,7 +1029,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                   children: [
                     Text(
                       '${_model.designResponse}',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -1037,7 +1037,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                     ),
                     Text(
                       'Response',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: Colors.white.withOpacity(0.9),
@@ -1053,7 +1053,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                   children: [
                     Text(
                       'In Design we need to get the customer or Concern team',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         color: const Color(0xFF475569),
                       ),
@@ -1088,7 +1088,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
       ),
       child: Text(
         text,
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.outfit(
           fontSize: 10,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -1113,7 +1113,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
         children: [
           Text(
             'Other Targets',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.outfit(
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF0F172A),
@@ -1177,7 +1177,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
               children: [
                 Text(
                   'Performance',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF0F172A),
@@ -1228,7 +1228,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 const SizedBox(height: 3),
                 Text(
                   _capitalizeFirst(_model.topPerformer),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -1238,7 +1238,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 Text(
                   'Performance is\nhigh',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 10,
                     color: Colors.white.withOpacity(0.95),
                     height: 1.15,
@@ -1258,7 +1258,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
       children: [
         Text(
           name,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.bold,
             color: const Color(0xFF0F172A),
@@ -1279,7 +1279,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
         const SizedBox(height: 4),
         Text(
           _formatCurrency(sales),
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 10,
             fontWeight: FontWeight.bold,
             color: const Color(0xFF047857),
@@ -1287,14 +1287,14 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
         ),
         Text(
           _formatCurrency(schemes),
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 10,
             color: const Color(0xFF64748B),
           ),
         ),
         Text(
           gold > 0 ? '${gold.toStringAsFixed(3)}g' : '0g',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.outfit(
             fontSize: 10,
             color: const Color(0xFF475569),
           ),
@@ -1327,7 +1327,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
                 label: Text(
                   'Preview PDF',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E293B),
@@ -1344,7 +1344,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
                 icon: const Icon(Icons.download_rounded, size: 18),
                 label: Text(
                   'Download PDF',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFDC2626),
@@ -1782,7 +1782,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                   children: [
                     Text(
                       'Edit Scorecard Data',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF0F172A),
@@ -1829,7 +1829,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         child: const Text('ACTUAL', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                       ),
                       const SizedBox(width: 5),
-                      Text('Blue = Achieved', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF1E40AF))),
+                      Text('Blue = Achieved', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF1E40AF))),
                       const SizedBox(width: 14),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1840,7 +1840,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         child: const Text('TARGET', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                       ),
                       const SizedBox(width: 5),
-                      Text('Amber = Goal', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF92400E))),
+                      Text('Amber = Goal', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: const Color(0xFF92400E))),
                     ],
                   ),
                 ),
@@ -1894,7 +1894,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Instagram', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('Instagram', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'Content Reel',
@@ -1945,7 +1945,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         roleTag: 'OTM / VPE',
                       ),
                       const Divider(height: 28),
-                      Text('Other Social Media', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('Other Social Media', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'Snapchat',
@@ -1997,7 +1997,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Website', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('Website', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'MN Listing',
@@ -2024,7 +2024,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         roleTag: 'OTM / AC',
                       ),
                       const Divider(height: 28),
-                      Text('WhatsApp', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('WhatsApp', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'Stories / Status',
@@ -2059,7 +2059,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         roleTag: 'OTM',
                       ),
                       const Divider(height: 28),
-                      Text('Mobile App', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('Mobile App', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'MN Listing',
@@ -2094,7 +2094,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         roleTag: 'OTM / ECE',
                       ),
                       const Divider(height: 28),
-                      Text('Google', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('Google', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'Blogs',
@@ -2130,7 +2130,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Designing', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('Designing', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'Design Responses & Feedback',
@@ -2140,7 +2140,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         targetCtrl: _designFeedbackRating,
                       ),
                       const Divider(height: 28),
-                      Text('Other Targets', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
+                      Text('Other Targets', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: const Color(0xFF0F172A))),
                       const SizedBox(height: 10),
                       _buildDualInput(
                         title: 'MN App Downloads',
@@ -2200,7 +2200,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                           children: [
                             Text(
                               'Best Performer (Placed inside Green Circle)',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF047857)),
+                              style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF047857)),
                             ),
                             const SizedBox(height: 8),
                             DropdownButtonFormField<String>(
@@ -2225,19 +2225,19 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text('Gokul', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Gokul', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(height: 4),
                       _buildTripleInput('Sales (Rs)', _gokulSales, 'Schemes (Rs)', _gokulSchemes, 'Gold (g)', _gokulGold),
                       const SizedBox(height: 12),
-                      Text('Kaaviya', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Kaaviya', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(height: 4),
                       _buildTripleInput('Sales (Rs)', _kaaviyaSales, 'Schemes (Rs)', _kaaviyaSchemes, 'Gold (g)', _kaaviyaGold),
                       const SizedBox(height: 12),
-                      Text('Nisha', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Nisha', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(height: 4),
                       _buildTripleInput('Sales (Rs)', _nishaSales, 'Schemes (Rs)', _nishaSchemes, 'Gold (g)', _nishaGold),
                       const SizedBox(height: 12),
-                      Text('Asha', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text('Asha', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(height: 4),
                       _buildTripleInput('Sales (Rs)', _ashaSales, 'Schemes (Rs)', _ashaSchemes, 'Gold (g)', _ashaGold),
                     ],
@@ -2261,7 +2261,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: _submit,
-                child: Text('Save & Update Scorecard', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold)),
+                child: Text('Save & Update Scorecard', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
@@ -2302,7 +2302,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF0F172A),
@@ -2319,7 +2319,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                   ),
                   child: Text(
                     roleTag,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.outfit(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF475569),
@@ -2355,7 +2355,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                             ),
                             child: Text(
                               'ACTUAL',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -2366,7 +2366,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                           Expanded(
                             child: Text(
                               actualLabel,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF1E40AF),
@@ -2380,7 +2380,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                       TextField(
                         controller: actualCtrl,
                         keyboardType: TextInputType.number,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF1E3A8A),
@@ -2433,7 +2433,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                             ),
                             child: Text(
                               'TARGET',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -2444,7 +2444,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                           Expanded(
                             child: Text(
                               targetLabel,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF92400E),
@@ -2458,7 +2458,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                       TextField(
                         controller: targetCtrl,
                         keyboardType: TextInputType.number,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF78350F),
@@ -2513,12 +2513,12 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label1, style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF047857))),
+                  Text(label1, style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF047857))),
                   const SizedBox(height: 4),
                   TextField(
                     controller: ctrl1,
                     keyboardType: TextInputType.number,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF047857)),
+                    style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF047857)),
                     decoration: InputDecoration(
                       isDense: true,
                       filled: true,
@@ -2543,12 +2543,12 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label2, style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF0284C7))),
+                  Text(label2, style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF0284C7))),
                   const SizedBox(height: 4),
                   TextField(
                     controller: ctrl2,
                     keyboardType: TextInputType.number,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0284C7)),
+                    style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF0284C7)),
                     decoration: InputDecoration(
                       isDense: true,
                       filled: true,
@@ -2573,12 +2573,12 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label3, style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFFD97706))),
+                  Text(label3, style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFFD97706))),
                   const SizedBox(height: 4),
                   TextField(
                     controller: ctrl3,
                     keyboardType: TextInputType.number,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
+                    style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFFD97706)),
                     decoration: InputDecoration(
                       isDense: true,
                       filled: true,

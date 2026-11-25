@@ -11,29 +11,29 @@ class AppThemes {
     const primary = AppColors.magentaPrimary;
     const ink = AppColors.textDark;
 
-    final base = GoogleFonts.plusJakartaSansTextTheme(ThemeData.light().textTheme)
+    final base = GoogleFonts.outfitTextTheme(ThemeData.light().textTheme)
         .apply(bodyColor: AppColors.textPrimary, displayColor: ink);
 
     final textTheme = base.copyWith(
-      displayLarge: GoogleFonts.plusJakartaSans(
+      displayLarge: GoogleFonts.outfit(
         color: ink, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-      displayMedium: GoogleFonts.plusJakartaSans(
+      displayMedium: GoogleFonts.outfit(
         color: primary, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.3),
-      headlineSmall: GoogleFonts.plusJakartaSans(
+      headlineSmall: GoogleFonts.outfit(
         color: ink, fontSize: 20, fontWeight: FontWeight.w700),
-      titleLarge: GoogleFonts.plusJakartaSans(
+      titleLarge: GoogleFonts.outfit(
         color: ink, fontSize: 18, fontWeight: FontWeight.w700),
-      titleMedium: GoogleFonts.plusJakartaSans(
+      titleMedium: GoogleFonts.outfit(
         color: ink, fontSize: 15.5, fontWeight: FontWeight.w600),
-      titleSmall: GoogleFonts.plusJakartaSans(
+      titleSmall: GoogleFonts.outfit(
         color: ink, fontSize: 13.5, fontWeight: FontWeight.w600),
-      bodyLarge: GoogleFonts.plusJakartaSans(
+      bodyLarge: GoogleFonts.outfit(
         color: AppColors.textPrimary, fontSize: 15, height: 1.45),
-      bodyMedium: GoogleFonts.plusJakartaSans(
+      bodyMedium: GoogleFonts.outfit(
         color: AppColors.textSecondary, fontSize: 13.5, height: 1.45),
-      bodySmall: GoogleFonts.plusJakartaSans(
+      bodySmall: GoogleFonts.outfit(
         color: AppColors.textMuted, fontSize: 12, height: 1.4),
-      labelLarge: GoogleFonts.plusJakartaSans(
+      labelLarge: GoogleFonts.outfit(
         fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 0.2),
     );
 
@@ -42,6 +42,7 @@ class AppThemes {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: GoogleFonts.outfit().fontFamily,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.whiteBg,
       primaryColor: primary,
@@ -86,7 +87,7 @@ class AppThemes {
         shadowColor: const Color(0x1A881337),
         centerTitle: false,
         iconTheme: const IconThemeData(color: ink),
-        titleTextStyle: GoogleFonts.plusJakartaSans(
+        titleTextStyle: GoogleFonts.outfit(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: ink,
@@ -102,7 +103,7 @@ class AppThemes {
           shadowColor: const Color(0x33E11D48),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           shape: pill,
-          textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -111,7 +112,7 @@ class AppThemes {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           shape: pill,
-          textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -119,14 +120,14 @@ class AppThemes {
           foregroundColor: primary,
           side: const BorderSide(color: Color(0xFFF3C6D6), width: 1.2),
           shape: pill,
-          textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primary,
           shape: rounded14,
-          textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
@@ -143,9 +144,9 @@ class AppThemes {
         filled: true,
         fillColor: const Color(0xFFFDFAFC),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.textMuted, fontSize: 14),
-        labelStyle: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary, fontSize: 14),
-        floatingLabelStyle: GoogleFonts.plusJakartaSans(color: primary, fontWeight: FontWeight.w600),
+        hintStyle: GoogleFonts.outfit(color: AppColors.textMuted, fontSize: 14),
+        labelStyle: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 14),
+        floatingLabelStyle: GoogleFonts.outfit(color: primary, fontWeight: FontWeight.w600),
         prefixIconColor: primary,
         suffixIconColor: AppColors.textMuted,
         border: OutlineInputBorder(
@@ -172,9 +173,9 @@ class AppThemes {
         elevation: 6,
         shadowColor: const Color(0x292A0F22),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-        titleTextStyle: GoogleFonts.plusJakartaSans(
+        titleTextStyle: GoogleFonts.outfit(
           fontSize: 18, fontWeight: FontWeight.w700, color: ink),
-        contentTextStyle: GoogleFonts.plusJakartaSans(
+        contentTextStyle: GoogleFonts.outfit(
           fontSize: 14, color: AppColors.textSecondary, height: 1.45),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
@@ -188,7 +189,7 @@ class AppThemes {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.midnight,
-        contentTextStyle: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13.5),
+        contentTextStyle: GoogleFonts.outfit(color: Colors.white, fontSize: 13.5),
         actionTextColor: AppColors.heroAccent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -199,15 +200,15 @@ class AppThemes {
         checkmarkColor: Colors.white,
         side: const BorderSide(color: AppColors.line),
         shape: const StadiumBorder(),
-        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: ink),
-        secondaryLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
+        labelStyle: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w600, color: ink),
+        secondaryLabelStyle: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.white),
       ),
       listTileTheme: ListTileThemeData(
         iconColor: primary,
         textColor: ink,
         shape: rounded14,
-        titleTextStyle: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.w600, color: ink),
-        subtitleTextStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.textMuted),
+        titleTextStyle: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w600, color: ink),
+        subtitleTextStyle: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.textMuted),
       ),
       dividerTheme: const DividerThemeData(color: AppColors.sandBorder, thickness: 1, space: 1),
       tabBarTheme: TabBarThemeData(
@@ -216,8 +217,8 @@ class AppThemes {
         indicatorColor: primary,
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: AppColors.line,
-        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w700),
-        unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w500),
+        labelStyle: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700),
+        unselectedLabelStyle: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w500),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
@@ -240,7 +241,7 @@ class AppThemes {
         indicatorColor: AppColors.primarySoft,
         surfaceTintColor: Colors.transparent,
         labelTextStyle: WidgetStatePropertyAll(
-          GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: ink),
+          GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700, color: ink),
         ),
       ),
       badgeTheme: const BadgeThemeData(backgroundColor: AppColors.ragRed),
