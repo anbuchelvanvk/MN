@@ -607,7 +607,7 @@ class EcosystemProvider extends ChangeNotifier {
   /// (Permanently disabled as emergency leave & permission acceptance portals are eliminated)
   AcceptancePopupNotification? get currentAcceptancePopupForActiveUser {
     final unacked = _acceptancePopups.where(
-      (p) => p.isTargetedFor(empId: activeEmpId, roleType: activeRole),
+      (p) => p.isTargetedFor(empId: activeEmpId, roleType: activeRole) && !_isBeforeMyJoin(p.timestamp),
     ).toList();
     return unacked.isNotEmpty ? unacked.first : null;
   }
@@ -1347,7 +1347,8 @@ class EcosystemProvider extends ChangeNotifier {
           (n) {
             if (!n.isValid ||
                 n.isDismissedBy(_activeEmpId) ||
-                !n.isTargetedFor(_activeEmpId)) {
+                !n.isTargetedFor(_activeEmpId) ||
+                _isBeforeMyJoin(n.timestamp)) {
               return false;
             }
             final isCeleb = n.type == CompanyNotificationType.birthday ||
@@ -1404,6 +1405,14 @@ class EcosystemProvider extends ChangeNotifier {
 
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
+  }
+
+  /// Notices, alerts and popups from before the signed-in person joined
+  /// are not theirs to see. Staff without a recorded join date see all.
+  bool _isBeforeMyJoin(DateTime t) {
+    final joined = currentEmployee.joinedAt;
+    if (joined == null || _activeEmpId.isEmpty) return false;
+    return t.isBefore(joined.subtract(const Duration(minutes: 1)));
   }
 
   int get unreadNotificationCount =>
@@ -1470,7 +1479,8 @@ class EcosystemProvider extends ChangeNotifier {
         _notifiedCompanyNotifIds.add(notif.id);
         // Only push if not already read by this employee and targeted for this employee
         if (!notif.isReadBy(_activeEmpId) &&
-            notif.isTargetedFor(_activeEmpId)) {
+            notif.isTargetedFor(_activeEmpId) &&
+            !_isBeforeMyJoin(notif.timestamp)) {
           PushNotificationService().showNotification(
             id: notif.id,
             title: notif.title,
@@ -8871,6 +8881,9 @@ class EcosystemProvider extends ChangeNotifier {
       // Clean up assigned tasks
       _tasks.removeWhere((t) => t.empId == empId);
 
+      // Farewell line in the all-staff group chat.
+      postGroupFamilyLine(relieveLine(removed));
+
       // Broadcast company-wide notice
       broadcastUniversalAnnouncement(
         title: 'Workforce Notice: Staff Relieved',
@@ -8989,7 +9002,8 @@ class EcosystemProvider extends ChangeNotifier {
       email: email,
       avatar: '',
       initials: initials.isNotEmpty ? initials : 'MN',
-      doj: 'Today',
+      doj: '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}',
+      joinedAt: DateTime.now(),
       experienceYears: experienceYears,
       experienceCategory: experienceCategory,
       probationWeeks: 0,
@@ -9045,6 +9059,8 @@ class EcosystemProvider extends ChangeNotifier {
         .catchError((err) {
           debugPrint('Firestore remote add note: $err');
         });
+    // Welcome line in the all-staff group chat.
+    postGroupFamilyLine(joinLine(newEmp));
     return null;
   }
 
@@ -9251,7 +9267,8 @@ class EcosystemProvider extends ChangeNotifier {
             (m) =>
                 m.receiverId == 'ALL_HANDS' &&
                 m.senderId.toLowerCase() != cleanActive &&
-                !m.isReadBy(_activeEmpId),
+                !m.isReadBy(_activeEmpId) &&
+                !_isBeforeMyJoin(m.timestamp),
           )
           .length;
     }
@@ -9280,6 +9297,37 @@ class EcosystemProvider extends ChangeNotifier {
     }
     return total;
   }
+
+  /// Sender id for automatic MN Family lines in the group chat.
+  static const familyBotId = 'MN_FAMILY';
+
+  /// Posts an automatic line in the all-staff group chat.
+  void postGroupFamilyLine(String text) {
+    final msg = ChatMessage(
+      id: 'MSG-FAMILY-${DateTime.now().microsecondsSinceEpoch}',
+      senderId: familyBotId,
+      senderName: 'MN Family',
+      senderRole: 'Announcement',
+      receiverId: 'ALL_HANDS',
+      text: text,
+      timestamp: DateTime.now(),
+      isRead: false,
+      readBy: [if (_activeEmpId.isNotEmpty) _activeEmpId],
+      likedBy: [],
+    );
+    _chatMessages.add(msg);
+    _notifiedChatMessageIds.add(msg.id);
+    notifyListeners();
+    _saveChatsToLocal();
+    _firebaseEmployeeService.saveChatMessage(msg).catchError((err) {
+      debugPrint('Firestore family line note: $err');
+    });
+  }
+
+  static String joinLine(Employee e) =>
+      '${e.name} : ${e.straightCutDesignation} has been added to the group and is now a part of MN Family!';
+  static String relieveLine(Employee e) =>
+      '${e.name} : ${e.straightCutDesignation} has officially relieved from MN Jewel Park, but forever a part of our family!';
 
   Future<void> sendChatMessage({
     required String receiverId,

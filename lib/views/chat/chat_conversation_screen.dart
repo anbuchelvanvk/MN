@@ -2218,6 +2218,44 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final msg = messages[index];
+                      // Automatic MN Family lines (welcome / farewell) are centred announcements.
+                      if (msg.senderId == EcosystemProvider.familyBotId) {
+                        final farewell = msg.text.contains('relieved');
+                        return Padding(
+                          key: ValueKey(msg.id),
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: farewell ? const Color(0xFFFFF7ED) : const Color(0xFFFFF1F4),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: farewell ? const Color(0xFFFED7AA) : const Color(0xFFFBCFE8),
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(farewell ? '🙏' : '🎉', style: const TextStyle(fontSize: 18)),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    msg.text,
+                                    key: const Key('family_line'),
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: farewell ? const Color(0xFF9A3412) : AppColors.magentaPrimary,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }
                       final isMe = msg.isSentBy(activeEmpId);
                       final isLiked = msg.isLikedBy(activeEmpId);
                       final isMentioned = msg.mentionsUser(activeEmpId, eco.currentEmployee.name);

@@ -398,6 +398,11 @@ class Employee {
   final String avatar;
   final String initials;
   final String doj;
+
+  /// When this person joined the app. Notices and alerts from before this
+  /// moment are not shown to them (group chat history still is).
+  /// Null for staff added before this was recorded: they see everything.
+  final DateTime? joinedAt;
   final String experienceYears;
   final String experienceCategory; // 'experienced' | 'fresher'
   int probationWeeks; // 2 for experienced, 4 for fresher
@@ -432,6 +437,7 @@ class Employee {
     required this.avatar,
     required this.initials,
     required this.doj,
+    this.joinedAt,
     required this.experienceYears,
     required this.experienceCategory,
     this.probationWeeks = 0,
@@ -557,6 +563,17 @@ class Employee {
       role.toLowerCase().contains('dept head') ||
       id == 'MN-TL1002';
   bool get isDeptHead => isTeamLead;
+
+  static DateTime? _readJoinedAt(dynamic v) {
+    if (v == null) return null;
+    if (v is DateTime) return v;
+    if (v is String) return DateTime.tryParse(v);
+    try {
+      return (v as dynamic).toDate() as DateTime; // Firestore Timestamp
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// The leadership department: CEO, HR and Asst. HR.
   static const administrationDept = 'Administration Department';
@@ -689,6 +706,7 @@ class Employee {
     String? avatar,
     String? initials,
     String? doj,
+    DateTime? joinedAt,
     String? experienceYears,
     String? experienceCategory,
     int? probationWeeks,
@@ -723,6 +741,7 @@ class Employee {
       avatar: avatar ?? this.avatar,
       initials: initials ?? this.initials,
       doj: doj ?? this.doj,
+      joinedAt: joinedAt ?? this.joinedAt,
       experienceYears: experienceYears ?? this.experienceYears,
       experienceCategory: experienceCategory ?? this.experienceCategory,
       probationWeeks: probationWeeks ?? this.probationWeeks,
@@ -760,6 +779,7 @@ class Employee {
       'avatar': avatar,
       'initials': initials,
       'doj': doj,
+      if (joinedAt != null) 'joinedAt': joinedAt!.toIso8601String(),
       'experienceYears': experienceYears,
       'experienceCategory': experienceCategory,
       'probationWeeks': probationWeeks,
@@ -848,6 +868,7 @@ class Employee {
       avatar: map['avatar'] as String? ?? '',
       initials: resolvedInitials,
       doj: map['doj'] as String? ?? '',
+      joinedAt: _readJoinedAt(map['joinedAt']),
       experienceYears: map['experienceYears'] as String? ?? 'Fresher (0 yrs)',
       experienceCategory: map['experienceCategory'] as String? ?? 'fresher',
       probationWeeks: (map['probationWeeks'] as num?)?.toInt() ?? 0,
