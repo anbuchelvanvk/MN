@@ -220,3 +220,6 @@ exports.completePasswordReset = onCall(async (req) => {
   await db.collection('password_reset_queue').doc(requestId).set(done, { merge: true });
   return { ok: true, email: r.email };
 });
+
+// Company data backup / delete / restore (CEO only)
+Object.assign(exports, require('./data_vault'));

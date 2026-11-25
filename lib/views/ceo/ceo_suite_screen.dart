@@ -26,6 +26,7 @@ import '../hr/hr_employee_inspection_screen.dart';
 import '../hr/hr_portal_subpages.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'ceo_subpages.dart';
+import 'data_vault_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../dept_head/monthly_scorecard_screen.dart';
 import '../chat/chat_hub_screen.dart';
@@ -485,7 +486,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         label: 'Data Vault & Reset DB',
                         icon: Icons.table_chart_outlined,
                         badge: '',
-                        destination: const CeoDataVaultAndResetScreen(),
+                        destination: const DataVaultScreen(),
                       ),
                       const SizedBox(height: 8),
                       _verticalCeoTabTile(

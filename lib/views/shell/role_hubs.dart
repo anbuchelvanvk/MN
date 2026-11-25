@@ -9,6 +9,7 @@ import '../../providers/ecosystem_provider.dart';
 import '../ceo/admin_role_access_management_screen.dart';
 import '../ceo/ceo_subpages.dart';
 import '../ceo/ceo_suite_screen.dart';
+import '../ceo/data_vault_screen.dart';
 import '../dept_head/monthly_scorecard_screen.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 import '../hr/hr_management_widgets.dart';
@@ -202,8 +203,8 @@ class CeoHubScreen extends StatelessWidget {
             () => openHubScreen(context, const PersonalNotesScreen())),
         HubTool(Icons.admin_panel_settings_rounded, 'Roles & Access', 'Who can do what', const Color(0xFF334155),
             () => openHubScreen(context, const AdminRoleAccessManagementScreen())),
-        HubTool(Icons.table_chart_rounded, 'Data Vault', 'Backups & reset', const Color(0xFF475569),
-            () => openHubScreen(context, const CeoDataVaultAndResetScreen())),
+        HubTool(Icons.table_chart_rounded, 'Data Vault', 'Backup, restore, reset', const Color(0xFF475569),
+            () => openHubScreen(context, const DataVaultScreen())),
         HubTool(Icons.file_download_rounded, 'Company Report', 'Export audit', const Color(0xFF0F766E),
             () => ExportAuditModal.show(context)),
       ],

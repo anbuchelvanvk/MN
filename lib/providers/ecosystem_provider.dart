@@ -7522,6 +7522,23 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   /// Universal data refresh across local cache, Firestore, and device punch state
+  /// After the CEO deletes company activity data on the server, drop this
+  /// phone's cached copies so removed items do not linger on screen.
+  Future<void> clearLocalActivityAfterWipe() async {
+    _companyNotifications.clear();
+    _socialCauses.clear();
+    _chatMessages = [];
+    _personalNotes = [];
+    _onlineOrders = [];
+    _tasks.removeWhere((t) => !t.isDefaultSop);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_chatsStorageKey);
+      await prefs.remove(_personalNotesStorageKey);
+    } catch (_) {}
+    notifyListeners();
+  }
+
   Future<void> refreshAllData() async {
     checkAndResetDailySops();
     await _loadOfflineCacheAndFlushPending();
