@@ -15,6 +15,7 @@ import 'hr_employee_inspection_screen.dart';
 import 'hr_management_widgets.dart';
 import '../../core/utils/password_generator.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../dept_head/team_hub_screen.dart' show OutsideSupportNote;
 
 // ============================================================================
 // 1. REUSABLE HR SUBPAGE SCAFFOLD (Standard Top-Left Back Button Architecture)
@@ -95,11 +96,16 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
       e.id == 'MN-HR1001'
     ).toList();
 
-    final onlineEmployees = filteredEmployees.where((e) => !adminEmployees.contains(e)).toList();
+    final outsideSupport = filteredEmployees.where((e) => e.isExternalSupport && !adminEmployees.contains(e)).toList();
+    final onlineEmployees =
+        filteredEmployees.where((e) => !adminEmployees.contains(e) && !outsideSupport.contains(e)).toList();
+    final outsideTotal = allEmployees.where((e) => e.isExternalSupport).length;
 
     return HrSubpageScaffold(
       title: 'Staff Directory',
-      subtitle: '${allEmployees.length} Corporate Personnel',
+      subtitle: outsideTotal > 0
+          ? '${allEmployees.length - outsideTotal} staff + $outsideTotal outside support'
+          : '${allEmployees.length} Corporate Personnel',
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 12),
@@ -198,6 +204,23 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
               const SizedBox(height: 10),
               ...onlineEmployees.map((emp) => _buildStaffCard(context, eco, emp)),
             ],
+
+            // Section 3: Outside support (not MN Jewel Park staff)
+            if (outsideSupport.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              _departmentHeader(
+                title: 'Outside Support (not MN staff)',
+                icon: Icons.public_rounded,
+                count: outsideSupport.length,
+                bg: const Color(0xFFF5F3FF),
+                border: const Color(0xFFDDD6FE),
+                accent: const Color(0xFF6D28D9),
+              ),
+              const SizedBox(height: 8),
+              const OutsideSupportNote(),
+              const SizedBox(height: 10),
+              ...outsideSupport.map((emp) => _buildStaffCard(context, eco, emp)),
+            ],
           ],
         ],
       ),
@@ -256,7 +279,13 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
   }
 
   Widget _buildStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
-    final isAbsent = eco.isEmployeeAbsent(emp.id);
+    final todayState = eco.todayAttendanceOf(emp.id);
+    final isAbsent = todayState == TodayAttendance.absent;
+    // Leadership has no attendance: no badge. Outside support gets its own tag.
+    final String? badgeText = emp.isExternalSupport
+        ? 'OUTSIDE SUPPORT'
+        : (todayState == TodayAttendance.notTracked ? null : todayState.label.toUpperCase());
+    final badgeColor = emp.isExternalSupport ? const Color(0xFF6D28D9) : todayState.color;
     final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
     final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored — reset via Password Requests';
 
@@ -318,15 +347,14 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                       ],
                     ),
                   ),
+                  if (badgeText != null) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isAbsent ? const Color(0xFFFFF1F4) : const Color(0xFFECFDF5),
+                      color: badgeColor.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isAbsent ? const Color(0xFFFECDD3) : const Color(0xFFA7F3D0),
-                      ),
+                      border: Border.all(color: badgeColor.withOpacity(0.35)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -336,21 +364,22 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           height: 6,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
+                            color: badgeColor,
                           ),
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          isAbsent ? 'ABSENT' : 'PRESENT',
+                          badgeText,
                           style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
+                            color: badgeColor,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  ],
                   const SizedBox(width: 4),
                   const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF94A3B8)),
                 ],
@@ -1463,7 +1492,9 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             dept: effectiveDept,
                             experienceCategory: 'standard',
                             experienceYears: 'Confirmed Corporate Staff',
-                            roleType: roleHierarchy == 'Team Lead' ? 'team_lead' : 'employee',
+                            roleType: effectiveDept.toLowerCase().contains('external support')
+                                ? 'external_support'
+                                : (roleHierarchy == 'Team Lead' ? 'team_lead' : 'employee'),
                             password: cleanPass,
                             dob: dobController.text.trim().isNotEmpty ? dobController.text.trim() : '01-01-2000',
                             gender: selectedGender,

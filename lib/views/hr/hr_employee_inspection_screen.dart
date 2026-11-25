@@ -7,6 +7,7 @@ import '../../core/widgets/liquid_glass.dart';
 import '../../models/employee_model.dart';
 import '../../models/profile_document_models.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../../models/attendance_models.dart';
 
 class HrEmployeeInspectionScreen extends StatefulWidget {
   final Employee employee;
@@ -597,8 +598,8 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       Expanded(
                         child: _attendanceMetricTile(
                           'Today Status',
-                          weekRecords.isNotEmpty ? weekRecords.first.status : (isAbsent ? 'Absent' : 'Present'),
-                          weekRecords.isNotEmpty ? weekRecords.first.statusColor : (isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669)),
+                          weekRecords.isNotEmpty ? weekRecords.first.status : eco.todayAttendanceOf(emp.id).label,
+                          weekRecords.isNotEmpty ? weekRecords.first.statusColor : eco.todayAttendanceOf(emp.id).color,
                         ),
                       ),
                       const SizedBox(width: 8),

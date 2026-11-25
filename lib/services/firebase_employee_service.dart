@@ -59,6 +59,10 @@ class FirebaseEmployeeService {
       _firestore.collection('departments');
 
   /// Resolves the specific Firestore collection name for a given department
+  /// Outside support people (not MN Jewel Park staff) live here.
+  static const externalSupportCollection = 'external_support_employees';
+  static const externalSupportDept = 'External Support Staff [Online]';
+
   static String getDepartmentCollectionName(String? dept) {
     final clean = (dept ?? '').trim().toLowerCase();
     if (clean.isEmpty || clean == 'online' || clean == 'online department') {
@@ -66,6 +70,9 @@ class FirebaseEmployeeService {
     }
     if (clean == 'offline' || clean == 'offline department') {
       return 'offline_department_employees';
+    }
+    if (clean.contains('external support') || clean == 'outside support') {
+      return externalSupportCollection;
     }
     final slug = clean
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
@@ -277,6 +284,7 @@ class FirebaseEmployeeService {
     listenToDeptCollection('online_department_employees');
     listenToDeptCollection('offline_department_employees');
     listenToDeptCollection('administration_employees');
+    listenToDeptCollection(externalSupportCollection);
 
     // 2. Dynamically listen to any other registered departments
     StreamSubscription? deptSub;
@@ -723,13 +731,17 @@ class FirebaseEmployeeService {
         final info = entry.value;
         final email = info['email']!;
 
-        final deptAssignment = info['dept']!;
+        final isOutside = id.startsWith('EXT-');
+        final deptAssignment = isOutside ? externalSupportDept : info['dept']!;
+        final homeCollection = isOutside
+            ? _firestore.collection(externalSupportCollection)
+            : _employeeCollection;
 
         try {
-          final empDoc = await _employeeCollection.doc(id).get();
+          final empDoc = await homeCollection.doc(id).get();
           if (!empDoc.exists) {
             // New doc: Seed default values
-            await _employeeCollection.doc(id).set({
+            await homeCollection.doc(id).set({
               'id': id,
               'name': info['name'],
               'email': email,
@@ -759,8 +771,11 @@ class FirebaseEmployeeService {
                 patches['dob'] = '1999-09-18';
               }
             }
+            if (isOutside && data['dept'] != externalSupportDept) {
+              patches['dept'] = externalSupportDept;
+            }
             if (patches.isNotEmpty) {
-              await _employeeCollection.doc(id).update(patches);
+              await homeCollection.doc(id).update(patches);
             }
           }
         } catch (_) {}

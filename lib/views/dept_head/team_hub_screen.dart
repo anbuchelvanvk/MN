@@ -7,6 +7,7 @@ import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/employee_avatar.dart';
 import '../../core/widgets/export_audit_modal.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../../models/attendance_models.dart';
 import '../../models/employee_model.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../hr/hr_employee_inspection_screen.dart';
@@ -39,8 +40,34 @@ class TeamHubScreen extends StatelessWidget {
     final me = eco.currentEmployee;
     final dept = me.dept.isNotEmpty ? me.dept : 'Department';
     final members = eco.myTeamMembers;
-    final absent = members.where((m) => eco.isEmployeeAbsent(m.id)).toList();
-    final onDuty = members.length - absent.length;
+    final staff = members.where((m) => !m.isExternalSupport).toList();
+    final outside = members.where((m) => m.isExternalSupport).toList();
+    final today = eco.todayAttendanceFor(staff.map((m) => m.id));
+    final tally = eco.tallyTodayAttendance(staff);
+    final absent = staff.where((m) => today[m.id] == TodayAttendance.absent).toList();
+    final String presentValue;
+    final String presentLabel;
+    final Color presentColor;
+    if (tally.tracked == 0) {
+      presentValue = '–';
+      presentLabel = 'Attendance';
+      presentColor = TodayAttendance.notTracked.color;
+    } else if (tally.weekOff == tally.tracked) {
+      presentValue = '–';
+      presentLabel = 'Week off';
+      presentColor = TodayAttendance.weekOff.color;
+    } else if (tally.notUpdatedYet) {
+      presentValue = '–';
+      presentLabel = 'Yet to update';
+      presentColor = TodayAttendance.yetToUpdate.color;
+    } else {
+      presentValue = '${tally.present}/${tally.tracked}';
+      presentLabel = tally.yetToUpdate > 0 ? 'Present • ${tally.yetToUpdate} pending' : 'Present';
+      presentColor = TodayAttendance.present.color;
+    }
+    final absenteesHint = absent.isNotEmpty
+        ? '${absent.length} absent'
+        : (tally.yetToUpdate > 0 ? 'Yet to update' : (tally.tracked == 0 ? 'No attendance' : 'All present'));
     final teamTasks = eco.operationsDeptTasks;
     final openTasks = teamTasks.where((t) => t.isPending).length;
     final postponed = teamTasks.where((t) => t.isPostponed).length;
@@ -51,7 +78,7 @@ class TeamHubScreen extends StatelessWidget {
           () => _open(context, const TlTeamTasksScreen())),
       _Tool(Icons.schedule_rounded, 'Team Attendance', 'Daily status', const Color(0xFF059669),
           () => _open(context, const TlTeamAttendanceScreen())),
-      _Tool(Icons.person_off_rounded, 'Absentees', absent.isEmpty ? 'All present' : '${absent.length} absent',
+      _Tool(Icons.person_off_rounded, 'Absentees', absenteesHint,
           const Color(0xFFDC2626), () => _open(context, const TlAbsenteesScreen())),
       _Tool(Icons.shield_rounded, 'Blocker Tickets', 'Escalations', const Color(0xFFD97706),
           () => _open(context, const TlBlockerTicketsScreen())),
@@ -77,7 +104,9 @@ class TeamHubScreen extends StatelessWidget {
       backgroundColor: AppColors.canvas,
       appBar: MnAppBar(
         title: 'My Team',
-        subtitle: '$dept • ${members.length} members',
+        subtitle: outside.isEmpty
+            ? '$dept • ${staff.length} staff'
+            : '$dept • ${staff.length} staff • ${outside.length} outside',
         actions: [
           MnHeaderPill(
             icon: Icons.campaign_rounded,
@@ -98,18 +127,18 @@ class TeamHubScreen extends StatelessWidget {
               children: [
                 _StatCard(
                   icon: Icons.groups_rounded,
-                  value: '${members.length}',
-                  label: 'Members',
+                  value: '${staff.length}',
+                  label: 'Staff',
                   color: AppColors.primary,
                   onTap: () => _open(context, const TlTeamDirectoryScreen()),
                 ),
                 const SizedBox(width: 10),
                 _StatCard(
                   icon: Icons.how_to_reg_rounded,
-                  value: '$onDuty',
-                  label: 'On duty',
-                  color: const Color(0xFF059669),
-                  onTap: () => _open(context, const TlTeamAttendanceScreen()),
+                  value: presentValue,
+                  label: presentLabel,
+                  color: presentColor,
+                  onTap: () => _open(context, const TlAbsenteesScreen()),
                 ),
                 const SizedBox(width: 10),
                 _StatCard(
@@ -170,24 +199,42 @@ class TeamHubScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             MnSectionTitle(
-              'Team members (${members.length})',
+              'Team members (${staff.length})',
               actionLabel: members.isEmpty ? null : 'Directory',
               onAction: () => _open(context, const TlTeamDirectoryScreen()),
             ),
             const SizedBox(height: 10),
-            if (members.isEmpty)
+            if (staff.isEmpty)
               const _EmptyTeam()
             else
-              for (final m in members)
+              for (final m in staff)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: _MemberCard(
                     employee: m,
-                    absent: eco.isEmployeeAbsent(m.id),
+                    state: today[m.id] ?? TodayAttendance.notTracked,
                     openTasks: eco.tasks.where((t) => t.empId == m.id && t.isPending).length,
                     onTap: () => _open(context, HrEmployeeInspectionScreen(employee: m)),
                   ),
                 ),
+            if (outside.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              MnSectionTitle('Outside support (${outside.length})'),
+              const SizedBox(height: 6),
+              const OutsideSupportNote(),
+              const SizedBox(height: 10),
+              for (final m in outside)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _MemberCard(
+                    employee: m,
+                    state: TodayAttendance.notTracked,
+                    outsideSupport: true,
+                    openTasks: eco.tasks.where((t) => t.empId == m.id && t.isPending).length,
+                    onTap: () => _open(context, HrEmployeeInspectionScreen(employee: m)),
+                  ),
+                ),
+            ],
           ],
         ),
       ),
@@ -404,19 +451,21 @@ class _ToolTile extends StatelessWidget {
 
 class _MemberCard extends StatelessWidget {
   final Employee employee;
-  final bool absent;
+  final TodayAttendance state;
+  final bool outsideSupport;
   final int openTasks;
   final VoidCallback onTap;
   const _MemberCard({
     required this.employee,
-    required this.absent,
+    required this.state,
     required this.openTasks,
     required this.onTap,
+    this.outsideSupport = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = absent ? AppColors.ragRed : const Color(0xFF059669);
+    final statusColor = outsideSupport ? const Color(0xFF6D28D9) : state.color;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
@@ -480,7 +529,7 @@ class _MemberCard extends StatelessWidget {
                       spacing: 6,
                       runSpacing: 4,
                       children: [
-                        _chip(absent ? 'Absent' : 'On duty', statusColor),
+                        _chip(outsideSupport ? 'Outside support' : state.label, statusColor),
                         _chip(openTasks == 1 ? '1 open task' : '$openTasks open tasks', AppColors.textSecondary),
                       ],
                     ),
@@ -532,6 +581,36 @@ class _EmptyTeam extends StatelessWidget {
             'Members of your department will appear here.',
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(fontSize: 12, color: AppColors.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Explains who "outside support" people are, wherever they are listed.
+class OutsideSupportNote extends StatelessWidget {
+  const OutsideSupportNote({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFDDD6FE)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.public_rounded, size: 18, color: Color(0xFF6D28D9)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'They support the online team from outside. They are not MN Jewel Park staff, so they have no attendance or grooming, only tasks.',
+              style: GoogleFonts.outfit(fontSize: 12, height: 1.35, color: const Color(0xFF4C1D95)),
+            ),
           ),
         ],
       ),

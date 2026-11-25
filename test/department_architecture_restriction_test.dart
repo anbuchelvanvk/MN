@@ -22,8 +22,9 @@ void main() {
       expect(depts.contains('Offline'), isFalse);
       expect(depts.contains('Administration'), isFalse);
 
-      // Default registered departments must only have 2 departments
-      expect(depts.length, equals(2));
+      // Two company departments plus outside support (not MN staff)
+      expect(depts, contains('External Support Staff [Online]'));
+      expect(depts.length, equals(3));
     });
 
     test('RoleAllocationConfig.availableDepartments strictly restricted to 2 departments', () {

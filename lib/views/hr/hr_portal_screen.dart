@@ -110,11 +110,11 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
     final allEmployees = eco.employees;
     final totalStaff = allEmployees.length;
     final isTuesday = DateTime.now().weekday == DateTime.tuesday;
-    final absentStaffCount = allEmployees.where((e) => eco.isEmployeeAbsent(e.id)).length;
-    final weekOffStaffCount = isTuesday
-        ? allEmployees.where((e) => !e.isExternalSupport && !e.isCeo && !eco.isEmployeeAbsent(e.id)).length
-        : 0;
-    final presentStaffCount = isTuesday ? 0 : (totalStaff - absentStaffCount);
+    final tally = eco.tallyTodayAttendance(allEmployees);
+    final absentStaffCount = tally.absent;
+    final weekOffStaffCount = isTuesday ? tally.weekOff : 0;
+    final presentStaffCount = isTuesday ? 0 : tally.present;
+    final presentNotUpdated = !isTuesday && tally.notUpdatedYet;
 
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
@@ -425,8 +425,12 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                   const SizedBox(width: 8),
                   LiquidMetricCard(
                     label: isTuesday ? 'Week-off' : 'Present',
-                    value: isTuesday ? '$weekOffStaffCount' : '$presentStaffCount',
-                    subtitle: isTuesday ? 'Tuesday Week-off' : 'Active Today',
+                    value: isTuesday ? '$weekOffStaffCount' : (presentNotUpdated ? '–' : '$presentStaffCount'),
+                    subtitle: isTuesday
+                        ? 'Tuesday Week-off'
+                        : (presentNotUpdated
+                            ? 'Yet to update'
+                            : (tally.yetToUpdate > 0 ? '${tally.yetToUpdate} yet to update' : 'Active Today')),
                     icon: isTuesday ? Icons.weekend_outlined : Icons.badge_outlined,
                     color: isTuesday ? const Color(0xFF94A3B8) : AppColors.sandPrimary,
                     onTap: () => Navigator.push(

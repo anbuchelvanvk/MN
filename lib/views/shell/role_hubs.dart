@@ -21,6 +21,7 @@ import '../media/creative_media_review_board_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import 'role_hub_widgets.dart';
+import '../../models/attendance_models.dart';
 
 /// Shared layout for the CEO Suite and HR Desk tabs.
 class _RoleHub extends StatelessWidget {
@@ -44,7 +45,10 @@ class _RoleHub extends StatelessWidget {
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
     final staff = eco.employees.where((e) => !e.isCeo).toList();
-    final absent = staff.where((e) => eco.isEmployeeAbsent(e.id)).toList();
+    final today = eco.todayAttendanceFor(staff.map((e) => e.id));
+    final absent = staff.where((e) => today[e.id] == TodayAttendance.absent).toList();
+    final tally = eco.tallyTodayAttendance(staff);
+    final outsideCount = staff.where((e) => e.isExternalSupport).length;
     final openTasks = eco.tasks.where((t) => t.isPending).length;
     final approvals = eco.pendingSocialCauses.length + eco.pendingMediaApprovalsCount;
 
@@ -74,10 +78,14 @@ class _RoleHub extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
           children: [
             HubStatsRow(stats: [
-              HubStat(Icons.groups_rounded, '${staff.length}', 'Staff', AppColors.primary,
+              HubStat(Icons.groups_rounded, '${staff.length - outsideCount}',
+                  'Staff', AppColors.primary,
                   onTap: () => openHubScreen(context, const HrStaffDirectoryScreen())),
-              HubStat(Icons.person_off_rounded, '${absent.length}', 'Absent today',
-                  absent.isEmpty ? AppColors.ragGreen : AppColors.ragRed,
+              HubStat(Icons.person_off_rounded, tally.notUpdatedYet ? '–' : '${absent.length}',
+                  tally.notUpdatedYet ? 'Yet to update' : 'Absent today',
+                  tally.notUpdatedYet
+                      ? TodayAttendance.yetToUpdate.color
+                      : (absent.isEmpty ? AppColors.ragGreen : AppColors.ragRed),
                   onTap: () => openHubScreen(context, const HrAttendanceScreen())),
               HubStat(Icons.pending_actions_rounded, '$openTasks', 'Open tasks', const Color(0xFFD97706),
                   onTap: () => openHubScreen(context, const HrStaffTasksScreen())),
@@ -127,7 +135,11 @@ class _RoleHub extends StatelessWidget {
             HubToolGrid(tools: tools(context, eco)),
             const SizedBox(height: 24),
             MnSectionTitle(
-              absent.isEmpty ? 'Everyone is in today' : 'Away today (${absent.length})',
+              absent.isNotEmpty
+                  ? 'Away today (${absent.length})'
+                  : (tally.yetToUpdate > 0
+                      ? "Today's attendance: yet to update"
+                      : (tally.tracked == 0 ? 'Attendance' : 'Everyone is in today')),
               actionLabel: 'Attendance',
               onAction: () => openHubScreen(context, const HrAttendanceScreen()),
             ),

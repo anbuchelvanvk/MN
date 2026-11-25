@@ -1716,36 +1716,38 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     final dateStr = '${now.day} ${months[now.month - 1]}';
 
     final allSummaries = eco.allEmployeesTodayAttendance;
-    final onDutyEmps = eco.employees.where((e) {
+    // Outside support is not MN Jewel Park staff and has no attendance.
+    final attendanceStaff = eco.employees.where((e) => !e.isExternalSupport).toList();
+    final onDutyEmps = attendanceStaff.where((e) {
       final matches = allSummaries.where((x) => x.employeeId == e.id);
       if (matches.isEmpty) return false;
       return matches.first.isCurrentlyOnDuty;
     }).toList();
-    final shiftOverEmps = eco.employees.where((e) {
+    final shiftOverEmps = attendanceStaff.where((e) {
       final matches = allSummaries.where((x) => x.employeeId == e.id);
       if (matches.isEmpty) return false;
       final s = matches.first;
       return !s.isCurrentlyOnDuty && s.isPresent;
     }).toList();
-    final absentEmps = eco.employees.where((e) {
+    final absentEmps = attendanceStaff.where((e) {
       final isManuallyAbsent = eco.isEmployeeAbsent(e.id);
       final matches = allSummaries.where((x) => x.employeeId == e.id);
       final isAbsentStatus = matches.isNotEmpty && matches.first.status == DailyAttendanceStatus.absent;
       return isManuallyAbsent || isAbsentStatus;
     }).toList();
-    final weekOffEmps = eco.employees.where((e) {
+    final weekOffEmps = attendanceStaff.where((e) {
       final matches = allSummaries.where((x) => x.employeeId == e.id);
       return matches.isNotEmpty && matches.first.status == DailyAttendanceStatus.weekOff;
     }).toList();
-    final yetToUpdateEmps = eco.employees.where((e) {
+    final yetToUpdateEmps = attendanceStaff.where((e) {
       final matches = allSummaries.where((x) => x.employeeId == e.id);
       return matches.isNotEmpty && matches.first.status == DailyAttendanceStatus.yetToUpdate;
     }).toList();
-    final totalStaff = eco.employees.length;
+    final totalStaff = attendanceStaff.length;
 
     List<Employee> displayedList;
     if (_attendanceFilter == 'present') {
-      displayedList = eco.employees.where((e) => !eco.isEmployeeAbsent(e.id)).toList();
+      displayedList = attendanceStaff.where((e) => eco.todayAttendanceOf(e.id) == TodayAttendance.present || !e.hasAttendanceAndGrooming).toList();
     } else if (_attendanceFilter == 'on_duty') {
       displayedList = onDutyEmps;
     } else if (_attendanceFilter == 'week_off') {
@@ -1757,7 +1759,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
     } else if (_attendanceFilter == 'absent') {
       displayedList = absentEmps;
     } else {
-      displayedList = eco.employees;
+      displayedList = attendanceStaff;
     }
 
     final isPresentActive = _isAttendanceExpanded && (_attendanceFilter == 'present' || _attendanceFilter == 'on_duty');
@@ -2909,7 +2911,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
   Widget _buildBiometricAttendanceTab(BuildContext context, EcosystemProvider eco) {
     final summaries = eco.allEmployeesTodayAttendance;
     final total = summaries.length;
-    final presentCount = summaries.where((s) => !eco.isEmployeeAbsent(s.employeeId)).length;
+    final presentCount = summaries.where((s) => !eco.isEmployeeAbsent(s.employeeId) && s.status != DailyAttendanceStatus.yetToUpdate && s.status != DailyAttendanceStatus.weekOff).length;
     final absentCount = summaries.where((s) => eco.isEmployeeAbsent(s.employeeId)).length;
     final onTimeCount = summaries.where((s) => s.status == DailyAttendanceStatus.presentOnTime).length;
     final lateCount = summaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
@@ -2917,7 +2919,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
 
     List<EmployeeDailyAttendanceSummary> filteredSummaries = summaries;
     if (_attendanceTabFilter == 'present') {
-      filteredSummaries = summaries.where((s) => !eco.isEmployeeAbsent(s.employeeId)).toList();
+      filteredSummaries = summaries.where((s) => !eco.isEmployeeAbsent(s.employeeId) && s.status != DailyAttendanceStatus.yetToUpdate && s.status != DailyAttendanceStatus.weekOff).toList();
     } else if (_attendanceTabFilter == 'absent') {
       filteredSummaries = summaries.where((s) => eco.isEmployeeAbsent(s.employeeId)).toList();
       if (filteredSummaries.length > 1) {

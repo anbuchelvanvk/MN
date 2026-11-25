@@ -13,6 +13,7 @@ import '../dept_head/dept_head_subpages.dart';
 import '../employee/employee_subpages.dart';
 import 'tier_pillar_screen.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../../models/attendance_models.dart';
 
 class ProfilePillarScreen extends StatefulWidget {
   const ProfilePillarScreen({super.key});
@@ -393,7 +394,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   e.id != employee.id &&
                   e.hasAttendanceAndGrooming).toList();
               final deptTotal = deptTeam.length;
-              final deptPresent = isTuesday ? 0 : deptTeam.where((e) => !provider.isEmployeeAbsent(e.id)).length;
+              final deptTally = provider.tallyTodayAttendance(deptTeam);
+              final deptPresent = isTuesday ? 0 : deptTally.present;
+              final deptNotUpdated = !isTuesday && deptTally.notUpdatedYet;
               final deptDocs = deptTeam.expand((e) => provider.getEmployeeDocuments(e.id)).toList();
               final deptSubmittedDocs = deptDocs.where((d) => d.status == DocumentSubmissionStatus.submitted).length;
               final deptTotalDocs = deptDocs.length;
@@ -420,7 +423,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                           : (provider.workingDaysAttended == 0 ? const Color(0xFF94A3B8) : (provider.monthlyAttendancePercentage >= 90.0 ? AppColors.ragGreen : const Color(0xFFF59E0B))),
                       icon: Icons.fact_check_outlined,
                       statusText: isLead
-                          ? (isTuesday ? 'Tuesday Week-off' : (deptTotal > 0 ? '$deptPresent Present' : 'All Set'))
+                          ? (isTuesday
+                              ? 'Tuesday Week-off'
+                              : (deptNotUpdated ? 'Yet to update' : (deptTotal > 0 ? '$deptPresent Present' : 'All Set')))
                           : (provider.workingDaysAttended == 0 ? 'No Punches' : '${provider.monthlyAttendancePercentage.toStringAsFixed(1)}% Ratio'),
                     ),
                   ),
@@ -2814,8 +2819,9 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     }
 
     final isTuesday = DateTime.now().weekday == DateTime.tuesday;
-    final presentTotal = isTuesday ? 0 : corporateStaff.where((e) => !provider.isEmployeeAbsent(e.id)).length;
-    final absentTotal = corporateStaff.where((e) => provider.isEmployeeAbsent(e.id)).length;
+    final staffTally = provider.tallyTodayAttendance(corporateStaff);
+    final presentTotal = isTuesday ? 0 : staffTally.present;
+    final absentTotal = staffTally.absent;
     final weekOffTotal = isTuesday ? corporateStaff.length : 0;
 
     return Column(
@@ -2902,8 +2908,8 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _miniKpiBox(
-                      label: isTuesday ? 'WEEK OFF' : 'ON DUTY',
-                      value: isTuesday ? '$weekOffTotal' : '$presentTotal',
+                      label: isTuesday ? 'WEEK OFF' : (staffTally.notUpdatedYet ? 'YET TO UPDATE' : 'PRESENT'),
+                      value: isTuesday ? '$weekOffTotal' : (staffTally.notUpdatedYet ? '–' : '$presentTotal'),
                       color: isTuesday ? const Color(0xFF94A3B8) : const Color(0xFF10B981),
                     ),
                   ),
@@ -2958,10 +2964,11 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (ctx, idx) {
               final emp = corporateStaff[idx];
-              final isAbsent = provider.isEmployeeAbsent(emp.id);
-              final isEmpWeekOff = isTuesday && !emp.isExternalSupport && !emp.isCeo;
-              final statusText = isAbsent ? 'ABSENT' : (isEmpWeekOff ? 'WEEK OFF' : 'ON DUTY');
-              final statusColor = isAbsent ? const Color(0xFFEF4444) : (isEmpWeekOff ? const Color(0xFF94A3B8) : const Color(0xFF10B981));
+              final state = provider.todayAttendanceOf(emp.id);
+              final statusText = emp.isExternalSupport
+                  ? 'OUTSIDE SUPPORT'
+                  : (state == TodayAttendance.notTracked ? 'NO ATTENDANCE' : state.label.toUpperCase());
+              final statusColor = emp.isExternalSupport ? const Color(0xFF6D28D9) : state.color;
 
               return Container(
                 padding: const EdgeInsets.all(12),

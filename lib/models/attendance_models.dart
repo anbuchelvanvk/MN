@@ -172,6 +172,57 @@ enum DailyAttendanceStatus {
   yetToUpdate,   // Attendance for the day is not yet updated in HR sheet (Yellow)
 }
 
+/// Today's attendance for one person, as shown on team pages.
+enum TodayAttendance { present, absent, yetToUpdate, weekOff, notTracked }
+
+extension TodayAttendanceText on TodayAttendance {
+  String get label => switch (this) {
+        TodayAttendance.present => 'Present',
+        TodayAttendance.absent => 'Absent',
+        TodayAttendance.yetToUpdate => 'Yet to update',
+        TodayAttendance.weekOff => 'Week off',
+        TodayAttendance.notTracked => 'No attendance',
+      };
+
+  Color get color => switch (this) {
+        TodayAttendance.present => const Color(0xFF059669),
+        TodayAttendance.absent => const Color(0xFFDC2626),
+        TodayAttendance.yetToUpdate => const Color(0xFFD97706),
+        TodayAttendance.weekOff => const Color(0xFF94A3B8),
+        TodayAttendance.notTracked => const Color(0xFF64748B),
+      };
+}
+
+/// Counts for a group of people (people without attendance are [notTracked]).
+class AttendanceTally {
+  final int present;
+  final int absent;
+  final int yetToUpdate;
+  final int weekOff;
+  final int notTracked;
+  const AttendanceTally({
+    this.present = 0,
+    this.absent = 0,
+    this.yetToUpdate = 0,
+    this.weekOff = 0,
+    this.notTracked = 0,
+  });
+
+  /// People whose attendance is tracked.
+  int get tracked => present + absent + yetToUpdate + weekOff;
+
+  /// True when nobody's attendance has been entered for today yet.
+  bool get notUpdatedYet => tracked > 0 && yetToUpdate == tracked;
+
+  /// Short headline for a team, e.g. "3/4 present", "Yet to update".
+  String get headline {
+    if (tracked == 0) return 'No attendance';
+    if (weekOff == tracked) return 'Week off';
+    if (notUpdatedYet) return 'Yet to update';
+    return '$present/$tracked present';
+  }
+}
+
 /// eSSL Hardware Device Live Configuration & State
 class EsslDeviceConfig {
   final String deviceIp;

@@ -1871,34 +1871,8 @@ class EcosystemProvider extends ChangeNotifier {
         continue;
       }
 
-      // External Support Staff work on online deliverables
-      if (emp.isExternalSupport) {
-        summaries.add(
-          EmployeeDailyAttendanceSummary(
-            employeeId: emp.id,
-            employeeName: emp.name,
-            department: emp.dept,
-            role: emp.role,
-            avatar: emp.avatar,
-            initials: emp.initials,
-            loginPunch: null,
-            logoutPunch: null,
-            lunchOutPunch: null,
-            lunchInPunch: null,
-            isPresent: true,
-            isOnTime: true,
-            isCurrentlyOnLunch: false,
-            isCurrentlyOnDuty:
-                false, // External support staff work on online tasks, NOT retail showroom floor
-            lunchDurationMinutes: 0,
-            netWorkHours: isShopClosed ? 0.0 : 8.0,
-            status: isShopClosed
-                ? DailyAttendanceStatus.completed
-                : DailyAttendanceStatus.presentOnTime,
-          ),
-        );
-        continue;
-      }
+      // Outside support is not MN Jewel Park staff: no attendance at all.
+      if (emp.isExternalSupport) continue;
 
       // Showroom Staff: If Tuesday (store weekly off), marked as week-off unless absent
       final isTuesday = now.weekday == DateTime.tuesday;
@@ -1930,34 +1904,8 @@ class EcosystemProvider extends ChangeNotifier {
         continue;
       }
 
-      // Showroom Staff: If past 9:00 PM (or before 9:00 AM), shop is closed -> Off Duty
-      if (isShopClosed) {
-        final isAbsent = isEmployeeAbsent(emp.id);
-        summaries.add(
-          EmployeeDailyAttendanceSummary(
-            employeeId: emp.id,
-            employeeName: emp.name,
-            department: emp.dept,
-            role: emp.role,
-            avatar: emp.avatar,
-            initials: emp.initials,
-            loginPunch: null,
-            logoutPunch: null,
-            lunchOutPunch: null,
-            lunchInPunch: null,
-            isPresent: !isAbsent,
-            isOnTime: false,
-            isCurrentlyOnLunch: false,
-            isCurrentlyOnDuty: false,
-            lunchDurationMinutes: 0,
-            netWorkHours: 0,
-            status: isAbsent
-                ? DailyAttendanceStatus.absent
-                : DailyAttendanceStatus.completed,
-          ),
-        );
-        continue;
-      }
+      // After hours the day is judged the same way (punches, then the HR
+      // sheet); a day HR has not filled in stays "Yet to update".
 
       final empPunches = _attendancePunches
           .where(
@@ -3327,7 +3275,7 @@ class EcosystemProvider extends ChangeNotifier {
     'HR & Administration',
   ];
   List<String> get availableDepartments {
-    final set = <String>{'Online Department', 'HR & Administration'};
+    final set = <String>{'Online Department', 'HR & Administration', 'External Support Staff [Online]'};
     set.addAll(_registeredDepartments);
     set.removeWhere((d) {
       final lower = d.trim().toLowerCase();
@@ -3692,20 +3640,7 @@ class EcosystemProvider extends ChangeNotifier {
           return isLeaveOrAbsent;
         }
 
-        // Check latest recorded day up to today
-        final latestDay = sheet.latestRecordedDay;
-        final latestRec = row.days[latestDay];
-        if (latestRec != null &&
-            latestRec.type != HrAttendanceDayType.pendingUpdate) {
-          if (latestRec.type == HrAttendanceDayType.holiday && isTuesday) {
-            return false;
-          }
-          final isLeaveOrAbsent =
-              latestRec.type == HrAttendanceDayType.leaveCl ||
-              latestRec.type == HrAttendanceDayType.leaveLop;
-          return isLeaveOrAbsent;
-        }
-
+        // Today is not in the sheet yet: not absent, just not updated.
         // Active staff recorded on Google Sheets are on-duty by default
         return false;
       }
@@ -3713,6 +3648,53 @@ class EcosystemProvider extends ChangeNotifier {
 
     // Active corporate staff are on-duty unless marked absent in ledger or manually toggled in _absentEmployeeIds
     return false;
+  }
+
+  /// Today's attendance for one person, in the words the team pages use.
+  /// People without attendance (CEO, team leads, outside support) are
+  /// [TodayAttendance.notTracked]; a day HR has not filled in yet is
+  /// [TodayAttendance.yetToUpdate], never "present".
+  TodayAttendance todayAttendanceOf(String empId) =>
+      todayAttendanceFor([empId])[empId] ?? TodayAttendance.notTracked;
+
+  Map<String, TodayAttendance> todayAttendanceFor(Iterable<String> empIds) {
+    final ids = empIds.toSet();
+    final summaries = {
+      for (final s in allEmployeesTodayAttendance)
+        if (ids.contains(s.employeeId)) s.employeeId: s,
+    };
+    final result = <String, TodayAttendance>{};
+    for (final id in ids) {
+      final emp = _employees.firstWhereOrNull((e) => e.id == id || e.empNo == id);
+      if (emp == null || !emp.hasAttendanceAndGrooming) {
+        result[id] = TodayAttendance.notTracked;
+        continue;
+      }
+      final summary = summaries[emp.id];
+      if (isEmployeeAbsent(emp.id) || summary?.status == DailyAttendanceStatus.absent) {
+        result[id] = TodayAttendance.absent;
+      } else if (summary == null || summary.status == DailyAttendanceStatus.yetToUpdate) {
+        result[id] = TodayAttendance.yetToUpdate;
+      } else if (summary.status == DailyAttendanceStatus.weekOff) {
+        result[id] = TodayAttendance.weekOff;
+      } else {
+        result[id] = TodayAttendance.present;
+      }
+    }
+    return result;
+  }
+
+  /// Present / absent / not-updated counts for a group of people.
+  AttendanceTally tallyTodayAttendance(Iterable<Employee> people) {
+    final map = todayAttendanceFor(people.map((e) => e.id));
+    int count(TodayAttendance t) => map.values.where((v) => v == t).length;
+    return AttendanceTally(
+      present: count(TodayAttendance.present),
+      absent: count(TodayAttendance.absent),
+      yetToUpdate: count(TodayAttendance.yetToUpdate),
+      weekOff: count(TodayAttendance.weekOff),
+      notTracked: count(TodayAttendance.notTracked),
+    );
   }
 
   /// Returns true if employee is logged in / clocked in and currently on duty (has not marked shift over)
@@ -8121,7 +8103,9 @@ class EcosystemProvider extends ChangeNotifier {
 
     final prefix = roleType == 'hr'
         ? 'MN-HR'
-        : (roleType == 'team_lead' ? 'MN-TL' : 'MN-');
+        : (roleType == 'team_lead'
+            ? 'MN-TL'
+            : (roleType == 'external_support' ? 'EXT-' : 'MN-'));
     final defaultId = '$prefix${1000 + _employees.length}';
     final idToUse = (customEmpId != null && customEmpId.trim().isNotEmpty)
         ? customEmpId.trim()

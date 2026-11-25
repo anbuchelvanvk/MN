@@ -590,7 +590,10 @@ class Employee {
     if (rt == 'hr' || id == '7' || id == 'MN-HR1001' || r.contains('hr')) return 'HR Manager';
     if (rt == 'team_lead' || rt == 'dept_head' || id == 'MN-TL1002' || r.contains('lead')) return 'Team Lead';
     if (isExternalSupport) {
-      if (r.contains('vpe') || r.contains('videographer')) return 'Lead Videographer & Editor (VPE)';
+      if (r.contains('vpe') || r.contains('videographer') || r.contains('photographer') || r.contains('video editor')) {
+        return 'Chief Photographer & Video Editor (VPE)';
+      }
+      if (r.contains('e-commerce') || r.contains('ecommerce') || r.contains('ece')) return 'E-Commerce Executive (ECE)';
       if (r.contains('ac') || r.contains('analytical')) return 'Online Analytical Consultant (AC)';
       if (r.contains('oss') || r.contains('strategist')) return 'Online Support & Strategist (OSS)';
       if (r.contains('dvp') || r.contains('developer')) return 'Developer (DVP)';

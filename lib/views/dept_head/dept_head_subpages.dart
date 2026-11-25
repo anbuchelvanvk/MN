@@ -477,16 +477,24 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
     final eco = context.watch<EcosystemProvider>();
     final isTuesday = DateTime.now().weekday == DateTime.tuesday;
     final teamMembers = eco.myTeamMembers.where((e) => e.hasAttendanceAndGrooming).toList();
-    final teamAbsentees = teamMembers.where((e) => eco.isEmployeeAbsent(e.id)).toList();
-    final subtitleText = isTuesday
-        ? 'Tuesday Week-off • ${teamMembers.length} Total Team'
-        : '${teamAbsentees.length} Absent Today • ${teamMembers.length} Total Team';
-    final pillLabel = isTuesday
-        ? '${teamMembers.length} Week-off'
-        : '${teamMembers.length - teamAbsentees.length}/${teamMembers.length} Present';
-    final pillColor = isTuesday
-        ? const Color(0xFF94A3B8)
-        : (teamAbsentees.isEmpty ? AppColors.ragGreen : AppColors.ragYellow);
+    final today = eco.todayAttendanceFor(teamMembers.map((e) => e.id));
+    final tally = eco.tallyTodayAttendance(teamMembers);
+    final teamAbsentees = teamMembers.where((e) => today[e.id] == TodayAttendance.absent).toList();
+    final String subtitleText;
+    if (isTuesday) {
+      subtitleText = 'Tuesday Week-off • ${teamMembers.length} Total Team';
+    } else if (tally.notUpdatedYet) {
+      subtitleText = 'Yet to update • ${teamMembers.length} Total Team';
+    } else {
+      subtitleText = '${teamAbsentees.length} Absent Today • ${teamMembers.length} Total Team'
+          '${tally.yetToUpdate > 0 ? ' • ${tally.yetToUpdate} yet to update' : ''}';
+    }
+    final pillLabel = isTuesday ? '${teamMembers.length} Week-off' : tally.headline;
+    final pillColor = isTuesday || tally.weekOff == tally.tracked
+        ? TodayAttendance.weekOff.color
+        : (tally.yetToUpdate > 0
+            ? TodayAttendance.yetToUpdate.color
+            : (teamAbsentees.isEmpty ? AppColors.ragGreen : AppColors.ragYellow));
 
     return TlSubpageScaffold(
       title: 'Absentees & Shift Hub',
@@ -511,7 +519,7 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Team Attendance Roster',
+                              "Today's roster",
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDark),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -536,7 +544,8 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                 const SizedBox(height: 12),
 
                 ...teamMembers.map((emp) {
-                  final isAbsent = eco.isEmployeeAbsent(emp.id);
+                  final state = today[emp.id] ?? TodayAttendance.yetToUpdate;
+                  final isAbsent = state == TodayAttendance.absent;
                   final summary = eco.allEmployeesTodayAttendance.firstWhere(
                     (s) => s.employeeId == emp.id,
                     orElse: () => EmployeeDailyAttendanceSummary(
@@ -546,13 +555,13 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
                       role: emp.role,
                       avatar: emp.avatar,
                       initials: emp.initials,
-                      isPresent: !isAbsent,
+                      isPresent: false,
                       isOnTime: false,
                       isCurrentlyOnLunch: false,
-                      isCurrentlyOnDuty: !isAbsent,
+                      isCurrentlyOnDuty: false,
                       lunchDurationMinutes: 0,
                       netWorkHours: 0.0,
-                      status: isAbsent ? DailyAttendanceStatus.absent : DailyAttendanceStatus.onDuty,
+                      status: isAbsent ? DailyAttendanceStatus.absent : DailyAttendanceStatus.yetToUpdate,
                     ),
                   );
 
@@ -702,17 +711,27 @@ class _TlAbsenteesScreenState extends State<TlAbsenteesScreen> {
             LiquidGlassCard(
               borderRadius: 14,
               padding: const EdgeInsets.all(16),
-              child: const Center(
+              child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.verified, color: AppColors.ragGreen, size: 30),
-                    SizedBox(height: 6),
-                    Text('All Team Present on Duty', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-                    SizedBox(height: 3),
+                    Icon(
+                      tally.yetToUpdate > 0 ? Icons.schedule_rounded : Icons.verified,
+                      color: tally.yetToUpdate > 0 ? TodayAttendance.yetToUpdate.color : AppColors.ragGreen,
+                      size: 30,
+                    ),
+                    const SizedBox(height: 6),
                     Text(
-                      'All online team members checked in. Use the button above to reallocate tasks for any staff member.',
+                      tally.yetToUpdate > 0 ? "Today's attendance is yet to update" : 'All Team Present on Duty',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      tally.yetToUpdate > 0
+                          ? 'HR has not entered today for ${tally.yetToUpdate} of ${tally.tracked} people yet. No one is marked absent so far.'
+                          : 'All online team members checked in. Use the button above to reallocate tasks for any staff member.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -1033,17 +1052,30 @@ class TlTeamDirectoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final teamMembers = eco.myTeamMembers;
+    // MN Jewel Park staff first, outside support after them.
+    final teamMembers = [
+      ...eco.myTeamMembers.where((e) => !e.isExternalSupport),
+      ...eco.myTeamMembers.where((e) => e.isExternalSupport),
+    ];
+    final outsideCount = teamMembers.where((e) => e.isExternalSupport).length;
+    final today = eco.todayAttendanceFor(teamMembers.map((e) => e.id));
 
     final deptName = eco.currentEmployee.dept.isNotEmpty ? eco.currentEmployee.dept : 'Department';
     return TlSubpageScaffold(
       title: 'Team Directory',
-      subtitle: '${teamMembers.length} Members in $deptName',
+      subtitle: outsideCount > 0
+          ? '${teamMembers.length - outsideCount} staff + $outsideCount outside support'
+          : '${teamMembers.length} Members in $deptName',
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...teamMembers.map((emp) {
-            final isAbsent = eco.isEmployeeAbsent(emp.id);
+            final state = today[emp.id] ?? TodayAttendance.notTracked;
+            final isAbsent = state == TodayAttendance.absent;
+            final badgeText = emp.isExternalSupport
+                ? 'OUTSIDE SUPPORT'
+                : (state == TodayAttendance.notTracked ? 'NO ATTENDANCE' : state.label.toUpperCase());
+            final badgeColor = emp.isExternalSupport ? const Color(0xFF6D28D9) : state.color;
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               child: LiquidGlassCard(
@@ -1080,18 +1112,16 @@ class TlTeamDirectoryScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: isAbsent ? const Color(0xFFFFF1F4) : const Color(0xFFECFDF5),
+                                  color: badgeColor.withOpacity(0.08),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: isAbsent ? const Color(0xFFFECDD3) : const Color(0xFFA7F3D0),
-                                  ),
+                                  border: Border.all(color: badgeColor.withOpacity(0.35)),
                                 ),
                                 child: Text(
-                                  isAbsent ? 'ABSENT' : 'ON DUTY',
+                                  badgeText,
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: isAbsent ? const Color(0xFFE11D48) : const Color(0xFF059669),
+                                    color: badgeColor,
                                   ),
                                 ),
                               ),

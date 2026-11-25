@@ -1727,7 +1727,7 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
     final eco = context.watch<EcosystemProvider>();
     final summaries = eco.allEmployeesTodayAttendance;
     final total = summaries.length;
-    final presentCount = summaries.where((s) => !eco.isEmployeeAbsent(s.employeeId)).length;
+    final presentCount = summaries.where((s) => !eco.isEmployeeAbsent(s.employeeId) && s.status != DailyAttendanceStatus.yetToUpdate && s.status != DailyAttendanceStatus.weekOff).length;
     final absentCount = summaries.where((s) => eco.isEmployeeAbsent(s.employeeId)).length;
     final onTimeCount = summaries.where((s) => s.status == DailyAttendanceStatus.presentOnTime).length;
     final lateCount = summaries.where((s) => s.status == DailyAttendanceStatus.lateLogin).length;
