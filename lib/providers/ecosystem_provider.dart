@@ -8174,7 +8174,8 @@ class EcosystemProvider extends ChangeNotifier {
       status: 'active',
       ragStatus: 'green',
       lastActive: 'Just registered',
-      password: effectivePassword,
+      // Passwords live only in Firebase Authentication, never on the profile.
+      password: '',
       dob: dob.isNotEmpty ? dob : '01-01-2000',
       gender: gender.isNotEmpty ? gender : 'Male',
     );

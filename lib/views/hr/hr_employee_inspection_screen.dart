@@ -48,7 +48,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
     final totalDocsCount = docs.length;
     final submissionPercent = totalDocsCount == 0 ? 0 : ((submittedDocsCount / totalDocsCount) * 100).toInt();
 
-    final empPassword = emp.password;
+    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored — reset via Password Requests';
     final isTargetCeo = emp.roleType.toLowerCase() == 'ceo' || emp.id.toUpperCase() == 'MN-CEO01';
 
     // Real Attendance Calculations from Past 1-Week Ledger (Full Calendar Days)

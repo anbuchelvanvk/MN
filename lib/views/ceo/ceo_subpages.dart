@@ -1306,7 +1306,7 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
 
   Widget _buildCeoStaffCard(BuildContext context, EcosystemProvider eco, Employee emp) {
     final isPasswordRevealed = _revealedPasswords[emp.id] ?? false;
-    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored (use Send Reset Link)';
+    final empPassword = emp.password.isNotEmpty ? emp.password : 'Not stored — reset via Password Requests';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
