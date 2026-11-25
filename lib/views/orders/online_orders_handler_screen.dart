@@ -905,12 +905,7 @@ class _OnlineOrdersHandlerScreenState extends State<OnlineOrdersHandlerScreen> {
                               label: 'Notify TL',
                               textColor: Colors.white,
                               onPressed: () {
-                                eco.postBroadcastNotification(
-                                  title: 'Reassignment Request: Order #${order.orderId}',
-                                  content: '${eco.currentEmployee.name} requested TL Praveenkumar to reassign ${order.brand} Order #${order.orderId} due to staff absence.',
-                                  senderName: eco.currentEmployee.name,
-                                  senderRole: eco.currentEmployee.role,
-                                );
+                                eco.requestOrderReassignment(order);
                               },
                             ),
                           ),

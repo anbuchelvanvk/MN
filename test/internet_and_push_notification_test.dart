@@ -60,10 +60,12 @@ void main() {
         senderRole: 'Managing Director & CEO',
       );
 
-      expect(PushNotificationService.testNotificationLog.isNotEmpty, isTrue);
-      final lastPush = PushNotificationService.testNotificationLog.last;
-      expect(lastPush['title'], 'Emergency Store Meeting at 06:00 PM');
-      expect(lastPush['body'], 'All showroom and online staff mandatory attendance.');
+      // Saved as a company notice for every phone (the sender's own phone
+      // does not ring; everyone else's phone shows it from the live feed).
+      final notice = eco.companyNotifications.first;
+      expect(notice.title, 'Emergency Store Meeting at 06:00 PM');
+      expect(notice.content, 'All showroom and online staff mandatory attendance.');
+      expect(notice.isTargetedFor('MN-1007'), isTrue);
     });
 
     test('To-Do Reminder notification pushes to phone', () async {

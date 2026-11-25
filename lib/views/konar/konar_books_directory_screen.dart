@@ -255,29 +255,12 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
                           error = null;
                           saving = true;
                         });
-                        final me = eco.currentEmployee;
-                        final slug = dept.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_').replaceAll(RegExp(r'^_+|_+$'), '');
-                        final code = dept
-                            .split(RegExp(r'\s+'))
-                            .where((w) => w.isNotEmpty && w != '&')
-                            .map((w) => w[0].toUpperCase())
-                            .join();
-                        final book = KonarBookModel(
-                          id: slug,
-                          department: dept,
-                          departmentCode: code.isEmpty ? 'DEPT' : code,
-                          title: titleCtrl.text.trim(),
-                          description: descCtrl.text.trim(),
-                          version: 'v1.0',
-                          lastUpdated: DateTime.now(),
-                          updatedByName: me.name,
-                          updatedByRole: me.role,
-                          updatedByEmpId: me.id,
-                          sections: const [],
-                          attachmentFileName: '${slug}_KONAR_Book.pdf',
-                        );
                         try {
-                          await eco.updateKonarBook(book, updaterName: me.name, updaterRole: me.role, updaterEmpId: me.id);
+                          await eco.createKonarBookForDepartment(
+                            dept: dept,
+                            title: titleCtrl.text,
+                            description: descCtrl.text,
+                          );
                         } catch (_) {
                           setSheet(() {
                             saving = false;

@@ -1363,6 +1363,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     // The CEO looks after every department's book.
     final allBooks = eco.isCeo || eco.activeRole.toLowerCase() == 'ceo';
     final bookCount = eco.konarBooks.length;
+    final missing = !allBooks && eco.konarBookForDept(eco.currentEmployee.dept) == null;
     void openBook() => Navigator.push(
           context,
           MaterialPageRoute(
@@ -1441,7 +1442,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     Text(
                       allBooks
                           ? '$bookCount department${bookCount == 1 ? '' : 's'} • view, add and manage'
-                          : 'Your department handbook • tap to open',
+                          : (missing ? 'Not uploaded yet • tap for details' : 'Your department handbook • tap to open'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFFFFD6E5)),
@@ -1450,8 +1451,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 ),
               ),
               const SizedBox(width: 8),
-              if (allBooks)
-                roundAction(Icons.arrow_forward_rounded, 'Open all books', openBook)
+              if (allBooks || missing)
+                roundAction(Icons.arrow_forward_rounded, allBooks ? 'Open all books' : 'Details', openBook)
               else ...[
                 roundAction(Icons.file_download_outlined, 'Download PDF',
                     () => _downloadKonarBook(context, eco, share: false)),

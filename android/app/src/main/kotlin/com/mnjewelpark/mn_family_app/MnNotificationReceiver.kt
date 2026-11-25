@@ -193,8 +193,24 @@ class MnNotificationReceiver : BroadcastReceiver() {
                     val title = fields.optJSONObject("title")?.optString("stringValue", "MN Family Alert") ?: "MN Family Alert"
                     val content = fields.optJSONObject("content")?.optString("stringValue", "") ?: ""
                     val targetEmpId = fields.optJSONObject("targetEmpId")?.optString("stringValue", "") ?: ""
+                    // A notice with a target list is only for the people on it.
+                    val targetList = mutableListOf<String>()
+                    val listValues = fields.optJSONObject("targetEmpIds")
+                        ?.optJSONObject("arrayValue")
+                        ?.optJSONArray("values")
+                    if (listValues != null) {
+                        for (j in 0 until listValues.length()) {
+                            val v = listValues.optJSONObject(j)?.optString("stringValue", "") ?: ""
+                            if (v.isNotEmpty()) targetList.add(v)
+                        }
+                    }
+                    val isForMe = if (targetList.isNotEmpty()) {
+                        targetList.any { it.equals(activeEmpId, ignoreCase = true) }
+                    } else {
+                        targetEmpId.isEmpty() || targetEmpId.equals(activeEmpId, ignoreCase = true)
+                    }
 
-                    if (targetEmpId.isEmpty() || targetEmpId.equals(activeEmpId, ignoreCase = true)) {
+                    if (isForMe) {
                         if (content.isNotEmpty()) {
                             showNativeNotification(context, docId, ALERT_CHANNEL_ID, title, content, "company_notif:$docId")
                         }

@@ -33,6 +33,10 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
+    // This department has no book yet: say so instead of showing another team's.
+    if (eco.konarBookForDept(widget.department) == null) {
+      return _NotUploadedYet(department: widget.department);
+    }
     final rawBook = eco.konarBooks.firstWhere(
       (b) => b.department.toLowerCase() == widget.department.toLowerCase(),
       orElse: () => eco.onlineDeptKonarBook,
@@ -999,6 +1003,87 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+
+/// Shown when a department has no Konar Book yet.
+class _NotUploadedYet extends StatefulWidget {
+  final String department;
+  const _NotUploadedYet({required this.department});
+
+  @override
+  State<_NotUploadedYet> createState() => _NotUploadedYetState();
+}
+
+class _NotUploadedYetState extends State<_NotUploadedYet> {
+  bool _creating = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.watch<EcosystemProvider>();
+    final dept = widget.department.trim().isEmpty ? 'your department' : widget.department.trim();
+    final canCreate = eco.canCreateKonarBookFor(widget.department);
+    return Scaffold(
+      backgroundColor: AppColors.canvas,
+      appBar: MnAppBar(title: 'Konar Book', subtitle: dept),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 84,
+                height: 84,
+                decoration: const BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
+                child: const Icon(Icons.menu_book_rounded, size: 40, color: AppColors.primary),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Not uploaded yet',
+                style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.midnight),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Konar book for your department $dept, has to be uploaded by your TL or CEO. '
+                "You'll be notified once it is added.",
+                key: const Key('konar_not_uploaded'),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(fontSize: 14, color: AppColors.textSecondary, height: 1.45),
+              ),
+              if (canCreate) ...[
+                const SizedBox(height: 22),
+                FilledButton.icon(
+                  icon: _creating
+                      ? const SizedBox(
+                          width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.add_rounded),
+                  label: Text(_creating ? 'Creating…' : 'Start this Konar Book'),
+                  onPressed: _creating
+                      ? null
+                      : () async {
+                          setState(() => _creating = true);
+                          final messenger = ScaffoldMessenger.of(context);
+                          try {
+                            await eco.createKonarBookForDepartment(dept: widget.department);
+                          } catch (_) {
+                            if (mounted) {
+                              messenger.showSnackBar(
+                                const SnackBar(content: Text('Could not create it. Check the internet and try again.')),
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => _creating = false);
+                          }
+                        },
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

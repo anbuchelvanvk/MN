@@ -3364,8 +3364,15 @@ class EcosystemProvider extends ChangeNotifier {
         curDept.contains('operation');
     return _employees.where((e) {
       if (e.isCeo || e.isHr || e.id == me.id) return false;
-      if (wholeOnlineTeam || curDept.isEmpty) return true;
-      return e.dept.trim().toLowerCase() == curDept;
+      final d = e.dept.trim().toLowerCase();
+      // The online team lead leads the online team (incl. its Sales, Media,
+      // Technology sub-teams) and its outside support, but not staff of a
+      // separately created department (e.g. a new showroom department).
+      if (wholeOnlineTeam) {
+        return isOnlineDept(e.dept) || e.isExternalSupport || !_isSeparateDepartment(e.dept);
+      }
+      if (curDept.isEmpty) return false;
+      return d == curDept;
     }).toList();
   }
 
@@ -3520,6 +3527,70 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
     return deduped;
+  }
+
+  /// A department of its own, outside the online team: leadership desks,
+  /// the offline showroom, or any department created in the app.
+  bool _isSeparateDepartment(String dept) {
+    final d = dept.trim().toLowerCase();
+    if (d.isEmpty || isOnlineDept(dept)) return false;
+    const leadership = {'administration', 'hr & people ops', 'hr & administration', 'executive board', 'offline', 'offline department'};
+    if (leadership.contains(d)) return true;
+    return _registeredDepartments.any((r) => r.trim().toLowerCase() == d);
+  }
+
+  /// True for the online team's departments (they all share one book).
+  static bool isOnlineDept(String dept) {
+    final d = dept.trim().toLowerCase();
+    return d.isEmpty || d == 'none' || d.contains('online') || d.contains('operation');
+  }
+
+  /// The Konar Book for [dept], or null when that department has none yet.
+  KonarBookModel? konarBookForDept(String dept) {
+    if (isOnlineDept(dept)) return onlineDeptKonarBook;
+    final d = dept.trim().toLowerCase();
+    return konarBooks.firstWhereOrNull((b) => b.department.trim().toLowerCase() == d);
+  }
+
+  /// CEO or that department's team lead may start a department's book.
+  bool canCreateKonarBookFor(String dept) {
+    if (isCeo || _activeRole.toLowerCase() == 'ceo') return true;
+    final me = currentEmployee;
+    return me.isTeamLead && me.dept.trim().toLowerCase() == dept.trim().toLowerCase();
+  }
+
+  /// Starts an empty Konar Book for [dept]; staff of that department are
+  /// notified (see [updateKonarBook]). Returns the new book.
+  Future<KonarBookModel> createKonarBookForDepartment({
+    required String dept,
+    String? title,
+    String? description,
+  }) async {
+    final me = currentEmployee;
+    final slug = dept.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_').replaceAll(RegExp(r'^_+|_+$'), '');
+    final code = dept
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty && w != '&')
+        .map((w) => w[0].toUpperCase())
+        .join();
+    final book = KonarBookModel(
+      id: slug.isEmpty ? 'department_${DateTime.now().millisecondsSinceEpoch}' : slug,
+      department: dept.trim(),
+      departmentCode: code.isEmpty ? 'DEPT' : code,
+      title: (title ?? '').trim().isNotEmpty ? title!.trim() : '${dept.trim()} KONAR Book',
+      description: (description ?? '').trim().isNotEmpty
+          ? description!.trim()
+          : 'Official handbook and SOPs for ${dept.trim()}.',
+      version: 'v1.0',
+      lastUpdated: DateTime.now(),
+      updatedByName: me.name,
+      updatedByRole: me.role,
+      updatedByEmpId: me.id,
+      sections: const [],
+      attachmentFileName: '${slug}_KONAR_Book.pdf',
+    );
+    await updateKonarBook(book, updaterName: me.name, updaterRole: me.role, updaterEmpId: me.id);
+    return book;
   }
 
   KonarBookModel get onlineDeptKonarBook => _konarBooks.firstWhere(
@@ -9459,11 +9530,53 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  // ---- Who a notice is for ----
+  /// Team leads of the online team (the OTM) plus any lead of [dept].
+  Set<String> _teamLeadIdsFor(String dept) {
+    final d = dept.trim().toLowerCase();
+    final online = isOnlineDept(dept);
+    return {
+      if (online) 'MN-TL1002',
+      ..._employees
+          .where((e) => e.isTeamLead && (e.dept.trim().toLowerCase() == d || (online && (e.isOtm || isOnlineDept(e.dept)))))
+          .map((e) => e.id),
+    };
+  }
+
+  /// Everyone working on an online order: its handler, the person it was
+  /// moved to, the online team lead and the CEO.
+  Set<String> _orderAudience(OnlineOrderModel order) => {
+        if (order.handledByEmpId.isNotEmpty) order.handledByEmpId,
+        order.primaryResponsibleEmpId,
+        if ((order.reallocatedToEmpId ?? '').isNotEmpty) order.reallocatedToEmpId!,
+        ..._teamLeadIdsFor('Online Department'),
+        ..._ceoIds(),
+      };
+
+  /// Team lead's nudge: goes ONLY to the lead's own team members.
+  /// Returns how many people it was sent to.
+  int nudgeMyTeam(String message) {
+    final team = myTeamMembers.map((e) => e.id).where((id) => id != _activeEmpId).toList();
+    if (team.isEmpty || message.trim().isEmpty) return 0;
+    postBroadcastNotification(
+      title: 'Nudge from ${currentEmployee.name}',
+      content: message.trim(),
+      senderName: currentEmployee.name,
+      senderRole: currentEmployee.role,
+      targetEmpIds: team,
+    );
+    return team.length;
+  }
+
+  /// Posts a notice. With [targetEmpIds] it reaches only those people;
+  /// without, every staff member. The sender never gets their own push.
   void postBroadcastNotification({
     required String title,
     String? content,
     required String senderName,
     required String senderRole,
+    List<String>? targetEmpIds,
+    String? id,
   }) {
     String cleanSender = senderName;
     String cleanRole = senderRole;
@@ -9472,8 +9585,9 @@ class EcosystemProvider extends ChangeNotifier {
       cleanSender = 'M N Naveenraaj';
       cleanRole = 'Managing Director & CEO';
     }
+    final targets = targetEmpIds?.where((t) => t.isNotEmpty).toSet().toList();
     final notif = CompanyNotification(
-      id: 'NOTIF-${DateTime.now().microsecondsSinceEpoch}-${++_notifSequence}',
+      id: id ?? 'NOTIF-${DateTime.now().microsecondsSinceEpoch}-${++_notifSequence}',
       title: title.trim(),
       content: content != null && content.trim().isNotEmpty
           ? content.trim()
@@ -9483,25 +9597,43 @@ class EcosystemProvider extends ChangeNotifier {
       senderName: cleanSender,
       senderRole: cleanRole,
       isRead: false,
+      targetEmpIds: targets ?? const [],
     );
+    _companyNotifications.removeWhere((n) => n.id == notif.id);
     _companyNotifications.insert(0, notif);
     _notifiedCompanyNotifIds.add(notif.id);
-    _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
-      debugPrint('Firestore save task notif note: $err');
-    });
-    PushNotificationService().showNotification(
-      id: notif.id,
-      title: notif.title,
-      body: notif.content,
-      payload: notif.id,
-    );
-    _notificationMessage =
-        'Broadcast notification sent to all staff mobiles: "$title"';
+    _notificationMessage = targets == null
+        ? 'Notice sent to all staff: "$title"'
+        : 'Notice sent to ${targets.length} ${targets.length == 1 ? 'person' : 'people'}: "$title"';
     notifyListeners();
-
     _firebaseEmployeeService.saveCompanyNotification(notif).catchError((err) {
       debugPrint('Firestore save notification note: $err');
     });
+  }
+
+  /// Asks the online team lead(s) and the CEO to move an order.
+  void requestOrderReassignment(OnlineOrderModel order) {
+    postBroadcastNotification(
+      title: 'Reassignment Request: Order #${order.orderId}',
+      content: '${currentEmployee.name} asked to reassign ${order.brand} Order #${order.orderId} because the handler is absent.',
+      senderName: currentEmployee.name,
+      senderRole: currentEmployee.role,
+      targetEmpIds: {..._teamLeadIdsFor('Online Department'), ..._ceoIds()}.toList(),
+    );
+  }
+
+  /// Monthly scorecard saved: tell the CEO and the online team.
+  void notifyScorecardUpdated(String monthLabel) {
+    postBroadcastNotification(
+      title: '📊 Monthly Scorecard Updated',
+      content: '${currentEmployee.name} updated the online team scorecard for $monthLabel.',
+      senderName: currentEmployee.name,
+      senderRole: currentEmployee.role,
+      targetEmpIds: {
+        ..._ceoIds(),
+        ..._employees.where((e) => isOnlineDept(e.dept) && !e.isCeo && !e.isHr).map((e) => e.id),
+      }.toList(),
+    );
   }
 
   void notifyAllPendingToDosReminder({
@@ -10021,6 +10153,8 @@ class EcosystemProvider extends ChangeNotifier {
               content: notifContent,
               senderName: 'SLA Escalation Engine',
               senderRole: 'Quality & Delivery Gate',
+              targetEmpIds: _orderAudience(order).toList(),
+              id: 'NOTIF-OVERDUE-${order.orderId}-$stageId',
             );
           }
         }
@@ -10210,6 +10344,7 @@ class EcosystemProvider extends ChangeNotifier {
       });
 
       postBroadcastNotification(
+        targetEmpIds: {..._orderAudience(order), newEmpId}.toList(),
         title: 'Order Reassignment Notice',
         content:
             '$authorizedBy (Team Lead) reallocated ${order.brand} Order #${order.orderId} (Customer: ${order.customerName}) to $newEmpName for SLA continuity.',
@@ -10328,8 +10463,8 @@ class EcosystemProvider extends ChangeNotifier {
       final empDept = e.dept.trim().toLowerCase();
       final isMatchingDept =
           empDept == deptName ||
-          deptName.contains(empDept) ||
-          empDept.contains(deptName) ||
+          (empDept.isNotEmpty && deptName.contains(empDept)) ||
+          (deptName.isNotEmpty && empDept.contains(deptName)) ||
           (deptName.contains('online') &&
               (e.id == 'MN-TL1002' || e.isOtm || empDept.contains('online')));
 

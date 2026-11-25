@@ -64,39 +64,10 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
     super.dispose();
   }
 
-  bool _isTeamMemberOf(Employee e, Employee tl) {
-    final isCeo = e.roleType == 'ceo' || e.role.toLowerCase().contains('ceo') || e.id.toUpperCase().contains('CEO');
-    final isHr = e.roleType == 'hr' || e.role.toLowerCase().contains('hr') || e.id.toUpperCase().contains('HR');
-    if (isCeo || isHr || e.id == tl.id) return false;
-
-    final tlDept = tl.dept.toLowerCase().trim();
-    final empDept = e.dept.toLowerCase().trim();
-
-    // Direct department match
-    if (empDept == tlDept) return true;
-
-    // Online operations umbrella for Praveenkumaar / Online TL
-    if (tlDept.contains('online') || tlDept.contains('design') || tl.id == 'MN-TL1002') {
-      return empDept.contains('online') ||
-             empDept.contains('external') ||
-             empDept.contains('media') ||
-             empDept.contains('creative') ||
-             empDept.contains('catalog') ||
-             empDept.contains('sales') ||
-             empDept.contains('analytics') ||
-             empDept.contains('campaign') ||
-             empDept.contains('technology') ||
-             empDept.contains('listing') ||
-             empDept.contains('design');
-    }
-
-    // Other department hierarchy match (e.g., Accounts, Inventory, Showroom floor)
-    if (tlDept.isNotEmpty && (empDept.contains(tlDept) || tlDept.contains(empDept))) {
-      return true;
-    }
-
-    return false;
-  }
+  /// A team lead's team is exactly [EcosystemProvider.myTeamMembers], the same
+  /// people the team pages and the nudge use.
+  bool _isTeamMemberOf(EcosystemProvider eco, Employee e) =>
+      eco.myTeamMembers.any((m) => m.id == e.id);
 
   List<String> _getDepartments(EcosystemProvider eco, bool isCeoOrHr, Employee activeEmp) {
     if (!isCeoOrHr) {
@@ -136,7 +107,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
       }
 
       // Team Lead: for their department employees alone!
-      return _isTeamMemberOf(e, activeEmp);
+      return _isTeamMemberOf(eco, e);
     }).toList();
 
     // 2. Department filter (for CEO, HR, and TL)
@@ -389,7 +360,7 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
 
     // If Team Lead, filter to their department employees alone!
     if (!isCeo && !isHr) {
-      absentList = absentList.where((e) => _isTeamMemberOf(e, activeEmp)).toList();
+      absentList = absentList.where((e) => _isTeamMemberOf(eco, e)).toList();
     } else if (_selectedDeptFilter != 'All') {
       absentList = absentList.where((e) => e.dept.toLowerCase() == _selectedDeptFilter.toLowerCase()).toList();
     }

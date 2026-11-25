@@ -685,8 +685,8 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Send a quick reminder to all team members on duty.',
+                Text(
+                  'Goes only to your team (${eco.myTeamMembers.length} people). Nobody else gets it.',
                   style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.35),
                 ),
                 const SizedBox(height: 12),
@@ -745,19 +745,14 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                 ),
                 onPressed: () {
                   final text = msgController.text.trim();
-                  if (text.isNotEmpty) {
-                    eco.postBroadcastNotification(
-                      title: 'Shift Nudge from Team Lead',
-                      content: text,
-                      senderName: eco.currentEmployee.name,
-                      senderRole: eco.currentEmployee.role,
-                    );
-                  }
+                  final sent = text.isEmpty ? 0 : eco.nudgeMyTeam(text);
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: Color(0xFF10B981),
-                      content: Text('Nudge sent to team members on duty!'),
+                    SnackBar(
+                      backgroundColor: sent > 0 ? const Color(0xFF10B981) : const Color(0xFFD97706),
+                      content: Text(sent > 0
+                          ? 'Nudge sent to your $sent team member${sent == 1 ? '' : 's'} only.'
+                          : 'Nothing sent: write a message and make sure you have team members.'),
                     ),
                   );
                 },

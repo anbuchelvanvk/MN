@@ -13,7 +13,6 @@ import 'package:provider/provider.dart';
 import '../../core/models/monthly_scorecard_model.dart';
 import '../../core/services/monthly_scorecard_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/services/push_notification_service.dart';
 import '../../services/firebase_employee_service.dart';
 import '../../providers/ecosystem_provider.dart';
 
@@ -99,22 +98,10 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
       }
     }
 
-    // 2. Dispatch push notification to CEO & Online Team
-    PushNotificationService().showNotification(
-      id: 'scorecard_${DateTime.now().millisecondsSinceEpoch}',
-      title: '📊 Monthly Scorecard Updated',
-      body: 'Online Team TL updated the monthly scorecard for ${_model.monthName} ${_model.year}.',
-    );
-
+    // 2. Tell the CEO and the online team (not the whole company)
     try {
       if (mounted) {
-        final eco = context.read<EcosystemProvider>();
-        eco.postBroadcastNotification(
-          title: '📊 Monthly Scorecard Updated',
-          content: 'Online Team TL updated the monthly performance scorecard for ${_model.monthName} ${_model.year}. Available on CEO Portal & Online Team direct access.',
-          senderName: eco.currentEmployee.name,
-          senderRole: 'Online Team Lead',
-        );
+        context.read<EcosystemProvider>().notifyScorecardUpdated('${_model.monthName} ${_model.year}');
       }
     } catch (_) {}
 
