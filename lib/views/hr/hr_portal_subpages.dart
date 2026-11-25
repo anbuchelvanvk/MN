@@ -874,6 +874,39 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                         ),
                       ],
                     ),
+                    if (roleHierarchy == 'Team Lead')
+                      Builder(builder: (_) {
+                        final d = isCustomDept ? customDeptController.text.trim() : selectedDept;
+                        final conflict = d.isEmpty ? null : eco.teamLeadConflict(dept: d);
+                        final text = conflict ??
+                            (d.isEmpty
+                                ? 'Pick or create the department this person will lead.'
+                                : '${d.trim()} has no team lead yet. This person will lead its team; staff hired into ${d.trim()} join their team.');
+                        final bad = conflict != null;
+                        return Container(
+                          key: const Key('hire_tl_notice'),
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: bad ? const Color(0xFFFEF2F2) : const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: bad ? const Color(0xFFFCA5A5) : const Color(0xFF86EFAC)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(bad ? Icons.block_rounded : Icons.verified_user_rounded,
+                                  size: 16, color: bad ? const Color(0xFFDC2626) : const Color(0xFF16A34A)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(text,
+                                    style: GoogleFonts.outfit(
+                                        fontSize: 12, color: bad ? const Color(0xFF7F1D1D) : const Color(0xFF14532D))),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     const SizedBox(height: 12),
 
                     // Employee ID Section (Manual Entry with Instant Search & Auto-Fill)
@@ -1469,8 +1502,13 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           final genEmail = emailController.text.trim().isNotEmpty
                               ? emailController.text.trim()
                               : '${nameController.text.trim().toLowerCase().replaceAll(' ', '.')}@mnjewelpark.com';
-                          final cleanPass = passwordController.text.trim().isNotEmpty ? passwordController.text.trim() : 'mnj12345';
-                          final cleanRole = roleController.text.trim().isNotEmpty ? roleController.text.trim() : 'Operations Staff';
+                          // Never a shared default password: generate one when left blank.
+                          final cleanPass = passwordController.text.trim().length >= 6
+                              ? passwordController.text.trim()
+                              : generateTemporaryPassword();
+                          final cleanRole = roleController.text.trim().isNotEmpty
+                              ? roleController.text.trim()
+                              : (roleHierarchy == 'Team Lead' ? 'Team Lead' : 'Operations Staff');
                           final cleanPhone = phoneController.text.trim().isNotEmpty ? phoneController.text.trim() : '+91 98450 00000';
                           final detailsProblem = eco.staffDetailsProblem(
                             phone: phoneController.text.trim(),
@@ -1489,11 +1527,29 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                               : selectedDept.trim();
                           final effectiveDept = cleanDept.isNotEmpty ? cleanDept : 'Online Department';
 
-                          if (isCustomDept && cleanDept.isNotEmpty) {
-                            eco.createNewDepartment(cleanDept);
+                          if (isCustomDept && cleanDept.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(backgroundColor: Color(0xFFEF4444), content: Text('Enter the new department name.')),
+                            );
+                            return;
+                          }
+                          // Checkpoint: one team lead per team.
+                          if (roleHierarchy == 'Team Lead') {
+                            final conflict = eco.teamLeadConflict(dept: effectiveDept);
+                            if (conflict != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(backgroundColor: const Color(0xFFEF4444), content: Text(conflict)),
+                              );
+                              return;
+                            }
                           }
 
-                          eco.addNewEmployee(
+                          if (isCustomDept && cleanDept.isNotEmpty) {
+                            await eco.createNewDepartment(cleanDept);
+                          }
+                          if (!context.mounted || !ctx.mounted) return;
+
+                          final refused = eco.addNewEmployee(
                             name: nameController.text.trim(),
                             role: cleanRole,
                             phone: cleanPhone,
@@ -1510,12 +1566,29 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             customEmpId: cleanEmpId,
                             empNo: cleanEmpId,
                           );
+                          if (refused != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(backgroundColor: const Color(0xFFEF4444), content: Text(refused)),
+                            );
+                            return;
+                          }
 
+                          final hiredName = nameController.text.trim();
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: const Color(0xFF10B981),
-                              content: Text('Registered $roleHierarchy: ${nameController.text.trim()} (EMP #$cleanEmpId) successfully!'),
+                          // Show the first password once so HR can hand it over.
+                          await showDialog<void>(
+                            context: context,
+                            builder: (dctx) => AlertDialog(
+                              icon: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 36),
+                              title: Text(roleHierarchy == 'Team Lead' ? 'Team lead added' : 'Staff added'),
+                              content: Text(
+                                '$hiredName (EMP #$cleanEmpId) joined $effectiveDept'
+                                '${roleHierarchy == 'Team Lead' ? ' as its team lead' : ''}.\n\n'
+                                'Sign-in: $genEmail\nFirst password: $cleanPass\n\n'
+                                'Give this to them in person. They should change it after signing in. '
+                                'It is not stored or shown again.',
+                              ),
+                              actions: [FilledButton(onPressed: () => Navigator.pop(dctx), child: const Text('Done'))],
                             ),
                           );
                         },

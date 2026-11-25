@@ -152,6 +152,13 @@ class TeamHubScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
+            _AssistantLeadRow(
+              assistant: eco.assistantLeadOf(me.dept),
+              canChange: me.isTeamLead || eco.isCeo || eco.isHr,
+              onChange: () => _pickAssistantLead(context, eco, staff),
+            ),
+            const SizedBox(height: 14),
+
             if (absent.isNotEmpty) ...[
               _AbsentBanner(
                 count: absent.length,
@@ -213,6 +220,7 @@ class TeamHubScreen extends StatelessWidget {
                   child: _MemberCard(
                     employee: m,
                     state: today[m.id] ?? TodayAttendance.notTracked,
+                    isAssistant: eco.isAssistantLead(m.id),
                     openTasks: eco.tasks.where((t) => t.empId == m.id && t.isPending).length,
                     onTap: () => _open(context, HrEmployeeInspectionScreen(employee: m)),
                   ),
@@ -236,6 +244,131 @@ class TeamHubScreen extends StatelessWidget {
                 ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet: the TL picks one Assistant TL from the team (or none).
+Future<void> _pickAssistantLead(BuildContext context, EcosystemProvider eco, List<Employee> staff) async {
+  final current = eco.assistantLeadOf(eco.currentEmployee.dept)?.id;
+  final picked = await showModalBottomSheet<String>(
+    context: context,
+    backgroundColor: Colors.white,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Choose Assistant TL',
+                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            const SizedBox(height: 4),
+            Text('One person from your team helps you lead. You can change this any time.',
+                style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textMuted)),
+            const SizedBox(height: 12),
+            if (staff.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text('No team members yet.', style: GoogleFonts.outfit(color: AppColors.textMuted)),
+              ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final m in staff)
+                    ListTile(
+                      key: Key('atl_${m.id}'),
+                      leading: EmployeeAvatar(avatar: m.avatar, initials: m.initials, size: 38),
+                      title: Text(m.name, style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+                      subtitle: Text(m.straightCutDesignation, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      trailing: Icon(
+                        m.id == current ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                        color: m.id == current ? AppColors.primary : const Color(0xFFCBB8C4),
+                      ),
+                      onTap: () => Navigator.pop(ctx, m.id),
+                    ),
+                ],
+              ),
+            ),
+            if (current != null)
+              TextButton.icon(
+                icon: const Icon(Icons.person_remove_rounded),
+                label: const Text('No Assistant TL'),
+                onPressed: () => Navigator.pop(ctx, ''),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+  if (picked == null || picked == current) return;
+  final err = await eco.setAssistantLead(picked.isEmpty ? null : picked);
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    content: Text(err ??
+        (picked.isEmpty
+            ? 'Assistant TL removed.'
+            : '${staff.firstWhere((e) => e.id == picked).name} is now Assistant TL.')),
+  ));
+}
+
+class _AssistantLeadRow extends StatelessWidget {
+  final Employee? assistant;
+  final bool canChange;
+  final VoidCallback onChange;
+  const _AssistantLeadRow({required this.assistant, required this.canChange, required this.onChange});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: canChange ? onChange : null,
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.line),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.military_tech_rounded, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Assistant TL',
+                        style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
+                    Text(assistant?.name ?? 'Not chosen',
+                        key: const Key('atl_name'),
+                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                  ],
+                ),
+              ),
+              if (canChange)
+                TextButton(
+                  key: const Key('atl_change'),
+                  onPressed: onChange,
+                  child: Text(assistant == null ? 'Choose' : 'Change'),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -453,6 +586,7 @@ class _MemberCard extends StatelessWidget {
   final Employee employee;
   final TodayAttendance state;
   final bool outsideSupport;
+  final bool isAssistant;
   final int openTasks;
   final VoidCallback onTap;
   const _MemberCard({
@@ -461,6 +595,7 @@ class _MemberCard extends StatelessWidget {
     required this.openTasks,
     required this.onTap,
     this.outsideSupport = false,
+    this.isAssistant = false,
   });
 
   @override
@@ -530,6 +665,7 @@ class _MemberCard extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         _chip(outsideSupport ? 'Outside support' : state.label, statusColor),
+                        if (isAssistant) _chip('Assistant TL', AppColors.primary),
                         _chip(openTasks == 1 ? '1 open task' : '$openTasks open tasks', AppColors.textSecondary),
                       ],
                     ),

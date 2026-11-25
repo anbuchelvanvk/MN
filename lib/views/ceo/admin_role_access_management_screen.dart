@@ -878,7 +878,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating permissions: $e'),
+            content: Text(e is ArgumentError ? '${e.message}' : 'Error updating permissions: $e'),
             backgroundColor: Colors.redAccent,
           ),
         );

@@ -996,12 +996,31 @@ class FirebaseEmployeeService {
   }
 
   /// Save or update employee document in Firestore within their department collection
-  Future<void> saveEmployee(Employee employee) async {
+  /// Saves an employee. When [previousDept] is given and the department
+  /// changed, the old record is removed so the person is in one team only,
+  /// and the login record is updated so the new role takes effect.
+  Future<void> saveEmployee(Employee employee, {String? previousDept}) async {
     try {
       final data = employee.toMap();
       final deptColName = getDepartmentCollectionName(employee.dept);
       final col = _firestore.collection(deptColName);
       await col.doc(employee.id).set(data, SetOptions(merge: true));
+      if (previousDept != null) {
+        final oldCol = getDepartmentCollectionName(previousDept);
+        if (oldCol != deptColName) {
+          await _firestore.collection(oldCol).doc(employee.id).delete().catchError((_) {});
+        }
+        final email = employee.email.trim().toLowerCase();
+        if (email.contains('@')) {
+          await _usersCollection.doc(email).set({
+            'empId': employee.id,
+            'role': employee.roleType,
+            'roleType': employee.roleType,
+            'dept': employee.dept,
+            'collection': deptColName,
+          }, SetOptions(merge: true)).catchError((_) {});
+        }
+      }
 
       // Register department in departments collection
       _departmentsCollection.doc(deptColName).set({
@@ -1096,6 +1115,31 @@ class FirebaseEmployeeService {
     }, SetOptions(merge: true));
 
     return deptColName;
+  }
+
+  /// Assistant team leads, one per team: {teamKey: {empId, name}}.
+  Stream<Map<String, Map<String, String>>> streamTeamSettings() {
+    return _firestore.collection('team_settings').snapshots().map((snap) => {
+          for (final d in snap.docs)
+            d.id: {
+              'assistantLeadId': d.data()['assistantLeadId']?.toString() ?? '',
+              'assistantLeadName': d.data()['assistantLeadName']?.toString() ?? '',
+            },
+        });
+  }
+
+  Future<void> saveAssistantLead({
+    required String teamKey,
+    required String empId,
+    required String name,
+    required String setBy,
+  }) {
+    return _firestore.collection('team_settings').doc(teamKey).set({
+      'assistantLeadId': empId,
+      'assistantLeadName': name,
+      'setBy': setBy,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   /// Streams registered department names from Cloud Firestore

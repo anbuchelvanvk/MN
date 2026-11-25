@@ -189,6 +189,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // One Assistant TL per team, chosen by that team's lead (or HR / CEO).
+    match /team_settings/{teamKey} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || isLead();
+    }
+
     match /system_metadata/{docId} {
       allow read: if signedIn();
       allow write: if isAdmin();

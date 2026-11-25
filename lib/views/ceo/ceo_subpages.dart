@@ -511,13 +511,21 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                       elevation: 2,
                     ),
                     onPressed: () async {
-                      await eco.allocateEmployeeRole(
+                      final refused = await eco.allocateEmployeeRole(
                         empId: activeEmp.id,
                         newRole: effectiveRole,
                         newDept: effectiveDept,
                         perks: _selectedPerks.toList(),
                         responsibilities: const ['Executive Leadership', 'Corporate Governance'],
                       );
+                      if (refused != null) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(refused)),
+                          );
+                        }
+                        return;
+                      }
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

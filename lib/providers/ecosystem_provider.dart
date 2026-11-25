@@ -3539,6 +3539,96 @@ class EcosystemProvider extends ChangeNotifier {
     return _registeredDepartments.any((r) => r.trim().toLowerCase() == d);
   }
 
+  // ---- Teams: one team lead per team, plus an optional Assistant TL ----
+  static String teamKey(String dept) {
+    if (isOnlineDept(dept)) return 'online';
+    final slug = dept.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_').replaceAll(RegExp(r'^_+|_+$'), '');
+    return slug.isEmpty ? 'online' : slug;
+  }
+
+  /// The team lead of [dept]'s team, if any.
+  Employee? teamLeadOf(String dept, {String? exceptEmpId}) {
+    final key = teamKey(dept);
+    return _employees.firstWhereOrNull((e) =>
+        e.id != exceptEmpId &&
+        !e.isCeo &&
+        !e.isHr &&
+        e.isTeamLead &&
+        (key == 'online' ? (isOnlineDept(e.dept) || e.isOtm) : teamKey(e.dept) == key));
+  }
+
+  /// Why [empId] cannot become team lead of [dept] (it already has one).
+  String? teamLeadConflict({required String dept, String? exceptEmpId}) {
+    final lead = teamLeadOf(dept, exceptEmpId: exceptEmpId);
+    if (lead == null) return null;
+    final teamName = isOnlineDept(dept) ? 'the Online team' : dept.trim();
+    return '${lead.name} is already the team lead of $teamName. A team can have only one TL. '
+        'Add this person as an employee; the TL can make them Assistant TL.';
+  }
+
+  final Map<String, Map<String, String>> _teamSettings = {};
+  StreamSubscription? _teamSettingsSubscription;
+
+  /// Which team a person belongs to (online sub-teams like Sales or Media
+  /// belong to the online team).
+  String teamKeyOf(Employee e) {
+    if (e.isExternalSupport || isOnlineDept(e.dept) || !_isSeparateDepartment(e.dept)) return 'online';
+    return teamKey(e.dept);
+  }
+
+  /// The Assistant TL chosen for [dept]'s team, if any (and still on it).
+  Employee? assistantLeadOf(String dept) {
+    final key = teamKey(dept);
+    final id = _teamSettings[key]?['assistantLeadId'] ?? '';
+    if (id.isEmpty) return null;
+    final e = _employees.firstWhereOrNull((x) => x.id == id);
+    if (e == null || teamKeyOf(e) != key) return null;
+    return e;
+  }
+
+  bool isAssistantLead(String empId) {
+    final e = _employees.firstWhereOrNull((x) => x.id == empId);
+    if (e == null) return false;
+    return assistantLeadOf(e.dept)?.id == empId || _teamSettings[teamKeyOf(e)]?['assistantLeadId'] == empId;
+  }
+
+  /// The signed-in team lead (or HR / CEO) picks the Assistant TL for the
+  /// lead's team, or clears it with null. Returns why it failed, or null.
+  Future<String?> setAssistantLead(String? empId) async {
+    final me = currentEmployee;
+    final isAdmin = isCeo || isHr || _activeRole == 'ceo' || _activeRole == 'hr';
+    if (!me.isTeamLead && !isAdmin) return 'Only the team lead can choose an Assistant TL.';
+    final dept = me.dept;
+    final key = teamKey(dept);
+    String name = '';
+    if (empId != null) {
+      final member = myTeamMembers.firstWhereOrNull((e) => e.id == empId);
+      if (member == null) return 'Choose someone from your own team.';
+      if (member.isExternalSupport) return 'Outside support is not MN Jewel Park staff and cannot be Assistant TL.';
+      name = member.name;
+    }
+    final previous = _teamSettings[key]?['assistantLeadId'] ?? '';
+    _teamSettings[key] = {'assistantLeadId': empId ?? '', 'assistantLeadName': name};
+    notifyListeners();
+    try {
+      if (FirebaseEmployeeService.isFirebaseAvailable) {
+        await _firebaseEmployeeService.saveAssistantLead(teamKey: key, empId: empId ?? '', name: name, setBy: me.name);
+      }
+    } catch (e) {
+      debugPrint('Save assistant lead note: $e');
+      return 'Could not save. Check the internet and try again.';
+    }
+    if (empId != null && empId != previous) {
+      _postTargetedNotice(
+        id: 'NOTIF-ATL-$key-${DateTime.now().millisecondsSinceEpoch}',
+        title: 'You are now Assistant TL',
+        body: '${me.name} chose you as Assistant Team Lead of the team.',
+        targets: {empId},
+      );
+    }
+    return null;
+  }
+
   /// True for the online team's departments (they all share one book).
   static bool isOnlineDept(String dept) {
     final d = dept.trim().toLowerCase();
@@ -4010,6 +4100,7 @@ class EcosystemProvider extends ChangeNotifier {
     _employeeSubscription?.cancel();
     _departmentsSubscription?.cancel();
     _deletedDepartmentsSubscription?.cancel();
+    _teamSettingsSubscription?.cancel();
     _socialCausesSubscription?.cancel();
     _notificationsSubscription?.cancel();
     _personalTodosSubscription?.cancel();
@@ -4166,6 +4257,15 @@ class EcosystemProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Firestore employee stream setup error: $e');
     }
+
+    try {
+      _teamSettingsSubscription = _firebaseEmployeeService.streamTeamSettings().listen((settings) {
+        _teamSettings
+          ..clear()
+          ..addAll(settings);
+        notifyListeners();
+      }, onError: (_) {});
+    } catch (_) {}
 
     try {
       _deletedDepartmentsSubscription = _firebaseEmployeeService.streamDeletedDepartments().listen((deleted) {
@@ -5014,7 +5114,22 @@ class EcosystemProvider extends ChangeNotifier {
   // --- ACTIONS ---
 
   // CEO Role & Privilege Allocation Action
-  Future<void> allocateEmployeeRole({
+  /// Role type from a job title. Only clear titles make someone a lead:
+  /// "Lead Videographer" stays an employee.
+  static String roleTypeForTitle(String title, {String fallback = 'employee'}) {
+    final r = title.toLowerCase();
+    if (RegExp(r'\bceo\b|managing director').hasMatch(r)) return 'ceo';
+    if (RegExp(r'\bhr\b|human resources').hasMatch(r)) return 'hr';
+    if (RegExp(r'assistant (team lead|tl)|\batl\b').hasMatch(r)) return 'employee';
+    if (RegExp(r'team lead|\btl\b|dept\.? head|department head|online team manager|\botm\b').hasMatch(r)) {
+      return 'team_lead';
+    }
+    if (r.contains('external support') || r.contains('outside support')) return 'external_support';
+    return fallback == 'external_support' ? fallback : 'employee';
+  }
+
+  /// Returns why the change was refused, or null when saved.
+  Future<String?> allocateEmployeeRole({
     required String empId,
     required String newRole,
     required String newDept,
@@ -5024,20 +5139,14 @@ class EcosystemProvider extends ChangeNotifier {
     final idx = _employees.indexWhere((e) => e.id == empId || e.empNo == empId);
     if (idx != -1) {
       final existing = _employees[idx];
-      String newRoleType = existing.roleType;
-      final r = newRole.toLowerCase();
-      if (r.contains('ceo') || r.contains('managing director')) {
-        newRoleType = 'ceo';
-      } else if (r.contains('hr') || r.contains('human resources')) {
-        newRoleType = 'hr';
-      } else if (r.contains('team lead') ||
-          r.contains('manager') ||
-          r.contains('dept head') ||
-          r.contains('lead') ||
-          r.contains('otm')) {
-        newRoleType = 'team_lead';
-      } else {
-        newRoleType = 'employee';
+      final newRoleType = roleTypeForTitle(newRole, fallback: existing.roleType);
+      if (newRoleType == 'team_lead') {
+        final conflict = teamLeadConflict(dept: newDept, exceptEmpId: existing.id);
+        if (conflict != null) {
+          _notificationMessage = conflict;
+          notifyListeners();
+          return conflict;
+        }
       }
 
       final updated = existing.copyWith(
@@ -5051,8 +5160,8 @@ class EcosystemProvider extends ChangeNotifier {
         _activeRole = newRoleType;
       }
 
-      // Sync updated employee to Firestore
-      await _firebaseEmployeeService.saveEmployee(updated);
+      // Sync updated employee to Firestore (moves the record and updates the login role)
+      await _firebaseEmployeeService.saveEmployee(updated, previousDept: existing.dept);
 
       // Create personal notification targeted ONLY to this specific employee
       final notifId = 'ROLE_${DateTime.now().millisecondsSinceEpoch}_$empId';
@@ -5077,6 +5186,7 @@ class EcosystemProvider extends ChangeNotifier {
 
       notifyListeners();
     }
+    return null;
   }
 
   // HR Grooming Point Audits
@@ -7136,6 +7246,12 @@ class EcosystemProvider extends ChangeNotifier {
       }
     }
 
+    // One team lead per team.
+    if (newRoleType == 'team_lead' || newRoleType == 'dept_head') {
+      final conflict = teamLeadConflict(dept: newDept, exceptEmpId: employeeId);
+      if (conflict != null) throw ArgumentError(conflict);
+    }
+
     final index = _employees.indexWhere((e) => e.id.toLowerCase() == employeeId.toLowerCase());
     if (index != -1) {
       final updated = _employees[index].copyWith(
@@ -8690,7 +8806,8 @@ class EcosystemProvider extends ChangeNotifier {
     return false;
   }
 
-  void addNewEmployee({
+  /// Returns why the hire was refused, or null when added.
+  String? addNewEmployee({
     required String name,
     required String role,
     String roleType = 'employee',
@@ -8713,7 +8830,15 @@ class EcosystemProvider extends ChangeNotifier {
       _notificationMessage =
           'Access Denied: Only HR and CEO have authorization to add users.';
       notifyListeners();
-      return;
+      return _notificationMessage;
+    }
+    if (roleType == 'team_lead' || roleType == 'dept_head') {
+      final conflict = teamLeadConflict(dept: dept);
+      if (conflict != null) {
+        _notificationMessage = conflict;
+        notifyListeners();
+        return conflict;
+      }
     }
     final initials = name
         .split(' ')
@@ -8744,7 +8869,7 @@ class EcosystemProvider extends ChangeNotifier {
       _notificationMessage =
           'Employee ID $idToUse is already registered to ${existing.name}.';
       notifyListeners();
-      return;
+      return _notificationMessage;
     }
 
     final newEmp = Employee(
@@ -8815,6 +8940,7 @@ class EcosystemProvider extends ChangeNotifier {
         .catchError((err) {
           debugPrint('Firestore remote add note: $err');
         });
+    return null;
   }
 
   // --- Universal Notifications Actions ---

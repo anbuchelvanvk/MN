@@ -1417,14 +1417,20 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             elevation: 0,
           ),
-          onPressed: () {
-            eco.allocateEmployeeRole(
+          onPressed: () async {
+            final messenger = ScaffoldMessenger.of(context);
+            final refused = await eco.allocateEmployeeRole(
               empId: activeEmp.id,
               newRole: _selectedRole,
               newDept: _selectedDept,
               perks: _selectedPerks.toList(),
               responsibilities: roleConfig.responsibilities,
             );
+            if (refused != null) {
+              messenger.showSnackBar(SnackBar(backgroundColor: const Color(0xFFDC2626), content: Text(refused)));
+              return;
+            }
+            if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 backgroundColor: const Color(0xFF10B981),
