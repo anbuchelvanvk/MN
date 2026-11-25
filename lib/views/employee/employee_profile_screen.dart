@@ -100,7 +100,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
     if (!_profileFormKey.currentState!.validate()) return;
 
     setState(() => _isSavingProfile = true);
-    await eco.updateEmployeePersonalDetails(
+    final problem = await eco.updateEmployeePersonalDetails(
       empId: emp.id,
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
@@ -113,9 +113,9 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
     if (!mounted) return;
     setState(() => _isSavingProfile = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Personal profile details updated successfully!'),
-        backgroundColor: AppColors.ragGreen,
+      SnackBar(
+        content: Text(problem ?? 'Personal profile details updated successfully!'),
+        backgroundColor: problem == null ? AppColors.ragGreen : AppColors.ragRed,
       ),
     );
   }

@@ -86,6 +86,7 @@ void main() {
         title: 'Planted 20 Neem Trees',
         description: 'Green drive near showroom.',
         amountSpent: 1200,
+        imageUrl: 'data:image/png;base64,UkVDRUlQVA==', // receipt photo (needed above ₹1,000)
       );
 
       // Remains pending, NO public notification broadcasted yet
@@ -179,6 +180,7 @@ void main() {
         title: 'Sponsored School Books',
         description: 'Provided notebooks and geometry boxes for 30 underprivileged kids.',
         amountSpent: 3500,
+        imageUrl: 'data:image/png;base64,UkVDRUlQVA==', // receipt photo (needed above ₹1,000)
       );
 
       final cause = eco.socialCauses.first;

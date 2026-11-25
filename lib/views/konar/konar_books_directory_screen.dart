@@ -555,6 +555,22 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
     String deptName,
     int employeeCount,
   ) async {
+    // Checkpoint: a department with staff in it cannot be deleted.
+    if (employeeCount > 0) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          icon: const Icon(Icons.groups_rounded, color: Color(0xFFD97706)),
+          title: const Text('Staff are still in this department'),
+          content: Text(
+            '"$deptName" has $employeeCount staff. Move them to another department '
+            '(choose "Reallocate") or relieve them one by one first. Then you can delete it.',
+          ),
+          actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -579,12 +595,13 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
     );
 
     if (confirmed == true) {
-      await eco.deleteDepartmentWithWorkflow(deptName: deptName, deleteEmployees: true);
+      final refused = await eco.deleteDepartmentWithWorkflow(deptName: deptName, deleteEmployees: true);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: const Color(0xFFDC2626),
-            content: Text('Department "$deptName" and $employeeCount employee accounts were permanently deleted.'),
+            backgroundColor: refused == null ? const Color(0xFFDC2626) : const Color(0xFFD97706),
+            duration: Duration(seconds: refused == null ? 4 : 7),
+            content: Text(refused ?? 'Department "$deptName" was deleted.'),
           ),
         );
       }

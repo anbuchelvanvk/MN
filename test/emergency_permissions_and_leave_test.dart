@@ -48,18 +48,18 @@ void main() {
       expect(notice.targetEmpIds, isNot(contains('MN-1007')));
     });
 
-    test('Emergency permission request exceeding 4 hours triggers Orange Mark', () {
-      provider.requestEmergencyPermission(
+    test('Emergency permission past the 4-hour monthly limit is refused', () {
+      final isTuesday = DateTime.now().weekday == DateTime.tuesday;
+      final before = provider.permissionRecords.length;
+      final refused = provider.requestEmergencyPermission(
         empId: 'MN-1007',
         hours: 5.0, // Exceeds 4 hours
         reason: 'Urgent family emergency',
         requesterRole: 'Employee',
       );
-
-      final rec = provider.permissionRecords.first;
-      expect(rec.requestedHours, equals(5.0));
-      expect(rec.isOver4Hours, isTrue);
-      expect(rec.isOrangeFlagged, isTrue); // Triggers Orange mark in permission section
+      expect(refused, isNotNull);
+      if (!isTuesday) expect(refused, contains('monthly permission limit'));
+      expect(provider.permissionRecords.length, before); // nothing saved
     });
 
     test('Employee/TL Approval Flow: HR grants -> CEO accepts -> Approved', () {

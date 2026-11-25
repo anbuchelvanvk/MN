@@ -198,6 +198,8 @@ class _LoginScreenState extends State<LoginScreen> {
         final errStr = e.toString().toLowerCase();
         if (errStr.contains('network') || errStr.contains('socket') || errStr.contains('timeout') || errStr.contains('unavailable')) {
           msg = 'Network connection error. Please check your internet connectivity.';
+        } else if (errStr.contains('user-disabled')) {
+          msg = 'This account has been switched off because the staff member was relieved. Contact HR.';
         } else if (errStr.contains('user-not-found')) {
           msg = 'No staff account registered for this email / ID.';
         } else if (errStr.contains('wrong-password')) {

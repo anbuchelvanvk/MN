@@ -468,17 +468,64 @@ class _BackupViewerScreenState extends State<BackupViewerScreen> {
 
   Map<String, dynamic> get _collections => Map<String, dynamic>.from(widget.backup['collections'] as Map);
 
+  /// "Made 3 days ago (22 Nov 2026, 10:00 AM)" for the restore check.
+  static String backupAgeText(DateTime? created, {DateTime? now}) {
+    if (created == null) return 'Backup date unknown';
+    final n = now ?? DateTime.now();
+    final diff = n.difference(created);
+    final ago = diff.inMinutes < 60
+        ? (diff.inMinutes < 1 ? 'just now' : '${diff.inMinutes} min ago')
+        : diff.inHours < 24
+            ? '${diff.inHours} h ago'
+            : '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
+    const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final h = created.hour % 12 == 0 ? 12 : created.hour % 12;
+    final when = '${created.day} ${m[created.month - 1]} ${created.year}, '
+        '$h:${created.minute.toString().padLeft(2, '0')} ${created.hour >= 12 ? 'PM' : 'AM'}';
+    return 'Made $ago ($when)';
+  }
+
   Future<void> _restore() async {
     bool activity = true;
+    final created = DateTime.tryParse('${widget.backup['createdAt']}')?.toLocal();
+    final records = _collections.values.fold<int>(0, (s, v) => s + ((v as List?)?.length ?? 0));
+    final old = created != null && DateTime.now().difference(created).inDays > 30;
     final go = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setD) => AlertDialog(
           icon: const Icon(Icons.settings_backup_restore_rounded, color: AppColors.primary, size: 40),
-          title: const Text('Put this data back?'),
+          title: const Text('Restore?'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                key: const Key('restore_summary'),
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: old ? const Color(0xFFFFF7ED) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: old ? const Color(0xFFFDBA74) : const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(backupAgeText(created),
+                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text('$records record${records == 1 ? '' : 's'} will be put back',
+                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                    if (old) ...[
+                      const SizedBox(height: 6),
+                      Text('This backup is more than a month old. Newer changes made since then stay, '
+                          'but older versions of the same records will replace them.',
+                          style: GoogleFonts.outfit(fontSize: 12.5, color: const Color(0xFF9A3412))),
+                    ],
+                  ],
+                ),
+              ),
               Text(
                 'Social causes, notifications, chats, tasks and the rest of this backup will be written back to Firebase. '
                 'Records that exist now are updated, nothing is deleted, and current staff details are never overwritten.',
@@ -788,3 +835,7 @@ class _RecordScreen extends StatelessWidget {
         ),
       );
 }
+
+/// "Made 3 days ago (22 Nov 2026, 10:00 AM)" — shown before a restore.
+String backupAgeText(DateTime? created, {DateTime? now}) =>
+    _BackupViewerScreenState.backupAgeText(created, now: now);

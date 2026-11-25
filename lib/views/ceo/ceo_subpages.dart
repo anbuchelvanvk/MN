@@ -17,6 +17,7 @@ import '../hr/hr_management_widgets.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 import '../hr/hr_portal_subpages.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../../core/widgets/attendance_publish_check.dart';
 
 /// Reusable Luxury Executive Scaffold for CEO Subpages (Executive Burgundy & Sand Gold theme with top-left back button)
 class CeoSubpageScaffold extends StatelessWidget {
@@ -785,6 +786,22 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
     String deptName,
     int employeeCount,
   ) async {
+    // Checkpoint: a department with staff in it cannot be deleted.
+    if (employeeCount > 0) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          icon: const Icon(Icons.groups_rounded, color: Color(0xFFD97706)),
+          title: const Text('Staff are still in this department'),
+          content: Text(
+            '"$deptName" has $employeeCount staff. Move them to another department '
+            '(choose "Reallocate") or relieve them one by one first. Then you can delete it.',
+          ),
+          actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -810,12 +827,13 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
     );
 
     if (confirmed == true) {
-      await eco.deleteDepartmentWithWorkflow(deptName: deptName, deleteEmployees: true);
+      final refused = await eco.deleteDepartmentWithWorkflow(deptName: deptName, deleteEmployees: true);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: const Color(0xFFDC2626),
-            content: Text('Department "$deptName" and $employeeCount employee accounts were permanently deleted.'),
+            backgroundColor: refused == null ? const Color(0xFFDC2626) : const Color(0xFFD97706),
+            duration: Duration(seconds: refused == null ? 4 : 7),
+            content: Text(refused ?? 'Department "$deptName" was deleted.'),
           ),
         );
       }
@@ -1562,14 +1580,15 @@ class _CeoStaffDossiersScreenState extends State<CeoStaffDossiersScreen> {
               final name = emp.name;
               final idStr = emp.empNo.isNotEmpty ? 'EMP #${emp.empNo}' : emp.id;
               final success = eco.relieveEmployee(emp.id);
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFFDC2626),
-                    content: Text('$name ($idStr) has been officially relieved from the company.'),
-                  ),
-                );
-              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: success ? const Color(0xFFDC2626) : const Color(0xFFD97706),
+                  duration: Duration(seconds: success ? 4 : 7),
+                  content: Text(success
+                      ? '$name ($idStr) has been relieved and their sign-in switched off.'
+                      : (eco.notificationMessage ?? 'Could not relieve $name.')),
+                ),
+              );
             },
             child: const Text('Relieve from Company'),
           ),
@@ -1776,10 +1795,13 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
           onPressed: () async {
             await eco.syncGoogleSheetsAttendance(notifyIfUpdated: true);
             if (!context.mounted) return;
+            final held = eco.heldAttendanceBroadcast;
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: Color(0xFF10B981),
-                content: Text('Attendance synchronized with Google Sheets!'),
+              SnackBar(
+                backgroundColor: held != null ? const Color(0xFFD97706) : const Color(0xFF10B981),
+                content: Text(held != null
+                    ? 'Synced. The "attendance updated" notice was NOT sent: the sheet has problems. Tap the megaphone to review.'
+                    : 'Attendance synchronized with Google Sheets!'),
               ),
             );
           },
@@ -2323,9 +2345,12 @@ class _CeoAttendanceScreenState extends State<CeoAttendanceScreen> {
               foregroundColor: AppColors.burgundyBg,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            onPressed: () {
+            onPressed: () async {
               final dateText = controller.text.trim();
               if (dateText.isNotEmpty) {
+                // Checkpoint: review sheet problems before telling everyone.
+                if (!await confirmAttendancePublish(ctx, eco, dateText)) return;
+                if (!ctx.mounted) return;
                 eco.broadcastAttendanceUpdateNotification(dateText);
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(

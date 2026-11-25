@@ -32,6 +32,7 @@ import '../services/firebase_employee_service.dart';
 import '../services/offline_sync_service.dart';
 import '../core/services/push_notification_service.dart';
 import '../core/services/auto_steps_service.dart';
+import '../core/services/staff_access_service.dart';
 import '../core/utils/password_generator.dart';
 
 class EcosystemProvider extends ChangeNotifier {
@@ -134,6 +135,7 @@ class EcosystemProvider extends ChangeNotifier {
     _autoStepsStatus = AutoStepsStatus.off;
     _autoStepsLastSync = null;
     _autoStepDays.clear();
+    _stepSources = {};
     _dailyFoodLogs = [];
     _dailyWorkoutLogs = [];
     _familyActivityLogs = [];
@@ -964,7 +966,12 @@ class EcosystemProvider extends ChangeNotifier {
         final daysStr = sortedDays.length == 1
             ? '$monthName ${sortedDays.first}'
             : '$monthName ${sortedDays.first}–${sortedDays.last}';
-        broadcastAttendanceUpdateNotification(daysStr);
+        // Checkpoint: hold the notice back if the sheet has problems.
+        if (checkAttendanceBeforePublish(daysStr).problemCount > 0) {
+          _heldAttendanceBroadcast = daysStr;
+        } else {
+          broadcastAttendanceUpdateNotification(daysStr);
+        }
       }
     } catch (e) {
       _attendanceSheetError = e.toString();
@@ -1110,8 +1117,73 @@ class EcosystemProvider extends ChangeNotifier {
   }) =>
       formatAttendanceDate(rawInput, defaultMonth: defaultMonth);
 
+  // ---- Checkpoint 1: check the sheet before telling everyone ----
+  String? _heldAttendanceBroadcast;
+
+  /// Set when a sync found new days but the sheet has problems, so the
+  /// "attendance updated" notice was held back for HR to review.
+  String? get heldAttendanceBroadcast => _heldAttendanceBroadcast;
+
+  AttendancePublishReport checkAttendanceBeforePublish(String dateText) {
+    final sheet = hrAttendanceSheet;
+    if (sheet == null) return const AttendancePublishReport(sheetMissing: true);
+    final now = DateTime.now();
+    final label = formatAttendanceDateLabel(dateText,
+        defaultMonth: GoogleSheetsAttendanceService.monthNames[_selectedAttendanceMonth]);
+    final dayMatch = RegExp(r'(\d{1,2})').firstMatch(label);
+    final day = int.tryParse(dayMatch?.group(1) ?? '') ?? sheet.latestRecordedDay;
+    var month = _selectedAttendanceMonth;
+    GoogleSheetsAttendanceService.monthNames.forEach((k, v) {
+      if (label.toLowerCase().contains(v.toLowerCase())) month = k;
+    });
+    final publishDate = DateTime(now.year, month, day.clamp(1, 31));
+    final today = DateTime(now.year, now.month, now.day);
+    final futureDate = publishDate.isAfter(today) ? label : null;
+
+    final staff = _employees.where((e) => e.hasAttendanceAndGrooming && !e.isExternalSupport).toList();
+    final missing = <String>[];
+    final blanks = <String, List<int>>{};
+    final lastDay = futureDate != null ? today.day : day;
+    for (final e in staff) {
+      final row = sheet.findForEmployee(name: e.name, empNo: e.empNo);
+      if (row == null) {
+        missing.add(e.name);
+        continue;
+      }
+      final empty = <int>[];
+      for (var d = 1; d <= lastDay; d++) {
+        final date = DateTime(now.year, month, d);
+        if (date.month != month || date.weekday == DateTime.tuesday) continue;
+        final rec = row.days[d];
+        if (rec == null || rec.type == HrAttendanceDayType.pendingUpdate) empty.add(d);
+      }
+      if (empty.isNotEmpty) blanks[e.name] = empty;
+    }
+
+    final known = <String>{
+      for (final e in _employees) ...[
+        e.empNo.trim().toLowerCase(),
+        e.id.trim().toLowerCase(),
+        e.name.trim().toLowerCase(),
+      ],
+    }..remove('');
+    final unknown = sheet.allSheetStaff
+        .where((r) => !known.contains(r.empNo.trim().toLowerCase()) && !known.contains(r.name.trim().toLowerCase()))
+        .map((r) => '#${r.empNo} ${r.name}')
+        .toList();
+
+    return AttendancePublishReport(
+      dateLabel: label,
+      futureDate: futureDate,
+      staffMissing: missing,
+      blankDays: blanks,
+      unknownNumbers: unknown,
+    );
+  }
+
   /// Broadcast notification to all staff that attendance has been updated
   void broadcastAttendanceUpdateNotification(String dateOrDays) {
+    _heldAttendanceBroadcast = null;
     final cleanLabel = formatAttendanceDateLabel(
       dateOrDays,
       defaultMonth: _hrAttendanceSheet?.monthTitle != null
@@ -3371,14 +3443,28 @@ class EcosystemProvider extends ChangeNotifier {
 
   /// Completely deletes a department with executive workflow (Strictly CEO Privilege)
   /// If [deleteEmployees] is false, reallocates members to [reallocateToDept]
-  Future<void> deleteDepartmentWithWorkflow({
+  /// Returns why the department was not deleted, or null when deleted.
+  Future<String?> deleteDepartmentWithWorkflow({
     required String deptName,
     required bool deleteEmployees,
     String? reallocateToDept,
   }) async {
     final cleanDept = deptName.trim();
-    if (cleanDept.isEmpty) return;
+    if (cleanDept.isEmpty) return 'Choose a department.';
     final lower = cleanDept.toLowerCase();
+
+    // Checkpoint: never delete a department that still has staff in it.
+    final members = _employees.where((e) => e.dept.trim().toLowerCase() == lower).toList();
+    final moving = reallocateToDept != null && reallocateToDept.trim().isNotEmpty &&
+        reallocateToDept.trim().toLowerCase() != lower;
+    if (members.isNotEmpty && !moving) {
+      final msg = '"$cleanDept" still has ${members.length} staff '
+          '(${members.take(3).map((e) => e.name).join(', ')}${members.length > 3 ? '…' : ''}). '
+          'Move them to another department or relieve them first.';
+      _notificationMessage = msg;
+      notifyListeners();
+      return msg;
+    }
 
     _deletedDepartments.add(lower);
     _registeredDepartments.removeWhere((d) => d.trim().toLowerCase() == lower);
@@ -3407,6 +3493,7 @@ class EcosystemProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error executing department deletion in Firestore: $e');
     }
+    return null;
   }
 
   // Real-time Workforce Chat Engine
@@ -5194,6 +5281,68 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
+  // ---- Checkpoint 3: leave and permission rules ----
+  String? _lastLeaveRequestProblem;
+  String? get lastLeaveRequestProblem => _lastLeaveRequestProblem;
+
+  static bool _isRejected(String status) => status.toLowerCase().contains('reject');
+  static DateTime _dayOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+  static String _shortDate(DateTime d) {
+    const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${d.day} ${m[d.month - 1]}';
+  }
+
+  /// Returns why a leave ([leaveDays] > 0) or permission ([permissionHours]
+  /// > 0) request cannot go ahead, or null when it is fine.
+  String? leaveRequestProblem({
+    required String empId,
+    required DateTime date,
+    int leaveDays = 0,
+    double permissionHours = 0,
+  }) {
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId || e.empNo == empId);
+    final start = _dayOnly(date);
+    final isLeave = leaveDays > 0;
+    final end = start.add(Duration(days: (isLeave ? leaveDays : 1) - 1));
+    final showroomStaff = emp != null && emp.hasAttendanceAndGrooming;
+
+    if (showroomStaff && start.weekday == DateTime.tuesday) {
+      return isLeave
+          ? 'Leave cannot start on a Tuesday — it is the showroom week off. Start it from Wednesday.'
+          : 'Tuesday is the showroom week off, so no permission is needed.';
+    }
+
+    for (final l in _medicalLeaveRecords) {
+      if (l.empId != empId || _isRejected(l.status)) continue;
+      final lStart = _dayOnly(l.date);
+      final lEnd = lStart.add(Duration(days: (l.days < 1 ? 1 : l.days) - 1));
+      if (!start.isAfter(lEnd) && !end.isBefore(lStart)) {
+        final range = lStart == lEnd ? _shortDate(lStart) : '${_shortDate(lStart)} – ${_shortDate(lEnd)}';
+        return isLeave
+            ? 'You already have leave on $range. This request overlaps it.'
+            : 'You are on leave on $range, so permission is not needed.';
+      }
+    }
+
+    if (!isLeave && permissionHours > 0) {
+      final used = _permissionRecords
+          .where((p) =>
+              p.empId == empId &&
+              !p.isCasualLeave &&
+              !_isRejected(p.status) &&
+              p.date.year == start.year &&
+              p.date.month == start.month)
+          .fold(0.0, (sum, p) => sum + p.actualHoursUsed);
+      if (used + permissionHours > _monthlyPermissionHoursLimit) {
+        String h(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
+        final left = (_monthlyPermissionHoursLimit - used).clamp(0, _monthlyPermissionHoursLimit).toDouble();
+        return 'This goes past the monthly permission limit of ${h(_monthlyPermissionHoursLimit)} hours '
+            '(${h(used)} h used, ${h(left)} h left). Ask HR, or apply for leave instead.';
+      }
+    }
+    return null;
+  }
+
   // Permission & Late Arrival Request (4.0 hrs limit & 1 CL rule)
   void requestPermission({
     required String empId,
@@ -5281,14 +5430,20 @@ class EcosystemProvider extends ChangeNotifier {
     _persistLeaveRecords(empId);
   }
 
-  // Employee requests standard permission
-  void requestEmployeePermission({
+  // Employee requests standard permission. Returns why it was refused, or null.
+  String? requestEmployeePermission({
     required String empId,
     required double requestedHours,
     required String reason,
     DateTime? date,
   }) {
     final targetDate = date ?? DateTime.now();
+    _lastLeaveRequestProblem =
+        leaveRequestProblem(empId: empId, date: targetDate, permissionHours: requestedHours);
+    if (_lastLeaveRequestProblem != null) {
+      notifyListeners();
+      return _lastLeaveRequestProblem;
+    }
     final currentUsed = totalPermissionHoursUsed;
     final willExceed =
         (currentUsed + requestedHours) > _monthlyPermissionHoursLimit;
@@ -5323,16 +5478,23 @@ class EcosystemProvider extends ChangeNotifier {
     );
     notifyListeners();
     _persistLeaveRecords(empId);
+    return null;
   }
 
-  // Request Emergency Permission (15m, 30m, 1h, 2h, >2h custom)
-  void requestEmergencyPermission({
+  // Request Emergency Permission (15m, 30m, 1h, 2h, >2h custom).
+  // Returns why it was refused, or null.
+  String? requestEmergencyPermission({
     required String empId,
     required double hours,
     required String reason,
     required String requesterRole,
   }) {
     final now = DateTime.now();
+    _lastLeaveRequestProblem = leaveRequestProblem(empId: empId, date: now, permissionHours: hours);
+    if (_lastLeaveRequestProblem != null) {
+      notifyListeners();
+      return _lastLeaveRequestProblem;
+    }
     final emp = _employees.firstWhereOrNull((e) => e.id == empId) ??
         currentEmployee;
 
@@ -5389,6 +5551,7 @@ class EcosystemProvider extends ChangeNotifier {
     );
     notifyListeners();
     _persistLeaveRecords(empId);
+    return null;
   }
 
   // Request Emergency Medical Leave with Mandatory Doctor Prescription (<= 150 KB)
@@ -5401,10 +5564,16 @@ class EcosystemProvider extends ChangeNotifier {
   }) async {
     // Prescription is strictly required
     if (prescriptionBase64.trim().isEmpty) {
+      _lastLeaveRequestProblem = 'A doctor prescription is required.';
       return false;
     }
 
     final now = DateTime.now();
+    _lastLeaveRequestProblem = leaveRequestProblem(empId: empId, date: now, leaveDays: days);
+    if (_lastLeaveRequestProblem != null) {
+      notifyListeners();
+      return false;
+    }
     final emp = _employees.firstWhereOrNull((e) => e.id == empId) ??
         currentEmployee;
     final isHrRequester = requesterRole.toLowerCase().contains('hr');
@@ -5854,6 +6023,20 @@ class EcosystemProvider extends ChangeNotifier {
   bool _autoStepsNoData = false;
   final Set<String> _autoStepDays = {};
 
+  /// Where each day's steps came from: 'phone' or 'typed'.
+  Map<String, String> _stepSources = {};
+
+  /// More than this in one day is flagged as unusual.
+  static const int unusualStepsPerDay = 40000;
+  bool isUnusualSteps(int steps) => steps > unusualStepsPerDay;
+
+  /// 'phone', 'typed', or null when nothing was recorded that day.
+  String? stepSourceFor(DateTime date) {
+    final key = _stepDayKey(date);
+    if (!_dailyStepsMap.containsKey(key)) return null;
+    return _stepSources[key] ?? 'typed';
+  }
+
   bool get autoStepsSupported => AutoStepsService.isSupported;
   bool get autoStepsEnabled => _autoStepsEnabled;
   AutoStepsStatus get autoStepsStatus => _autoStepsEnabled ? _autoStepsStatus : AutoStepsStatus.off;
@@ -5940,6 +6123,7 @@ class EcosystemProvider extends ChangeNotifier {
         final clamped = steps.clamp(0, 100000);
         if (clamped > (_dailyStepsMap[key] ?? 0)) {
           _dailyStepsMap[key] = clamped;
+          _stepSources[key] = 'phone';
           changed = true;
         }
       }
@@ -5963,6 +6147,7 @@ class EcosystemProvider extends ChangeNotifier {
         if (_dailyCalorieTarget != null)
           'dailyCalorieTarget': _dailyCalorieTarget,
         'dailySteps': _dailyStepsMap,
+        'dailyStepsSource': _stepSources,
       },
     ).catchError((Object e) => debugPrint('Saving steps failed: $e'));
   }
@@ -5972,6 +6157,7 @@ class EcosystemProvider extends ChangeNotifier {
     final key =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     _dailyStepsMap[key] = steps;
+    _stepSources[key] = 'typed';
     notifyListeners();
     _firebaseEmployeeService.saveEmployeePillar(
       empId: _activeEmpId,
@@ -5983,6 +6169,7 @@ class EcosystemProvider extends ChangeNotifier {
         if (_dailyCalorieTarget != null)
           'dailyCalorieTarget': _dailyCalorieTarget,
         'dailySteps': _dailyStepsMap,
+        'dailyStepsSource': _stepSources,
       },
     );
   }
@@ -6633,8 +6820,75 @@ class EcosystemProvider extends ChangeNotifier {
     }
   }
 
-  /// Updates personal details (Name, Phone, DOB, Relationship Status, Anniversary Date, Gender)
-  Future<void> updateEmployeePersonalDetails({
+  // ---- Checkpoint 4: profile details ----
+  static String _phoneDigits(String phone) {
+    var d = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (d.length == 12 && d.startsWith('91')) d = d.substring(2);
+    if (d.length == 11 && d.startsWith('0')) d = d.substring(1);
+    return d;
+  }
+
+  /// Parses YYYY-MM-DD or DD-MM-YYYY (also with "/").
+  static DateTime? parseDob(String raw) {
+    final t = raw.trim().replaceAll('/', '-');
+    final a = RegExp(r'^(\d{4})-(\d{1,2})-(\d{1,2})$').firstMatch(t);
+    final b = RegExp(r'^(\d{1,2})-(\d{1,2})-(\d{4})$').firstMatch(t);
+    int? y, m, d;
+    if (a != null) {
+      y = int.parse(a.group(1)!);
+      m = int.parse(a.group(2)!);
+      d = int.parse(a.group(3)!);
+    } else if (b != null) {
+      d = int.parse(b.group(1)!);
+      m = int.parse(b.group(2)!);
+      y = int.parse(b.group(3)!);
+    } else {
+      return null;
+    }
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+    final date = DateTime(y, m, d);
+    return date.month == m ? date : null;
+  }
+
+  /// Checks a phone number, date of birth and email. Returns the first
+  /// problem or null. [exceptEmpId] is the person being edited.
+  String? staffDetailsProblem({
+    String? phone,
+    String? dob,
+    String? email,
+    String? exceptEmpId,
+  }) {
+    final others = _employees.where((e) => e.id != exceptEmpId).toList();
+    if (phone != null && phone.trim().isNotEmpty) {
+      final digits = _phoneDigits(phone);
+      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(digits)) {
+        return 'Enter a valid 10-digit mobile number (it should start with 6, 7, 8 or 9).';
+      }
+      final clash = others.firstWhereOrNull((e) => _phoneDigits(e.phone) == digits);
+      if (clash != null) return 'This mobile number is already used by ${clash.name}.';
+    }
+    if (dob != null && dob.trim().isNotEmpty) {
+      final date = parseDob(dob);
+      if (date == null) return 'Enter the date of birth as YYYY-MM-DD.';
+      final now = DateTime.now();
+      var age = now.year - date.year;
+      if (now.month < date.month || (now.month == date.month && now.day < date.day)) age--;
+      if (date.isAfter(now)) return 'Date of birth cannot be in the future.';
+      if (age < 18) return 'Staff must be at least 18 years old. Check the date of birth.';
+      if (age > 80) return 'Check the date of birth — that makes them over 80.';
+    }
+    if (email != null && email.trim().isNotEmpty) {
+      final clean = email.trim().toLowerCase();
+      if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(clean)) return 'Enter a valid email address.';
+      final clash = others.firstWhereOrNull((e) => e.email.trim().toLowerCase() == clean);
+      if (clash != null) return 'This email is already used by ${clash.name}.';
+    }
+    return null;
+  }
+
+  /// Updates personal details (Name, Phone, DOB, Relationship Status, Anniversary Date, Gender).
+  /// Returns why the details were refused, or null when saved.
+  Future<String?> updateEmployeePersonalDetails({
     required String empId,
     required String name,
     required String phone,
@@ -6644,8 +6898,16 @@ class EcosystemProvider extends ChangeNotifier {
     String? gender,
   }) async {
     final idx = _employees.indexWhere((e) => e.id == empId);
-    if (idx != -1) {
+    if (idx == -1) return 'Employee profile not found.';
+    if (name.trim().isEmpty) return 'Enter the name.';
+    {
       final oldEmp = _employees[idx];
+      final problem = staffDetailsProblem(
+        phone: _phoneDigits(phone) == _phoneDigits(oldEmp.phone) ? null : phone,
+        dob: dob.trim() == oldEmp.dob.trim() ? null : dob,
+        exceptEmpId: empId,
+      );
+      if (problem != null) return problem;
       final newInitials = name
           .trim()
           .split(RegExp(r'\s+'))
@@ -6693,6 +6955,7 @@ class EcosystemProvider extends ChangeNotifier {
         debugPrint('Firebase profile sync note: $e');
       }
     }
+    return null;
   }
 
   /// Changes the signed-in user's own password after verifying the old one.
@@ -6985,6 +7248,11 @@ class EcosystemProvider extends ChangeNotifier {
           if (h['dailySteps'] is Map) {
             _dailyStepsMap = (h['dailySteps'] as Map).map(
               (k, v) => MapEntry(k.toString(), (v as num).toInt()),
+            );
+          }
+          if (h['dailyStepsSource'] is Map) {
+            _stepSources = (h['dailyStepsSource'] as Map).map(
+              (k, v) => MapEntry(k.toString(), v.toString()),
             );
           }
         }
@@ -7977,7 +8245,56 @@ class EcosystemProvider extends ChangeNotifier {
     });
   }
 
-  void assignTask({
+  // ---- Checkpoint 5: assigning a task ----
+  static final _attendanceTaskWords =
+      RegExp(r'attendance|grooming|uniform|thumb|biometric|punch|dress code', caseSensitive: false);
+
+  /// A task that must not be given to this person (outside support gets
+  /// work tasks only, never attendance or grooming). Null when fine.
+  String? taskAssignBlock({required String empId, required String title, String category = ''}) {
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId || e.empNo == empId);
+    if (emp == null) return null; // unknown here (directory still loading): nothing to check
+    if (emp.isExternalSupport && _attendanceTaskWords.hasMatch('$title $category')) {
+      return '${emp.name} is outside support (not MN Jewel Park staff). '
+          'Attendance and grooming tasks cannot be given to them.';
+    }
+    return null;
+  }
+
+  /// Turns a due value ("06:00 PM", "2026-11-30", "Today") into a time.
+  static DateTime? parseTaskDue(String due, {DateTime? now}) {
+    final n = now ?? DateTime.now();
+    final t = due.trim();
+    final time = RegExp(r'^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$').firstMatch(t);
+    if (time != null) {
+      var h = int.parse(time.group(1)!) % 12;
+      if (time.group(3)!.toLowerCase() == 'pm') h += 12;
+      return DateTime(n.year, n.month, n.day, h, int.parse(time.group(2)!));
+    }
+    final date = DateTime.tryParse(t);
+    if (date != null) return DateTime(date.year, date.month, date.day, 23, 59);
+    return null;
+  }
+
+  /// Reasons to double-check before assigning (the person is away today, or
+  /// the deadline has already passed). Empty when all is fine.
+  List<String> taskAssignWarnings({required String empId, required String due}) {
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId || e.empNo == empId);
+    final out = <String>[];
+    if (emp != null) {
+      final state = todayAttendanceOf(emp.id);
+      if (state == TodayAttendance.absent) out.add('${emp.name} is absent today.');
+      if (state == TodayAttendance.weekOff) out.add('${emp.name} is on the Tuesday week off today.');
+    }
+    final dueAt = parseTaskDue(due);
+    if (dueAt != null && dueAt.isBefore(DateTime.now())) {
+      out.add('The deadline ($due) has already passed.');
+    }
+    return out;
+  }
+
+  /// Returns why the task was refused, or null when assigned.
+  String? assignTask({
     required String empId,
     required String title,
     required String category,
@@ -7986,6 +8303,12 @@ class EcosystemProvider extends ChangeNotifier {
     required String assignedByRole,
     required String assignedByName,
   }) {
+    final block = taskAssignBlock(empId: empId, title: title, category: category);
+    if (block != null) {
+      _notificationMessage = block;
+      notifyListeners();
+      return block;
+    }
     final newTask = TaskItem(
       id: 'TSK-${_uniqueSuffix()}',
       empId: empId,
@@ -8019,6 +8342,7 @@ class EcosystemProvider extends ChangeNotifier {
       debugPrint('Firestore save task notif note: $err');
     });
     notifyListeners();
+    return null;
   }
 
   void advanceHandover(String handoverId) {
@@ -8202,6 +8526,33 @@ class EcosystemProvider extends ChangeNotifier {
     return relieveEmployee(empId);
   }
 
+  /// What must be handed over before [empId] can be relieved: open tasks
+  /// (not daily routines) and online orders still in progress.
+  List<String> relieveBlockers(String empId) {
+    final emp = _employees.firstWhereOrNull((e) => e.id == empId);
+    final ids = {empId, if (emp != null && emp.empNo.isNotEmpty) emp.empNo};
+    final openTasks = _tasks
+        .where((t) =>
+            ids.contains(t.empId) &&
+            (t.isPending || t.isPostponed) &&
+            !t.isDefaultSop &&
+            t.category != 'Online Order Workflow')
+        .length;
+    final orders = _onlineOrders
+        .where((o) =>
+            o.status != 'completed' &&
+            (o.reallocatedToEmpId != null && o.reallocatedToEmpId!.isNotEmpty
+                ? ids.contains(o.reallocatedToEmpId)
+                : ids.contains(o.handledByEmpId)))
+        .map((o) => '#${o.orderId}')
+        .toList();
+    return [
+      if (openTasks > 0) openTasks == 1 ? '1 open task' : '$openTasks open tasks',
+      if (orders.isNotEmpty)
+        '${orders.length} online order${orders.length == 1 ? '' : 's'} (${orders.take(3).join(', ')})',
+    ];
+  }
+
   /// Officially relieve an employee from the company, revoking credentials and removing from rosters
   bool relieveEmployee(String empId) {
     if (empId == 'MN-CEO01' ||
@@ -8221,6 +8572,15 @@ class EcosystemProvider extends ChangeNotifier {
     }
     final index = _employees.indexWhere((e) => e.id == empId);
     if (index != -1) {
+      // Checkpoint: hand over work first.
+      final blockers = relieveBlockers(empId);
+      if (blockers.isNotEmpty) {
+        _notificationMessage =
+            '${_employees[index].name} still has ${blockers.join(' and ')}. '
+            'Reassign them to someone else first, then relieve.';
+        notifyListeners();
+        return false;
+      }
       final removed = _employees.removeAt(index);
       final staffIdentifier = removed.empNo.isNotEmpty
           ? 'EMP #${removed.empNo}'
@@ -8247,6 +8607,13 @@ class EcosystemProvider extends ChangeNotifier {
           .catchError((err) {
             debugPrint('Firestore remote delete note: $err');
           });
+      // Switch their sign-in off right away (server side).
+      if (removed.email.trim().isNotEmpty) {
+        StaffAccessService.disableLogin(removed.email).catchError((Object err) {
+          debugPrint('Disable login note: $err');
+          return false;
+        });
+      }
       return true;
     }
     return false;
@@ -9173,7 +9540,31 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   // --- Social Cause Actions (5th Pillar) ---
-  void submitSocialCause({
+  // ---- Checkpoint 7: social causes ----
+  /// Amounts above this need a receipt photo.
+  static const double socialCauseReceiptLimit = 1000;
+
+  /// Same person, same title, same day: probably posted twice.
+  bool isPossibleDuplicateSocialCause({required String empId, required String title, DateTime? date}) {
+    final d = _dayOnly(date ?? DateTime.now());
+    final t = title.trim().toLowerCase();
+    return _socialCauses.any((c) =>
+        c.empId == empId &&
+        c.title.trim().toLowerCase() == t &&
+        _dayOnly(c.date) == d &&
+        !_isRejected(c.status));
+  }
+
+  /// Why a social cause cannot be submitted, or null.
+  String? socialCauseProblem({required double amountSpent, String? imageUrl}) {
+    if (amountSpent > socialCauseReceiptLimit && (imageUrl == null || imageUrl.trim().isEmpty)) {
+      return 'Amounts above ₹${socialCauseReceiptLimit.toStringAsFixed(0)} need a receipt photo. Add a photo of the bill or receipt.';
+    }
+    return null;
+  }
+
+  /// Returns why it was refused, or null when submitted.
+  String? submitSocialCause({
     required String empId,
     required String employeeName,
     required String employeeRole,
@@ -9183,6 +9574,13 @@ class EcosystemProvider extends ChangeNotifier {
     required double amountSpent,
     String? imageUrl,
   }) {
+    final problem = socialCauseProblem(amountSpent: amountSpent, imageUrl: imageUrl);
+    if (problem != null) {
+      _notificationMessage = problem;
+      notifyListeners();
+      return problem;
+    }
+    final possibleDuplicate = isPossibleDuplicateSocialCause(empId: empId, title: title);
     final newCause = SocialCauseItem(
       id: 'CAUSE-${DateTime.now().millisecondsSinceEpoch}',
       empId: empId,
@@ -9216,6 +9614,7 @@ class EcosystemProvider extends ChangeNotifier {
         id: 'POP-SC-PEND-${newCause.id}',
         title: '💛 New Social Cause: CEO & HR Approval Required',
         message:
+            '${possibleDuplicate ? '⚠️ Possible duplicate — same title posted today. ' : ''}'
             '${newCause.employeeName} (${newCause.employeeRole}) posted a social cause: "${newCause.title}" (${newCause.causeType}, ₹${newCause.amountSpent.toStringAsFixed(0)}). Awaiting CEO & HR verification.',
         requestType: AcceptanceRequestType.socialCausePending,
         employeeId: newCause.empId,
@@ -9246,6 +9645,7 @@ class EcosystemProvider extends ChangeNotifier {
     _firebaseEmployeeService.saveSocialCause(newCause).catchError((err) {
       debugPrint('Firestore saveSocialCause note: $err');
     });
+    return null;
   }
 
   /// Delete a social cause entry (accessible to author, HR, and CEO)
@@ -9629,7 +10029,13 @@ class EcosystemProvider extends ChangeNotifier {
   }
 
   /// Create a new online order workflow
-  void createOnlineOrder(OnlineOrderModel order) {
+  /// Returns false (and does nothing) when the order number already exists.
+  bool createOnlineOrder(OnlineOrderModel order) {
+    if (_onlineOrders.any((o) => o.orderId.trim().toLowerCase() == order.orderId.trim().toLowerCase())) {
+      _notificationMessage = 'Order #${order.orderId} already exists. Use a different order number.';
+      notifyListeners();
+      return false;
+    }
     _onlineOrders.insert(0, order);
     _notificationMessage =
         'Online Order #${order.orderId} created for ${order.brand} (${order.primaryResponsibleRole})!';
@@ -9671,6 +10077,7 @@ class EcosystemProvider extends ChangeNotifier {
     });
 
     checkAndEscalateOverdueOrders();
+    return true;
   }
 
   /// Toggle an individual checklist item with absenteeism check
@@ -9707,6 +10114,8 @@ class EcosystemProvider extends ChangeNotifier {
 
     final itemIdx = order.checklist.indexWhere((c) => c.id == itemId);
     if (itemIdx == -1) return 'Checklist item not found.';
+    final orderProblem = orderStepProblem(order, itemId);
+    if (orderProblem != null) return orderProblem;
 
     final currentCompleted = order.checklist[itemIdx].isCompleted;
     order.checklist[itemIdx].isCompleted = !currentCompleted;
@@ -9734,6 +10143,38 @@ class EcosystemProvider extends ChangeNotifier {
     });
 
     checkAndEscalateOverdueOrders();
+    return null;
+  }
+
+  // ---- Checkpoint 6: order stages go in order ----
+  /// Why ticking (or unticking) [itemId] is not allowed yet, or null.
+  String? orderStepProblem(OnlineOrderModel order, String itemId) {
+    final item = order.checklist.firstWhereOrNull((c) => c.id == itemId);
+    if (item == null) return null;
+    int stageNo(String stageId) => order.stages[stageId]?.index ?? (int.tryParse(stageId.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0);
+    String stageName(String stageId) => order.stages[stageId]?.stageName ?? stageId;
+    final k = stageNo(item.stageId);
+    if (!item.isCompleted) {
+      // Ticking: payment must be confirmed before anything in dispatch/delivery.
+      if (k >= 4) {
+        final paid = order.checklist.firstWhereOrNull((c) => c.id == 'PB-2');
+        if (paid != null && !paid.isCompleted) {
+          return 'Payment must be confirmed ("${paid.title}") before dispatch.';
+        }
+      }
+      final earlier = order.checklist.where((c) => stageNo(c.stageId) < k && !c.isCompleted).toList();
+      if (earlier.isNotEmpty) {
+        final first = earlier.first;
+        final left = earlier.where((c) => c.stageId == first.stageId).length;
+        return 'Finish "${stageName(first.stageId)}" first ($left ${left == 1 ? 'item' : 'items'} left). Stages go in order.';
+      }
+    } else {
+      // Unticking: later stages must be unticked first.
+      final later = order.checklist.where((c) => stageNo(c.stageId) > k && c.isCompleted).toList();
+      if (later.isNotEmpty) {
+        return 'Untick "${stageName(later.first.stageId)}" first — later stages depend on this one.';
+      }
+    }
     return null;
   }
 
@@ -10022,4 +10463,40 @@ class NewHireCheck {
   final GoogleSheetEmployeeEntry? sheetEntry;
   const NewHireCheck(this.result, this.message, {this.existing, this.sheetEntry});
   bool get ok => result == NewHireCheckResult.ok;
+}
+
+/// What is wrong with the attendance sheet before HR tells everyone it is
+/// updated ([EcosystemProvider.checkAttendanceBeforePublish]).
+class AttendancePublishReport {
+  final bool sheetMissing;
+  final String dateLabel;
+  final String? futureDate;
+  final List<String> staffMissing;
+  final Map<String, List<int>> blankDays;
+  final List<String> unknownNumbers;
+  const AttendancePublishReport({
+    this.sheetMissing = false,
+    this.dateLabel = '',
+    this.futureDate,
+    this.staffMissing = const [],
+    this.blankDays = const {},
+    this.unknownNumbers = const [],
+  });
+
+  int get problemCount =>
+      (sheetMissing ? 1 : 0) +
+      (futureDate != null ? 1 : 0) +
+      staffMissing.length +
+      blankDays.length +
+      unknownNumbers.length;
+
+  /// One plain line per problem, for the review dialog.
+  List<String> get lines => [
+        if (sheetMissing) 'The attendance sheet is not loaded. Sync it first.',
+        if (futureDate != null) '$futureDate is in the future.',
+        for (final n in staffMissing) '$n is not in the sheet.',
+        for (final e in blankDays.entries)
+          '${e.key}: ${e.value.length == 1 ? 'day' : 'days'} ${e.value.join(', ')} left blank (shows "Yet to update").',
+        for (final u in unknownNumbers) 'Employee $u is in the sheet but not in the app.',
+      ];
 }

@@ -40,6 +40,7 @@ import 'admin_role_access_management_screen.dart';
 import '../media/creative_media_review_board_screen.dart';
 import '../../core/utils/password_generator.dart';
 import '../../core/widgets/employee_avatar.dart';
+import '../../core/widgets/task_assign_check.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   /// True when shown as a tab inside the main shell (start-up popups are
@@ -1683,9 +1684,18 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                   LiquidGlassButton(
                     label: 'Assign Task',
                     icon: Icons.send,
-                    onPressed: () {
+                    onPressed: () async {
                       if (selectedEmp == null) return;
                       final t = titleController.text.trim();
+                      final go = await confirmTaskAssignment(
+                        ctx,
+                        eco,
+                        empId: selectedEmp!,
+                        title: t.isNotEmpty ? t : 'CEO Priority Task',
+                        category: 'CEO Task',
+                        due: due,
+                      );
+                      if (!go || !ctx.mounted) return;
                       eco.assignTask(
                         empId: selectedEmp!,
                         title: t.isNotEmpty ? t : 'CEO Priority Task',
@@ -3704,14 +3714,15 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
               final name = emp.name;
               final idStr = emp.empNo.isNotEmpty ? 'EMP #${emp.empNo}' : emp.id;
               final success = eco.relieveEmployee(emp.id);
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFFDC2626),
-                    content: Text('$name ($idStr) has been officially relieved from the company.'),
-                  ),
-                );
-              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: success ? const Color(0xFFDC2626) : const Color(0xFFD97706),
+                  duration: Duration(seconds: success ? 4 : 7),
+                  content: Text(success
+                      ? '$name ($idStr) has been relieved and their sign-in switched off.'
+                      : (eco.notificationMessage ?? 'Could not relieve $name.')),
+                ),
+              );
             },
             child: const Text('Relieve from Company'),
           ),

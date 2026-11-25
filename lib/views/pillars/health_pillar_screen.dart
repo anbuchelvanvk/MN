@@ -1017,6 +1017,32 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
   // DAILY STEP COUNT TRACKER CARD & PHONE PEDOMETER PERMISSION
   // =========================================================================
 
+  static String _fmtSteps(int n) {
+    final str = n.toString();
+    final buf = StringBuffer();
+    for (var i = 0; i < str.length; i++) {
+      if (i > 0 && (str.length - i) % 3 == 0) buf.write(',');
+      buf.write(str[i]);
+    }
+    return buf.toString();
+  }
+
+  Widget _stepChip(IconData icon, String text, Color color) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+            Text(text, style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+          ],
+        ),
+      );
+
   Widget _buildDailyStepTrackerCard(BuildContext context, EcosystemProvider eco) {
     final recordedSteps = eco.getStepsForDate(_selectedDate);
     final int stepGoal = eco.dailyStepGoal;
@@ -1103,7 +1129,7 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             children: [
               Flexible(
                 child: Text(
-                '$recordedSteps steps',
+                '${_fmtSteps(recordedSteps)} steps',
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.outfit(
                   fontSize: 20,
@@ -1123,6 +1149,22 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
               ),
             ],
           ),
+          if (recordedSteps > 0) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _stepChip(
+                  eco.stepSourceFor(_selectedDate) == 'phone' ? Icons.phone_android_rounded : Icons.edit_rounded,
+                  eco.stepSourceFor(_selectedDate) == 'phone' ? 'From phone' : 'Typed in',
+                  const Color(0xFF64748B),
+                ),
+                if (eco.isUnusualSteps(recordedSteps))
+                  _stepChip(Icons.warning_amber_rounded, 'Unusually high — please check', const Color(0xFFD97706)),
+              ],
+            ),
+          ],
           const SizedBox(height: 8),
 
           ClipRRect(
@@ -4501,8 +4543,27 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
                 backgroundColor: AppColors.sandGold,
                 foregroundColor: AppColors.burgundyBg,
               ),
-              onPressed: () {
-                final s = int.tryParse(ctrl.text) ?? 0;
+              onPressed: () async {
+                final s = int.tryParse(ctrl.text.replaceAll(',', '').trim()) ?? 0;
+                // Checkpoint: very high numbers are usually a typo.
+                if (eco.isUnusualSteps(s)) {
+                  final sure = await showDialog<bool>(
+                    context: ctx,
+                    builder: (c) => AlertDialog(
+                      icon: const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706)),
+                      title: const Text('That is a lot of steps'),
+                      content: Text(
+                        '${_fmtSteps(s)} steps is more than ${_fmtSteps(EcosystemProvider.unusualStepsPerDay)} in one day. '
+                        'Is it correct? It will be marked "Unusually high".',
+                      ),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Fix it')),
+                        FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Yes, save')),
+                      ],
+                    ),
+                  );
+                  if (sure != true || !ctx.mounted) return;
+                }
                 eco.recordDailySteps(date: _selectedDate, steps: s);
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(

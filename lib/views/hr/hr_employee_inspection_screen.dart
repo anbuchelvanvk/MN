@@ -1179,7 +1179,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                       final updatedName = nameCtrl.text.trim();
                       if (updatedName.isEmpty) return;
                       final messenger = ScaffoldMessenger.of(context);
-                      await eco.updateEmployeePersonalDetails(
+                      final problem = await eco.updateEmployeePersonalDetails(
                         empId: emp.id,
                         name: updatedName,
                         phone: phoneCtrl.text.trim(),
@@ -1188,6 +1188,12 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                         anniversaryDate: relStatus == 'Married' ? annivCtrl.text.trim() : '',
                         gender: gender,
                       );
+                      if (problem != null) {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(problem), backgroundColor: const Color(0xFFDC2626)),
+                        );
+                        return;
+                      }
                       if (ctx.mounted) Navigator.pop(ctx);
                       messenger.showSnackBar(
                         SnackBar(

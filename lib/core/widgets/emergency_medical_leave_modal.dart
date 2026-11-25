@@ -451,6 +451,12 @@ class _EmergencyMedicalLeaveModalState extends State<EmergencyMedicalLeaveModal>
                       requesterRole: role,
                     );
 
+                    if (!success) {
+                      setState(() {
+                        _errorMessage = eco.lastLeaveRequestProblem ?? 'Could not send the leave request.';
+                      });
+                      return;
+                    }
                     if (success) {
                       if (context.mounted) {
                         Navigator.pop(context);

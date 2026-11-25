@@ -7,6 +7,7 @@ import 'liquid_glass.dart';
 import '../../models/employee_model.dart';
 import '../../models/task_model.dart';
 import '../../providers/ecosystem_provider.dart';
+import 'task_assign_check.dart';
 
 class AssignTasksToOthersModal extends StatefulWidget {
   final String? initialAbsentEmpId;
@@ -1491,13 +1492,22 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
             label: 'Dispatch Task',
             icon: Icons.send,
             height: 42,
-            onPressed: () {
+            onPressed: () async {
               if (_newTitleController.text.trim().isEmpty || _newAssigneeId == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Please enter task description and select assignee.')),
                 );
                 return;
               }
+              final go = await confirmTaskAssignment(
+                context,
+                eco,
+                empId: _newAssigneeId!,
+                title: _newTitleController.text.trim(),
+                category: 'Manager Directive',
+                due: _newDue,
+              );
+              if (!go || !context.mounted) return;
               eco.assignTask(
                 empId: _newAssigneeId!,
                 title: _newTitleController.text.trim(),

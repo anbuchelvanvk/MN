@@ -350,12 +350,24 @@ class _EmergencyPermissionModalState extends State<EmergencyPermissionModal> {
                         ? 'Emergency Permission'
                         : _reasonController.text.trim();
 
-                    eco.requestEmergencyPermission(
+                    final refused = eco.requestEmergencyPermission(
                       empId: empId,
                       hours: effectiveHours,
                       reason: reason,
                       requesterRole: role,
                     );
+                    if (refused != null) {
+                      showDialog<void>(
+                        context: context,
+                        builder: (dctx) => AlertDialog(
+                          icon: const Icon(Icons.event_busy_rounded, color: Color(0xFFD97706)),
+                          title: const Text('Cannot send this request'),
+                          content: Text(refused),
+                          actions: [FilledButton(onPressed: () => Navigator.pop(dctx), child: const Text('OK'))],
+                        ),
+                      );
+                      return;
+                    }
 
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(

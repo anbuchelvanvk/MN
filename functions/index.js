@@ -222,4 +222,37 @@ exports.completePasswordReset = onCall(async (req) => {
 });
 
 // Company data backup / delete / restore (CEO only)
+/**
+ * Relieving a staff member: switch their Firebase sign-in off and sign them
+ * out of every phone. HR or CEO only; leadership accounts cannot be switched off.
+ */
+exports.disableStaffLogin = onCall(async (req) => {
+  const role = await callerRole(req.auth);
+  if (role !== 'hr' && role !== 'ceo') {
+    throw new HttpsError('permission-denied', 'Only HR or the CEO can do this.');
+  }
+  const email = cleanEmail(req.data && req.data.email);
+  if (!email || !email.includes('@')) {
+    throw new HttpsError('invalid-argument', 'Missing email.');
+  }
+  if (LEADERSHIP[email]) {
+    throw new HttpsError('failed-precondition', 'Leadership accounts cannot be switched off.');
+  }
+  let user;
+  try {
+    user = await getAuth().getUserByEmail(email);
+  } catch (e) {
+    if (e && e.code === 'auth/user-not-found') return { ok: true, note: 'no sign-in account' };
+    throw e;
+  }
+  await getAuth().updateUser(user.uid, { disabled: true });
+  await getAuth().revokeRefreshTokens(user.uid);
+  await db.collection('relieved_staff').doc(email).set({
+    email,
+    disabledBy: cleanEmail(req.auth.token.email),
+    disabledAt: new Date(),
+  });
+  return { ok: true };
+});
+
 Object.assign(exports, require('./data_vault'));

@@ -80,7 +80,7 @@ void main() {
       expect(reallocatedEmp.dept, 'Online Department');
     });
 
-    test('Deleting department with deleteEmployees permanently purges employees and dept', () async {
+    test('A department that still has staff cannot be deleted', () async {
       final eco = EcosystemProvider();
       await eco.loginWithFirebase(email: 'ceoofmn@mnjpark.com', password: 'test-password');
 
@@ -96,15 +96,19 @@ void main() {
       );
       expect(eco.employees.firstWhere((e) => e.id == '67').dept, 'Temporary Staging');
 
-      // Execute delete department along with employees
-      await eco.deleteDepartmentWithWorkflow(
+      // Checkpoint: deleting it (and its staff) is refused while staff are in it
+      final refused = await eco.deleteDepartmentWithWorkflow(
         deptName: 'Temporary Staging',
         deleteEmployees: true,
       );
+      expect(refused, contains('still has 1 staff'));
+      expect(eco.availableDepartments, contains('Temporary Staging'));
+      expect(eco.employees.any((e) => e.id == '67'), isTrue);
 
-      // Verify department is permanently removed
+      // Once the staff member is moved out, the empty department can go
+      await eco.allocateEmployeeRole(empId: '67', newRole: 'Online Sale Person 2', newDept: 'Online Department');
+      expect(await eco.deleteDepartmentWithWorkflow(deptName: 'Temporary Staging', deleteEmployees: true), isNull);
       expect(eco.availableDepartments.contains('Temporary Staging'), isFalse);
-      expect(eco.employees.any((e) => e.id == '67'), isFalse);
     });
   });
 

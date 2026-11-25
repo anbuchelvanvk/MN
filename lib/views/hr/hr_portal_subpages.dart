@@ -16,6 +16,7 @@ import 'hr_management_widgets.dart';
 import '../../core/utils/password_generator.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../dept_head/team_hub_screen.dart' show OutsideSupportNote;
+import '../../core/widgets/attendance_publish_check.dart';
 
 // ============================================================================
 // 1. REUSABLE HR SUBPAGE SCAFFOLD (Standard Top-Left Back Button Architecture)
@@ -630,14 +631,15 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
               final name = emp.name;
               final idStr = emp.empNo.isNotEmpty ? 'EMP #${emp.empNo}' : emp.id;
               final success = eco.relieveEmployee(emp.id);
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFFDC2626),
-                    content: Text('$name ($idStr) has been officially relieved from the company.'),
-                  ),
-                );
-              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: success ? const Color(0xFFDC2626) : const Color(0xFFD97706),
+                  duration: Duration(seconds: success ? 4 : 7),
+                  content: Text(success
+                      ? '$name ($idStr) has been relieved and their sign-in switched off.'
+                      : (eco.notificationMessage ?? 'Could not relieve $name.')),
+                ),
+              );
             },
             child: const Text('Relieve from Company'),
           ),
@@ -1537,6 +1539,17 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                           final cleanPass = passwordController.text.trim().isNotEmpty ? passwordController.text.trim() : 'mnj12345';
                           final cleanRole = roleController.text.trim().isNotEmpty ? roleController.text.trim() : 'Operations Staff';
                           final cleanPhone = phoneController.text.trim().isNotEmpty ? phoneController.text.trim() : '+91 98450 00000';
+                          final detailsProblem = eco.staffDetailsProblem(
+                            phone: phoneController.text.trim(),
+                            dob: dobController.text.trim(),
+                            email: genEmail,
+                          );
+                          if (detailsProblem != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(backgroundColor: const Color(0xFFEF4444), content: Text(detailsProblem)),
+                            );
+                            return;
+                          }
 
                           final cleanDept = isCustomDept
                               ? customDeptController.text.trim()
@@ -1733,9 +1746,12 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
               backgroundColor: AppColors.magentaPrimary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            onPressed: () {
+            onPressed: () async {
               final dateText = controller.text.trim();
               if (dateText.isNotEmpty) {
+                // Checkpoint: review sheet problems before telling everyone.
+                if (!await confirmAttendancePublish(ctx, eco, dateText)) return;
+                if (!ctx.mounted) return;
                 eco.broadcastAttendanceUpdateNotification(dateText);
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1911,12 +1927,18 @@ class _HrAttendanceScreenState extends State<HrAttendanceScreen> {
             await eco.syncGoogleSheetsAttendance(notifyIfUpdated: true);
             if (!context.mounted) return;
             final err = eco.attendanceSheetError;
+            final held = eco.heldAttendanceBroadcast;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                backgroundColor: err == null ? const Color(0xFF10B981) : AppColors.ragRed,
-                content: Text(err == null
-                    ? 'HR Attendance synchronized with Google Sheets!'
-                    : 'Sync failed: ${err.replaceFirst('Exception: ', '')}'),
+                backgroundColor: err != null
+                    ? AppColors.ragRed
+                    : (held != null ? const Color(0xFFD97706) : const Color(0xFF10B981)),
+                duration: Duration(seconds: held != null ? 7 : 4),
+                content: Text(err != null
+                    ? 'Sync failed: ${err.replaceFirst('Exception: ', '')}'
+                    : (held != null
+                        ? 'Synced. The "attendance updated" notice was NOT sent: the sheet has problems. Tap the megaphone to review.'
+                        : 'HR Attendance synchronized with Google Sheets!')),
               ),
             );
           },

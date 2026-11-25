@@ -21,6 +21,10 @@ void main() {
         empId: employee.id,
         requestedHours: 2.0,
         reason: 'Family Emergency',
+        // Any day but Tuesday (showroom week off: no permission needed then)
+        date: DateTime.now().weekday == DateTime.tuesday
+            ? DateTime.now().add(const Duration(days: 1))
+            : DateTime.now(),
       );
 
       final permRecord = provider.permissionRecords.firstWhere((p) => p.empId == employee.id);

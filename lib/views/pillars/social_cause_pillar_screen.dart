@@ -998,7 +998,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                 backgroundColor: AppColors.sandGold,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              onPressed: () {
+              onPressed: () async {
                 final title = titleCtrl.text.trim();
                 if (title.isEmpty) {
                   setDialogState(() {
@@ -1026,6 +1026,29 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                 });
 
                 final finalImage = compressedPhotoDataUrl ?? (imageCtrl.text.trim().isNotEmpty ? imageCtrl.text.trim() : null);
+
+                // Checkpoint: receipt photo for larger amounts
+                final receiptProblem = eco.socialCauseProblem(amountSpent: amount, imageUrl: finalImage);
+                if (receiptProblem != null) {
+                  setDialogState(() => inlineErrorMessage = receiptProblem);
+                  return;
+                }
+                // Checkpoint: same title already posted today
+                if (eco.isPossibleDuplicateSocialCause(empId: currentEmp.id, title: title)) {
+                  final again = await showDialog<bool>(
+                    context: dialogCtx,
+                    builder: (c) => AlertDialog(
+                      icon: const Icon(Icons.content_copy_rounded, color: Color(0xFFD97706)),
+                      title: const Text('Posted this already?'),
+                      content: Text('You already posted "$title" today. Post it again? HR and the CEO will see it marked as a possible duplicate.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('No')),
+                        FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Post again')),
+                      ],
+                    ),
+                  );
+                  if (again != true || !dialogCtx.mounted) return;
+                }
 
                 eco.submitSocialCause(
                   empId: currentEmp.id,
