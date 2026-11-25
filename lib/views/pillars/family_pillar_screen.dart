@@ -10,6 +10,7 @@ import '../../models/family_models.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../services/image_optimization_service.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../../core/widgets/pillar_kit.dart';
 
 /// User-friendly duration formatter:
 /// - Under 1 hour (e.g. 0.8 hrs): represented as minutes (48 mins)
@@ -483,185 +484,36 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     final friendsHours = eco.getFriendsHoursForDate(_selectedDate);
     final totalActivities = eco.getFamilyActivitiesForDate(_selectedDate).length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                'LOG BY TYPE',
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.sandGold,
-                  letterSpacing: 0.6,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text(
-              'Tap to open',
-              style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
+    Widget tile(int index, IconData icon, Color color, String label, String value, String? unit, String caption) =>
+        KitStatTile(
+          icon: icon,
+          color: color,
+          label: label,
+          value: value,
+          unit: unit,
+          caption: caption,
+          selected: _selectedSectionIndex == index,
+          onTap: () => setState(() => _selectedSectionIndex = index),
+        );
 
-        // Grid of 4 Module Cards
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.35,
-          children: [
-            _buildModuleCard(
-              index: 0,
-              title: 'Family Time',
-              emoji: '👨‍👩‍👧‍👦',
-              metric: formatDuration(familyHours),
-              subtitle: 'Cherished moments',
-              badge: familyHours > 0 ? 'Cherished' : 'Log Time',
-              badgeColor: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
-            ),
-            _buildModuleCard(
-              index: 1,
-              title: 'Friends & Peers',
-              emoji: '🤝',
-              metric: formatDuration(friendsHours),
-              subtitle: 'Peer camaraderie',
-              badge: friendsHours > 0 ? 'Connected' : 'Log Time',
-              badgeColor: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
-            ),
-            _buildModuleCard(
-              index: 2,
-              title: 'Log Activity',
-              emoji: '✍️',
-              metric: '+ Add Activity',
-              subtitle: 'Log hours & memories',
-              badge: 'Logger',
-              badgeColor: AppColors.sandGold,
-            ),
-            _buildModuleCard(
-              index: 3,
-              title: 'Activity Diary',
-              emoji: '📋',
-              metric: '$totalActivities Entries',
-              subtitle: '${formatDuration(eco.totalOverallSocialHoursToday)} total',
-              badge: 'History',
-              badgeColor: const Color(0xFFA855F7),
-            ),
-          ],
-        ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        KitSectionHeader('Log by type', subtitle: 'Tap a card to open it below'),
+        const SizedBox(height: 12),
+        KitTileGrid(children: [
+          tile(0, Icons.family_restroom_rounded, const Color(0xFFE11D48), 'Family Time', formatDuration(familyHours), null,
+              familyHours > 0 ? 'Cherished moments' : 'Nothing logged yet'),
+          tile(1, Icons.diversity_3_rounded, const Color(0xFF8B5CF6), 'Friends & Peers', formatDuration(friendsHours), null,
+              friendsHours > 0 ? 'Good company' : 'Nothing logged yet'),
+          tile(2, Icons.edit_note_rounded, const Color(0xFFF97316), 'Log Activity', 'Add', null, 'Hours & memories'),
+          tile(3, Icons.history_rounded, const Color(0xFF0EA5E9), 'Activity Diary', '$totalActivities',
+              totalActivities == 1 ? 'entry' : 'entries', '${formatDuration(eco.totalOverallSocialHoursToday)} in total'),
+        ]),
       ],
     );
   }
 
-  Widget _buildModuleCard({
-    required int index,
-    required String title,
-    required String emoji,
-    required String metric,
-    required String subtitle,
-    required String badge,
-    required Color badgeColor,
-  }) {
-    final isSelected = _selectedSectionIndex == index;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () => setState(() => _selectedSectionIndex = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.burgundyCard : AppColors.burgundySurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.sandGold : AppColors.sandBorder,
-            width: isSelected ? 1.8 : 1.0,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.sandGold.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : [],
-        ),
-        child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.topLeft, child: SizedBox(width: 150, child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(emoji, style: const TextStyle(fontSize: 20)),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: badgeColor.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: badgeColor.withOpacity(0.5), width: 0.8),
-                  ),
-                  child: Text(
-                    badge,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: badgeColor,
-                    ),
-                  ),
-                ),
-                ),
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  metric,
-                  style: GoogleFonts.outfit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? AppColors.sandLight : AppColors.sandPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppColors.sandGold : AppColors.sandPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textMuted),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ],
-        ))),
-      ),
-    );
-  }
 
   // =========================================================================
   // 3. ACTIVE SECTION CONTENT ROUTER
@@ -685,438 +537,276 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   // SECTION 1: TOTAL TIME SPENT WITH THE FAMILY
   // =========================================================================
 
-  Widget _buildSection1TotalFamily(BuildContext context, EcosystemProvider eco) {
-    final familyHours = eco.getFamilyHoursForDate(_selectedDate);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Section Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'FAMILY TIME',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandLight,
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${_formatDayLabel(_selectedDate)} • Quality Family Time',
-                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandPrimary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_circle, color: AppColors.sandGold, size: 26),
-              tooltip: 'Log Family Activity',
-              onPressed: () {
-                _onCategorySwitched('Family');
-                setState(() => _selectedSectionIndex = 2);
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Hero Family Hours Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
+  /// Big "time spent" card shared by Family and Friends.
+  Widget _timeHeroCard({
+    required BuildContext context,
+    required EcosystemProvider eco,
+    required double hours,
+    required String title,
+    required String emptyCaption,
+    required String filledCaption,
+    required IconData icon,
+    required Color color,
+    required String quote,
+    required void Function(double h) onQuickAdd,
+    VoidCallback? onReset,
+  }) {
+    final day = _isToday(_selectedDate) ? 'Today' : _formatDayShort(_selectedDate);
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_isToday(_selectedDate) ? "TODAY'S" : _formatDayShort(_selectedDate).toUpperCase()} FAMILY TIME',
-                          style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
-                        ),
-                        const SizedBox(height: 6),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('$day · $title', style: kitBody(13)),
+                    const SizedBox(height: 4),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(formatDuration(hours), style: kitValue(38)),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(hours > 0 ? filledCaption : emptyCaption,
+                        style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w600, color: color)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 74,
+                height: 74,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: hours > 0 ? [color.withOpacity(0.85), color] : [color.withOpacity(0.12), color.withOpacity(0.2)],
+                  ),
+                  boxShadow: hours > 0
+                      ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 14, offset: const Offset(0, 6))]
+                      : null,
+                ),
+                child: Icon(hours > 0 ? Icons.favorite_rounded : icon, size: 32, color: hours > 0 ? Colors.white : color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+            child: Row(
+              children: [
+                Icon(Icons.format_quote_rounded, size: 18, color: color),
+                const SizedBox(width: 8),
+                Expanded(child: Text(quote, style: kitBody(12.5).copyWith(color: AppColors.textDark))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Text('Quick add', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+              const Spacer(),
+              if (onReset != null && hours > 0)
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.ragRed,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                  label: const Text('Reset'),
+                  onPressed: onReset,
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (final h in const [0.5, 1.0, 2.0]) ...[
+                if (h != 0.5) const SizedBox(width: 8),
+                Expanded(
+                  child: Material(
+                    color: color.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () {
+                        if (_isPastDate(_selectedDate)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: AppColors.ragRed,
+                              content: Text('Past dates are view and delete only.'),
+                            ),
+                          );
+                          return;
+                        }
+                        onQuickAdd(h);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Column(
                           children: [
-                            Text(
-                              familyHours.toStringAsFixed(1),
-                              style: GoogleFonts.outfit(
-                                fontSize: 38,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'hours',
-                              style: GoogleFonts.outfit(fontSize: 14, color: AppColors.sandPrimary),
-                            ),
+                            Text(h == 0.5 ? '+30' : '+${h.toInt()}',
+                                style: kitValue(18).copyWith(color: color)),
+                            Text(h == 0.5 ? 'minutes' : (h == 1 ? 'hour' : 'hours'), style: kitBody(11.5)),
                           ],
                         ),
-                        ),
-                        Text(
-                          familyHours > 0 ? 'Cherished quality time logged for ${_formatDayShort(_selectedDate)}' : 'No forced targets • Spend time at your own pace',
-                          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandGold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // Heart & Harmony Badge
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.burgundySurface,
-                      border: Border.all(
-                        color: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
-                        width: 3.0,
                       ),
                     ),
-                    child: Center(
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _loggedTodayCard(BuildContext context, EcosystemProvider eco, List<FamilyActivityItem> items,
+      {VoidCallback? onResetAll}) {
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text('Logged ${_isToday(_selectedDate) ? 'today' : _formatDayShort(_selectedDate)} (${items.length})', style: kitTitle(15))),
+              if (onResetAll != null)
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: AppColors.ragRed),
+                  onPressed: onResetAll,
+                  child: const Text('Clear all'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          for (final a in items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+                decoration: BoxDecoration(color: AppColors.surfaceAlt, borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                      child: Text(a.iconEmoji, style: const TextStyle(fontSize: 18)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            familyHours > 0 ? Icons.favorite_rounded : Icons.family_restroom_rounded,
-                            size: 18,
-                            color: familyHours > 0 ? const Color(0xFFBE185D) : AppColors.sandGold,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            familyHours > 0 ? 'Cherished' : 'Relax',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: familyHours > 0 ? AppColors.ragGreen : AppColors.sandGold,
-                            ),
-                          ),
+                          Text(a.activityName,
+                              style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                          Text('${a.category} · ${formatDuration(a.hoursSpent)}', style: kitBody(12)),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Unforced encouragement banner
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.sandBorder),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.favorite_outline, color: AppColors.sandGold, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Genuine, stress-free presence with loved ones. Every moment counts.',
-                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandLight),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.ragRed),
+                      tooltip: 'Delete',
+                      onPressed: () {
+                        eco.deleteFamilyActivityItem(a);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Removed "${a.activityName}".')),
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+            ),
+        ],
+      ),
+    );
+  }
 
-              // Quick Time Increments
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Quick Log:',
-                      style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      ...[0.5, 1.0, 2.0].map((h) {
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 6),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              if (_isPastDate(_selectedDate)) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    backgroundColor: AppColors.ragRed,
-                                    content: Text('Cannot log entries for past dates. Previous dates are view & delete only.'),
-                                  ),
-                                );
-                                return;
-                              }
-                              eco.addFamilyActivity(
-                                activityName: 'Quality Family Time',
-                                category: 'Family',
-                                subCategory: 'General Bonding',
-                                hoursSpent: h,
-                                iconEmoji: '❤️',
-                                notes: 'Direct family time increment',
-                                date: _selectedDate,
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: AppColors.burgundyPrimary,
-                                  content: Text('Added +$h hr to family time for ${_formatDayShort(_selectedDate)}!'),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: AppColors.burgundySurface,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.sandBorder),
-                              ),
-                              child: Text(
-                                '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.sandGold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                      if (familyHours > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 6),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              eco.resetFamilyHoursForDate(_selectedDate);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  backgroundColor: AppColors.burgundyPrimary,
-                                  content: Text('Family time cleared back to 0.0 hours.'),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
-                              ),
-                              child: Text(
-                                'Reset (0h)',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFEF4444),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
+  Widget _buildSection1TotalFamily(BuildContext context, EcosystemProvider eco) {
+    final familyHours = eco.getFamilyHoursForDate(_selectedDate);
+    final dateActivities = eco.getFamilyActivitiesForDate(_selectedDate).where((a) => a.category == 'Family').toList();
+    void resetAll() {
+      eco.resetFamilyHoursForDate(_selectedDate);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Family time cleared for this day.')));
+    }
+
+    void openLogger() {
+      _onCategorySwitched('Family');
+      setState(() => _selectedSectionIndex = 2);
+    }
+
+    final members = _familyMembersController.text.trim();
+    final emergency = _emergencyContactController.text.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        KitSectionHeader(
+          'Family time',
+          subtitle: '${_formatDayLabel(_selectedDate)} · quality time together',
+          trailing: KitChipButton(label: 'Log', icon: Icons.add_rounded, onTap: openLogger),
         ),
-
-        // Today's Logged Activities for Selected Date (with individual delete and reset)
-        Builder(
-          builder: (context) {
-            final dateActivities = eco.getFamilyActivitiesForDate(_selectedDate);
-            if (dateActivities.isEmpty) return const SizedBox.shrink();
-
-            return Container(
-              margin: const EdgeInsets.only(top: 14),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.burgundyCard,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.sandBorder),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.list_alt_rounded, size: 16, color: AppColors.sandGold),
-                          const SizedBox(width: 6),
-                          Text(
-                            'LOGGED TODAY (${dateActivities.length})',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandLight,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        icon: const Icon(Icons.restart_alt_rounded, size: 14, color: AppColors.ragRed),
-                        label: Text(
-                          'Reset Today (0.0h)',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.ragRed,
-                          ),
-                        ),
-                        onPressed: () {
-                          eco.resetFamilyHoursForDate(_selectedDate);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: AppColors.burgundyPrimary,
-                              content: Text('Today\'s family time reset to 0.0 hours.'),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ...dateActivities.map((a) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.burgundySurface,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.sandBorder.withOpacity(0.6)),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(a.iconEmoji, style: const TextStyle(fontSize: 16)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  a.activityName,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.sandLight,
-                                  ),
-                                ),
-                                Text(
-                                  '${a.category} • ${a.hoursSpent.toStringAsFixed(1)} hrs',
-                                  style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.ragRed),
-                            tooltip: 'Delete Activity',
-                            onPressed: () {
-                              eco.deleteFamilyActivityItem(a);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: AppColors.burgundyPrimary,
-                                  content: Text('Removed "${a.activityName}".'),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
+        const SizedBox(height: 12),
+        _timeHeroCard(
+          context: context,
+          eco: eco,
+          hours: familyHours,
+          title: 'with family',
+          emptyCaption: 'No targets — go at your own pace',
+          filledCaption: 'Lovely, cherished time',
+          icon: Icons.family_restroom_rounded,
+          color: AppColors.primary,
+          quote: 'Genuine, stress-free presence with loved ones. Every moment counts.',
+          onQuickAdd: (h) {
+            eco.addFamilyActivity(
+              activityName: 'Quality Family Time',
+              category: 'Family',
+              subCategory: 'General Bonding',
+              hoursSpent: h,
+              iconEmoji: '❤️',
+              notes: 'Direct family time increment',
+              date: _selectedDate,
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Added ${formatDuration(h)} of family time for ${_formatDayShort(_selectedDate)}.')),
             );
           },
+          onReset: resetAll,
         ),
-        const SizedBox(height: 16),
-
-        // Family Core Checklist & Commitments
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
+        if (dateActivities.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _loggedTodayCard(context, eco, dateActivities, onResetAll: resetAll),
+        ],
+        const SizedBox(height: 14),
+        KitCard(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'DAILY FAMILY HABITS & COMMITMENT',
-                style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
-              ),
+              Text('Daily habit', style: kitTitle(15)),
               const SizedBox(height: 10),
-
-              // Evening Dinner Checkbox
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.sandBorder),
-                ),
-                child: Material(type: MaterialType.transparency, child: CheckboxListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  activeColor: AppColors.burgundyPrimary,
-                  checkColor: Colors.white,
-                  title: Text(
-                    'Evening Dinner Together Today',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.sandLight,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'Shared family meal without phones or digital distractions',
-                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
-                  ),
-                  value: _dinnerTogetherToday,
-                  onChanged: (v) {
-                    setState(() => _dinnerTogetherToday = v ?? false);
-                    if (v == true) {
+              Material(
+                color: _dinnerTogetherToday ? const Color(0xFF10B981).withOpacity(0.08) : AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  key: const Key('family_dinner_habit'),
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    final v = !_dinnerTogetherToday;
+                    setState(() => _dinnerTogetherToday = v);
+                    if (v) {
                       eco.addFamilyActivity(
                         activityName: 'Family Dinner Together',
                         category: 'Family',
@@ -1127,59 +817,125 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
                       );
                     }
                   },
-                )),
-              ),
-              const SizedBox(height: 12),
-
-              // Emergency Contact Row
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
+                    child: Row(
                       children: [
-                        Text(
-                          'Family Members: ${_familyMembersController.text.isNotEmpty ? _familyMembersController.text : "Not Set (Tap Edit Info)"}',
-                          style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandLight),
+                        const KitIcon(Icons.dinner_dining_rounded, Color(0xFFF97316), size: 40),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Dinner together tonight',
+                                  style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                              Text('A family meal with phones away', style: kitBody(12)),
+                            ],
+                          ),
                         ),
-                        Text(
-                          'Emergency: ${_emergencyContactController.text.isNotEmpty ? _emergencyContactController.text : "Need to be added"}',
-                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandPrimary),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _dinnerTogetherToday ? const Color(0xFF10B981) : Colors.white,
+                            border: Border.all(
+                                color: _dinnerTogetherToday ? const Color(0xFF10B981) : const Color(0xFFD9C7D1), width: 2),
+                          ),
+                          child: _dinnerTogetherToday
+                              ? const Icon(Icons.check_rounded, size: 18, color: Colors.white)
+                              : null,
                         ),
                       ],
                     ),
                   ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(foregroundColor: AppColors.sandGold),
-                    icon: const Icon(Icons.edit, size: 14),
-                    label: const Text('Edit Info', style: TextStyle(fontSize: 11)),
-                    onPressed: () => _openEditFamilyInfoDialog(context),
-                  ),
-                ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              KitListRow(
+                icon: Icons.groups_rounded,
+                color: const Color(0xFF6366F1),
+                title: members.isNotEmpty ? members : 'Family members not added',
+                subtitle: emergency.isNotEmpty ? 'Emergency: $emergency' : 'Add an emergency contact too',
+                onTap: () => _openEditFamilyInfoDialog(context),
+                trailing: KitChipButton(
+                  label: 'Edit',
+                  icon: Icons.edit_rounded,
+                  onTap: () => _openEditFamilyInfoDialog(context),
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+          icon: const Icon(Icons.add_rounded, size: 20),
+          label: const Text('Log an activity with family'),
+          onPressed: openLogger,
+        ),
+      ],
+    );
+  }
 
-        // Action CTA
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.burgundySurface,
-            foregroundColor: AppColors.sandGold,
-            side: const BorderSide(color: AppColors.sandGold, width: 1.0),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          icon: const Icon(Icons.add, size: 18),
-          label: Text(
-            'Log Specific Activity with Family',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12.5),
-          ),
-          onPressed: () {
-            _onCategorySwitched('Family');
-            setState(() => _selectedSectionIndex = 2);
+  Widget _buildSection2TotalFriends(BuildContext context, EcosystemProvider eco) {
+    final friendsHours = eco.getFriendsHoursForDate(_selectedDate);
+    final dateActivities =
+        eco.getFamilyActivitiesForDate(_selectedDate).where((a) => a.category != 'Family').toList();
+    void openLogger() {
+      _onCategorySwitched('Friends & Colleagues');
+      setState(() => _selectedSectionIndex = 2);
+    }
+
+    const violet = Color(0xFF8B5CF6);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        KitSectionHeader(
+          'Friends & peers',
+          subtitle: '${_formatDayLabel(_selectedDate)} · time with friends and colleagues',
+          trailing: KitChipButton(label: 'Log', icon: Icons.add_rounded, onTap: openLogger),
+        ),
+        const SizedBox(height: 12),
+        _timeHeroCard(
+          context: context,
+          eco: eco,
+          hours: friendsHours,
+          title: 'with friends',
+          emptyCaption: 'Relaxed bonding, no quotas',
+          filledCaption: 'Good company on record',
+          icon: Icons.diversity_3_rounded,
+          color: violet,
+          quote: 'Shared chai, a laugh or a game with colleagues lowers stress and builds trust.',
+          onQuickAdd: (h) {
+            eco.addFamilyActivity(
+              activityName: 'Chai / Coffee Catchup',
+              category: 'Friends & Colleagues',
+              subCategory: 'Casual Hangout',
+              hoursSpent: h,
+              iconEmoji: '☕',
+              notes: 'Direct friends & colleagues time increment',
+              date: _selectedDate,
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Added ${formatDuration(h)} with friends for ${_formatDayShort(_selectedDate)}.')),
+            );
           },
+        ),
+        if (dateActivities.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          _loggedTodayCard(context, eco, dateActivities),
+        ],
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: violet,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          icon: const Icon(Icons.add_rounded, size: 20),
+          label: const Text('Log an activity with friends'),
+          onPressed: openLogger,
         ),
       ],
     );
@@ -1189,282 +945,6 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   // SECTION 2: TOTAL TIME SPENT WITH FRIENDS / COLLEAGUES
   // =========================================================================
 
-  Widget _buildSection2TotalFriends(BuildContext context, EcosystemProvider eco) {
-    final friendsHours = eco.getFriendsHoursForDate(_selectedDate);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Section Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '2. FRIENDS & PEERS',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.sandLight,
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${_formatDayLabel(_selectedDate)} • Social Connections',
-                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandPrimary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_circle, color: AppColors.sandGold, size: 26),
-              tooltip: 'Log Friends Activity',
-              onPressed: () {
-                _onCategorySwitched('Friends & Colleagues');
-                setState(() => _selectedSectionIndex = 2);
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Hero Friends Hours Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_isToday(_selectedDate) ? "TODAY'S" : _formatDayShort(_selectedDate).toUpperCase()} SOCIAL & PEER TIME',
-                          style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.sandGold),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              friendsHours.toStringAsFixed(1),
-                              style: GoogleFonts.outfit(
-                                fontSize: 38,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'hours',
-                              style: GoogleFonts.outfit(fontSize: 14, color: AppColors.sandPrimary),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          friendsHours > 0 ? 'Peer connection & camaraderie on record for ${_formatDayShort(_selectedDate)}' : 'Relaxed team bonding without forced quotas',
-                          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandGold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // Peer Badge
-                  Container(
-                    width: 76,
-                    height: 76,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.burgundySurface,
-                      border: Border.all(
-                        color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
-                        width: 3.0,
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            friendsHours > 0 ? Icons.handshake_outlined : Icons.coffee_rounded,
-                            size: 18,
-                            color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            friendsHours > 0 ? 'Connected' : 'Social',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: friendsHours > 0 ? const Color(0xFFA855F7) : AppColors.sandGold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Unforced encouragement banner
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.sandBorder),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.group_outlined, color: AppColors.sandGold, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Meaningful peer conversations and team support with no artificial targets.',
-                        style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandLight),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Quick Time Increments
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Quick Log:',
-                      style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Row(
-                    children: [0.5, 1.0, 2.0].map((h) {
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 6),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () {
-                            if (_isPastDate(_selectedDate)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  backgroundColor: AppColors.ragRed,
-                                  content: Text('Cannot log entries for past dates. Previous dates are view & delete only.'),
-                                ),
-                              );
-                              return;
-                            }
-                            eco.addFamilyActivity(
-                              activityName: 'Chai / Coffee Catchup',
-                              category: 'Friends & Colleagues',
-                              subCategory: 'Casual Hangout',
-                              hoursSpent: h,
-                              iconEmoji: '☕',
-                              notes: 'Direct friends & colleagues time increment',
-                              date: _selectedDate,
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: AppColors.burgundyPrimary,
-                                content: Text('Added +$h hr to friends & colleagues time for ${_formatDayShort(_selectedDate)}!'),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: AppColors.burgundySurface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.sandBorder),
-                            ),
-                            child: Text(
-                              '+${h == 0.5 ? '30m' : '${h.toInt()}h'}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandGold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Social Wellbeing Insight Card
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.sandBorder),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'WHY WORKPLACE & PEER BONDS MATTER',
-                style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.sandGold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Healthy banter, sharing chai, sports with colleagues, and casual laughs dramatically reduce workplace stress and elevate psychological safety.',
-                style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary, height: 1.35),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Action CTA
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.burgundySurface,
-            foregroundColor: AppColors.sandGold,
-            side: const BorderSide(color: AppColors.sandGold, width: 1.0),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          icon: const Icon(Icons.add, size: 18),
-          label: Text(
-            'Log Specific Activity with Friends / Colleagues',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12.5),
-          ),
-          onPressed: () {
-            _onCategorySwitched('Friends & Colleagues');
-            setState(() => _selectedSectionIndex = 2);
-          },
-        ),
-      ],
-    );
-  }
 
   // =========================================================================
   // SECTION 3: HOW DID YOU SPEND YOUR TIME WITH THEM? (ACTIVITY LOGGER)

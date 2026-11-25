@@ -50,7 +50,7 @@ class AutoStepsPanel extends StatelessWidget {
     return _shell(
       icon: Icons.directions_walk_rounded,
       color: problem ? _amber : (enabled ? _green : AppColors.sandGold),
-      title: 'Count steps automatically',
+      title: 'Auto-count steps',
       subtitle: subtitle,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -201,9 +201,9 @@ class AutoStepsPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
       decoration: BoxDecoration(
-        color: AppColors.burgundySurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.35)),
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -211,12 +211,13 @@ class AutoStepsPanel extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(7),
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, size: 16, color: color),
+                child: Icon(icon, size: 18, color: color),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -225,12 +226,12 @@ class AutoStepsPanel extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.sandLight),
+                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.midnight),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       subtitle,
-                      style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.sandPrimary, height: 1.3),
+                      style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFF7A6A74), height: 1.3),
                     ),
                   ],
                 ),

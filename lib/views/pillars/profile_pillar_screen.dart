@@ -14,6 +14,7 @@ import '../employee/employee_subpages.dart';
 import 'tier_pillar_screen.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../../models/attendance_models.dart';
+import '../../core/widgets/pillar_kit.dart';
 
 class ProfilePillarScreen extends StatefulWidget {
   const ProfilePillarScreen({super.key});
@@ -606,74 +607,31 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
   Widget _buildSubsystemTabs() {
     final employee = context.watch<EcosystemProvider>().currentEmployee;
-    final List<Map<String, dynamic>> tabs;
-
+    final List<(IconData, String)> options;
     if (employee.isOtm) {
       // Praveenkumar (OTM) guides his Online Department team
-      tabs = [
-        {'index': 0, 'label': 'Team Attendance Overview', 'icon': Icons.fact_check_outlined},
-        {'index': 1, 'label': 'Team Vault Custody', 'icon': Icons.shield_outlined},
-        {'index': 2, 'label': 'Team Grooming Inspection', 'icon': Icons.face_retouching_natural},
+      options = const [
+        (Icons.fact_check_rounded, 'Attendance'),
+        (Icons.shield_rounded, 'Vault'),
+        (Icons.face_retouching_natural, 'Grooming'),
       ];
     } else if (employee.isCeo) {
-      // CEO inspects staff attendance and document vault custody
-      tabs = [
-        {'index': 0, 'label': 'Staff Attendance Overview', 'icon': Icons.fact_check_outlined},
-        {'index': 1, 'label': 'Staff Document Vault Ledger', 'icon': Icons.lock_clock_outlined},
+      options = const [
+        (Icons.fact_check_rounded, 'Attendance'),
+        (Icons.shield_rounded, 'Document vault'),
       ];
     } else {
-      tabs = [
-        {'index': 0, 'label': 'Calendar Attendance', 'icon': Icons.fact_check_outlined},
-        {'index': 1, 'label': 'Vault Custody', 'icon': Icons.lock_clock_outlined},
-        {'index': 2, 'label': 'Grooming & Attire', 'icon': Icons.face_retouching_natural},
+      options = const [
+        (Icons.fact_check_rounded, 'Attendance'),
+        (Icons.shield_rounded, 'Vault'),
+        (Icons.face_retouching_natural, 'Grooming'),
       ];
     }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: tabs.map((tab) {
-          final ringIdx = tab['index'] as int;
-          final isSelected = _selectedRingIndex == ringIdx;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: InkWell(
-              onTap: () => setState(() => _selectedRingIndex = ringIdx),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.magentaPrimary : AppColors.cardSurface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isSelected ? AppColors.magentaPrimary : AppColors.sandBorder,
-                    width: isSelected ? 1.4 : 1.0,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      tab['icon'] as IconData,
-                      size: 13,
-                      color: isSelected ? Colors.white : AppColors.textMuted,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      tab['label'] as String,
-                      style: GoogleFonts.outfit(
-                        fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? Colors.white : AppColors.textDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    final selected = _selectedRingIndex.clamp(0, options.length - 1);
+    return KitSegmented(
+      options: options,
+      selected: selected,
+      onSelected: (i) => setState(() => _selectedRingIndex = i),
     );
   }
 
@@ -3284,176 +3242,125 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
 
     final List<_StaffDocEntry> allStaffDocs = [];
     for (final emp in corporateStaff) {
-      final empDocs = provider.getEmployeeDocuments(emp.id);
-      for (final doc in empDocs) {
+      for (final doc in provider.getEmployeeDocuments(emp.id)) {
         allStaffDocs.add(_StaffDocEntry(employee: emp, doc: doc));
       }
     }
 
-    final filtered = allStaffDocs.where((entry) {
-      if (_ceoSelectedStaffId != 'all' && entry.employee.id != _ceoSelectedStaffId && entry.employee.empNo != _ceoSelectedStaffId) {
-        return false;
-      }
-      if (_ceoStaffDocFilter == 'Submitted') {
-        return entry.doc.status == DocumentSubmissionStatus.submitted;
-      } else if (_ceoStaffDocFilter == 'Pending') {
-        return entry.doc.status == DocumentSubmissionStatus.pending;
-      }
+    final staffScoped = allStaffDocs.where((entry) =>
+        _ceoSelectedStaffId == 'all' || entry.employee.id == _ceoSelectedStaffId || entry.employee.empNo == _ceoSelectedStaffId).toList();
+    final filtered = staffScoped.where((entry) {
+      if (_ceoStaffDocFilter == 'Submitted') return entry.doc.status == DocumentSubmissionStatus.submitted;
+      if (_ceoStaffDocFilter == 'Pending') return entry.doc.status == DocumentSubmissionStatus.pending;
       return true;
     }).toList();
 
     final submittedCount = allStaffDocs.where((e) => e.doc.status == DocumentSubmissionStatus.submitted).length;
     final totalCount = allStaffDocs.length;
+    final pendingCount = totalCount - submittedCount;
+    final ratio = totalCount > 0 ? submittedCount / totalCount : 0.0;
+    final scopedSubmitted = staffScoped.where((e) => e.doc.status == DocumentSubmissionStatus.submitted).length;
+    const green = Color(0xFF10B981);
+    const amber = Color(0xFFD97706);
+
+    final staffLabels = ['Everyone', ...corporateStaff.map((e) => e.name.split(' ').first)];
+    final staffIndex = _ceoSelectedStaffId == 'all'
+        ? 0
+        : 1 + corporateStaff.indexWhere((e) => e.id == _ceoSelectedStaffId || e.empNo == _ceoSelectedStaffId);
+    const statusValues = ['All', 'Submitted', 'Pending'];
+    final statusIndex = statusValues.indexOf(_ceoStaffDocFilter).clamp(0, 2);
+    final deptName = provider.currentEmployee.dept.trim();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-          ),
+        KitCard(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.sandGold.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.shield_outlined, color: AppColors.sandGold, size: 18),
-                  ),
-                  const SizedBox(width: 10),
+                  const KitIcon(Icons.shield_rounded, AppColors.primary, size: 44),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          isLead ? '${provider.currentEmployee.dept.toUpperCase()} VAULT CUSTODY' : 'STAFF VAULT CUSTODY & VERIFICATION',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandLight,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Text(
-                          'Official academic marksheets, KYC, and ID proofs locked in safe custody',
-                          style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
-                        ),
+                        Text(isLead && deptName.isNotEmpty ? '$deptName vault' : 'Staff document vault',
+                            style: kitTitle(16)),
+                        const SizedBox(height: 2),
+                        Text('Marksheets, KYC and ID proofs kept safe', style: kitBody(12.5)),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(
-                    child: _miniKpiBox(
-                      label: 'TOTAL DEPOSITED',
-                      value: '$submittedCount / $totalCount',
-                      color: const Color(0xFF10B981),
+                  KitRing(
+                    progress: ratio,
+                    color: green,
+                    size: 84,
+                    stroke: 8,
+                    center: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${(ratio * 100).round()}%', style: kitValue(19).copyWith(color: green)),
+                        Text('verified', style: kitBody(10.5)),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: _miniKpiBox(
-                      label: 'SAFE CUSTODY',
-                      value: totalCount == 0 ? '0 Verified' : '$submittedCount Verified',
-                      color: AppColors.sandGold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _miniKpiBox(
-                      label: 'VERIFIED RATIO',
-                      value: totalCount > 0 ? '${((submittedCount / totalCount) * 100).toInt()}%' : '0%',
-                      color: const Color(0xFF10B981),
-                    ),
+                    child: KitMiniStatRow([
+                      KitMiniStat(
+                        value: '$submittedCount',
+                        label: 'Deposited',
+                        color: green,
+                        icon: Icons.inventory_2_rounded,
+                      ),
+                      KitMiniStat(
+                        value: '$pendingCount',
+                        label: 'Pending',
+                        color: amber,
+                        icon: Icons.hourglass_top_rounded,
+                      ),
+                    ]),
                   ),
                 ],
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
-
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              _staffFilterChip(
-                label: 'All Staff (${corporateStaff.length})',
-                isSelected: _ceoSelectedStaffId == 'all',
-                onTap: () => setState(() => _ceoSelectedStaffId = 'all'),
-              ),
-              ...corporateStaff.map((emp) {
-                final isSel = _ceoSelectedStaffId == emp.id || _ceoSelectedStaffId == emp.empNo;
-                return Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: _staffFilterChip(
-                    label: emp.name,
-                    isSelected: isSel,
-                    onTap: () => setState(() => _ceoSelectedStaffId = emp.id),
-                  ),
-                );
-              }),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              _statusFilterChip('All ($totalCount)', 'All'),
-              const SizedBox(width: 8),
-              _statusFilterChip('Submitted ($submittedCount)', 'Submitted'),
-              const SizedBox(width: 8),
-              _statusFilterChip('Pending (${totalCount - submittedCount})', 'Pending'),
-            ],
-          ),
+        const SizedBox(height: 16),
+        Text('Staff', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        KitChoiceChips(
+          labels: staffLabels,
+          selected: staffIndex < 0 ? 0 : staffIndex,
+          counts: [corporateStaff.length, ...List<int?>.filled(corporateStaff.length, null)],
+          onSelected: (i) => setState(() => _ceoSelectedStaffId = i == 0 ? 'all' : corporateStaff[i - 1].id),
         ),
         const SizedBox(height: 12),
-
+        KitSegmented(
+          options: [
+            (Icons.folder_copy_rounded, 'All ${staffScoped.length}'),
+            (Icons.check_circle_rounded, 'Done $scopedSubmitted'),
+            (Icons.schedule_rounded, 'Pending ${staffScoped.length - scopedSubmitted}'),
+          ],
+          selected: statusIndex,
+          onSelected: (i) => setState(() => _ceoStaffDocFilter = statusValues[i]),
+        ),
+        const SizedBox(height: 14),
         if (filtered.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: AppColors.pureWhite,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Center(
-              child: Column(
-                children: [
-                  const Icon(Icons.folder_off_outlined, color: AppColors.magentaPrimary, size: 36),
-                  const SizedBox(height: 8),
-                  Text(
-                    'No documents found in safe vault',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Staff documents will appear here once submitted and verified.',
-                    style: GoogleFonts.outfit(fontSize: 11, color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
+          KitEmptyState(
+            icon: Icons.folder_off_rounded,
+            title: totalCount == 0 ? 'No documents yet' : 'Nothing here',
+            message: totalCount == 0
+                ? 'Documents appear here once staff submit them and they are verified.'
+                : 'No documents match this filter. Try "All".',
           )
         else
           ListView.separated(
@@ -3461,10 +3368,7 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: filtered.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (ctx, idx) {
-              final entry = filtered[idx];
-              return _buildCeoDocumentCard(ctx, provider, entry);
-            },
+            itemBuilder: (ctx, idx) => _buildCeoDocumentCard(ctx, provider, filtered[idx]),
           ),
       ],
     );
@@ -3809,35 +3713,25 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   }
 
   Widget _miniKpiBox({required String label, required String value, required Color color}) {
+    final nice = label.isEmpty ? label : label[0] + label.substring(1).toLowerCase();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
       decoration: BoxDecoration(
-        color: AppColors.burgundySurface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.35)),
+        color: color.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.outfit(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: color,
-              letterSpacing: 0.4,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value, style: kitValue(17).copyWith(color: color)),
           ),
           const SizedBox(height: 2),
           Text(
-            value,
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.sandLight,
-            ),
+            nice,
+            style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary, height: 1.2),
           ),
         ],
       ),
@@ -3869,29 +3763,6 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
     );
   }
 
-  Widget _statusFilterChip(String label, String value) {
-    final isSel = _ceoStaffDocFilter == value;
-    return InkWell(
-      onTap: () => setState(() => _ceoStaffDocFilter = value),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: isSel ? AppColors.sandGold : AppColors.burgundySurface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isSel ? AppColors.sandGold : AppColors.sandBorder),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.outfit(
-            fontSize: 11.5,
-            fontWeight: isSel ? FontWeight.bold : FontWeight.w500,
-            color: isSel ? AppColors.burgundyBg : AppColors.sandPrimary,
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _kpiPill(String value, String label, Color color) {
     return Expanded(

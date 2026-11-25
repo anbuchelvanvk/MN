@@ -90,7 +90,7 @@ void main() {
     AutoStepsService.debugStepsForDay = (_) => 0;
     final eco = await tester.runAsync(signedIn);
     await tester.pumpWidget(host(eco!));
-    expect(find.text('Count steps automatically'), findsOneWidget);
+    expect(find.text('Auto-count steps'), findsOneWidget);
     expect(find.textContaining('Apple Health'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('auto_steps_switch')));

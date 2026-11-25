@@ -10,6 +10,7 @@ import '../../providers/ecosystem_provider.dart';
 import '../../services/food_api_service.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import 'auto_steps_panel.dart';
+import '../../core/widgets/pillar_kit.dart';
 
 class HealthPillarScreen extends StatefulWidget {
   const HealthPillarScreen({super.key});
@@ -635,165 +636,113 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     final burnedKcal = eco.getCaloriesBurnedForDate(_selectedDate);
     final netKcal = consumedKcal - burnedKcal;
     final pctConsumed = targetKcal > 0 ? (consumedKcal / targetKcal) : 0.0;
-    final displayPct = (pctConsumed * 100).toInt();
+    final displayPct = (pctConsumed * 100).round();
+    final leftKcal = (targetKcal - consumedKcal);
 
     final Color progressColor;
     final String progressStatus;
     if (displayPct < 50) {
-      progressColor = const Color(0xFF38BDF8); // Sky blue
-      progressStatus = 'Intake Starting';
+      progressColor = const Color(0xFF0EA5E9);
+      progressStatus = displayPct == 0 ? 'Nothing logged yet' : 'Just getting started';
     } else if (displayPct <= 90) {
-      progressColor = const Color(0xFF10B981); // Vibrant green
-      progressStatus = 'On Track (Healthy)';
+      progressColor = const Color(0xFF10B981);
+      progressStatus = 'On track';
     } else if (displayPct <= 105) {
-      progressColor = const Color(0xFFF59E0B); // Amber gold
-      progressStatus = 'Target Reached';
+      progressColor = const Color(0xFFF59E0B);
+      progressStatus = 'Target reached';
     } else {
-      progressColor = const Color(0xFFEF4444); // Red
-      progressStatus = 'Over Target';
+      progressColor = const Color(0xFFEF4444);
+      progressStatus = 'Over target';
     }
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       onTap: () => _showDailyCalorieTargetModal(context, eco, isFirstTime: false),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.burgundyCard,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.sandBorder),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A0F172A),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.burgundySurface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: progressColor.withOpacity(0.5)),
-                  ),
-                  child: Icon(Icons.local_fire_department, color: progressColor, size: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              KitIcon(Icons.local_fire_department_rounded, progressColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Calories today', style: kitTitle(16)),
+                    Text('${_formatDayLabel(_selectedDate)} · $progressStatus', style: kitBody(12.5)),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'DAILY CALORIE TARGET',
-                              style: GoogleFonts.outfit(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandLight,
-                                letterSpacing: 0.5,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.edit_outlined, size: 14, color: AppColors.sandGold),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${_formatDayLabel(_selectedDate)} • $progressStatus • Tap to adjust target',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          color: AppColors.sandPrimary,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: progressColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: progressColor.withOpacity(0.4)),
-                  ),
-                  child: Text(
-                    '$displayPct%',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: progressColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        '${consumedKcal.toInt()}',
-                        style: GoogleFonts.outfit(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.sandLight,
-                        ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          ' of ${targetKcal.toInt()} kcal',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.sandPrimary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  '${burnedKcal.toInt()} burned • ${netKcal >= 0 ? '+' : ''}${netKcal.toInt()} net',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.sandGold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: pctConsumed.clamp(0.0, 1.0),
-                minHeight: 8,
-                backgroundColor: AppColors.burgundySurface,
-                valueColor: AlwaysStoppedAnimation<Color>(progressColor),
               ),
+              KitChipButton(
+                label: 'Target',
+                icon: Icons.tune_rounded,
+                onTap: () => _showDailyCalorieTargetModal(context, eco, isFirstTime: false),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              KitRing(
+                progress: pctConsumed,
+                color: progressColor,
+                size: 104,
+                center: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('$displayPct%', style: kitValue(22).copyWith(color: progressColor)),
+                    Text('eaten', style: kitBody(11)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(kitNumber(consumedKcal), style: kitValue(34)),
+                    ),
+                    Text('of ${kitNumber(targetKcal)} kcal', style: kitBody(13)),
+                    const SizedBox(height: 8),
+                    Text(
+                      leftKcal >= 0 ? '${kitNumber(leftKcal)} kcal left' : '${kitNumber(-leftKcal)} kcal over',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: leftKcal >= 0 ? AppColors.textDark : const Color(0xFFEF4444),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          KitMiniStatRow([
+            KitMiniStat(
+              value: kitNumber(consumedKcal),
+              label: 'Eaten',
+              color: const Color(0xFFF97316),
+              icon: Icons.restaurant_rounded,
             ),
-          ],
-        ),
+            KitMiniStat(
+              value: kitNumber(burnedKcal),
+              label: 'Burned',
+              color: const Color(0xFF10B981),
+              icon: Icons.bolt_rounded,
+            ),
+            KitMiniStat(
+              value: '${netKcal >= 0 ? '+' : '−'}${kitNumber(netKcal.abs())}',
+              label: 'Net',
+              color: const Color(0xFF6366F1),
+              icon: Icons.balance_rounded,
+            ),
+          ]),
+        ],
       ),
     );
   }
@@ -1027,237 +976,111 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     return buf.toString();
   }
 
-  Widget _stepChip(IconData icon, String text, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.10),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 12, color: color),
-            const SizedBox(width: 4),
-            Text(text, style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
-          ],
-        ),
-      );
-
   Widget _buildDailyStepTrackerCard(BuildContext context, EcosystemProvider eco) {
     final recordedSteps = eco.getStepsForDate(_selectedDate);
     final int stepGoal = eco.dailyStepGoal;
-    final pct = (recordedSteps / stepGoal).clamp(0.0, 1.0);
+    final pct = stepGoal > 0 ? recordedSteps / stepGoal : 0.0;
+    final reached = pct >= 1.0;
+    const green = Color(0xFF10B981);
+    final color = reached ? green : AppColors.primary;
+    final left = (stepGoal - recordedSteps).clamp(0, stepGoal);
+    final source = eco.stepSourceFor(_selectedDate);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.sandBorder),
-      ),
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4)),
-                ),
-                child: const Icon(Icons.directions_walk, color: Color(0xFF10B981), size: 22),
-              ),
+              const KitIcon(Icons.directions_walk_rounded, green),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'DAILY STEP COUNT TRACKER',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.sandLight,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${_formatDayLabel(_selectedDate)} • Goal: $stepGoal steps',
-                      style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
-                    ),
+                    Text('Steps', style: kitTitle(16)),
+                    Text(_formatDayLabel(_selectedDate), style: kitBody(12.5)),
                   ],
                 ),
               ),
-              InkWell(
-                borderRadius: BorderRadius.circular(8),
+              KitChipButton(
+                label: 'Log Steps',
+                icon: Icons.edit_rounded,
                 onTap: () => _openStepCountRecordingDialog(context, eco),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.burgundySurface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.sandGold.withOpacity(0.6)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.edit, size: 12, color: AppColors.sandGold),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Log Steps',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandGold,
-                        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              KitRing(
+                progress: pct,
+                color: color,
+                size: 104,
+                center: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${(pct * 100).clamp(0, 999).round()}%', style: kitValue(22).copyWith(color: color)),
+                    Text('of goal', style: kitBody(11)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(kitNumber(recordedSteps), style: kitValue(34)),
+                    ),
+                    Text('of ${kitNumber(stepGoal)} steps', style: kitBody(13)),
+                    const SizedBox(height: 8),
+                    Text(
+                      reached ? 'Goal reached — great walking! 🎉' : '${kitNumber(left)} to go',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: reached ? green : AppColors.textDark,
+                      ),
+                    ),
+                    if (recordedSteps > 0) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          KitPill(
+                            source == 'phone' ? 'From phone' : 'Typed in',
+                            const Color(0xFF64748B),
+                            icon: source == 'phone' ? Icons.phone_android_rounded : Icons.edit_rounded,
+                          ),
+                          if (eco.isUnusualSteps(recordedSteps))
+                            const KitPill('Unusually high — please check', Color(0xFFD97706),
+                                icon: Icons.warning_amber_rounded),
+                        ],
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Flexible(
-                child: Text(
-                '${_fmtSteps(recordedSteps)} steps',
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.outfit(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.sandLight,
-                ),
-              ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${(pct * 100).toInt()}% of daily goal',
-                style: GoogleFonts.outfit(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: pct >= 1.0 ? const Color(0xFF10B981) : AppColors.sandGold,
-                ),
-              ),
-            ],
-          ),
-          if (recordedSteps > 0) ...[
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                _stepChip(
-                  eco.stepSourceFor(_selectedDate) == 'phone' ? Icons.phone_android_rounded : Icons.edit_rounded,
-                  eco.stepSourceFor(_selectedDate) == 'phone' ? 'From phone' : 'Typed in',
-                  const Color(0xFF64748B),
-                ),
-                if (eco.isUnusualSteps(recordedSteps))
-                  _stepChip(Icons.warning_amber_rounded, 'Unusually high — please check', const Color(0xFFD97706)),
-              ],
-            ),
-          ],
-          const SizedBox(height: 8),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: pct,
-              minHeight: 8,
-              backgroundColor: AppColors.burgundySurface,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                pct >= 1.0 ? const Color(0xFF10B981) : AppColors.sandGold,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Automatic steps from Health Connect / Apple Health
+          const SizedBox(height: 16),
           const AutoStepsPanel(),
           const SizedBox(height: 10),
-
-          // SEPARATE DEDICATED SECTION TO ADD / EDIT GOAL STEPS
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.burgundySurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.sandGold.withOpacity(0.35)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: AppColors.sandGold.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.flag_rounded, size: 16, color: AppColors.sandGold),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'DAILY STEP TARGET GOAL',
-                              style: GoogleFonts.outfit(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.sandGold,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              '$stepGoal steps / day',
-                              style: GoogleFonts.outfit(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.sandLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _openSetStepGoalDialog(context, eco),
-                  icon: const Icon(Icons.tune, size: 13, color: AppColors.burgundyBg),
-                  label: Text(
-                    'Set Goal',
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.burgundyBg,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.sandGold,
-                    foregroundColor: AppColors.burgundyBg,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-              ],
+          KitListRow(
+            icon: Icons.flag_rounded,
+            color: AppColors.primary,
+            title: 'Daily goal',
+            subtitle: '${kitNumber(stepGoal)} steps a day',
+            onTap: () => _openSetStepGoalDialog(context, eco),
+            trailing: KitChipButton(
+              label: 'Set Goal',
+              icon: Icons.tune_rounded,
+              onTap: () => _openSetStepGoalDialog(context, eco),
             ),
           ),
         ],
@@ -1466,181 +1289,41 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     final dayFoodLogs = eco.getFoodLogsForDate(_selectedDate);
     final dayWorkoutMins = eco.getWorkoutMinutesForDate(_selectedDate);
     final dayWorkoutLogs = eco.getWorkoutLogsForDate(_selectedDate);
+    final day = _formatDayShort(_selectedDate);
+    String plural(int n, String word) => '$n $word${n == 1 ? '' : 's'}';
+
+    Widget tile(int index, IconData icon, Color color, String label, String value, String? unit, String caption) =>
+        KitStatTile(
+          icon: icon,
+          color: color,
+          label: label,
+          value: value,
+          unit: unit,
+          caption: caption,
+          selected: _selectedGridIndex == index,
+          onTap: () => setState(() => _selectedGridIndex = index),
+        );
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'TODAY AT A GLANCE',
-          style: GoogleFonts.outfit(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandGold,
-            letterSpacing: 0.6,
-          ),
-        ),
-        const SizedBox(height: 10),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.25,
-          children: [
-            _gridTile(
-              index: 0,
-              title: 'Calories',
-              value: '${dayConsumed.toInt()} kcal',
-              subtitle: '${dayFoodLogs.length} meals • ${_formatDayShort(_selectedDate)}',
-              icon: Icons.restaurant_menu,
-              iconColor: const Color(0xFFF97316),
-            ),
-            _gridTile(
-              index: 1,
-              title: 'Workout',
-              value: '$dayWorkoutMins mins',
-              subtitle: '${dayWorkoutLogs.length} sessions • ${_formatDayShort(_selectedDate)}',
-              icon: Icons.fitness_center,
-              iconColor: const Color(0xFF10B981),
-            ),
-            _gridTile(
-              index: 2,
-              title: 'Weight / Height',
-              value: eco.userWeightKg > 0 ? '${eco.userWeightKg.toStringAsFixed(1)} kg' : '0.0 kg',
-              subtitle: eco.userHeightCm > 0 ? 'Height ${eco.userHeightCm.toStringAsFixed(0)} cm' : 'Not set yet',
-              icon: Icons.straighten,
-              iconColor: AppColors.sandGold,
-            ),
-            _gridTile(
-              index: 3,
-              title: 'BMI',
-              value: eco.currentBmi > 0 ? eco.currentBmi.toStringAsFixed(1) : '0.0',
-              subtitle: '${eco.bmiCategory} (Derived)',
-              icon: Icons.speed,
-              iconColor: eco.bmiColor,
-            ),
-          ],
-        ),
+        KitSectionHeader('Today at a glance', subtitle: 'Tap a card to see its details below'),
+        const SizedBox(height: 12),
+        KitTileGrid(children: [
+          tile(0, Icons.restaurant_menu_rounded, const Color(0xFFF97316), 'Calories', kitNumber(dayConsumed), 'kcal',
+              '${plural(dayFoodLogs.length, 'meal')} · $day'),
+          tile(1, Icons.fitness_center_rounded, const Color(0xFF10B981), 'Workout', '$dayWorkoutMins', 'min',
+              '${plural(dayWorkoutLogs.length, 'session')} · $day'),
+          tile(2, Icons.monitor_weight_rounded, const Color(0xFF6366F1), 'Weight / Height',
+              eco.userWeightKg > 0 ? eco.userWeightKg.toStringAsFixed(1) : '—', eco.userWeightKg > 0 ? 'kg' : null,
+              eco.userHeightCm > 0 ? 'Height ${eco.userHeightCm.toStringAsFixed(0)} cm' : 'Not set yet'),
+          tile(3, Icons.speed_rounded, eco.bmiColor, 'BMI', eco.currentBmi > 0 ? eco.currentBmi.toStringAsFixed(1) : '—',
+              null, eco.currentBmi > 0 ? eco.bmiCategory : 'Add weight & height'),
+        ]),
       ],
     );
   }
 
-  Widget _gridTile({
-    required int index,
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    final isSelected = _selectedGridIndex == index;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        setState(() {
-          _selectedGridIndex = index;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.magentaPrimary : AppColors.pureWhite,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.magentaPrimary : const Color(0xFFE2E8F0),
-            width: isSelected ? 1.5 : 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected ? AppColors.magentaPrimary.withOpacity(0.25) : const Color(0x0A0F172A),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.white.withOpacity(0.2) : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: isSelected ? Colors.white.withOpacity(0.4) : iconColor.withOpacity(0.3)),
-                  ),
-                  child: Icon(icon, color: isSelected ? Colors.white : iconColor, size: 18),
-                ),
-                if (isSelected)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'ACTIVE',
-                      style: GoogleFonts.outfit(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.bottomLeft,
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : AppColors.textDark,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : AppColors.textDark,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    color: isSelected ? Colors.white.withOpacity(0.9) : AppColors.textMuted,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // =========================================================================
   // 3. ACTIVE GRID CONTENT ROUTER
@@ -3973,228 +3656,178 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
     final minIdeal = eco.minIdealWeight;
     final maxIdeal = eco.maxIdealWeight;
     final userW = eco.userWeightKg;
+    final color = eco.bmiColor;
 
     String advice;
     if (bmi < 18.5) {
       advice = 'You are currently underweight. Eating more nutritious food and protein is recommended.';
     } else if (bmi < 25.0) {
-      advice = 'Great job! Your weight and health are in a healthy range. Keep drinking water and staying active.';
+      advice = 'Great job! Your weight is in a healthy range. Keep drinking water and staying active.';
     } else if (bmi < 30.0) {
       advice = 'Slightly above healthy weight. A 30-minute daily walk and lighter meals can help.';
     } else {
-      advice = 'Above healthy weight. Regular daily walking, healthy foods, and light exercise are recommended.';
+      advice = 'Above healthy weight. Regular walking, healthy food and light exercise are recommended.';
     }
+
+    // Position of the marker on a 15–35 scale.
+    final markerPos = ((bmi.clamp(15.0, 35.0) - 15.0) / 20.0);
+    const bands = [
+      (15.0, 18.5, Color(0xFFFBBF24), 'Under'),
+      (18.5, 25.0, Color(0xFF10B981), 'Healthy'),
+      (25.0, 30.0, Color(0xFFF97316), 'Over'),
+      (30.0, 35.0, Color(0xFFEF4444), 'Obese'),
+    ];
+    final toGo = userW > maxIdeal ? userW - maxIdeal : (userW < minIdeal ? minIdeal - userW : 0.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'BODY MASS INDEX (BMI) ANALYTICS',
-          style: GoogleFonts.outfit(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.sandLight,
-            letterSpacing: 0.5,
-          ),
-        ),
-        Text(
-          'Calculated using standard World Health Organization formula: Weight (kg) / Height (m)²',
-          style: GoogleFonts.outfit(fontSize: 11, color: AppColors.sandPrimary),
-        ),
-        const SizedBox(height: 14),
-
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.burgundyCard,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.sandGold.withOpacity(0.4)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A0F172A),
-                blurRadius: 16,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
+        KitSectionHeader('Body mass index', subtitle: 'Weight (kg) ÷ height (m)², WHO ranges'),
+        const SizedBox(height: 12),
+        KitCard(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'CURRENT BMI SCORE',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textMuted,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        bmi.toStringAsFixed(1),
-                        style: GoogleFonts.outfit(
-                          fontSize: 34,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandGold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: eco.bmiColor.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: eco.bmiColor),
-                    ),
+                  Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          cat,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: eco.bmiColor,
-                          ),
-                        ),
-                        Text(
-                          'WHO Standard',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: eco.bmiColor.withOpacity(0.8),
-                          ),
-                        ),
+                        Text('Your BMI', style: kitBody(13)),
+                        const SizedBox(height: 2),
+                        Text(bmi > 0 ? bmi.toStringAsFixed(1) : '—', style: kitValue(44).copyWith(color: color)),
                       ],
                     ),
                   ),
+                  KitPill(cat, color, icon: Icons.circle, solid: false),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 18,
-                        child: Container(
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFBBF24),
-                            borderRadius: BorderRadius.horizontal(left: Radius.circular(4)),
+              const SizedBox(height: 18),
+              // Scale with marker
+              LayoutBuilder(builder: (context, c) {
+                final w = c.maxWidth;
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: 22,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: 7,
+                            child: Row(
+                              children: [
+                                for (var i = 0; i < bands.length; i++) ...[
+                                  if (i > 0) const SizedBox(width: 3),
+                                  Expanded(
+                                    flex: ((bands[i].$2 - bands[i].$1) * 10).round(),
+                                    child: Container(
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: bands[i].$3,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        ),
+                          if (bmi > 0)
+                            Positioned(
+                              left: (w * markerPos - 11).clamp(0.0, w - 22),
+                              top: 0,
+                              child: Container(
+                                width: 22,
+                                height: 22,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: color, width: 4),
+                                  boxShadow: AppColors.softShadow,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        flex: 65,
-                        child: Container(
-                          height: 8,
-                          color: const Color(0xFF10B981),
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        flex: 50,
-                        child: Container(
-                          height: 8,
-                          color: const Color(0xFFF97316),
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Expanded(
-                        flex: 40,
-                        child: Container(
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEF4444),
-                            borderRadius: BorderRadius.horizontal(right: Radius.circular(4)),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        for (var i = 0; i < bands.length; i++)
+                          Expanded(
+                            flex: ((bands[i].$2 - bands[i].$1) * 10).round(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(bands[i].$4,
+                                    style: GoogleFonts.outfit(
+                                        fontSize: 11, fontWeight: FontWeight.w700, color: bands[i].$3)),
+                                Text(
+                                  i == 0 ? '<18.5' : (i == 3 ? '30+' : '${bands[i].$1}–${(bands[i].$2 - 0.1).toStringAsFixed(1)}'),
+                                  style: GoogleFonts.outfit(fontSize: 10.5, color: AppColors.textMuted),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('<18.5 Underweight', style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMuted)),
-                      Text('18.5 - 24.9 Normal', style: GoogleFonts.outfit(fontSize: 10, color: const Color(0xFF10B981))),
-                      Text('25 - 29.9 Overweight', style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMuted)),
-                      Text('≥30 Obese', style: GoogleFonts.outfit(fontSize: 10, color: AppColors.textMuted)),
-                    ],
-                  ),
-                ],
-              ),
+                      ],
+                    ),
+                  ],
+                );
+              }),
               const SizedBox(height: 16),
-              const Divider(color: AppColors.sandBorder, height: 1),
+              KitMiniStatRow([
+                KitMiniStat(
+                  value: '${userW.toStringAsFixed(1)} kg',
+                  label: 'Now',
+                  color: color,
+                  icon: Icons.monitor_weight_rounded,
+                ),
+                KitMiniStat(
+                  value: '${minIdeal.toStringAsFixed(0)}–${maxIdeal.toStringAsFixed(0)} kg',
+                  label: 'Healthy for ${eco.userHeightCm.toStringAsFixed(0)} cm',
+                  color: const Color(0xFF10B981),
+                  icon: Icons.verified_rounded,
+                ),
+                KitMiniStat(
+                  value: toGo > 0 ? '${toGo.toStringAsFixed(1)} kg' : 'On target',
+                  label: userW > maxIdeal ? 'To lose' : (userW < minIdeal && toGo > 0 ? 'To gain' : 'Keep it up'),
+                  color: const Color(0xFF6366F1),
+                  icon: Icons.flag_rounded,
+                ),
+              ]),
               const SizedBox(height: 14),
-
-              Row(
-                children: [
-                  const Icon(Icons.check_circle_outline, size: 18, color: AppColors.sandGold),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Current: ${userW.toStringAsFixed(1)} kg • Ideal for ${eco.userHeightCm.toStringAsFixed(0)} cm: ${minIdeal.toStringAsFixed(1)} kg – ${maxIdeal.toStringAsFixed(1)} kg',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.sandLight,
-                      ),
-                    ),
-                  ),
-                ],
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.tips_and_updates_rounded, size: 18, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(advice, style: kitBody(12.5).copyWith(color: AppColors.textDark))),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.info_outline, size: 18, color: AppColors.sandPrimary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      advice,
-                      style: GoogleFonts.outfit(
-                        fontSize: 11,
-                        color: AppColors.sandPrimary,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.edit_rounded, size: 16),
+                label: const Text('Update weight or height'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onPressed: () => setState(() => _selectedGridIndex = 2),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 16),
-
-        OutlinedButton.icon(
-          icon: const Icon(Icons.edit, size: 16, color: AppColors.sandGold),
-          label: Text(
-            'Adjust Weight / Height to Recalculate',
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: AppColors.sandGold,
-            ),
-          ),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppColors.sandGold),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          onPressed: () {
-            setState(() {
-              _selectedGridIndex = 2;
-            });
-          },
         ),
       ],
     );
