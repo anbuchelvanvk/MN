@@ -12,6 +12,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../core/models/monthly_scorecard_model.dart';
 import '../../core/services/monthly_scorecard_pdf_service.dart';
+import '../../core/services/daily_scorecard_pdf_service.dart';
+import '../../core/services/daily_scorecard_service.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../services/firebase_employee_service.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -24,8 +27,9 @@ class MonthlyScorecardScreen extends StatefulWidget {
 }
 
 class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
-  int _selectedMonth = 10; // Default: October
-  int _selectedYear = 2026; // Default: 2026
+  int _selectedMonth = DateTime.now().month;
+  int _selectedYear = DateTime.now().year;
+  int _publishedDays = 0;
   late MonthlyScorecardModel _model;
   bool _isLoading = true;
 
@@ -39,6 +43,18 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
   }
 
   Future<void> _loadScorecard() async {
+    await _loadStoredScorecard();
+    // Channel numbers come from the published daily scorecards.
+    final days = await DailyScorecardService.publishedForMonth(_selectedYear, _selectedMonth);
+    if (!mounted) return;
+    setState(() {
+      DailyScorecardService.applyToMonthly(_model, days);
+      _publishedDays = days.length;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _loadStoredScorecard() async {
     setState(() => _isLoading = true);
     final key = 'monthly_scorecard_${_selectedYear}_$_selectedMonth';
 
@@ -152,6 +168,22 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
     );
   }
 
+  /// Shares the monthly scorecard as a PNG image.
+  Future<void> _shareImage() async {
+    try {
+      final pdf = await MonthlyScorecardPdfService.generatePdf(_model);
+      final png = await DailyScorecardPdfService.toPng(pdf, dpi: 110);
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/Monthly_Scorecard_${_model.monthName}_${_model.year}.png');
+      await file.writeAsBytes(png);
+      await Share.shareXFiles([XFile(file.path)], text: 'Monthly Scorecard ${_model.monthName} ${_model.year}');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not share the image: $e')));
+      }
+    }
+  }
+
   Future<void> _downloadPdf() async {
     try {
       final bytes = await MonthlyScorecardPdfService.generatePdf(_model);
@@ -221,6 +253,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
     }
   }
 
+  // ignore: unused_element
   void _openEditModal() {
     showModalBottomSheet(
       context: context,
@@ -262,12 +295,12 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: MnAppBar(
         title: 'Monthly Scorecard',
-        subtitle: 'Online Department TL (OTM)',
+        subtitle: 'Totals of $_publishedDays published day${_publishedDays == 1 ? '' : 's'}',
         actions: [
           MnGlassIconButton(
-            icon: Icons.edit_outlined,
-            tooltip: 'Edit Scorecard Values',
-            onTap: _openEditModal,
+            icon: Icons.image_outlined,
+            tooltip: 'Share as image',
+            onTap: _shareImage,
           ),
         ],
       ),

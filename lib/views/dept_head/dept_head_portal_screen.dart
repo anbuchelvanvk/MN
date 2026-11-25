@@ -1,4 +1,5 @@
 import '../../core/widgets/export_audit_modal.dart';
+import '../../core/widgets/team_announcement_sheet.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
@@ -13,7 +14,6 @@ import '../auth/pillars_popup_dialog.dart';
 import '../employee/employee_profile_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import 'dept_head_subpages.dart';
-import 'monthly_scorecard_screen.dart';
 import '../notes/personal_notes_screen.dart';
 import '../chat/chat_hub_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
@@ -22,6 +22,7 @@ import '../konar/konar_book_detail_screen.dart';
 import '../media/creative_media_review_board_screen.dart';
 import '../home/modern_home_screen.dart';
 import '../../core/widgets/employee_avatar.dart';
+import 'daily_scorecard_screen.dart';
 
 class DeptHeadPortalScreen extends StatefulWidget {
   /// True when shown as a tab inside the main shell (start-up popups are
@@ -297,7 +298,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                       ),
                       const SizedBox(height: 8),
                       _verticalTabTile(
-                        const MonthlyScorecardScreen(),
+                        const ScorecardHubScreen(),
                         'Monthly Scorecard',
                         Icons.assessment_outlined,
                         '',
@@ -441,6 +442,13 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            LiquidGlassButton(
+              label: 'Announce to Team',
+              icon: Icons.campaign_rounded,
+              isPrimary: false,
+              onPressed: () => showTeamAnnouncementSheet(context, eco),
             ),
             const SizedBox(height: 8),
 

@@ -7,11 +7,11 @@ import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../auth/pillars_popup_dialog.dart';
-import '../chat/chat_hub_screen.dart';
 import '../dept_head/team_hub_screen.dart';
 import '../employee/employee_profile_screen.dart';
 import '../home/modern_home_screen.dart';
 import 'role_hubs.dart';
+import 'roles_screen.dart';
 import 'employee_hub_screen.dart';
 
 /// The app's main frame for every signed-in user.
@@ -58,8 +58,8 @@ class _MainShellState extends State<MainShell> {
     return [
       _ShellTab('Home', Icons.home_outlined, Icons.home_rounded,
           (_) => const ModernHomeScreen(isEmbedded: true)),
-      _ShellTab('Chat', Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded,
-          (_) => const ChatHubScreen()),
+      _ShellTab('Roles', Icons.assignment_ind_outlined, Icons.assignment_ind_rounded,
+          (_) => const RolesScreen()),
       workspace,
       _ShellTab('Profile', Icons.person_outline_rounded, Icons.person_rounded,
           (_) => const EmployeeProfileScreen()),
@@ -97,8 +97,6 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final tabs = _tabs;
-    final eco = context.watch<EcosystemProvider>();
-    final chatUnread = eco.unreadTotalChatCount;
 
     return PopScope(
       canPop: _index == 0,
@@ -119,7 +117,7 @@ class _MainShellState extends State<MainShell> {
         bottomNavigationBar: _ShellNavBar(
           tabs: tabs,
           index: _index,
-          badges: {1: chatUnread},
+          badges: const {},
           onSelect: _select,
         ),
       ),

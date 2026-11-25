@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../core/widgets/person_avatar.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1059,14 +1060,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       ),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: isSelf ? AppColors.magentaPrimary : const Color(0xFF475569),
-                            child: Text(
-                              initials,
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
-                            ),
-                          ),
+                          PersonAvatar(empId: emp.id, name: emp.name, size: 36),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Column(
@@ -1206,14 +1200,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: AppColors.magentaPrimary,
-                child: Text(
-                  widget.peerInitials,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
+              PersonAvatar(empId: emp.id, name: widget.peerName, size: 64),
               const SizedBox(height: 10),
               Text(
                 widget.peerName,
@@ -1324,9 +1311,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                 itemCount: _mentionMatches.length,
                 itemBuilder: (context, idx) {
                   final emp = _mentionMatches[idx];
-                  final initials = emp.name.isNotEmpty
-                      ? emp.name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).map((p) => p[0]).take(2).join().toUpperCase()
-                      : '??';
 
                   return InkWell(
                     onTap: () => _insertMention(emp),
@@ -1334,18 +1318,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: AppColors.magentaPrimary.withOpacity(0.12),
-                            child: Text(
-                              initials,
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                color: AppColors.magentaPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                          PersonAvatar(empId: emp.id, name: emp.name, size: 28),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -2060,14 +2033,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                 child: Center(
                   child: widget.isGroup
                       ? const Icon(Icons.groups_rounded, color: Colors.white, size: 20)
-                      : Text(
-                          widget.peerInitials,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                      : PersonAvatar(empId: peerEmp.id, name: widget.peerName, size: 38),
                 ),
               ),
               const SizedBox(width: 10),
@@ -2269,20 +2235,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             if (!isMe) ...[
-                              CircleAvatar(
-                                radius: 13,
-                                backgroundColor: const Color(0xFF475569),
-                                child: Text(
-                                  msg.senderName.isNotEmpty
-                                      ? msg.senderName[0].toUpperCase()
-                                      : '?',
-                                  style: const TextStyle(
-                                    fontSize: 11.5,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                              PersonAvatar(empId: msg.senderId, name: msg.senderName, size: 26),
                               const SizedBox(width: 6),
                             ],
                             // Sent message actions on the LEFT of bubble

@@ -136,6 +136,8 @@ class EcosystemProvider extends ChangeNotifier {
     _autoStepsLastSync = null;
     _autoStepDays.clear();
     _stepSources = {};
+    _waterGlasses = {};
+    _sleepMinutes = {};
     _dailyFoodLogs = [];
     _dailyWorkoutLogs = [];
     _familyActivityLogs = [];
@@ -6292,6 +6294,63 @@ class EcosystemProvider extends ChangeNotifier {
   /// Where each day's steps came from: 'phone' or 'typed'.
   Map<String, String> _stepSources = {};
 
+  // ---- Water (glasses) and sleep (minutes), typed in each day ----
+  Map<String, int> _waterGlasses = {};
+  Map<String, int> _sleepMinutes = {};
+  static const int waterGoalGlasses = 8;
+  static const int sleepGoalMinutes = 8 * 60;
+
+  int getWaterForDate(DateTime d) => _waterGlasses[_stepDayKey(d)] ?? 0;
+  int getSleepMinutesForDate(DateTime d) => _sleepMinutes[_stepDayKey(d)] ?? 0;
+
+  void setWaterForDate(DateTime d, int glasses) {
+    _waterGlasses[_stepDayKey(d)] = glasses.clamp(0, 30);
+    notifyListeners();
+    _saveHealthSteps();
+  }
+
+  void setSleepMinutesForDate(DateTime d, int minutes) {
+    _sleepMinutes[_stepDayKey(d)] = minutes.clamp(0, 24 * 60);
+    notifyListeners();
+    _saveHealthSteps();
+  }
+
+  /// Share of calories from protein, carbs and fat, and fibre grams per
+  /// 100 kcal, by food type (typical Indian meals). Used to estimate macros.
+  static const Map<String, (double, double, double, double)> _macroProfiles = {
+    'Breakfast': (0.12, 0.70, 0.18, 1.5),
+    'Main Course': (0.14, 0.60, 0.26, 1.2),
+    'Lentils & Curries': (0.22, 0.50, 0.28, 3.0),
+    'Dairy & Sides': (0.20, 0.30, 0.50, 0.3),
+    'Snacks & Beverages': (0.08, 0.55, 0.37, 1.0),
+    'Fruits & Healthy': (0.06, 0.86, 0.08, 3.5),
+    'Fast Food & Global': (0.15, 0.45, 0.40, 1.0),
+    'Sweets & Desserts': (0.05, 0.60, 0.35, 0.5),
+  };
+
+  /// Estimated grams of protein, carbs, fat and fibre eaten on [d].
+  ({double protein, double carbs, double fat, double fibre}) macrosForDate(DateTime d) {
+    var p = 0.0, c = 0.0, f = 0.0, fi = 0.0;
+    for (final log in getFoodLogsForDate(d)) {
+      final food = FoodDatabase.catalog.firstWhereOrNull(
+        (x) => x.name.toLowerCase() == log.foodName.toLowerCase(),
+      );
+      final prof = _macroProfiles[food?.category] ?? (0.15, 0.55, 0.30, 1.5);
+      p += log.calories * prof.$1 / 4;
+      c += log.calories * prof.$2 / 4;
+      f += log.calories * prof.$3 / 9;
+      fi += log.calories / 100 * prof.$4;
+    }
+    return (protein: p, carbs: c, fat: f, fibre: fi);
+  }
+
+  /// Daily macro goals in grams from the calorie target (20/50/30 split,
+  /// 14 g fibre per 1000 kcal).
+  ({double protein, double carbs, double fat, double fibre}) get macroGoals {
+    final kcal = dailyCalorieTarget > 0 ? dailyCalorieTarget : 2000;
+    return (protein: kcal * 0.20 / 4, carbs: kcal * 0.50 / 4, fat: kcal * 0.30 / 9, fibre: kcal * 14 / 1000);
+  }
+
   /// More than this in one day is flagged as unusual.
   static const int unusualStepsPerDay = 40000;
   bool isUnusualSteps(int steps) => steps > unusualStepsPerDay;
@@ -6414,6 +6473,8 @@ class EcosystemProvider extends ChangeNotifier {
           'dailyCalorieTarget': _dailyCalorieTarget,
         'dailySteps': _dailyStepsMap,
         'dailyStepsSource': _stepSources,
+        'dailyWater': _waterGlasses,
+        'dailySleepMinutes': _sleepMinutes,
       },
     ).catchError((Object e) => debugPrint('Saving steps failed: $e'));
   }
@@ -6436,6 +6497,8 @@ class EcosystemProvider extends ChangeNotifier {
           'dailyCalorieTarget': _dailyCalorieTarget,
         'dailySteps': _dailyStepsMap,
         'dailyStepsSource': _stepSources,
+        'dailyWater': _waterGlasses,
+        'dailySleepMinutes': _sleepMinutes,
       },
     );
   }
@@ -7530,6 +7593,12 @@ class EcosystemProvider extends ChangeNotifier {
               (k, v) => MapEntry(k.toString(), (v as num).toInt()),
             );
           }
+          if (h['dailyWater'] is Map) {
+            _waterGlasses = (h['dailyWater'] as Map).map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
+          }
+          if (h['dailySleepMinutes'] is Map) {
+            _sleepMinutes = (h['dailySleepMinutes'] as Map).map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
+          }
           if (h['dailyStepsSource'] is Map) {
             _stepSources = (h['dailyStepsSource'] as Map).map(
               (k, v) => MapEntry(k.toString(), v.toString()),
@@ -8582,6 +8651,7 @@ class EcosystemProvider extends ChangeNotifier {
     required String due,
     required String assignedByRole,
     required String assignedByName,
+    bool daily = false,
   }) {
     final block = taskAssignBlock(empId: empId, title: title, category: category);
     if (block != null) {
@@ -8593,8 +8663,10 @@ class EcosystemProvider extends ChangeNotifier {
       id: 'TSK-${_uniqueSuffix()}',
       empId: empId,
       title: title,
-      category: category,
-      isDefaultSop: false,
+      category: daily ? 'Daily: $category' : category,
+      // Daily tasks reset every morning like the standard SOPs.
+      isDefaultSop: daily,
+      isImmutable: false,
       assignedByRole: assignedByRole,
       assignedByName: assignedByName,
       due: due,
@@ -8606,9 +8678,9 @@ class EcosystemProvider extends ChangeNotifier {
 
     final notif = CompanyNotification(
       id: 'NOTIF-TASK-${DateTime.now().millisecondsSinceEpoch}',
-      title: 'New Task Directive: $title',
+      title: daily ? 'New Daily Task: $title' : 'New Task Directive: $title',
       content:
-          '$assignedByName assigned: "$title" | Due: $due | Priority: $priority',
+          '$assignedByName assigned: "$title" | ${daily ? 'Every day at' : 'Due'}: $due | Priority: $priority',
       type: CompanyNotificationType.broadcastNotice,
       timestamp: DateTime.now(),
       senderName: assignedByName,
@@ -9847,6 +9919,21 @@ class EcosystemProvider extends ChangeNotifier {
     return team.length;
   }
 
+  /// Team lead announcement: a titled notice and push to the lead's own
+  /// team only. Returns how many people it reached.
+  int announceToMyTeam(String title, String message) {
+    final team = myTeamMembers.map((e) => e.id).where((id) => id != _activeEmpId).toList();
+    if (team.isEmpty || title.trim().isEmpty || message.trim().isEmpty) return 0;
+    postBroadcastNotification(
+      title: '📣 ${title.trim()}',
+      content: message.trim(),
+      senderName: currentEmployee.name,
+      senderRole: currentEmployee.role,
+      targetEmpIds: team,
+    );
+    return team.length;
+  }
+
   /// Posts a notice. With [targetEmpIds] it reaches only those people;
   /// without, every staff member. The sender never gets their own push.
   void postBroadcastNotification({
@@ -9913,6 +10000,26 @@ class EcosystemProvider extends ChangeNotifier {
         ..._employees.where((e) => isOnlineDept(e.dept) && !e.isCeo && !e.isHr).map((e) => e.id),
       }.toList(),
     );
+  }
+
+  /// Published daily scorecard: tell the CEO and the online team.
+  void notifyDailyScorecardPublished(String dayLabel, int score) {
+    postBroadcastNotification(
+      title: '📊 Daily Scorecard: $score/100',
+      content: '${currentEmployee.name} published the online team scorecard for $dayLabel. Total score $score/100.',
+      senderName: currentEmployee.name,
+      senderRole: currentEmployee.role,
+      targetEmpIds: {
+        ..._ceoIds(),
+        ..._employees.where((e) => (isOnlineDept(e.dept) || e.isExternalSupport) && !e.isCeo && !e.isHr).map((e) => e.id),
+      }.toList(),
+    );
+  }
+
+  /// Who may fill in the daily scorecard: the online team lead (OTM).
+  bool get canEditDailyScorecard {
+    final me = currentEmployee;
+    return me.isTeamLead && (me.isOtm || isOnlineDept(me.dept));
   }
 
   void notifyAllPendingToDosReminder({

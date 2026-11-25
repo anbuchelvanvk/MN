@@ -27,7 +27,6 @@ import '../../core/widgets/quick_pillar_nav_row.dart';
 import 'ceo_subpages.dart';
 import 'data_vault_screen.dart';
 import '../notes/personal_notes_screen.dart';
-import '../dept_head/monthly_scorecard_screen.dart';
 import '../chat/chat_hub_screen.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
@@ -40,6 +39,7 @@ import '../media/creative_media_review_board_screen.dart';
 import '../../core/utils/password_generator.dart';
 import '../../core/widgets/employee_avatar.dart';
 import '../../core/widgets/task_assign_check.dart';
+import '../dept_head/daily_scorecard_screen.dart';
 
 class CeoSuiteScreen extends StatefulWidget {
   /// True when shown as a tab inside the main shell (start-up popups are
@@ -385,7 +385,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         label: 'Monthly Scorecard',
                         icon: Icons.assessment_outlined,
                         badge: '',
-                        destination: const MonthlyScorecardScreen(),
+                        destination: const ScorecardHubScreen(),
                       ),
                       const SizedBox(height: 8),
                       _verticalCeoTabTile(

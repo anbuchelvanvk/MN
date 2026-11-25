@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'person_avatar.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -508,8 +509,8 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.person_pin, size: 12, color: Color(0xFF94A3B8)),
-                      const SizedBox(width: 4),
+                      PersonAvatar(name: notif.senderName, size: 18),
+                      const SizedBox(width: 5),
                       Expanded(
                         child: Text(
                           'From: ${notif.senderName.toLowerCase().contains("senthil") || notif.senderName.toLowerCase().contains("executive ceo") ? "M N Naveenraaj" : notif.senderName} (${notif.senderRole.toLowerCase().contains("founder") || notif.senderName.toLowerCase().contains("senthil") ? "Managing Director & CEO" : notif.senderRole})',
@@ -568,6 +569,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
 
                         // Comments Button
                         InkWell(
+                          key: ValueKey('notif_comments_${notif.id}'),
                           onTap: () {
                             NotificationCommentsSheet.show(context, notif);
                           },
@@ -641,6 +643,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                           ),
                       ],
                     ),
+                  if (notif.likedStaffIds.isNotEmpty) LikersRow(empIds: notif.likedStaffIds),
                   if (notif.actionTag == 'ATTENDANCE' || notif.actionTag == 'ATTENDANCE_UPDATE' || notif.title.toLowerCase().contains('attendance')) ...[
                     const SizedBox(height: 8),
                     Row(

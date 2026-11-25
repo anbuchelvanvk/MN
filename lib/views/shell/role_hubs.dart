@@ -10,7 +10,6 @@ import '../ceo/admin_role_access_management_screen.dart';
 import '../ceo/ceo_subpages.dart';
 import '../ceo/ceo_suite_screen.dart';
 import '../ceo/data_vault_screen.dart';
-import '../dept_head/monthly_scorecard_screen.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 import '../hr/hr_management_widgets.dart';
 import '../hr/hr_password_requests_screen.dart';
@@ -22,6 +21,7 @@ import '../notes/personal_notes_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import 'role_hub_widgets.dart';
 import '../../models/attendance_models.dart';
+import '../dept_head/daily_scorecard_screen.dart';
 
 /// Shared layout for the CEO Suite and HR Desk tabs.
 class _RoleHub extends StatelessWidget {
@@ -207,7 +207,7 @@ class CeoHubScreen extends StatelessWidget {
         HubTool(Icons.dry_cleaning_rounded, 'Grooming Audit', 'Dress & presentation', const Color(0xFF7C2D12),
             () => openHubScreen(context, const HrGroomingAuditScreen())),
         HubTool(Icons.assessment_rounded, 'Scorecard', 'Monthly review', const Color(0xFF1D4ED8),
-            () => openHubScreen(context, const MonthlyScorecardScreen())),
+            () => openHubScreen(context, const ScorecardHubScreen())),
         HubTool(Icons.shopping_bag_rounded, 'Online Orders', 'Track & dispatch', const Color(0xFFEA580C),
             () => openHubScreen(context, const OnlineOrdersHandlerScreen())),
         HubTool(Icons.menu_book_rounded, 'Konar Books', 'Department handbooks', const Color(0xFF881337),

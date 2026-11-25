@@ -167,22 +167,30 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Hero: brand, greeting, today strip
-                      _buildHero(context, eco, emp),
-                      const SizedBox(height: 18),
-
-                      // 4 pillar cards (2x2 grid)
-                      _sectionHeader('Your month', trailing: 'Tap a card for details'),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _buildPillarsGrid(context, eco),
+                      // Top of Home: header, the 4 pillar cards and quick actions
+                      // fit on one screen; text here does not grow with the
+                      // phone's large-font setting.
+                      MediaQuery(
+                        data: MediaQuery.of(context).copyWith(
+                          textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.0),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildHero(context, eco, emp),
+                            const SizedBox(height: 12),
+                            _sectionHeader('Your month', trailing: 'Tap a card for details'),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              child: _buildPillarsGrid(context, eco),
+                            ),
+                            const SizedBox(height: 14),
+                            _buildQuickActions(context, eco),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 18),
-
-                      // Quick actions
-                      _buildQuickActions(context, eco),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 20),
 
                       // Department Konar Book
                       Padding(
@@ -308,14 +316,14 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(18, topInset + 12, 18, 22),
+            padding: EdgeInsets.fromLTRB(16, topInset + 8, 16, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Brand + actions
                 Row(
                   children: [
-                    const MnBrandLogo(size: 48),
+                    const MnBrandLogo(size: 38),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -325,7 +333,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                           Text(
                             'Welcome',
                             style: GoogleFonts.outfit(
-                              fontSize: 12.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFFFFD6E5),
                               height: 1.1,
@@ -337,7 +345,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             child: Text(
                               'MN Family',
                               style: GoogleFonts.outfit(
-                                fontSize: 21,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                                 letterSpacing: -0.3,
@@ -354,7 +362,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       onTap: () => _onBellTapped(context, eco),
                       onLongPress: () => CompanyNotificationSheet.show(context),
                       dot: eco.activeCompanyNotifications.isNotEmpty,
-                      size: 42,
+                      size: 36,
                     ),
                     const SizedBox(width: 8),
                     Builder(
@@ -362,7 +370,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                         icon: Icons.menu_rounded,
                         tooltip: 'Menu',
                         onTap: () => Scaffold.of(ctx).openDrawer(),
-                        size: 42,
+                        size: 36,
                       ),
                     ),
                   ],
@@ -371,11 +379,11 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 6),
                     child: _buildFloatingNotificationPill(context, eco),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 8),
 
                 // Greeting + avatar
                 Row(
@@ -388,7 +396,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                           Text(
                             '${_greeting()},',
                             style: GoogleFonts.outfit(
-                              fontSize: 14,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.w500,
                               color: const Color(0xFFFFD6E5),
                             ),
@@ -396,20 +404,20 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                           const SizedBox(height: 2),
                           Text(
                             name,
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.outfit(
-                              fontSize: 27,
+                              fontSize: 21,
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
                               letterSpacing: -0.5,
                               height: 1.15,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 6),
                           Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
+                            spacing: 6,
+                            runSpacing: 4,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               if (birthdayToday)
@@ -464,7 +472,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     // Profile photo (opens profile). On their birthday: a crown.
                     BirthdayCrown(
                       show: birthdayToday,
-                      size: 74,
+                      size: 60,
                       child: Material(
                       color: Colors.transparent,
                       shape: const CircleBorder(),
@@ -486,7 +494,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               shape: BoxShape.circle,
                               color: AppColors.indigoDeep,
                             ),
-                            child: EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 64),
+                            child: EmployeeAvatar(avatar: emp.avatar, initials: emp.initials, size: 52),
                           ),
                         ),
                       ),
@@ -498,7 +506,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
 
                 // Today strip
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
                   decoration: BoxDecoration(
                     color: const Color(0x14FFFFFF),
                     borderRadius: BorderRadius.circular(18),
@@ -529,14 +537,14 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 17, color: AppColors.heroAccent),
-          const SizedBox(height: 5),
+          Icon(icon, size: 15, color: AppColors.heroAccent),
+          const SizedBox(height: 3),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               value,
               style: GoogleFonts.outfit(
-                fontSize: 17,
+                fontSize: 15,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
               ),
@@ -548,7 +556,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
-              fontSize: 11,
+              fontSize: 10.5,
               fontWeight: FontWeight.w600,
               color: const Color(0xFFFFD6E5),
             ),
@@ -1060,7 +1068,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
               Expanded(child: cards[1]),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(child: cards[2]),
@@ -1095,10 +1103,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     const muted = AppColors.textMuted;
     final pct = (int.tryParse(percent.replaceAll('%', '')) ?? 0).clamp(0, 100) / 100.0;
     return SizedBox(
-      height: 250,
+      height: 158,
       child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(24),
@@ -1135,17 +1143,17 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 ),
                 LayoutBuilder(
                   builder: (context, c) {
-                    final ring = c.maxWidth < 165 ? 58.0 : 66.0;
+                    final ring = c.maxWidth < 165 ? 46.0 : 52.0;
                     return Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Container(
-                                width: 34,
-                                height: 34,
+                                width: 28,
+                                height: 28,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [tint, Color.lerp(tint, Colors.black, 0.25)!],
@@ -1157,27 +1165,27 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                     BoxShadow(color: tint.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
                                   ],
                                 ),
-                                child: Icon(icon, size: 18, color: Colors.white),
+                                child: Icon(icon, size: 15, color: Colors.white),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 7),
                               Expanded(
                                 child: Text(
                                   title,
-                                  maxLines: 2,
-                                  softWrap: true,
-                                  overflow: TextOverflow.fade,
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.outfit(
-                                    fontSize: 14.5,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w800,
                                     color: ink,
                                     height: 1.15,
                                   ),
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFFCBB8C4)),
+                              const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFFCBB8C4)),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               // Month progress ring with percentage
@@ -1190,20 +1198,20 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                     SizedBox.expand(
                                       child: CircularProgressIndicator(
                                         value: pct,
-                                        strokeWidth: 6,
+                                        strokeWidth: 5,
                                         strokeCap: StrokeCap.round,
                                         backgroundColor: tint.withOpacity(0.10),
                                         valueColor: AlwaysStoppedAnimation(accent),
                                       ),
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.all(9),
+                                      padding: const EdgeInsets.all(8),
                                       child: FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: Text(
                                           percent,
                                           style: GoogleFonts.outfit(
-                                            fontSize: 16,
+                                            fontSize: 13,
                                             fontWeight: FontWeight.w800,
                                             color: ink,
                                           ),
@@ -1224,7 +1232,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.outfit(
-                                        fontSize: 11.5,
+                                        fontSize: 10.5,
                                         fontWeight: FontWeight.w600,
                                         color: muted,
                                       ),
@@ -1235,7 +1243,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                       child: Text(
                                         ringValue,
                                         style: GoogleFonts.outfit(
-                                          fontSize: 20,
+                                          fontSize: 17,
                                           fontWeight: FontWeight.w800,
                                           color: ringColor,
                                           height: 1.2,
@@ -1247,58 +1255,46 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Text(
                             caption,
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.outfit(
-                              fontSize: 11.5,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w500,
                               color: muted,
-                              height: 1.3,
                             ),
                           ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                             decoration: BoxDecoration(
                               color: tint.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Column(
+                            child: Row(
                               children: [
                                 for (int i = 0; i < stats.length; i++) ...[
-                                  if (i > 0) const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          stats[i].$1,
-                                          maxLines: 1,
-                                          softWrap: false,
-                                          overflow: TextOverflow.fade,
-                                          style: GoogleFonts.outfit(fontSize: 11.5, color: muted, fontWeight: FontWeight.w500),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Flexible(
-                                        flex: 4,
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          alignment: Alignment.centerRight,
-                                          child: Text(
-                                            stats[i].$2,
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 12.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: ink,
-                                            ),
+                                  if (i > 0)
+                                    Container(width: 1, height: 12, margin: const EdgeInsets.symmetric(horizontal: 6), color: tint.withOpacity(0.2)),
+                                  Expanded(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: i == 0 ? Alignment.centerLeft : Alignment.centerRight,
+                                      child: Text.rich(
+                                        TextSpan(children: [
+                                          TextSpan(
+                                            text: '${stats[i].$1} ',
+                                            style: GoogleFonts.outfit(fontSize: 10.5, color: muted, fontWeight: FontWeight.w500),
                                           ),
-                                        ),
+                                          TextSpan(
+                                            text: stats[i].$2,
+                                            style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w800, color: ink),
+                                          ),
+                                        ]),
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ],

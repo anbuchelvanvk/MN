@@ -7,6 +7,7 @@ import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/employee_avatar.dart';
 import '../../core/widgets/export_audit_modal.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../../core/widgets/team_announcement_sheet.dart';
 import '../../models/attendance_models.dart';
 import '../../models/employee_model.dart';
 import '../../providers/ecosystem_provider.dart';
@@ -17,7 +18,7 @@ import '../notes/personal_notes_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import 'dept_head_portal_screen.dart';
 import 'dept_head_subpages.dart';
-import 'monthly_scorecard_screen.dart';
+import 'daily_scorecard_screen.dart';
 
 /// The team lead's "My Team" tab: who is on the team today, what needs
 /// attention, and every team tool in one place.
@@ -85,7 +86,7 @@ class TeamHubScreen extends StatelessWidget {
       _Tool(Icons.task_alt_rounded, 'My Tasks', 'Your own list', const Color(0xFFBE185D),
           () => _open(context, const TlMyTasksScreen())),
       _Tool(Icons.assessment_rounded, 'Scorecard', 'Monthly review', const Color(0xFF2563EB),
-          () => _open(context, const MonthlyScorecardScreen())),
+          () => _open(context, const ScorecardHubScreen())),
       _Tool(Icons.video_collection_rounded, 'Media Review',
           eco.pendingMediaApprovalsCount > 0 ? '${eco.pendingMediaApprovalsCount} waiting' : 'Reels & shoots',
           const Color(0xFF9D174D), () => _open(context, const CreativeMediaReviewBoardScreen())),
@@ -110,8 +111,8 @@ class TeamHubScreen extends StatelessWidget {
         actions: [
           MnHeaderPill(
             icon: Icons.campaign_rounded,
-            label: 'Nudge',
-            onTap: () => DeptHeadPortalScreen.showNudgeTeam(context, eco),
+            label: 'Announce',
+            onTap: () => showTeamAnnouncementSheet(context, eco),
           ),
         ],
       ),
@@ -188,6 +189,13 @@ class TeamHubScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            FilledButton.tonalIcon(
+              key: const Key('team_announce'),
+              onPressed: () => showTeamAnnouncementSheet(context, eco),
+              icon: const Icon(Icons.campaign_rounded, size: 18),
+              label: const Text('Announce to team'),
             ),
             const SizedBox(height: 22),
 

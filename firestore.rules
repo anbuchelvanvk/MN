@@ -164,6 +164,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Daily scorecard: the online team lead fills it in; everyone reads.
+    match /daily_scorecards/{dayId} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || isLead();
+    }
+
     match /monthly_scorecards/{docId=**} {
       allow read: if signedIn();
       allow write: if isAdmin() || isLead();

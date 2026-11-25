@@ -48,7 +48,8 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
   bool _showNewTaskForm = false;
   final _newTitleController = TextEditingController();
   String _newPriority = 'Critical SLA';
-  String _newDue = '04:00 PM';
+  String? _newDue;
+  bool _newDaily = false;
   String? _newAssigneeId;
 
   @override
@@ -1430,25 +1431,28 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                   children: [
                     const Text('Due Time', style: TextStyle(fontSize: 11, color: AppColors.sandLight, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
-                      value: _newDue,
-                      dropdownColor: AppColors.burgundySurface,
-                      style: const TextStyle(color: AppColors.textDark, fontSize: 12),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: AppColors.burgundySurface,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.sandBorder)),
+                    // The person assigning sets the exact time.
+                    OutlinedButton.icon(
+                      key: const Key('assign_pick_time'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48),
+                        alignment: Alignment.centerLeft,
+                        foregroundColor: _newDue == null ? AppColors.textMuted : AppColors.textDark,
+                        side: const BorderSide(color: AppColors.sandBorder),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      items: const [
-                        DropdownMenuItem(value: '12:00 PM', child: Text('12:00 PM')),
-                        DropdownMenuItem(value: '02:00 PM', child: Text('02:00 PM')),
-                        DropdownMenuItem(value: '04:00 PM', child: Text('04:00 PM')),
-                        DropdownMenuItem(value: '06:00 PM', child: Text('06:00 PM')),
-                        DropdownMenuItem(value: '08:00 PM', child: Text('08:00 PM')),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) setState(() => _newDue = v);
+                      icon: const Icon(Icons.schedule_rounded, size: 18),
+                      label: Text(_newDue ?? 'Pick a time', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                      onPressed: () async {
+                        final now = TimeOfDay.now();
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay(hour: (now.hour + 1).clamp(0, 23), minute: 0),
+                        );
+                        if (picked == null) return;
+                        final h = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
+                        setState(() => _newDue =
+                            '${h.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')} ${picked.period == DayPeriod.am ? 'AM' : 'PM'}');
                       },
                     ),
                   ],
@@ -1457,7 +1461,23 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
+          // One day only unless ticked.
+          CheckboxListTile(
+            key: const Key('assign_daily_default'),
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            value: _newDaily,
+            activeColor: AppColors.magentaPrimary,
+            onChanged: (v) => setState(() => _newDaily = v ?? false),
+            title: const Text('Add this as a daily default task?',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+            subtitle: Text(
+              _newDaily ? 'Repeats every day at this time.' : 'Only for today.',
+              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+            ),
+          ),
+          const SizedBox(height: 10),
 
           LiquidGlassButton(
             label: 'Dispatch Task',
@@ -1470,13 +1490,19 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                 );
                 return;
               }
+              if (_newDue == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Pick the time this task is due.')),
+                );
+                return;
+              }
               final go = await confirmTaskAssignment(
                 context,
                 eco,
                 empId: _newAssigneeId!,
                 title: _newTitleController.text.trim(),
                 category: 'Manager Directive',
-                due: _newDue,
+                due: _newDue!,
               );
               if (!go || !context.mounted) return;
               eco.assignTask(
@@ -1484,9 +1510,10 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
                 title: _newTitleController.text.trim(),
                 category: 'Manager Directive',
                 priority: _newPriority,
-                due: _newDue,
+                due: _newDue!,
                 assignedByRole: activeEmp.role,
                 assignedByName: '${activeEmp.name} (${activeEmp.straightCutRole})',
+                daily: _newDaily,
               );
               final messenger = ScaffoldMessenger.of(context);
               final assignee = eco.employees.firstWhereOrNull((e) => e.id == _newAssigneeId);

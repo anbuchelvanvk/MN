@@ -15,6 +15,7 @@ import 'tier_pillar_screen.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../../models/attendance_models.dart';
 import '../../core/widgets/pillar_kit.dart';
+import '../../core/widgets/add_todo_dialog.dart';
 
 class ProfilePillarScreen extends StatefulWidget {
   const ProfilePillarScreen({super.key});
@@ -94,16 +95,21 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
             const SizedBox(height: 12),
 
 
-            // 2. The 6 Professional Profile Rings Matrix
-            _buildSixRingsMatrix(context, provider),
-            const SizedBox(height: 16),
+            // 2. The 6 Professional Profile Rings Matrix (team leads: attendance only)
+            if (!(employee.isTeamLead && !employee.isCeo)) ...[
+              _buildSixRingsMatrix(context, provider),
+              const SizedBox(height: 16),
 
-            // 3. Subsystem Selector Tabs
-            _buildSubsystemTabs(),
-            const SizedBox(height: 14),
+              // 3. Subsystem Selector Tabs
+              _buildSubsystemTabs(),
+              const SizedBox(height: 14),
+            ] else ...[
+              const KitSectionHeader('Team attendance', subtitle: 'Your team today and this month'),
+              const SizedBox(height: 12),
+            ],
 
             // 4. Dynamic Subsystem Views based on selected ring
-            if (_selectedRingIndex == 0) ...[
+            if (_selectedRingIndex == 0 || (employee.isTeamLead && !employee.isCeo)) ...[
               if (employee.isCeo || employee.isTeamLead)
                 _buildCeoStaffAttendanceSection(context, provider)
               else if (employee.isExternalSupport)
@@ -156,142 +162,109 @@ class _ProfilePillarScreenState extends State<ProfilePillarScreen> {
   // --- WIDGET BUILDERS ---
 
   Widget _buildWorkTasksCard(BuildContext context, EcosystemProvider provider, dynamic employee) {
-    final tasks = provider.currentEmployeeTasks;
-    final pendingTasks = tasks.where((t) => t.status == 'pending').toList();
-    final completedTasks = tasks.where((t) => t.status == 'completed').toList();
+    final tasks = List.of(provider.currentEmployeeTasks);
+    // Pending first, then by time of day; completed at the end
+    int minutes(String due) {
+      final t = EcosystemProvider.parseTaskDue(due, now: DateTime(2000, 1, 1));
+      return t == null ? 24 * 60 : t.hour * 60 + t.minute;
+    }
 
-    return LiquidGlassCard(
-      padding: const EdgeInsets.all(16),
-      borderRadius: 18,
+    tasks.sort((a, b) {
+      final da = a.status == 'completed' ? 1 : 0;
+      final db = b.status == 'completed' ? 1 : 0;
+      if (da != db) return da.compareTo(db);
+      return minutes(a.due).compareTo(minutes(b.due));
+    });
+    final pending = tasks.where((t) => t.status != 'completed').length;
+    final completed = tasks.length - pending;
+
+    void openList() => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const EmployeeThingsToDoScreen()),
+        );
+
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              const KitIcon(Icons.checklist_rounded, Color(0xFFD97706)),
+              const SizedBox(width: 12),
               Expanded(
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD97706).withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.assignment_outlined, size: 18, color: Color(0xFFD97706)),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'MY TASKS',
-                            style: GoogleFonts.outfit(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.sandLight,
-                              letterSpacing: 0.5,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            '${pendingTasks.length} Pending • ${completedTasks.length} Completed',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11.5,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    Text('To-Do list', style: kitTitle(16)),
+                    Text('$pending pending · $completed done', style: kitBody(12.5)),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const EmployeeThingsToDoScreen()),
-                  );
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD97706).withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFD97706).withOpacity(0.4)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'View All',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFD97706),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFFD97706)),
-                    ],
-                  ),
-                ),
+              KitChipButton(
+                buttonKey: const Key('work_add_todo'),
+                label: 'Add One',
+                icon: Icons.add_rounded,
+                onTap: () => showAddPersonalTodoDialog(context, provider),
               ),
             ],
           ),
-          if (pendingTasks.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            ...pendingTasks.take(2).map((task) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.burgundySurface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.sandBorder),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.radio_button_unchecked, size: 14, color: Color(0xFFD97706)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        task.title,
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          color: AppColors.sandLight,
-                          fontWeight: FontWeight.w600,
+          const SizedBox(height: 10),
+          if (tasks.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Text('Nothing on your list yet.', textAlign: TextAlign.center, style: kitBody(13)),
+            ),
+          for (final task in tasks)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Material(
+                color: task.status == 'completed' ? const Color(0xFFF0FDF4) : AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: openList,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 62,
+                          child: Text(
+                            task.due.isEmpty ? '—' : task.due,
+                            style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD97706).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        task.priority.toUpperCase(),
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFD97706),
+                        Icon(
+                          task.status == 'completed'
+                              ? Icons.check_circle_rounded
+                              : (task.status == 'postponed' ? Icons.schedule_rounded : Icons.radio_button_unchecked),
+                          size: 18,
+                          color: task.status == 'completed'
+                              ? const Color(0xFF10B981)
+                              : (task.status == 'postponed' ? const Color(0xFF6366F1) : const Color(0xFFD97706)),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            task.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
+                              decoration: task.status == 'completed' ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                        if (task.isDefaultSop) const KitPill('Daily', Color(0xFF0EA5E9)),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              );
-            }),
-          ],
+              ),
+            ),
         ],
       ),
     );

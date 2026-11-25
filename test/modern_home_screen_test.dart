@@ -289,10 +289,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Steps and calories come from the real logs
-      expect(find.text('Steps'), findsOneWidget);
+      // Stats sit on one line as "label value".
+      expect(find.text('Steps 4,444', findRichText: true), findsOneWidget);
       expect(find.text('4,444'), findsWidgets);
-      expect(find.text('Calories'), findsOneWidget);
-      expect(find.text('1500 / 2000'), findsOneWidget);
+      expect(find.text('Calories 1500 / 2000', findRichText: true), findsOneWidget);
 
       // Tapping the card opens the Health pillar
       await tester.tap(find.text('Health'));

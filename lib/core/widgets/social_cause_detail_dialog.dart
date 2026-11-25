@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'person_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -197,16 +198,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
                                   ],
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    employeeName.trim().isNotEmpty
-                                        ? employeeName.trim().split(RegExp(r'\s+')).map((e) => e[0]).take(2).join('').toUpperCase()
-                                        : 'MN',
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                                  child: PersonAvatar(empId: cause?.empId, name: employeeName, size: 44),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -298,6 +290,10 @@ class SocialCauseDetailDialog extends StatelessWidget {
                           const Divider(color: Color(0xFFE2E8F0), height: 1),
                           const SizedBox(height: 14),
 
+                          if (likedStaff.isNotEmpty) ...[
+                            LikersRow(empIds: likedStaff.toList(), title: 'Reacted by', size: 26),
+                            const SizedBox(height: 10),
+                          ],
                           // Heart Reaction & Interactions Bar
                           Wrap(
                             alignment: WrapAlignment.spaceBetween,

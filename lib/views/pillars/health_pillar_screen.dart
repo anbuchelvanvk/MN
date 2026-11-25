@@ -540,6 +540,14 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
 
           // 5. Daily Calorie Target
           _buildCalorieTargetHeaderCard(context, eco),
+          const SizedBox(height: 14),
+
+          // 6. Protein, carbs, fat, fibre
+          _buildNutritionCard(eco),
+          const SizedBox(height: 14),
+
+          // 7. Water and sleep (typed in)
+          _buildWaterSleepCard(context, eco),
 
           // 6. Leadership: View Employee Health Activities Gateway
           if (eco.isCeo || eco.activeRole.toLowerCase() == 'ceo' || eco.activeRole.toLowerCase() == 'hr') ...[
@@ -547,6 +555,205 @@ class _HealthPillarScreenState extends State<HealthPillarScreen> {
             _buildStaffHealthActivitiesGateway(context, eco),
           ],
           const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // NUTRITION (macros) and WATER & SLEEP
+  // =========================================================================
+
+  Widget _buildNutritionCard(EcosystemProvider eco) {
+    final m = eco.macrosForDate(_selectedDate);
+    final g = eco.macroGoals;
+    Widget bar(String label, double value, double goal, Color color, Key key) {
+      final pct = goal > 0 ? (value / goal) : 0.0;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('$label:', style: kitBody(13)),
+              const SizedBox(width: 6),
+              Text('${(pct * 100).round()}%', key: key, style: kitTitle(13.5)),
+              const Spacer(),
+              Text('${value.round()}/${goal.round()} g', style: kitBody(11)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          KitBar(progress: pct, color: color, height: 6),
+        ],
+      );
+    }
+
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const KitIcon(Icons.restaurant_rounded, Color(0xFFF97316)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Nutrition', style: kitTitle(16)),
+                    Text('${_formatDayLabel(_selectedDate)} · estimated from your meals', style: kitBody(12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: bar('Protein', m.protein, g.protein, const Color(0xFFE11D48), const Key('macro_protein'))),
+              const SizedBox(width: 16),
+              Expanded(child: bar('Carb', m.carbs, g.carbs, const Color(0xFFF59E0B), const Key('macro_carbs'))),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(child: bar('Fat', m.fat, g.fat, const Color(0xFF8B5CF6), const Key('macro_fat'))),
+              const SizedBox(width: 16),
+              Expanded(child: bar('Fibre', m.fibre, g.fibre, const Color(0xFF10B981), const Key('macro_fibre'))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWaterSleepCard(BuildContext context, EcosystemProvider eco) {
+    final water = eco.getWaterForDate(_selectedDate);
+    final sleep = eco.getSleepMinutesForDate(_selectedDate);
+    const waterGoal = EcosystemProvider.waterGoalGlasses;
+    const sleepGoal = EcosystemProvider.sleepGoalMinutes;
+    final past = _isPastDate(_selectedDate);
+    String hm(int mins) => '${mins ~/ 60}h ${mins % 60}m';
+
+    Future<void> editSleep() async {
+      if (past) return;
+      var h = sleep ~/ 60, mi = (sleep % 60) ~/ 5 * 5;
+      final ok = await showModalBottomSheet<bool>(
+        context: context,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, set) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('How long did you sleep?', style: kitTitle(18)),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: h,
+                        decoration: const InputDecoration(labelText: 'Hours'),
+                        items: [for (var i = 0; i <= 14; i++) DropdownMenuItem(value: i, child: Text('$i h'))],
+                        onChanged: (v) => set(() => h = v ?? h),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: mi,
+                        decoration: const InputDecoration(labelText: 'Minutes'),
+                        items: [for (var i = 0; i < 60; i += 5) DropdownMenuItem(value: i, child: Text('$i m'))],
+                        onChanged: (v) => set(() => mi = v ?? mi),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                FilledButton(key: const Key('sleep_save'), onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (ok == true) eco.setSleepMinutesForDate(_selectedDate, h * 60 + mi);
+    }
+
+    Widget row({
+      required IconData icon,
+      required Color color,
+      required String title,
+      required String value,
+      required double progress,
+      required Widget trailing,
+    }) =>
+        Row(
+          children: [
+            KitRing(
+              progress: progress,
+              color: color,
+              size: 54,
+              stroke: 5,
+              center: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: kitTitle(15)),
+                  Text(value, style: kitBody(13)),
+                ],
+              ),
+            ),
+            trailing,
+          ],
+        );
+
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+      child: Column(
+        children: [
+          row(
+            icon: Icons.local_drink_rounded,
+            color: const Color(0xFF0EA5E9),
+            title: 'Water',
+            value: '$water of $waterGoal glasses',
+            progress: water / waterGoal,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  key: const Key('water_minus'),
+                  onPressed: past || water == 0 ? null : () => eco.setWaterForDate(_selectedDate, water - 1),
+                  icon: const Icon(Icons.remove_circle_outline_rounded),
+                ),
+                IconButton(
+                  key: const Key('water_plus'),
+                  onPressed: past ? null : () => eco.setWaterForDate(_selectedDate, water + 1),
+                  icon: const Icon(Icons.add_circle_rounded, color: Color(0xFF0EA5E9)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 22),
+          row(
+            icon: Icons.bedtime_rounded,
+            color: const Color(0xFF6366F1),
+            title: 'Sleep',
+            value: '${hm(sleep)} of ${hm(sleepGoal)}',
+            progress: sleep / sleepGoal,
+            trailing: KitChipButton(
+              buttonKey: const Key('sleep_edit'),
+              label: sleep == 0 ? 'Add' : 'Edit',
+              icon: Icons.edit_rounded,
+              onTap: past ? () {} : editSleep,
+            ),
+          ),
         ],
       ),
     );

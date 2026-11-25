@@ -1,4 +1,5 @@
 import '../../core/widgets/mn_app_bar.dart';
+import '../../core/widgets/person_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -541,18 +542,7 @@ class _ChatHubScreenState extends State<ChatHubScreen> with SingleTickerProvider
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: const Color(0xFFF1F5F9),
-            child: Text(
-              initials,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF475569),
-              ),
-            ),
-          ),
+          PersonAvatar(empId: emp.id, name: emp.name, size: 40),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

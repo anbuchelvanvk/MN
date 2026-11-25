@@ -1,4 +1,5 @@
 import '../../core/widgets/pillar_hero_card.dart';
+import '../../core/widgets/person_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -232,17 +233,28 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar with category icon
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: typeColor.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: typeColor.withOpacity(0.25)),
-                      ),
-                      child: Center(
-                        child: Icon(typeIcon, color: typeColor, size: 22),
+                    // Contributor photo with the category badge
+                    SizedBox(
+                      width: 46,
+                      height: 46,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          PersonAvatar(empId: cause.empId, name: cause.employeeName, size: 42),
+                          Positioned(
+                            right: -2,
+                            bottom: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: typeColor.withOpacity(0.4)),
+                              ),
+                              child: Icon(typeIcon, color: typeColor, size: 12),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -552,6 +564,10 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                     ),
                   ],
                 ),
+                if (cause.likedEmpIds.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  LikersRow(empIds: cause.likedEmpIds, title: 'Reacted by'),
+                ],
               ],
             ),
           ),

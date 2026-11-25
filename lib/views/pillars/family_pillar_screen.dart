@@ -54,10 +54,6 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
-
   bool _isToday(DateTime d) {
     final now = DateTime.now();
     return d.year == now.year && d.month == now.month && d.day == now.day;
@@ -185,7 +181,7 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     // Switch to diary section to view newly logged activity
     setState(() {
       _activityPhotoUrl = null;
-      _selectedSectionIndex = 3;
+      _selectedSectionIndex = 0;
     });
   }
 
@@ -273,207 +269,162 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   // =========================================================================
 
   Widget _buildHorizontalDateStrip(EcosystemProvider eco) {
-    final days = List.generate(7, (i) => _selectedDate.add(Duration(days: i - 3)));
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.burgundyCard,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.sandBorder),
-      ),
-      child: Column(
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+        'October', 'November', 'December'];
+    final d = _selectedDate;
+    final logged = eco.getFamilyActivitiesForDate(d).isNotEmpty;
+    final isToday = _isToday(d);
+    final color = logged ? const Color(0xFF10B981) : (isToday ? AppColors.primary : const Color(0xFFEF4444));
+    return KitCard(
+      key: const Key('family_date_button'),
+      onTap: () => _openFamilyCalendar(eco),
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left, color: AppColors.sandGold, size: 24),
-                tooltip: 'Previous 7 Days',
-                onPressed: () {
-                  setState(() {
-                    _selectedDate = _selectedDate.subtract(const Duration(days: 7));
-                  });
-                },
-              ),
-              Flexible(
-                child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime(2020, 1, 1),
-                    lastDate: DateTime.now().add(const Duration(days: 366)),
-                    builder: (context, child) {
-                      return Theme(
-                        data: ThemeData.dark().copyWith(
-                          colorScheme: const ColorScheme.dark(
-                            primary: AppColors.sandGold,
-                            onPrimary: AppColors.burgundyBg,
-                            surface: AppColors.burgundyCard,
-                            onSurface: AppColors.sandLight,
-                          ),
-                          dialogBackgroundColor: AppColors.burgundyCard,
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      _selectedDate = picked;
-                    });
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.calendar_month, color: AppColors.sandGold, size: 16),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                        '${_months[_selectedDate.month - 1]} ${_selectedDate.year}',
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.sandLight,
-                        ),
-                      ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_drop_down, color: AppColors.sandPrimary, size: 18),
-                    ],
-                  ),
-                ),
-              ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!_isToday(_selectedDate))
-                    InkWell(
-                      borderRadius: BorderRadius.circular(6),
-                      onTap: () {
-                        setState(() {
-                          _selectedDate = DateTime.now();
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        margin: const EdgeInsets.only(right: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.burgundySurface,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.sandGold.withOpacity(0.5)),
-                        ),
-                        child: Text(
-                          'Today',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sandGold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right, color: AppColors.sandGold, size: 24),
-                    tooltip: 'Next 7 Days',
-                    onPressed: () {
-                      setState(() {
-                        _selectedDate = _selectedDate.add(const Duration(days: 7));
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ],
+          Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 3)),
+            child: Text('${d.day}', style: kitValue(18).copyWith(color: color)),
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: days.map((date) {
-              final isSelected = _isSameDay(date, _selectedDate);
-              final isCurrentToday = _isToday(date);
-              final dayHours = eco.getTotalSocialHoursForDate(date);
-
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      setState(() {
-                        _selectedDate = date;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.sandGold
-                            : (isCurrentToday
-                                ? AppColors.burgundySurface
-                                : AppColors.burgundySurface.withOpacity(0.4)),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppColors.sandGold
-                              : (isCurrentToday ? AppColors.sandGold.withOpacity(0.6) : AppColors.sandBorder),
-                          width: isSelected ? 1.8 : 1.0,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            _weekdays[date.weekday - 1],
-                            style: GoogleFonts.outfit(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? AppColors.burgundyBg
-                                  : (isCurrentToday ? AppColors.sandGold : AppColors.textMuted),
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            '${date.day}',
-                            style: GoogleFonts.outfit(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? AppColors.burgundyBg
-                                  : (isCurrentToday ? AppColors.sandLight : AppColors.sandPrimary),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          if (dayHours > 0)
-                            Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isSelected ? AppColors.burgundyBg : AppColors.ragGreen,
-                              ),
-                            )
-                          else
-                            const SizedBox(height: 5),
-                        ],
-                      ),
-                    ),
-                  ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${d.day} ${months[d.month - 1]} ${d.year}', style: kitTitle(16)),
+                Text(
+                  isToday ? 'Today · tap to pick another day' : (logged ? 'Time logged that day' : 'Nothing logged that day'),
+                  style: kitBody(12.5),
                 ),
-              );
-            }).toList(),
+              ],
+            ),
           ),
+          const Icon(Icons.calendar_month_rounded, color: AppColors.primary),
         ],
       ),
     );
   }
+
+  /// Month calendar: green ring = family/friends time logged that day,
+  /// red ring = a past day with nothing logged.
+  Future<void> _openFamilyCalendar(EcosystemProvider eco) async {
+    var month = DateTime(_selectedDate.year, _selectedDate.month);
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+        'October', 'November', 'December'];
+    final picked = await showModalBottomSheet<DateTime>(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) {
+          final first = DateTime(month.year, month.month, 1);
+          final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+          final lead = first.weekday % 7; // Sunday first
+          final canNext = DateTime(month.year, month.month + 1).isBefore(DateTime(today.year, today.month + 1));
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => set(() => month = DateTime(month.year, month.month - 1)),
+                        icon: const Icon(Icons.chevron_left_rounded),
+                      ),
+                      Expanded(
+                        child: Text('${names[month.month - 1]} ${month.year}',
+                            textAlign: TextAlign.center, style: kitTitle(17)),
+                      ),
+                      IconButton(
+                        onPressed: canNext ? () => set(() => month = DateTime(month.year, month.month + 1)) : null,
+                        icon: const Icon(Icons.chevron_right_rounded),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      for (final w in const ['S', 'M', 'T', 'W', 'T', 'F', 'S'])
+                        Expanded(child: Center(child: Text(w, style: kitBody(12)))),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  GridView.count(
+                    crossAxisCount: 7,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 6,
+                    crossAxisSpacing: 6,
+                    children: [
+                      for (var i = 0; i < lead; i++) const SizedBox(),
+                      for (var day = 1; day <= daysInMonth; day++)
+                        Builder(builder: (_) {
+                          final date = DateTime(month.year, month.month, day);
+                          final future = date.isAfter(todayOnly);
+                          final has = eco.getFamilyActivitiesForDate(date).isNotEmpty;
+                          final ring = future
+                              ? const Color(0xFFE5D5DE)
+                              : (has ? const Color(0xFF10B981) : (date == todayOnly ? AppColors.primary : const Color(0xFFEF4444)));
+                          final selected = date == DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+                          return InkWell(
+                            key: Key('cal_day_$day'),
+                            customBorder: const CircleBorder(),
+                            onTap: future ? null : () => Navigator.pop(ctx, date),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: selected ? ring.withOpacity(0.15) : null,
+                                border: Border.all(color: ring, width: selected ? 3 : 2),
+                              ),
+                              child: Text('$day',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: future ? AppColors.textMuted : AppColors.textDark,
+                                  )),
+                            ),
+                          );
+                        }),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 14,
+                    children: [
+                      _legendDot(const Color(0xFF10B981), 'Logged'),
+                      _legendDot(const Color(0xFFEF4444), 'Not logged'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (picked != null && mounted) setState(() => _selectedDate = picked);
+  }
+
+  Widget _legendDot(Color c, String t) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: c, width: 2.5)),
+          ),
+          const SizedBox(width: 5),
+          Text(t, style: kitBody(12)),
+        ],
+      );
 
   // =========================================================================
   // 2. FOUR SECTIONS SELECTOR (Top 4 Interactive Modules)
@@ -482,7 +433,6 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
   Widget _buildFourSectionSelector(EcosystemProvider eco) {
     final familyHours = eco.getFamilyHoursForDate(_selectedDate);
     final friendsHours = eco.getFriendsHoursForDate(_selectedDate);
-    final totalActivities = eco.getFamilyActivitiesForDate(_selectedDate).length;
 
     Widget tile(int index, IconData icon, Color color, String label, String value, String? unit, String caption) =>
         KitStatTile(
@@ -499,16 +449,13 @@ class _FamilyPillarScreenState extends State<FamilyPillarScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        KitSectionHeader('Log by type', subtitle: 'Tap a card to open it below'),
+        KitSectionHeader('Log by type', subtitle: 'Tap a card to see that day below'),
         const SizedBox(height: 12),
         KitTileGrid(children: [
           tile(0, Icons.family_restroom_rounded, const Color(0xFFE11D48), 'Family Time', formatDuration(familyHours), null,
               familyHours > 0 ? 'Cherished moments' : 'Nothing logged yet'),
           tile(1, Icons.diversity_3_rounded, const Color(0xFF8B5CF6), 'Friends & Peers', formatDuration(friendsHours), null,
               friendsHours > 0 ? 'Good company' : 'Nothing logged yet'),
-          tile(2, Icons.edit_note_rounded, const Color(0xFFF97316), 'Log Activity', 'Add', null, 'Hours & memories'),
-          tile(3, Icons.history_rounded, const Color(0xFF0EA5E9), 'Activity Diary', '$totalActivities',
-              totalActivities == 1 ? 'entry' : 'entries', '${formatDuration(eco.totalOverallSocialHoursToday)} in total'),
         ]),
       ],
     );

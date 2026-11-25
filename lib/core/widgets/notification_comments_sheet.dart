@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'person_avatar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -267,22 +268,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
                           children: [
                             Row(
                               children: [
-                                CircleAvatar(
-                                  radius: 13,
-                                  backgroundColor: isAuthor
-                                      ? AppColors.magentaPrimary
-                                      : const Color(0xFF475569),
-                                  child: Text(
-                                    comment.authorName.isNotEmpty
-                                        ? comment.authorName[0].toUpperCase()
-                                        : '?',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
+                                PersonAvatar(empId: comment.authorId, name: comment.authorName, size: 26),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Row(
@@ -447,18 +433,7 @@ class _NotificationCommentsSheetState extends State<NotificationCommentsSheet> {
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 15,
-                  backgroundColor: AppColors.magentaPrimary.withOpacity(0.15),
-                  child: Text(
-                    currentEmp.name.isNotEmpty ? currentEmp.name[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.magentaPrimary,
-                    ),
-                  ),
-                ),
+                PersonAvatar(empId: currentEmp.id, name: currentEmp.name, size: 30),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Container(
