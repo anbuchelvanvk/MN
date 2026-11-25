@@ -44,7 +44,10 @@ class _RoleHub extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final staff = eco.employees.where((e) => !e.isCeo).toList();
+    // The CEO sees everyone; HR / Asst. HR only the departments granted to them.
+    final staff = eco.employeesInMyScope.where((e) => !e.isCeo).toList();
+    final canAnnounce = eco.hasPerk((p) => p.canSendAnnouncements);
+    final canHire = eco.hasPerk((p) => p.canHireStaff);
     final today = eco.todayAttendanceFor(staff.map((e) => e.id));
     final absent = staff.where((e) => today[e.id] == TodayAttendance.absent).toList();
     final tally = eco.tallyTodayAttendance(staff);
@@ -67,7 +70,7 @@ class _RoleHub extends StatelessWidget {
         title: title,
         subtitle: subtitle,
         actions: [
-          MnHeaderPill(icon: Icons.campaign_rounded, label: 'Announce', onTap: announce),
+          if (canAnnounce) MnHeaderPill(icon: Icons.campaign_rounded, label: 'Announce', onTap: announce),
         ],
       ),
       body: RefreshIndicator(
@@ -119,14 +122,16 @@ class _RoleHub extends StatelessWidget {
                     label: const Text('Assign tasks'),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => HrStaffDirectoryScreen.openAddHireDialog(context, eco),
-                    icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                    label: const Text('New hire'),
+                if (canHire) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => HrStaffDirectoryScreen.openAddHireDialog(context, eco),
+                      icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+                      label: const Text('New hire'),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
             const SizedBox(height: 22),
@@ -238,19 +243,23 @@ class HrHubScreen extends StatelessWidget {
       announcerRole: 'HR Manager',
       classicPortal: const HrPortalScreen(embedded: true),
       tools: (context, eco) => [
-        HubTool(Icons.badge_rounded, 'Staff Directory', '${eco.employees.length} people', AppColors.primary,
+        HubTool(Icons.badge_rounded, 'Staff Directory', '${eco.employeesInMyScope.length} people', AppColors.primary,
             () => openHubScreen(context, const HrStaffDirectoryScreen())),
-        HubTool(Icons.fingerprint_rounded, 'Attendance', 'Sheet & leaves', const Color(0xFF059669),
-            () => openHubScreen(context, const HrAttendanceScreen())),
-        HubTool(Icons.lock_reset_rounded, 'Password Requests', 'Verify staff codes', const Color(0xFFBE185D),
-            () => openHubScreen(context, const HrPasswordRequestsScreen())),
-        HubTool(Icons.assignment_rounded, 'Staff Tasks', 'All departments', const Color(0xFFD97706),
+        if (eco.hasPerk((p) => p.canManageAttendance))
+          HubTool(Icons.fingerprint_rounded, 'Attendance', 'Sheet & leaves', const Color(0xFF059669),
+              () => openHubScreen(context, const HrAttendanceScreen())),
+        if (eco.hasPerk((p) => p.canResetPasswords))
+          HubTool(Icons.lock_reset_rounded, 'Password Requests', 'Verify staff codes', const Color(0xFFBE185D),
+              () => openHubScreen(context, const HrPasswordRequestsScreen())),
+        HubTool(Icons.assignment_rounded, 'Staff Tasks', 'Your departments', const Color(0xFFD97706),
             () => openHubScreen(context, const HrStaffTasksScreen())),
-        HubTool(Icons.volunteer_activism_rounded, 'Social Causes', 'Approve good deeds', const Color(0xFF0F766E),
-            () => openHubScreen(context, const HrSocialCausesScreen()),
-            badge: eco.pendingSocialCauses.length),
-        HubTool(Icons.dry_cleaning_rounded, 'Grooming Audit', 'Dress & presentation', const Color(0xFF7C2D12),
-            () => openHubScreen(context, const HrGroomingAuditScreen())),
+        if (eco.hasPerk((p) => p.canApproveSocialCauses))
+          HubTool(Icons.volunteer_activism_rounded, 'Social Causes', 'Approve good deeds', const Color(0xFF0F766E),
+              () => openHubScreen(context, const HrSocialCausesScreen()),
+              badge: eco.pendingSocialCauses.length),
+        if (eco.hasPerk((p) => p.canAuditGrooming))
+          HubTool(Icons.dry_cleaning_rounded, 'Grooming Audit', 'Dress & presentation', const Color(0xFF7C2D12),
+              () => openHubScreen(context, const HrGroomingAuditScreen())),
         HubTool(Icons.shield_rounded, 'Blocker Tickets', 'Escalations', const Color(0xFFDC2626),
             () => openHubScreen(context, const HrBlockerTicketsScreen())),
         HubTool(Icons.menu_book_rounded, 'Konar Books', 'Department handbooks', const Color(0xFF881337),
@@ -259,8 +268,9 @@ class HrHubScreen extends StatelessWidget {
             () => openHubScreen(context, const HrPersonalTodosScreen())),
         HubTool(Icons.lock_rounded, 'Personal Notes', 'Private to you', const Color(0xFF5B5068),
             () => openHubScreen(context, const PersonalNotesScreen())),
-        HubTool(Icons.file_download_rounded, 'HR Report', 'Export audit', const Color(0xFF0F766E),
-            () => ExportAuditModal.show(context)),
+        if (eco.hasPerk((p) => p.canExportAudit))
+          HubTool(Icons.file_download_rounded, 'HR Report', 'Export audit', const Color(0xFF0F766E),
+              () => ExportAuditModal.show(context)),
       ],
     );
   }

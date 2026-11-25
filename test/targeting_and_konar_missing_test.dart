@@ -48,9 +48,11 @@ void main() {
       expect(e.isCeo || e.isHr, isFalse, reason: e.name);
     }
     expect(eco.myTeamMembers.any((e) => e.id == '33'), isTrue);
-    // Move Mithra to a separately created department: she leaves the online team.
+    // The CEO moves Mithra to a separately created department: she leaves the online team.
+    await eco.loginWithFirebase(email: 'ceoofmn@mnjpark.com', password: 'x');
     await eco.createNewDepartment('Showroom Floor');
     await eco.allocateEmployeeRole(empId: '33', newRole: 'Floor Staff', newDept: 'Showroom Floor');
+    await eco.loginWithFirebase(email: 'praveenkumarotm@mnj.com', password: 'x');
     expect(eco.myTeamMembers.any((e) => e.id == '33'), isFalse);
   });
 

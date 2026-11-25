@@ -63,6 +63,18 @@ class FirebaseEmployeeService {
   static const externalSupportCollection = 'external_support_employees';
   static const externalSupportDept = 'External Support Staff [Online]';
 
+  /// CEO, HR and Asst. HR sit in the Administration Department.
+  static const administrationDept = 'Administration Department';
+  static const administrationCollection = 'administration_employees';
+  static const administrationNames = {
+    'administration',
+    'administration department',
+    'hr & administration',
+    'hr & people ops',
+    'hr & admin',
+    'executive board',
+  };
+
   static String getDepartmentCollectionName(String? dept) {
     final clean = (dept ?? '').trim().toLowerCase();
     if (clean.isEmpty || clean == 'online' || clean == 'online department') {
@@ -73,6 +85,9 @@ class FirebaseEmployeeService {
     }
     if (clean.contains('external support') || clean == 'outside support') {
       return externalSupportCollection;
+    }
+    if (administrationNames.contains(clean)) {
+      return administrationCollection;
     }
     final slug = clean
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
@@ -183,7 +198,7 @@ class FirebaseEmployeeService {
           name: 'Mohankumar G',
           role: 'HR Manager & Operations Custodian',
           roleType: 'hr',
-          dept: 'Administration',
+          dept: 'Administration Department',
           phone: '+91 94433 11000',
           email: 'hr@mnj.com',
           avatar: '',
@@ -215,7 +230,7 @@ class FirebaseEmployeeService {
           name: 'M N Naveenraaj',
           role: 'Managing Director & CEO',
           roleType: 'ceo',
-          dept: 'Administration',
+          dept: 'Administration Department',
           phone: '+91 98450 00001',
           email: 'ceoofmn@mnjpark.com',
           avatar: '',
@@ -331,7 +346,7 @@ class FirebaseEmployeeService {
           'email': 'ceoofmn@mnjpark.com',
           'role': 'Managing Director & CEO',
           'roleType': 'ceo',
-          'dept': 'Executive Board',
+          'dept': administrationDept,
           'phone': '+91 98450 00001',
           'experienceYears': '25 yrs in Fine Jewellery',
           'experienceCategory': 'experienced',
@@ -711,8 +726,8 @@ class FirebaseEmployeeService {
   Future<void> syncCorporateLeadershipNames() async {
     try {
       final officialAccounts = {
-        'MN-CEO01': {'email': 'ceoofmn@mnjpark.com', 'name': 'M N Naveenraaj', 'role': 'Managing Director & CEO', 'roleType': 'ceo', 'dept': 'Executive Board', 'roleCode': 'CEO'},
-        '7': {'email': 'hr@mnj.com', 'name': 'Mohankumar G', 'role': 'Head of Human Resources', 'roleType': 'hr', 'dept': 'HR & People Ops', 'roleCode': 'HR'},
+        'MN-CEO01': {'email': 'ceoofmn@mnjpark.com', 'name': 'M N Naveenraaj', 'role': 'Managing Director & CEO', 'roleType': 'ceo', 'dept': 'Administration Department', 'roleCode': 'CEO'},
+        '7': {'email': 'hr@mnj.com', 'name': 'Mohankumar G', 'role': 'Head of Human Resources', 'roleType': 'hr', 'dept': 'Administration Department', 'roleCode': 'HR'},
         'MN-TL1002': {'email': 'praveenkumarotm@mnj.com', 'name': 'Praveenkumar M', 'role': 'Team Lead', 'roleType': 'team_lead', 'dept': 'Operations', 'roleCode': 'OTM'},
         '6': {'email': 'gokulakrishnanosh@mnj.com', 'name': 'Gokulakrishnan K', 'role': 'Online Sale Head', 'roleType': 'employee', 'dept': 'Sales', 'roleCode': 'OSH'},
         '33': {'email': 'mithraassvpe@mnj.com', 'name': 'Mithra M', 'role': 'Assistant Photographer & Videographer', 'roleType': 'employee', 'dept': 'Media', 'roleCode': 'Ass.VPE'},
@@ -732,10 +747,11 @@ class FirebaseEmployeeService {
         final email = info['email']!;
 
         final isOutside = id.startsWith('EXT-');
+        final isAdmin = id == '7' || id == 'MN-CEO01';
         final deptAssignment = isOutside ? externalSupportDept : info['dept']!;
         final homeCollection = isOutside
             ? _firestore.collection(externalSupportCollection)
-            : _employeeCollection;
+            : (isAdmin ? _firestore.collection(administrationCollection) : _employeeCollection);
 
         try {
           final empDoc = await homeCollection.doc(id).get();
@@ -774,6 +790,9 @@ class FirebaseEmployeeService {
             if (isOutside && data['dept'] != externalSupportDept) {
               patches['dept'] = externalSupportDept;
             }
+            if (isAdmin && data['dept'] != administrationDept) {
+              patches['dept'] = administrationDept;
+            }
             if (patches.isNotEmpty) {
               await homeCollection.doc(id).update(patches);
             }
@@ -805,35 +824,11 @@ class FirebaseEmployeeService {
               'email': email,
               'role': info['role'],
               'roleType': info['roleType'],
-              'dept': 'Administration',
+              'dept': administrationDept,
             }, SetOptions(merge: true));
           } catch (_) {}
         }
       }
-
-      // Ensure CEO document has official identity
-      try {
-        final ceoDoc = await _employeeCollection.doc('MN-CEO01').get();
-        if (!ceoDoc.exists) {
-          await _employeeCollection.doc('MN-CEO01').set({
-            'name': 'M N Naveenraaj',
-            'initials': 'MN',
-            'role': 'Managing Director & CEO',
-            'dept': 'Administration',
-          }, SetOptions(merge: true));
-        } else {
-          final d = ceoDoc.data() ?? {};
-          final name = d['name']?.toString() ?? '';
-          if (name.contains('Senthil') || name.isEmpty) {
-            await _employeeCollection.doc('MN-CEO01').update({
-              'name': 'M N Naveenraaj',
-              'initials': 'MN',
-              'role': 'Managing Director & CEO',
-              'dept': 'Administration',
-            });
-          }
-        }
-      } catch (_) {}
 
       // Actively purge dead/blank notifications from Cloud Firestore
       try {
@@ -841,35 +836,6 @@ class FirebaseEmployeeService {
       } catch (_) {}
 
       // Actively purge duplicate staff accounts and enforce 5-chapter Konar book in Firestore
-
-      // Ensure HR document has official identity
-      try {
-        final hrDocs = ['7', 'MN-HR1001'];
-        for (final docId in hrDocs) {
-          final hrDoc = await _employeeCollection.doc(docId).get();
-          if (!hrDoc.exists) {
-            await _employeeCollection.doc(docId).set({
-              'id': docId,
-              'empNo': '7',
-              'name': 'Mohankumar G',
-              'initials': 'MG',
-              'role': 'HR Manager & Operations Custodian',
-              'dept': 'Administration',
-            }, SetOptions(merge: true));
-          } else {
-            final d = hrDoc.data() ?? {};
-            final name = d['name']?.toString() ?? '';
-            if (name.isEmpty) {
-              await _employeeCollection.doc(docId).update({
-                'name': 'Priyanka HR',
-                'initials': 'PH',
-                'role': 'Head of Human Resources',
-                'dept': 'HR & People Ops',
-              });
-            }
-          }
-        }
-      } catch (_) {}
 
       // Actively purge dead/blank notifications from Cloud Firestore
       try {
@@ -1145,13 +1111,13 @@ class FirebaseEmployeeService {
   /// Streams registered department names from Cloud Firestore
   Stream<List<String>> streamDepartmentNames() {
     return _departmentsCollection.snapshots().map((snap) {
-      final names = <String>{'Online Department', 'HR & Administration'};
+      final names = <String>{'Online Department', administrationDept};
       for (final doc in snap.docs) {
         final dName = doc.data()['name']?.toString().trim();
         if (dName != null && dName.isNotEmpty) {
           final lower = dName.toLowerCase();
-          if (lower != 'offline department' && lower != 'offline' && lower != 'administration') {
-            names.add(dName);
+          if (lower != 'offline department' && lower != 'offline') {
+            names.add(Employee.normalizeDept(dName));
           }
         }
       }
@@ -1200,7 +1166,7 @@ class FirebaseEmployeeService {
     final cleanDept = deptName.trim();
     if (cleanDept.isEmpty) return;
     final lowerDept = cleanDept.toLowerCase();
-    if (lowerDept == 'administration' || lowerDept == 'executive board') {
+    if (Employee.isAdministrationDept(lowerDept)) {
       throw Exception('Permission Denied: Core Executive and Administration departments cannot be deleted.');
     }
 
@@ -1547,7 +1513,7 @@ class FirebaseEmployeeService {
         'email': 'ceoofmn@mnjpark.com',
         'role': 'ceo',
         'roleType': 'ceo',
-        'dept': 'Executive Board',
+        'dept': administrationDept,
       };
     }
     if (targetEmail == 'hr@mnj.com') {

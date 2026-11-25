@@ -4755,7 +4755,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                             : selectedDept.trim();
                         final assignedDept = cleanDept.isNotEmpty
                             ? cleanDept
-                            : (roleHierarchy == 'HR Management' ? 'HR & Administration' : 'Online Department');
+                            : (roleHierarchy == 'HR Management' ? Employee.administrationDept : 'Online Department');
 
                         if (isCustomDept && cleanDept.isNotEmpty) {
                           eco.createNewDepartment(cleanDept);

@@ -78,6 +78,22 @@ class RolePermissions {
   final bool canAccessTierPillar;
   final bool canAccessWorkPillar;
 
+  // HR perks (the CEO grants these in Roles & Access)
+  final bool canHireStaff;
+  final bool canRelieveStaff;
+  final bool canResetPasswords;
+  final bool canSendAnnouncements;
+  final bool canApproveLeave;
+  final bool canManageAttendance;
+  final bool canAuditGrooming;
+  final bool canApproveSocialCauses;
+
+  /// Departments this person may manage. The CEO always has every
+  /// department ('*'); HR and Asst. HR only the ones the CEO ticks.
+  final List<String> departmentAccess;
+
+  static const allDepartments = '*';
+
   const RolePermissions({
     this.canAccessCeoSuite = false,
     this.canAccessHrPortal = false,
@@ -94,7 +110,18 @@ class RolePermissions {
     this.canAccessSocialCausePillar = true,
     this.canAccessTierPillar = true,
     this.canAccessWorkPillar = true,
+    this.canHireStaff = false,
+    this.canRelieveStaff = false,
+    this.canResetPasswords = false,
+    this.canSendAnnouncements = false,
+    this.canApproveLeave = false,
+    this.canManageAttendance = false,
+    this.canAuditGrooming = false,
+    this.canApproveSocialCauses = false,
+    this.departmentAccess = const [],
   });
+
+  bool get hasAllDepartments => departmentAccess.contains(allDepartments);
 
   RolePermissions copyWith({
     bool? canAccessCeoSuite,
@@ -112,6 +139,15 @@ class RolePermissions {
     bool? canAccessSocialCausePillar,
     bool? canAccessTierPillar,
     bool? canAccessWorkPillar,
+    bool? canHireStaff,
+    bool? canRelieveStaff,
+    bool? canResetPasswords,
+    bool? canSendAnnouncements,
+    bool? canApproveLeave,
+    bool? canManageAttendance,
+    bool? canAuditGrooming,
+    bool? canApproveSocialCauses,
+    List<String>? departmentAccess,
   }) {
     return RolePermissions(
       canAccessCeoSuite: canAccessCeoSuite ?? this.canAccessCeoSuite,
@@ -129,6 +165,15 @@ class RolePermissions {
       canAccessSocialCausePillar: canAccessSocialCausePillar ?? this.canAccessSocialCausePillar,
       canAccessTierPillar: canAccessTierPillar ?? this.canAccessTierPillar,
       canAccessWorkPillar: canAccessWorkPillar ?? this.canAccessWorkPillar,
+      canHireStaff: canHireStaff ?? this.canHireStaff,
+      canRelieveStaff: canRelieveStaff ?? this.canRelieveStaff,
+      canResetPasswords: canResetPasswords ?? this.canResetPasswords,
+      canSendAnnouncements: canSendAnnouncements ?? this.canSendAnnouncements,
+      canApproveLeave: canApproveLeave ?? this.canApproveLeave,
+      canManageAttendance: canManageAttendance ?? this.canManageAttendance,
+      canAuditGrooming: canAuditGrooming ?? this.canAuditGrooming,
+      canApproveSocialCauses: canApproveSocialCauses ?? this.canApproveSocialCauses,
+      departmentAccess: departmentAccess ?? this.departmentAccess,
     );
   }
 
@@ -149,38 +194,59 @@ class RolePermissions {
       'canAccessSocialCausePillar': canAccessSocialCausePillar,
       'canAccessTierPillar': canAccessTierPillar,
       'canAccessWorkPillar': canAccessWorkPillar,
+      'canHireStaff': canHireStaff,
+      'canRelieveStaff': canRelieveStaff,
+      'canResetPasswords': canResetPasswords,
+      'canSendAnnouncements': canSendAnnouncements,
+      'canApproveLeave': canApproveLeave,
+      'canManageAttendance': canManageAttendance,
+      'canAuditGrooming': canAuditGrooming,
+      'canApproveSocialCauses': canApproveSocialCauses,
+      'departmentAccess': departmentAccess,
     };
   }
 
   factory RolePermissions.fromMap(Map<String, dynamic>? map, {String roleType = 'employee', String roleCode = 'GEN'}) {
-    if (map == null || map.isEmpty) {
-      return RolePermissions.defaultForRole(roleType: roleType, roleCode: roleCode);
-    }
+    final d = RolePermissions.defaultForRole(roleType: roleType, roleCode: roleCode);
+    if (map == null || map.isEmpty) return d;
+    bool b(String key, bool fallback) => map[key] is bool ? map[key] as bool : fallback;
+    final rawAccess = map['departmentAccess'];
     return RolePermissions(
-      canAccessCeoSuite: map['canAccessCeoSuite'] ?? (roleType == 'ceo' || roleCode == 'CEO'),
-      canAccessHrPortal: map['canAccessHrPortal'] ?? (roleType == 'hr' || roleCode == 'HR'),
-      canAccessDeptHeadPortal: map['canAccessDeptHeadPortal'] ??
-          (roleType == 'team_lead' || roleType == 'dept_head' || roleCode == 'OTM' || roleCode == 'TL'),
-      canManageOrders: map['canManageOrders'] ?? (['OSH', 'OS1', 'OS2', 'ECE', 'OTM', 'TL', 'CEO'].contains(roleCode)),
-      canAccessKonarBooks: map['canAccessKonarBooks'] ?? true,
-      canAssignTasksToOthers: map['canAssignTasksToOthers'] ??
-          (roleType == 'ceo' || roleType == 'hr' || roleType == 'team_lead' || roleCode == 'OTM' || roleCode == 'TL'),
-      canExportAudit: map['canExportAudit'] ??
-          (roleType == 'ceo' || roleType == 'hr' || roleType == 'team_lead' || roleCode == 'OTM' || roleCode == 'TL'),
-      canManageRoles: map['canManageRoles'] ?? (roleType == 'ceo' || roleCode == 'CEO'),
-      canAccessAttendancePillar: map['canAccessAttendancePillar'] ?? true,
-      canAccessHealthPillar: map['canAccessHealthPillar'] ?? true,
-      canAccessFamilyPillar: map['canAccessFamilyPillar'] ?? true,
-      canAccessProfilePillar: map['canAccessProfilePillar'] ?? true,
-      canAccessSocialCausePillar: map['canAccessSocialCausePillar'] ?? true,
-      canAccessTierPillar: map['canAccessTierPillar'] ?? true,
-      canAccessWorkPillar: map['canAccessWorkPillar'] ?? true,
+      canAccessCeoSuite: b('canAccessCeoSuite', d.canAccessCeoSuite),
+      canAccessHrPortal: b('canAccessHrPortal', d.canAccessHrPortal),
+      canAccessDeptHeadPortal: b('canAccessDeptHeadPortal', d.canAccessDeptHeadPortal),
+      canManageOrders: b('canManageOrders', d.canManageOrders),
+      canAccessKonarBooks: b('canAccessKonarBooks', d.canAccessKonarBooks),
+      canAssignTasksToOthers: b('canAssignTasksToOthers', d.canAssignTasksToOthers),
+      canExportAudit: b('canExportAudit', d.canExportAudit),
+      canManageRoles: b('canManageRoles', d.canManageRoles),
+      canAccessAttendancePillar: b('canAccessAttendancePillar', d.canAccessAttendancePillar),
+      canAccessHealthPillar: b('canAccessHealthPillar', d.canAccessHealthPillar),
+      canAccessFamilyPillar: b('canAccessFamilyPillar', d.canAccessFamilyPillar),
+      canAccessProfilePillar: b('canAccessProfilePillar', d.canAccessProfilePillar),
+      canAccessSocialCausePillar: b('canAccessSocialCausePillar', d.canAccessSocialCausePillar),
+      canAccessTierPillar: b('canAccessTierPillar', d.canAccessTierPillar),
+      canAccessWorkPillar: b('canAccessWorkPillar', d.canAccessWorkPillar),
+      canHireStaff: b('canHireStaff', d.canHireStaff),
+      canRelieveStaff: b('canRelieveStaff', d.canRelieveStaff),
+      canResetPasswords: b('canResetPasswords', d.canResetPasswords),
+      canSendAnnouncements: b('canSendAnnouncements', d.canSendAnnouncements),
+      canApproveLeave: b('canApproveLeave', d.canApproveLeave),
+      canManageAttendance: b('canManageAttendance', d.canManageAttendance),
+      canAuditGrooming: b('canAuditGrooming', d.canAuditGrooming),
+      canApproveSocialCauses: b('canApproveSocialCauses', d.canApproveSocialCauses),
+      // The CEO always keeps every department.
+      departmentAccess: d.hasAllDepartments
+          ? d.departmentAccess
+          : (rawAccess is List ? rawAccess.map((e) => e.toString()).toList() : d.departmentAccess),
     );
   }
 
+  /// What each role gets on its very first sign-in.
   factory RolePermissions.defaultForRole({required String roleType, required String roleCode}) {
     final rt = roleType.toLowerCase().trim();
     final rc = roleCode.toUpperCase().trim();
+    const adminDept = 'Administration Department';
 
     if (rt == 'ceo' || rc == 'CEO') {
       return const RolePermissions(
@@ -192,73 +258,64 @@ class RolePermissions {
         canAssignTasksToOthers: true,
         canExportAudit: true,
         canManageRoles: true,
-        canAccessAttendancePillar: true,
-        canAccessHealthPillar: true,
-        canAccessFamilyPillar: true,
-        canAccessProfilePillar: true,
-        canAccessSocialCausePillar: true,
-        canAccessTierPillar: true,
-        canAccessWorkPillar: true,
+        canHireStaff: true,
+        canRelieveStaff: true,
+        canResetPasswords: true,
+        canSendAnnouncements: true,
+        canApproveLeave: true,
+        canManageAttendance: true,
+        canAuditGrooming: true,
+        canApproveSocialCauses: true,
+        departmentAccess: [allDepartments],
+      );
+    }
+
+    if (rc == 'AHR') {
+      // Assistant HR: day-to-day HR work; hiring, relieving, approvals and
+      // announcements stay with HR unless the CEO grants them.
+      return const RolePermissions(
+        canAccessHrPortal: true,
+        canAccessKonarBooks: true,
+        canAssignTasksToOthers: true,
+        canResetPasswords: true,
+        canManageAttendance: true,
+        canAuditGrooming: true,
+        departmentAccess: [adminDept, 'Online Department'],
       );
     }
 
     if (rt == 'hr' || rc == 'HR') {
       return const RolePermissions(
-        canAccessCeoSuite: false,
         canAccessHrPortal: true,
-        canAccessDeptHeadPortal: false,
-        canManageOrders: false,
         canAccessKonarBooks: true,
         canAssignTasksToOthers: true,
         canExportAudit: true,
-        canManageRoles: false,
-        canAccessAttendancePillar: true,
-        canAccessHealthPillar: true,
-        canAccessFamilyPillar: true,
-        canAccessProfilePillar: true,
-        canAccessSocialCausePillar: true,
-        canAccessTierPillar: true,
-        canAccessWorkPillar: true,
+        canHireStaff: true,
+        canRelieveStaff: true,
+        canResetPasswords: true,
+        canSendAnnouncements: true,
+        canApproveLeave: true,
+        canManageAttendance: true,
+        canAuditGrooming: true,
+        canApproveSocialCauses: true,
+        departmentAccess: [adminDept, 'Online Department'],
       );
     }
 
     if (rt == 'team_lead' || rt == 'dept_head' || rc == 'OTM' || rc == 'TL') {
       return const RolePermissions(
-        canAccessCeoSuite: false,
-        canAccessHrPortal: false,
         canAccessDeptHeadPortal: true,
         canManageOrders: true,
         canAccessKonarBooks: true,
         canAssignTasksToOthers: true,
         canExportAudit: true,
-        canManageRoles: false,
-        canAccessAttendancePillar: true,
-        canAccessHealthPillar: true,
-        canAccessFamilyPillar: true,
-        canAccessProfilePillar: true,
-        canAccessSocialCausePillar: true,
-        canAccessTierPillar: true,
-        canAccessWorkPillar: true,
       );
     }
 
     final isOrderManager = ['OSH', 'OS1', 'OS2', 'ECE'].contains(rc);
     return RolePermissions(
-      canAccessCeoSuite: false,
-      canAccessHrPortal: false,
-      canAccessDeptHeadPortal: false,
       canManageOrders: isOrderManager,
       canAccessKonarBooks: true,
-      canAssignTasksToOthers: false,
-      canExportAudit: false,
-      canManageRoles: false,
-      canAccessAttendancePillar: true,
-      canAccessHealthPillar: true,
-      canAccessFamilyPillar: true,
-      canAccessProfilePillar: true,
-      canAccessSocialCausePillar: true,
-      canAccessTierPillar: true,
-      canAccessWorkPillar: true,
     );
   }
 }
@@ -500,6 +557,25 @@ class Employee {
       role.toLowerCase().contains('dept head') ||
       id == 'MN-TL1002';
   bool get isDeptHead => isTeamLead;
+
+  /// The leadership department: CEO, HR and Asst. HR.
+  static const administrationDept = 'Administration Department';
+  static const _adminDeptNames = {
+    'administration',
+    'administration department',
+    'hr & administration',
+    'hr & people ops',
+    'hr & admin',
+    'executive board',
+  };
+
+  /// One spelling per department (old admin names become [administrationDept]).
+  static String normalizeDept(String dept) {
+    final t = dept.trim();
+    return _adminDeptNames.contains(t.toLowerCase()) ? administrationDept : t;
+  }
+
+  static bool isAdministrationDept(String dept) => _adminDeptNames.contains(dept.trim().toLowerCase());
 
   /// Dropdown-safe gender value ('Male' / 'Female'); stored data may be lower-case.
   static String normalizeGender(String raw) =>
@@ -743,8 +819,8 @@ class Employee {
         : (isHr ? 'HR Manager & Operations Custodian' : rawRole);
     final rawDept = (map['dept'] as String?)?.trim() ?? '';
     final resolvedDept = rawDept.isNotEmpty
-        ? rawDept
-        : (isCeo ? 'Executive Board' : (isHr ? 'HR & Administration' : 'Online Department'));
+        ? normalizeDept(rawDept)
+        : (isCeo || isHr ? administrationDept : 'Online Department');
     final resolvedInitials = isCeo
         ? 'MN'
         : (isHr

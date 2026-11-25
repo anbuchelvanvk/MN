@@ -38,7 +38,7 @@ class _AdminRoleAccessManagementScreenState
           final allEmployees = eco.employees;
 
           // Collect unique departments (Strictly Corporate Architecture)
-          final depts = <String>['All', 'Online Department', 'HR & Administration'];
+          final depts = <String>['All', ...eco.availableDepartments];
 
           // Filter employees
           final filtered = allEmployees.where((emp) {
@@ -51,17 +51,8 @@ class _AdminRoleAccessManagementScreenState
                 emp.id.toLowerCase().contains(query);
 
             final matchesDept = _selectedDept == 'All' ||
-                (_selectedDept == 'HR & Administration' &&
-                    (emp.dept == 'HR & Administration' ||
-                        emp.dept == 'Administration' ||
-                        emp.dept == 'HR & People Ops' ||
-                        emp.dept == 'Executive Board')) ||
-                (_selectedDept == 'Online Department' &&
-                    emp.dept != 'HR & Administration' &&
-                    emp.dept != 'Administration' &&
-                    emp.dept != 'HR & People Ops' &&
-                    emp.dept != 'Executive Board') ||
-                emp.dept == _selectedDept;
+                Employee.normalizeDept(emp.dept) == _selectedDept ||
+                (_selectedDept == 'Online Department' && eco.teamKeyOf(emp) == 'online' && !emp.isCeo && !emp.isHr);
 
             return matchesSearch && matchesDept;
           }).toList();
@@ -734,6 +725,8 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
   final List<String> _commonRoleCodes = [
     'CEO',
     'HR',
+    'AHR',
+    'TL',
     'OTM',
     'OSH',
     'VPE',
@@ -747,10 +740,37 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
     'CC',
   ];
 
-  final List<String> _departments = [
-    'Online Department',
-    'HR & Administration',
-  ];
+  List<String> get _departments => widget.eco.availableDepartments;
+
+  /// Plain-language summary of each role, shown above the switches.
+  static const Map<String, (String, List<String>)> _roleGuide = {
+    'CEO': ('CEO · Administration Department', [
+      'Sees and manages every department (always, cannot be removed)',
+      'Creates departments, hires HR / Asst. HR, sets everyone\'s access',
+      'Final approval on leave, permissions and social causes',
+      'Data Vault: backup, restore and reset',
+    ]),
+    'HR': ('HR · Administration Department', [
+      'Hiring, relieving and staff records for the departments you tick below',
+      'Attendance sheet, grooming audits and password help',
+      'First approval on leave and permissions; social cause review',
+      'Company announcements',
+    ]),
+    'AHR': ('Asst. HR · Administration Department', [
+      'Supports HR: attendance, grooming audits and password help',
+      'Hiring, relieving, approvals and announcements only if you switch them on',
+      'Works only in the departments you tick below',
+    ]),
+    'TL': ('Team Lead · one per team', [
+      'Leads one team: assigns tasks, nudges, reviews attendance',
+      'Can choose one Assistant TL from the team',
+      'Starts and edits the team\'s Konar Book',
+    ]),
+    'OTM': ('Online Team Manager · Online team lead', [
+      'Leads the online team and its outside support',
+      'Orders, media review, scorecard and the Online Konar Book',
+    ]),
+  };
 
   @override
   void initState() {
@@ -758,19 +778,10 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
     _roleCode = widget.employee.roleCode.isNotEmpty
         ? widget.employee.roleCode
         : widget.employee.straightCutRole;
-    final rawDept = widget.employee.dept.trim();
-    if (rawDept.toLowerCase() == 'administration' ||
-        rawDept.toLowerCase() == 'hr & people ops' ||
-        rawDept.toLowerCase() == 'executive board') {
-      _dept = 'HR & Administration';
-    } else if (rawDept.toLowerCase() == 'offline department' ||
-        rawDept.toLowerCase() == 'offline') {
-      _dept = 'Online Department';
-    } else if (_departments.contains(rawDept)) {
-      _dept = rawDept;
-    } else {
-      _dept = 'Online Department';
-    }
+    final rawDept = Employee.normalizeDept(widget.employee.dept);
+    _dept = _departments.contains(rawDept)
+        ? rawDept
+        : (widget.eco.teamKeyOf(widget.employee) == 'online' ? 'Online Department' : _departments.first);
     _roleTitle = widget.employee.role;
     _roleType = widget.employee.roleType;
     _perms = widget.employee.permissions;
@@ -779,15 +790,19 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
   void _applyRoleDefaults(String roleCode) {
     String detectedType = 'employee';
     if (roleCode == 'CEO') detectedType = 'ceo';
-    if (roleCode == 'HR') detectedType = 'hr';
+    if (roleCode == 'HR' || roleCode == 'AHR') detectedType = 'hr';
     if (['OTM', 'TL'].contains(roleCode)) detectedType = 'team_lead';
 
     setState(() {
       _roleCode = roleCode;
       _roleType = detectedType;
-      if (roleCode == 'CEO' || roleCode == 'HR') {
-        _dept = 'HR & Administration';
-      } else {
+      if (roleCode == 'AHR' && !_roleTitle.toLowerCase().contains('assistant')) _roleTitle = 'Assistant HR';
+      if (roleCode == 'HR' && _roleTitle.toLowerCase().contains('assistant')) _roleTitle = 'HR Manager';
+      if (roleCode == 'CEO' || roleCode == 'HR' || roleCode == 'AHR') {
+        _dept = Employee.administrationDept;
+      } else if (roleCode == 'OTM') {
+        _dept = 'Online Department';
+      } else if (Employee.isAdministrationDept(_dept)) {
         _dept = 'Online Department';
       }
       _perms = RolePermissions.defaultForRole(
@@ -990,7 +1005,9 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                   children: [
                     _presetChip('CEO', () => _applyRoleDefaults('CEO')),
                     _presetChip('HR', () => _applyRoleDefaults('HR')),
-                    _presetChip('Team Lead (OTM)', () => _applyRoleDefaults('OTM')),
+                    _presetChip('Asst. HR', () => _applyRoleDefaults('AHR')),
+                    _presetChip('Team Lead', () => _applyRoleDefaults('TL')),
+                    _presetChip('Online TL (OTM)', () => _applyRoleDefaults('OTM')),
                     _presetChip('Sales (OSH/OS1)', () => _applyRoleDefaults('OSH')),
                     _presetChip(
                         'Full Access', _grantFullAccess, color: const Color(0xFF047857), bgColor: const Color(0xFFECFDF5)),
@@ -998,6 +1015,43 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                         'Pillars Only', _grantPillarsOnly, color: const Color(0xFF1D4ED8), bgColor: const Color(0xFFEFF6FF)),
                   ],
                 ),
+                const SizedBox(height: 16),
+                if (_roleGuide[_roleCode] != null)
+                  Container(
+                    key: const Key('role_guide'),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7FA),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFF1E4EB)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_roleGuide[_roleCode]!.$1,
+                            style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                        const SizedBox(height: 6),
+                        for (final line in _roleGuide[_roleCode]!.$2)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 4),
+                                  child: Icon(Icons.check_circle_rounded, size: 13, color: AppColors.magentaPrimary),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(line,
+                                      style: GoogleFonts.outfit(fontSize: 12.5, color: AppColors.textSecondary, height: 1.35)),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 20),
 
                 // Role Code Dropdown
@@ -1313,6 +1367,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                         _perms = _perms.copyWith(canAccessWorkPillar: val));
                   },
                 ),
+                if (_roleType == 'hr' || _roleType == 'ceo') ..._buildHrPerksAndDepartments(),
               ],
             ),
           ),
@@ -1386,6 +1441,87 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
         ),
       ),
     );
+  }
+
+  /// HR perks and which departments HR / Asst. HR may manage.
+  /// The CEO always has everything (shown locked).
+  List<Widget> _buildHrPerksAndDepartments() {
+    final isCeoRole = _roleType == 'ceo';
+    Widget header(String title, String hint) => Padding(
+          padding: const EdgeInsets.only(top: 18, bottom: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title,
+                  style: GoogleFonts.outfit(
+                      fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.8, color: AppColors.magentaPrimary)),
+              Flexible(
+                child: Text(hint,
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+        );
+    Widget perk(String title, String subtitle, bool value, RolePermissions Function(bool v) apply) => _buildSwitchTile(
+          title: title,
+          subtitle: subtitle,
+          value: isCeoRole ? true : value,
+          isLocked: isCeoRole,
+          lockTooltip: 'The CEO always has this',
+          onChanged: (v) => setState(() => _perms = apply(v)),
+        );
+    final access = _perms.departmentAccess.map(Employee.normalizeDept).toSet();
+    return [
+      header('HR PERKS (8)', isCeoRole ? 'Always on for the CEO' : 'Grant or remove'),
+      perk('Hire staff', 'Add new employees and team leads (not HR)', _perms.canHireStaff,
+          (v) => _perms.copyWith(canHireStaff: v)),
+      perk('Relieve staff', 'Relieve staff and switch their sign-in off', _perms.canRelieveStaff,
+          (v) => _perms.copyWith(canRelieveStaff: v)),
+      perk('Password help', 'Verify staff codes and reset passwords', _perms.canResetPasswords,
+          (v) => _perms.copyWith(canResetPasswords: v)),
+      perk('Announcements', 'Send notices to all staff', _perms.canSendAnnouncements,
+          (v) => _perms.copyWith(canSendAnnouncements: v)),
+      perk('Approve leave & permission', 'First approval before the CEO', _perms.canApproveLeave,
+          (v) => _perms.copyWith(canApproveLeave: v)),
+      perk('Attendance sheet', 'Sync the sheet and publish attendance', _perms.canManageAttendance,
+          (v) => _perms.copyWith(canManageAttendance: v)),
+      perk('Grooming audits', 'Dress and presentation checks', _perms.canAuditGrooming,
+          (v) => _perms.copyWith(canAuditGrooming: v)),
+      perk('Social cause approvals', 'Review and approve good deeds', _perms.canApproveSocialCauses,
+          (v) => _perms.copyWith(canApproveSocialCauses: v)),
+      header('DEPARTMENT ACCESS', isCeoRole ? 'All departments, always' : 'Only ticked departments'),
+      if (isCeoRole)
+        _buildSwitchTile(
+          title: 'All departments',
+          subtitle: 'Only the CEO has access to every department, including new ones',
+          value: true,
+          isLocked: true,
+          lockTooltip: 'Permanent for the CEO',
+          onChanged: (_) {},
+        )
+      else
+        Wrap(
+          key: const Key('dept_access_chips'),
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final d in _departments)
+              FilterChip(
+                label: Text(d),
+                selected: access.contains(d),
+                selectedColor: AppColors.magentaPrimary.withOpacity(0.15),
+                checkmarkColor: AppColors.magentaPrimary,
+                onSelected: (on) => setState(() {
+                  final next = {...access};
+                  on ? next.add(d) : next.remove(d);
+                  _perms = _perms.copyWith(departmentAccess: next.toList());
+                }),
+              ),
+          ],
+        ),
+      const SizedBox(height: 8),
+    ];
   }
 
   Widget _buildSwitchTile({

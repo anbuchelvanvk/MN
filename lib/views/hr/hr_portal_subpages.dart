@@ -76,7 +76,8 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
   @override
   Widget build(BuildContext context) {
     final eco = context.watch<EcosystemProvider>();
-    final allEmployees = eco.employees;
+    // CEO: everyone. HR / Asst. HR: only the departments the CEO granted.
+    final allEmployees = eco.employeesInMyScope;
 
     final filteredEmployees = allEmployees.where((e) {
       final matchesDept = _deptFilter == 'all' || e.dept == _deptFilter;
@@ -106,6 +107,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
           ? '${allEmployees.length - outsideTotal} staff + $outsideTotal outside support'
           : '${allEmployees.length} Corporate Personnel',
       actions: [
+        if (eco.hasPerk((p) => p.canHireStaff))
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: TextButton.icon(
@@ -829,51 +831,61 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                     // Role Type Toggle
                     Text('Assign Role Type:', style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textDark)),
                     const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setModalState(() => roleHierarchy = 'Employee'),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 9),
-                              decoration: BoxDecoration(
-                                color: roleHierarchy == 'Employee' ? AppColors.magentaPrimary : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(10),
+                    Builder(builder: (_) {
+                      final ceoHiring = eco.isCeo || eco.activeRole.toLowerCase() == 'ceo';
+                      final options = <(String, IconData)>[
+                        ('Employee', Icons.person),
+                        ('Team Lead', Icons.shield_outlined),
+                        if (ceoHiring) ('HR', Icons.badge_outlined),
+                        if (ceoHiring) ('Asst. HR', Icons.support_agent_rounded),
+                      ];
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final o in options)
+                            ChoiceChip(
+                              key: Key('hire_role_${o.$1}'),
+                              avatar: Icon(o.$2, size: 16, color: roleHierarchy == o.$1 ? Colors.white : AppColors.textDark),
+                              label: Text(o.$1),
+                              selected: roleHierarchy == o.$1,
+                              showCheckmark: false,
+                              selectedColor: AppColors.magentaPrimary,
+                              labelStyle: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: roleHierarchy == o.$1 ? Colors.white : AppColors.textDark,
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.person, size: 15, color: roleHierarchy == 'Employee' ? Colors.white : AppColors.textDark),
-                                  const SizedBox(width: 6),
-                                  Text('Employee', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: roleHierarchy == 'Employee' ? Colors.white : AppColors.textDark)),
-                                ],
-                              ),
+                              onSelected: (_) => setModalState(() {
+                                roleHierarchy = o.$1;
+                                if (o.$1 == 'HR' || o.$1 == 'Asst. HR') {
+                                  // HR and Asst. HR always sit in the Administration Department.
+                                  isCustomDept = false;
+                                  selectedDept = Employee.administrationDept;
+                                }
+                              }),
                             ),
-                          ),
+                        ],
+                      );
+                    }),
+                    if (roleHierarchy == 'HR' || roleHierarchy == 'Asst. HR')
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F9FF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFBAE6FD)),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setModalState(() => roleHierarchy = 'Team Lead'),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 9),
-                              decoration: BoxDecoration(
-                                color: roleHierarchy == 'Team Lead' ? AppColors.magentaPrimary : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.shield_outlined, size: 15, color: roleHierarchy == 'Team Lead' ? Colors.white : AppColors.textDark),
-                                  const SizedBox(width: 6),
-                                  Text('Team Lead', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: roleHierarchy == 'Team Lead' ? Colors.white : AppColors.textDark)),
-                                ],
-                              ),
-                            ),
-                          ),
+                        child: Text(
+                          roleHierarchy == 'HR'
+                              ? 'Joins the Administration Department with full HR access from the first sign-in. '
+                                  'You can adjust their perks and departments later in Roles & Access.'
+                              : 'Joins the Administration Department as Asst. HR: attendance, grooming and password help. '
+                                  'Hiring, relieving, approvals and announcements stay with HR unless you grant them in Roles & Access.',
+                          style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFF075985)),
                         ),
-                      ],
-                    ),
+                      ),
                     if (roleHierarchy == 'Team Lead')
                       Builder(builder: (_) {
                         final d = isCustomDept ? customDeptController.text.trim() : selectedDept;
@@ -1240,10 +1252,27 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
 
                     // Department & Role
                     Builder(builder: (_) {
-                      final allDepts = eco.availableDepartments;
+                      final hrRole = roleHierarchy == 'HR' || roleHierarchy == 'Asst. HR';
+                      final allDepts = hrRole ? [Employee.administrationDept] : eco.departmentsInMyScope;
+                      final ceoHiring = eco.isCeo || eco.activeRole.toLowerCase() == 'ceo';
+                      if (allDepts.isEmpty && !ceoHiring) {
+                        return Container(
+                          key: const Key('hire_no_departments'),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFFCA5A5)),
+                          ),
+                          child: Text(
+                            'No departments are given to you yet. Ask the CEO to tick departments for you in Roles & Access.',
+                            style: GoogleFonts.outfit(fontSize: 12, color: const Color(0xFF7F1D1D)),
+                          ),
+                        );
+                      }
                       final effectiveSelected = isCustomDept
                           ? '__NEW__'
-                          : (allDepts.contains(selectedDept) ? selectedDept : allDepts.first);
+                          : (allDepts.contains(selectedDept) ? selectedDept : (allDepts.isNotEmpty ? allDepts.first : '__NEW__'));
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1278,7 +1307,7 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                                                 maxLines: 1,
                                               ),
                                             )),
-                                        DropdownMenuItem(
+                                        if (ceoHiring && !hrRole) DropdownMenuItem(
                                           value: '__NEW__',
                                           child: Row(
                                             children: const [
@@ -1508,7 +1537,12 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                               : generateTemporaryPassword();
                           final cleanRole = roleController.text.trim().isNotEmpty
                               ? roleController.text.trim()
-                              : (roleHierarchy == 'Team Lead' ? 'Team Lead' : 'Operations Staff');
+                              : switch (roleHierarchy) {
+                                  'Team Lead' => 'Team Lead',
+                                  'HR' => 'HR Manager',
+                                  'Asst. HR' => 'Assistant HR',
+                                  _ => 'Operations Staff',
+                                };
                           final cleanPhone = phoneController.text.trim().isNotEmpty ? phoneController.text.trim() : '+91 98450 00000';
                           final detailsProblem = eco.staffDetailsProblem(
                             phone: phoneController.text.trim(),
@@ -1522,9 +1556,12 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             return;
                           }
 
+                          final scope = (roleHierarchy == 'HR' || roleHierarchy == 'Asst. HR')
+                              ? [Employee.administrationDept]
+                              : eco.departmentsInMyScope;
                           final cleanDept = isCustomDept
                               ? customDeptController.text.trim()
-                              : selectedDept.trim();
+                              : (scope.contains(selectedDept.trim()) ? selectedDept.trim() : (scope.isNotEmpty ? scope.first : ''));
                           final effectiveDept = cleanDept.isNotEmpty ? cleanDept : 'Online Department';
 
                           if (isCustomDept && cleanDept.isEmpty) {
@@ -1557,9 +1594,12 @@ class _HrStaffDirectoryScreenState extends State<HrStaffDirectoryScreen> {
                             dept: effectiveDept,
                             experienceCategory: 'standard',
                             experienceYears: 'Confirmed Corporate Staff',
-                            roleType: effectiveDept.toLowerCase().contains('external support')
-                                ? 'external_support'
-                                : (roleHierarchy == 'Team Lead' ? 'team_lead' : 'employee'),
+                            roleType: (roleHierarchy == 'HR' || roleHierarchy == 'Asst. HR')
+                                ? 'hr'
+                                : effectiveDept.toLowerCase().contains('external support')
+                                    ? 'external_support'
+                                    : (roleHierarchy == 'Team Lead' ? 'team_lead' : 'employee'),
+                            roleCode: roleHierarchy == 'HR' ? 'HR' : (roleHierarchy == 'Asst. HR' ? 'AHR' : null),
                             password: cleanPass,
                             dob: dobController.text.trim().isNotEmpty ? dobController.text.trim() : '01-01-2000',
                             gender: selectedGender,

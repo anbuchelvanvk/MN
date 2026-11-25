@@ -593,7 +593,7 @@ class _CeoRolesPrivilegesScreenState extends State<CeoRolesPrivilegesScreen> {
                   final deptStaff = eco.employees
                       .where((e) => e.dept.trim().toLowerCase() == dept.trim().toLowerCase())
                       .toList();
-                  final isProtected = dept.toLowerCase() == 'administration' || dept.toLowerCase() == 'executive board' || dept.toLowerCase() == 'hr & administration' || dept.toLowerCase() == 'online department';
+                  final isProtected = Employee.isAdministrationDept(dept) || dept.toLowerCase() == 'online department';
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),

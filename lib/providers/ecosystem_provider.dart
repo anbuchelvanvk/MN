@@ -3413,22 +3413,25 @@ class EcosystemProvider extends ChangeNotifier {
 
   final List<String> _registeredDepartments = [
     'Online Department',
-    'HR & Administration',
+    Employee.administrationDept,
   ];
   List<String> get availableDepartments {
-    final set = <String>{'Online Department', 'HR & Administration', 'External Support Staff [Online]'};
-    set.addAll(_registeredDepartments);
+    final set = <String>{'Online Department', Employee.administrationDept, 'External Support Staff [Online]'};
+    set.addAll(_registeredDepartments.map(Employee.normalizeDept));
     set.removeWhere((d) {
       final lower = d.trim().toLowerCase();
-      return _deletedDepartments.contains(lower) ||
-          lower == 'offline department' ||
-          lower == 'offline' ||
-          lower == 'administration';
+      return _deletedDepartments.contains(lower) || lower == 'offline department' || lower == 'offline';
     });
     return set.toList();
   }
 
   Future<bool> createNewDepartment(String name) async {
+    // Only the CEO creates departments.
+    if (_isLoggedIn && !_iAmCeo) {
+      _notificationMessage = 'Only the CEO can create a new department.';
+      notifyListeners();
+      return false;
+    }
     final clean = name.trim();
     if (clean.isEmpty) return false;
     _deletedDepartments.remove(clean.toLowerCase());
@@ -3534,10 +3537,56 @@ class EcosystemProvider extends ChangeNotifier {
   bool _isSeparateDepartment(String dept) {
     final d = dept.trim().toLowerCase();
     if (d.isEmpty || isOnlineDept(dept)) return false;
-    const leadership = {'administration', 'hr & people ops', 'hr & administration', 'executive board', 'offline', 'offline department'};
-    if (leadership.contains(d)) return true;
+    if (Employee.isAdministrationDept(d) || d == 'offline' || d == 'offline department') return true;
     return _registeredDepartments.any((r) => r.trim().toLowerCase() == d);
   }
+
+  // ---- Role-based scope: the CEO has every department; HR / Asst. HR only
+  // the departments and perks the CEO grants in Roles & Access ----
+  bool get _iAmCeo => isCeo || _activeRole.toLowerCase() == 'ceo';
+
+  RolePermissions get myPermissions => _iAmCeo
+      ? RolePermissions.defaultForRole(roleType: 'ceo', roleCode: 'CEO')
+      : currentEmployee.permissions;
+
+  /// True when the signed-in person may manage [dept].
+  bool canManageDepartment(String dept) {
+    if (_iAmCeo || !_isLoggedIn) return true;
+    final p = myPermissions;
+    if (p.hasAllDepartments) return true;
+    final target = Employee.normalizeDept(dept).toLowerCase();
+    final targetOnline = isOnlineDept(dept);
+    return p.departmentAccess.any((d) {
+      final a = Employee.normalizeDept(d).toLowerCase();
+      return a == target || (targetOnline && isOnlineDept(d));
+    });
+  }
+
+  /// True when the signed-in person may manage [e] (only the CEO manages the CEO).
+  bool canManageEmployee(Employee e) {
+    if (_iAmCeo) return true;
+    if (e.isCeo) return false;
+    if (isHr || _activeRole.toLowerCase() == 'hr') {
+      return teamKeyOf(e) == 'online' ? canManageDepartment('Online Department') : canManageDepartment(e.dept);
+    }
+    return myTeamMembers.any((m) => m.id == e.id);
+  }
+
+  /// Everyone the signed-in person may manage.
+  List<Employee> get employeesInMyScope {
+    if (_iAmCeo) return List.of(_employees);
+    if (isHr || _activeRole.toLowerCase() == 'hr') return _employees.where(canManageEmployee).toList();
+    return myTeamMembers;
+  }
+
+  /// Departments the signed-in person may manage (hire into, view).
+  List<String> get departmentsInMyScope => availableDepartments.where(canManageDepartment).toList();
+
+  /// HR perk check: the CEO always passes.
+  bool hasPerk(bool Function(RolePermissions p) perk) => _iAmCeo || perk(myPermissions);
+
+  String? _perkRefusal(bool Function(RolePermissions p) perk, String what) =>
+      hasPerk(perk) ? null : 'You do not have permission to $what. The CEO can grant it in Roles & Access.';
 
   // ---- Teams: one team lead per team, plus an optional Assistant TL ----
   static String teamKey(String dept) {
@@ -4282,9 +4331,10 @@ class EcosystemProvider extends ChangeNotifier {
             (remoteDepts) {
               for (final d in remoteDepts) {
                 final lower = d.trim().toLowerCase();
-                if (lower != 'offline department' && lower != 'offline' && lower != 'administration') {
-                  if (!_registeredDepartments.contains(d) && !_deletedDepartments.contains(lower)) {
-                    _registeredDepartments.add(d);
+                final name = Employee.normalizeDept(d);
+                if (lower != 'offline department' && lower != 'offline') {
+                  if (!_registeredDepartments.contains(name) && !_deletedDepartments.contains(name.toLowerCase())) {
+                    _registeredDepartments.add(name);
                   }
                 }
               }
@@ -4539,7 +4589,7 @@ class EcosystemProvider extends ChangeNotifier {
         role: 'Managing Director & CEO',
         roleType: 'ceo',
         roleCode: 'CEO',
-        dept: 'Executive Board',
+        dept: Employee.administrationDept,
         phone: '+91 98450 00001',
         email: 'ceoofmn@mnjpark.com',
         avatar: '',
@@ -4574,7 +4624,7 @@ class EcosystemProvider extends ChangeNotifier {
         role: 'HR Manager & Operations Custodian',
         roleType: 'hr',
         roleCode: 'HR',
-        dept: 'HR & People Ops',
+        dept: Employee.administrationDept,
         phone: '+91 94433 11000',
         email: 'hr@mnj.com',
         avatar: '',
@@ -5800,6 +5850,11 @@ class EcosystemProvider extends ChangeNotifier {
 
   // HR grants / endorses employee or TL permission request
   void hrGrantPermission(String permId) {
+    if (_isLoggedIn && !hasPerk((p) => p.canApproveLeave)) {
+      _notificationMessage = _perkRefusal((p) => p.canApproveLeave, 'approve permissions and leave');
+      notifyListeners();
+      return;
+    }
     final idx = _permissionRecords.indexWhere((p) => p.id == permId);
     if (idx != -1) {
       final old = _permissionRecords[idx];
@@ -5839,6 +5894,11 @@ class EcosystemProvider extends ChangeNotifier {
 
   // HR approves permission directly (fallback compatibility)
   void approvePermission(String permId) {
+    if (_isLoggedIn && !hasPerk((p) => p.canApproveLeave)) {
+      _notificationMessage = _perkRefusal((p) => p.canApproveLeave, 'approve permissions and leave');
+      notifyListeners();
+      return;
+    }
     final idx = _permissionRecords.indexWhere((p) => p.id == permId);
     if (idx != -1) {
       final old = _permissionRecords[idx];
@@ -5923,6 +5983,11 @@ class EcosystemProvider extends ChangeNotifier {
 
   // Rejection of permission request
   void rejectPermission(String permId, {String? rejectedBy}) {
+    if (_isLoggedIn && !hasPerk((p) => p.canApproveLeave)) {
+      _notificationMessage = _perkRefusal((p) => p.canApproveLeave, 'approve permissions and leave');
+      notifyListeners();
+      return;
+    }
     final idx = _permissionRecords.indexWhere((p) => p.id == permId);
     if (idx != -1) {
       final old = _permissionRecords[idx];
@@ -5960,6 +6025,11 @@ class EcosystemProvider extends ChangeNotifier {
 
   // HR grants / endorses emergency medical leave
   void hrGrantMedicalLeave(String leaveId) {
+    if (_isLoggedIn && !hasPerk((p) => p.canApproveLeave)) {
+      _notificationMessage = _perkRefusal((p) => p.canApproveLeave, 'approve permissions and leave');
+      notifyListeners();
+      return;
+    }
     final idx = _medicalLeaveRecords.indexWhere((m) => m.id == leaveId);
     if (idx != -1) {
       final old = _medicalLeaveRecords[idx];
@@ -6029,6 +6099,11 @@ class EcosystemProvider extends ChangeNotifier {
 
   // Rejection of medical leave
   void rejectMedicalLeave(String leaveId, {String? rejectedBy}) {
+    if (_isLoggedIn && !hasPerk((p) => p.canApproveLeave)) {
+      _notificationMessage = _perkRefusal((p) => p.canApproveLeave, 'approve permissions and leave');
+      notifyListeners();
+      return;
+    }
     final idx = _medicalLeaveRecords.indexWhere((m) => m.id == leaveId);
     if (idx != -1) {
       final old = _medicalLeaveRecords[idx];
@@ -7253,8 +7328,11 @@ class EcosystemProvider extends ChangeNotifier {
     }
 
     final index = _employees.indexWhere((e) => e.id.toLowerCase() == employeeId.toLowerCase());
+    Employee? before;
+    Employee? updated;
     if (index != -1) {
-      final updated = _employees[index].copyWith(
+      before = _employees[index];
+      updated = before.copyWith(
         role: newRole,
         dept: newDept,
         roleType: newRoleType,
@@ -7266,6 +7344,11 @@ class EcosystemProvider extends ChangeNotifier {
 
     // Persist to Cloud Firestore
     try {
+      // Department or role changed: move the record and update the sign-in role.
+      if (before != null && updated != null &&
+          (Employee.normalizeDept(before.dept) != Employee.normalizeDept(newDept) || before.roleType != newRoleType)) {
+        await _firebaseEmployeeService.saveEmployee(updated, previousDept: before.dept);
+      }
       await _firebaseEmployeeService.updateEmployeeRoleAndPermissions(
         employeeId: employeeId,
         newRoleCode: newRoleCode,
@@ -8757,6 +8840,16 @@ class EcosystemProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    if (_isLoggedIn && !_iAmCeo) {
+      final target = _employees.firstWhereOrNull((e) => e.id == empId);
+      final refusal = _perkRefusal((p) => p.canRelieveStaff, 'relieve staff') ??
+          (target != null && !canManageEmployee(target) ? 'This person is outside the departments the CEO has given you.' : null);
+      if (refusal != null) {
+        _notificationMessage = refusal;
+        notifyListeners();
+        return false;
+      }
+    }
     final index = _employees.indexWhere((e) => e.id == empId);
     if (index != -1) {
       // Checkpoint: hand over work first.
@@ -8822,6 +8915,7 @@ class EcosystemProvider extends ChangeNotifier {
     String gender = 'Male',
     String? customEmpId,
     String? empNo,
+    String? roleCode,
   }) {
     // Firebase Auth needs >= 6 chars; never fall back to a shared default.
     final effectivePassword =
@@ -8831,6 +8925,16 @@ class EcosystemProvider extends ChangeNotifier {
           'Access Denied: Only HR and CEO have authorization to add users.';
       notifyListeners();
       return _notificationMessage;
+    }
+    if (_isLoggedIn && !_iAmCeo) {
+      final refusal = _perkRefusal((p) => p.canHireStaff, 'hire staff') ??
+          (canManageDepartment(dept) ? null : 'You can only hire into departments the CEO has given you.') ??
+          (roleType == 'hr' ? 'Only the CEO can create HR or Asst. HR accounts.' : null);
+      if (refusal != null) {
+        _notificationMessage = refusal;
+        notifyListeners();
+        return refusal;
+      }
     }
     if (roleType == 'team_lead' || roleType == 'dept_head') {
       final conflict = teamLeadConflict(dept: dept);
@@ -8908,6 +9012,7 @@ class EcosystemProvider extends ChangeNotifier {
       password: '',
       dob: dob.isNotEmpty ? dob : '01-01-2000',
       gender: gender.isNotEmpty ? gender : 'Male',
+      roleCode: roleCode,
     );
 
     _employees.add(newEmp);
@@ -9925,6 +10030,11 @@ class EcosystemProvider extends ChangeNotifier {
     required String approvedByName,
     required String approverRole,
   }) async {
+    if (_isLoggedIn && !hasPerk((p) => p.canApproveSocialCauses)) {
+      _notificationMessage = _perkRefusal((p) => p.canApproveSocialCauses, 'approve social causes');
+      notifyListeners();
+      return;
+    }
     if (_approvingCauseIds.contains(causeId)) return;
     final idx = _socialCauses.indexWhere((c) => c.id == causeId);
     if (idx != -1) {

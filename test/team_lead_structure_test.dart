@@ -2,9 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
 
+/// Departments are created by the CEO; the CEO also hires here.
 Future<EcosystemProvider> asHr() async {
   final eco = EcosystemProvider();
-  await eco.loginWithFirebase(email: 'hr@mnj.com', password: 'x');
+  await eco.loginWithFirebase(email: 'ceoofmn@mnjpark.com', password: 'x');
   return eco;
 }
 

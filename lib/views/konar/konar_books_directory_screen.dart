@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/employee_model.dart';
 import '../../models/konar_book_model.dart';
 import '../../providers/ecosystem_provider.dart';
 import 'konar_book_detail_screen.dart';
@@ -574,7 +575,7 @@ class _KonarBooksDirectoryScreenState extends State<KonarBooksDirectoryScreen> {
   /// CEO action: Delete department completely with prompt "Along with the employees?" and reallocation flow
   void _startDeleteDepartmentWorkflow(BuildContext context, EcosystemProvider eco, String deptName) {
     final lower = deptName.trim().toLowerCase();
-    if (lower == 'administration' || lower == 'executive board') {
+    if (Employee.isAdministrationDept(lower)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Color(0xFFDC2626),

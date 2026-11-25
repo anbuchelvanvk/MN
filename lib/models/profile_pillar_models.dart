@@ -367,7 +367,7 @@ class RoleAllocationConfig {
 
   static const List<String> availableDepartments = [
     'Online Department',
-    'HR & Administration',
+    'Administration Department',
   ];
 
   static const List<String> standardRoles = [

@@ -100,10 +100,10 @@ class _AssignTasksToOthersModalState extends State<AssignTasksToOthersModal> {
       // Must not be the absent employee themselves
       if (absentEmpId != null && e.id == absentEmpId) return false;
 
-      // CEO & HR can assign to all department employees (excluding CEO themselves)
+      // CEO: every department. HR / Asst. HR: only departments the CEO granted.
       if (isCeo || isHr) {
         if (e.roleType == 'ceo' || e.role.toLowerCase().contains('ceo')) return false;
-        return true;
+        return eco.canManageEmployee(e);
       }
 
       // Team Lead: for their department employees alone!

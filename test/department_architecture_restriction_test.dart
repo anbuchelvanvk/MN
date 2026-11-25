@@ -9,13 +9,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Company Department Architecture Restrictions Tests', () {
-    test('availableDepartments strictly contains only Online Department and HR & Administration', () {
+    test('availableDepartments strictly contains Online Department and Administration Department', () {
       final eco = EcosystemProvider();
       final depts = eco.availableDepartments;
 
       // Must strictly contain the two official company departments
       expect(depts, contains('Online Department'));
-      expect(depts, contains('HR & Administration'));
+      expect(depts, contains('Administration Department'));
 
       // Must NOT contain Offline Department or separate Administration
       expect(depts.contains('Offline Department'), isFalse);
@@ -30,13 +30,13 @@ void main() {
     test('RoleAllocationConfig.availableDepartments strictly restricted to 2 departments', () {
       final depts = RoleAllocationConfig.availableDepartments;
       expect(depts, contains('Online Department'));
-      expect(depts, contains('HR & Administration'));
+      expect(depts, contains('Administration Department'));
       expect(depts.contains('Offline Department'), isFalse);
       expect(depts.contains('Administration'), isFalse);
       expect(depts.length, equals(2));
     });
 
-    testWidgets('AdminRoleAccessManagementScreen shows only All, Online Dept, and HR & Admin filter chips', (tester) async {
+    testWidgets('AdminRoleAccessManagementScreen shows only All, Online Dept, and Administration Department filter chips', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -60,7 +60,7 @@ void main() {
       // Check Department Filter Chips
       expect(find.text('All'), findsOneWidget);
       expect(find.text('Online Department'), findsOneWidget);
-      expect(find.text('HR & Administration'), findsOneWidget);
+      expect(find.text('Administration Department'), findsWidgets);
 
       // Verify that 'Offline Department' chip does NOT exist
       expect(find.text('Offline Department'), findsNothing);
