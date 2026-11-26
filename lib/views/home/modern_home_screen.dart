@@ -9,6 +9,7 @@ import '../../core/services/konar_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../../core/widgets/mn_brand_logo.dart';
+import '../../core/widgets/legal_links.dart';
 import '../../core/widgets/birthday_crown.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/employee_avatar.dart';
@@ -160,7 +161,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 color: AppColors.primary,
                 backgroundColor: Colors.white,
                 onRefresh: () => eco.refreshAllData(),
-                child: SingleChildScrollView(
+                child: LayoutBuilder(
+                  builder: (context, viewport) => SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
@@ -168,30 +170,39 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Top of Home: header, the 4 pillar cards and quick actions
-                      // fit on one screen; text here does not grow with the
-                      // phone's large-font setting.
-                      MediaQuery(
-                        data: MediaQuery.of(context).copyWith(
-                          textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.0),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildHero(context, eco, emp),
-                            const SizedBox(height: 12),
-                            _sectionHeader('Your month', trailing: 'Tap a card for details'),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              child: _buildPillarsGrid(context, eco),
-                            ),
-                            const SizedBox(height: 14),
-                            _buildQuickActions(context, eco),
-                          ],
+                      // First screen: only the header and the 4 pillar cards,
+                      // with room to breathe. It is at least one screen tall,
+                      // so everything else starts below the fold. Text here
+                      // does not grow with the phone's large-font setting.
+                      ConstrainedBox(
+                        key: const Key('home_first_screen'),
+                        constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                        child: MediaQuery(
+                          data: MediaQuery.of(context).copyWith(
+                            textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.0),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildHero(context, eco, emp),
+                              const SizedBox(height: 22),
+                              _sectionHeader('Your month', trailing: 'Tap a card for details'),
+                              const SizedBox(height: 12),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: _buildPillarsGrid(context, eco),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+
+                      // Shortcuts, below the fold
+                      _sectionHeader('Shortcuts'),
+                      const SizedBox(height: 12),
+                      _buildQuickActions(context, eco),
+                      const SizedBox(height: 26),
 
                       // Department Konar Book
                       Padding(
@@ -217,6 +228,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       const SizedBox(height: 24),
                     ],
                   ),
+                ),
                 ),
               ),
             ),
@@ -1067,15 +1079,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           Row(
             children: [
               Expanded(child: cards[0]),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(child: cards[1]),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(child: cards[2]),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(child: cards[3]),
             ],
           ),
@@ -1106,7 +1118,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     const muted = AppColors.textMuted;
     final pct = (int.tryParse(percent.replaceAll('%', '')) ?? 0).clamp(0, 100) / 100.0;
     return SizedBox(
-      height: 158,
+      height: 168,
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -2132,6 +2144,18 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       );
                     },
                   )),
+                  const Divider(height: 24),
+                  for (final page in LegalPage.values)
+                    Material(type: MaterialType.transparency, child: ListTile(
+                      key: ValueKey('drawer_legal_${page.slug}'),
+                      leading: Icon(page.icon, color: const Color(0xFF64748B)),
+                      title: Text(page.title, style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                      trailing: const Icon(Icons.open_in_new_rounded, size: 16, color: Color(0xFF94A3B8)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        page.open(context);
+                      },
+                    )),
                   const Divider(height: 24),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),

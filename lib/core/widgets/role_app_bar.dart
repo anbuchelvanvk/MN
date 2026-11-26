@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 import 'company_notification_sheet.dart';
 import 'logout_confirm_dialog.dart';
 import '../../views/auth/pillars_popup_dialog.dart';
+import 'legal_links.dart';
 import '../../views/auth/login_screen.dart';
 import '../../providers/ecosystem_provider.dart';
 import '../../views/pillars/profile_pillar_screen.dart';
@@ -590,7 +591,33 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 const Divider(color: AppColors.sandBorder, height: 1),
                 const SizedBox(height: 8),
 
-                // 6. Logout Button
+                // 6. Privacy Policy and Terms (web pages)
+                _menuItemTile(
+                  icon: LegalPage.privacy.icon,
+                  iconColor: const Color(0xFF64748B),
+                  title: LegalPage.privacy.title,
+                  subtitle: 'How your information is used and protected',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    LegalPage.privacy.open(context);
+                  },
+                ),
+                _menuItemTile(
+                  icon: LegalPage.terms.icon,
+                  iconColor: const Color(0xFF64748B),
+                  title: LegalPage.terms.title,
+                  subtitle: 'Rules for using the MN Family app',
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    LegalPage.terms.open(context);
+                  },
+                ),
+
+                const SizedBox(height: 8),
+                const Divider(color: AppColors.sandBorder, height: 1),
+                const SizedBox(height: 8),
+
+                // 7. Logout Button
                 _menuItemTile(
                   icon: Icons.logout_rounded,
                   iconColor: const Color(0xFFEF4444),
