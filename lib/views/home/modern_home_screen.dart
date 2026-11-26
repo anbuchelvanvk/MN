@@ -2150,7 +2150,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       key: ValueKey('drawer_legal_${page.slug}'),
                       leading: Icon(page.icon, color: const Color(0xFF64748B)),
                       title: Text(page.title, style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-                      trailing: const Icon(Icons.open_in_new_rounded, size: 16, color: Color(0xFF94A3B8)),
+                      trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF94A3B8)),
                       onTap: () {
                         Navigator.pop(context);
                         page.open(context);
