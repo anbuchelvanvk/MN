@@ -90,7 +90,10 @@ class _LegalScreenState extends State<LegalScreen> {
                   if (_contentsOpen)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
-                      child: Column(
+                      // Own Material so the list tiles' tap ripple shows on the white card.
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Column(
                         children: [
                           for (var i = 0; i < doc.sections.length; i++)
                             ListTile(
@@ -102,6 +105,7 @@ class _LegalScreenState extends State<LegalScreen> {
                               onTap: () => _jumpTo(i),
                             ),
                         ],
+                      ),
                       ),
                     ),
                 ],
