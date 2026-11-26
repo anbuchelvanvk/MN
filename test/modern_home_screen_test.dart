@@ -62,11 +62,18 @@ void main() {
       expect(find.textContaining('30 Need To Complete Today'), findsNothing);
       expect(find.text('MN Jewel Park Carosal Post'), findsNothing);
 
-      // 7. Sticky Chat Dock
+      // 7. Sticky Chat Dock: only the chat bubble until it is tapped
+      expect(find.byIcon(Icons.groups_rounded), findsOneWidget);
+      expect(find.text('Type here'), findsNothing);
+      await tester.tap(find.byKey(const Key('home_chat_bubble')));
+      await tester.pumpAndSettle();
       expect(find.text('Type here'), findsOneWidget);
       expect(find.byIcon(Icons.add_reaction_outlined), findsOneWidget);
       expect(find.byIcon(Icons.attach_file_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.groups_rounded), findsOneWidget);
+      // Tapping the bubble again hides the bar
+      await tester.tap(find.byKey(const Key('home_chat_bubble')));
+      await tester.pumpAndSettle();
+      expect(find.text('Type here'), findsNothing);
     });
 
     testWidgets('Sticky chat dock remains firmly fixed during scroll', (tester) async {
@@ -292,7 +299,7 @@ void main() {
       // Stats sit on one line as "label value".
       expect(find.text('Steps 4,444', findRichText: true), findsOneWidget);
       expect(find.text('4,444'), findsWidgets);
-      expect(find.text('Calories 1500 / 2000', findRichText: true), findsOneWidget);
+      expect(find.text('Kcal 1500/2000', findRichText: true), findsOneWidget);
 
       // Tapping the card opens the Health pillar
       await tester.tap(find.text('Health'));

@@ -110,6 +110,22 @@ class MonthlyScorecardModel {
 
   String topPerformer; // 'Gokul', 'Kaaviya', 'Nisha', 'Asha'
 
+  /// Channel targets the team lead typed in for the month. These are kept
+  /// as typed; every other channel target is the sum of the daily targets.
+  Set<String> targetOverrides;
+
+  /// Channel fields that are filled, day by day, from the published daily
+  /// scorecards (see DailyScorecardService.applyToMonthly).
+  static const Set<String> dailySyncedActualKeys = {
+    'instaContentReelActual', 'instaProductReelActual', 'instaStoriesActual', 'instaCarouselActual',
+    'instaCampaignActual', 'webMnListingActual', 'appMnListingActual', 'googleListingActual',
+    'waStoriesActual', 'waChannelsActual', 'waCampaignActual', 'appCampaignActual',
+    'appNotificationActual', 'googleBlogsActual', 'googleCampaignActual', 'osmSnapchatActual',
+    'osmPinterestActual', 'osmShortsActual', 'osmLinkedinActual', 'osmXPostActual',
+  };
+  static Set<String> get dailySyncedTargetKeys =>
+      dailySyncedActualKeys.map((k) => k.replaceAll(RegExp(r'Actual$'), 'Target')).toSet();
+
   MonthlyScorecardModel({
     required this.month,
     required this.year,
@@ -196,7 +212,9 @@ class MonthlyScorecardModel {
     this.ashaSchemes = 0.0,
     this.ashaGold = 0.0,
     this.topPerformer = 'Gokul',
-  })  : instaContentReelTarget = instaContentReelTarget ?? DateTime(year, month + 1, 0).day,
+    Set<String>? targetOverrides,
+  })  : targetOverrides = targetOverrides ?? <String>{},
+        instaContentReelTarget = instaContentReelTarget ?? DateTime(year, month + 1, 0).day,
         instaProductReelTarget = instaProductReelTarget ?? DateTime(year, month + 1, 0).day;
 
   int get daysInMonth => DateTime(year, month + 1, 0).day;
@@ -393,6 +411,7 @@ class MonthlyScorecardModel {
     'ashaSchemes': ashaSchemes,
     'ashaGold': ashaGold,
     'topPerformer': topPerformer,
+    'targetOverrides': targetOverrides.toList()..sort(),
   };
 
   factory MonthlyScorecardModel.fromJson(Map<String, dynamic> json) {
@@ -482,6 +501,7 @@ class MonthlyScorecardModel {
       ashaSchemes: (json['ashaSchemes'] as num?)?.toDouble() ?? 0.0,
       ashaGold: (json['ashaGold'] as num?)?.toDouble() ?? 0.0,
       topPerformer: json['topPerformer'] ?? 'Gokul',
+      targetOverrides: ((json['targetOverrides'] as List?) ?? const []).map((e) => '$e').toSet(),
     );
   }
 

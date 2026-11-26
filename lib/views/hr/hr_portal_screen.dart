@@ -12,7 +12,6 @@ import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/role_app_bar.dart';
 import '../../core/widgets/quick_pillar_nav_row.dart';
 import '../../providers/ecosystem_provider.dart';
-import '../auth/pillars_popup_dialog.dart';
 import '../employee/employee_profile_screen.dart';
 import 'hr_management_widgets.dart';
 import 'hr_portal_subpages.dart';
@@ -54,9 +53,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
       context.read<EcosystemProvider>().setLoggedIn(true);
       await BirthdayCelebrationDialog.showIfNeeded(context);
       if (mounted) {
-        await PillarsPopupDialog.show(context);
         if (mounted) {
-          await Future.delayed(const Duration(milliseconds: 250));
           if (mounted) {
             await DailyPendingActionsDialog.showIfNeeded(context);
           }

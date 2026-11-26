@@ -46,6 +46,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     with SingleTickerProviderStateMixin {
   String _selectedFilter = 'all'; // 'all', 'pending', 'completed', 'assigned'
   int _todoShowCount = 10;
+  bool _chatDockOpen = false;
 
   late AnimationController _notifAnimController;
   Timer? _notifDismissTimer;
@@ -946,10 +947,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     final monthSocialCauses = eco.currentEmployeeSocialCauses
         .where((c) => c.date.month == now.month && c.date.year == now.year)
         .toList();
-    final monthSocialAmount =
-        monthSocialCauses.fold(0.0, (sum, c) => sum + c.amountSpent);
-    final socialPercentage = monthSocialAmount > 0
-        ? '${((monthSocialAmount / 5000.0) * 100).clamp(0, 100).round()}%'
+    // Progress toward the person's own monthly amount goal (approved deeds).
+    final monthApprovedAmount =
+        eco.myApprovedSocialCauses(now).fold(0.0, (sum, c) => sum + c.amountSpent);
+    final socialMonthGoal = eco.socialAmountGoalForMonth(now);
+    final socialPercentage = socialMonthGoal > 0
+        ? '${((monthApprovedAmount / socialMonthGoal) * 100).clamp(0, 100).round()}%'
         : '0%';
     final socialPercentColor = const Color(0xFFEF4444);
 
@@ -1000,7 +1003,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ringColor: bmiColor,
         stats: [
           ('Steps', stepsFormatted),
-          ('Calories', '${todayCal.round()} / ${targetCal.round()}'),
+          ('Kcal', '${todayCal.round()}/${targetCal.round()}'),
         ],
         onTap: () => _open(context, const HealthPillarScreen()),
         tint: const Color(0xFF0E9F6E),
@@ -1042,7 +1045,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         icon: Icons.volunteer_activism_rounded,
         accent: socialPercentColor,
         percent: socialPercentage,
-        caption: '${rupees(monthSocialAmount)} of ₹5,000 goal',
+        caption: '${rupees(monthApprovedAmount)} of ${rupees(socialMonthGoal)} goal',
         ringValue: rupees(todaySocialAmount),
         ringLabel: 'Today',
         ringColor: socialPercentColor,
@@ -1279,6 +1282,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                   if (i > 0)
                                     Container(width: 1, height: 12, margin: const EdgeInsets.symmetric(horizontal: 6), color: tint.withOpacity(0.2)),
                                   Expanded(
+                                    // Width follows text length, so a long stat
+                                    // (Calories 0/1850) is not shrunk to fit half.
+                                    flex: (stats[i].$1.length + stats[i].$2.length + 1).clamp(4, 40),
                                     child: FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: i == 0 ? Alignment.centerLeft : Alignment.centerRight,
@@ -1847,8 +1853,24 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Capsule: [emoji] Type here [attach] - each opens the floating chat
-          Container(
+          // Capsule: [emoji] Type here [attach] [all chats]. Hidden until the
+          // chat bubble is tapped; tapping the bubble again hides it.
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.85, end: 1).animate(anim),
+                alignment: Alignment.centerRight,
+                child: child,
+              ),
+            ),
+            child: !_chatDockOpen
+                ? const SizedBox.shrink(key: ValueKey('chat_capsule_hidden'))
+                : Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Container(
+            key: const ValueKey('chat_capsule'),
             height: 50,
             padding: const EdgeInsets.symmetric(horizontal: 7),
             decoration: BoxDecoration(
@@ -1879,15 +1901,19 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   ),
                 ),
                 capsuleButton(Icons.attach_file_rounded, 'Attach', () => open(FloatingChatStart.allHandsAttach)),
+                const SizedBox(width: 4),
+                capsuleButton(Icons.forum_rounded, 'All chats', () => open(FloatingChatStart.hub)),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          // Chat bubble: opens the floating chat hub (all conversations)
+                  ),
+          ),
+          // Chat bubble: shows / hides the chat capsule
           Tooltip(
-            message: 'Team chat',
+            message: _chatDockOpen ? 'Hide chat' : 'Team chat',
             child: InkWell(
-              onTap: () => open(FloatingChatStart.hub),
+              key: const Key('home_chat_bubble'),
+              onTap: () => setState(() => _chatDockOpen = !_chatDockOpen),
               borderRadius: BorderRadius.circular(30),
               child: SizedBox(
                 width: 58,
@@ -1899,14 +1925,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     CustomPaint(
                       size: const Size(58, 58),
                       painter: _ChatBubbleTailPainter(
-                        color: const Color(0xFFBE185D),
+                        color: const Color(0xFF2563EB),
                         strokeColor: Colors.white,
                         strokeWidth: 2.8,
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 3, right: 3),
-                      child: Icon(Icons.groups_rounded, size: 28, color: Colors.white),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 3, right: 3),
+                      child: Icon(_chatDockOpen ? Icons.close_rounded : Icons.groups_rounded,
+                          size: 28, color: Colors.white),
                     ),
                     if (unread > 0)
                       Positioned(

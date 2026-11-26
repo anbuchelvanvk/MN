@@ -10,6 +10,7 @@ import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import '../../core/models/daily_scorecard_model.dart';
 import '../../core/models/monthly_scorecard_model.dart';
 import '../../core/services/monthly_scorecard_pdf_service.dart';
 import '../../core/services/daily_scorecard_pdf_service.dart';
@@ -30,6 +31,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
   int _publishedDays = 0;
+  List<DailyScorecardModel> _days = const [];
   late MonthlyScorecardModel _model;
   bool _isLoading = true;
 
@@ -49,6 +51,7 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
     if (!mounted) return;
     setState(() {
       DailyScorecardService.applyToMonthly(_model, days);
+      _days = days;
       _publishedDays = days.length;
       _isLoading = false;
     });
@@ -253,7 +256,12 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
     }
   }
 
-  // ignore: unused_element
+  /// Team lead of the online team, or the CEO, can edit the month.
+  bool get _canEditMonth {
+    final eco = context.read<EcosystemProvider>();
+    return eco.canEditDailyScorecard || eco.isCeo || eco.activeRole.toLowerCase() == 'ceo';
+  }
+
   void _openEditModal() {
     showModalBottomSheet(
       context: context,
@@ -261,9 +269,13 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _EditScorecardSheet(
         model: _model,
+        publishedDays: _publishedDays,
         onSave: (updated) {
           setState(() {
             _model = updated;
+            // Channel actuals always follow the daily scorecards; targets
+            // follow them too unless typed in for the month.
+            DailyScorecardService.applyToMonthly(_model, _days);
           });
           _saveScorecard();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -297,6 +309,15 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
         title: 'Monthly Scorecard',
         subtitle: 'Totals of $_publishedDays published day${_publishedDays == 1 ? '' : 's'}',
         actions: [
+          if (_canEditMonth) ...[
+            MnGlassIconButton(
+              key: const Key('monthly_edit'),
+              icon: Icons.edit_rounded,
+              tooltip: 'Edit month',
+              onTap: _openEditModal,
+            ),
+            const SizedBox(width: 8),
+          ],
           MnGlassIconButton(
             icon: Icons.image_outlined,
             tooltip: 'Share as image',
@@ -311,6 +332,8 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
           children: [
             // Month Picker Banner
             _buildMonthPickerBanner(),
+            const SizedBox(height: 10),
+            _buildSyncBanner(),
             const SizedBox(height: 14),
 
             // Top 4 Summary Cards (2x2 Grid)
@@ -543,6 +566,42 @@ class _MonthlyScorecardScreenState extends State<MonthlyScorecardScreen> {
         ),
       ),
       bottomNavigationBar: _buildBottomActionBar(),
+    );
+  }
+
+  /// Says where the numbers come from, with the edit button for the TL / CEO.
+  Widget _buildSyncBanner() {
+    final typed = _model.targetOverrides.length;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFBFDBFE)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.sync_rounded, size: 20, color: Color(0xFF1D4ED8)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _publishedDays == 0
+                  ? 'No daily scorecard published yet this month. Channel numbers fill in as each day is published.'
+                  : 'Channel numbers are the total of $_publishedDays published daily scorecard${_publishedDays == 1 ? '' : 's'}'
+                      '${typed > 0 ? ' • $typed target${typed == 1 ? '' : 's'} set for the month' : ''}.',
+              key: const Key('monthly_sync_note'),
+              style: GoogleFonts.outfit(fontSize: 12, height: 1.35, color: const Color(0xFF1E3A8A)),
+            ),
+          ),
+          if (_canEditMonth)
+            TextButton.icon(
+              key: const Key('monthly_edit_inline'),
+              onPressed: _openEditModal,
+              icon: const Icon(Icons.edit_rounded, size: 16),
+              label: const Text('Edit'),
+            ),
+        ],
+      ),
     );
   }
 
@@ -1388,9 +1447,14 @@ class _EditScorecardSheet extends StatefulWidget {
   final MonthlyScorecardModel model;
   final ValueChanged<MonthlyScorecardModel> onSave;
 
+  /// Published daily scorecards this month. When above zero, channel actuals
+  /// come from them and cannot be typed here.
+  final int publishedDays;
+
   const _EditScorecardSheet({
     required this.model,
     required this.onSave,
+    this.publishedDays = 0,
   });
 
   @override
@@ -1400,6 +1464,8 @@ class _EditScorecardSheet extends StatefulWidget {
 class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late MonthlyScorecardModel _m;
+  Set<String> _overrides = {};
+  Set<TextEditingController> _lockedActuals = {};
 
   // Controllers
   late TextEditingController _totalSalesActual;
@@ -1600,6 +1666,32 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
     _ashaSchemes = TextEditingController(text: _m.ashaSchemes.toStringAsFixed(0));
     _ashaGold = TextEditingController(text: _m.ashaGold.toString());
     _topPerformer = _m.topPerformer;
+    _overrides = {..._m.targetOverrides};
+    // Channel actuals come from the published daily scorecards.
+    if (widget.publishedDays > 0) {
+      _lockedActuals = {
+        _instaContentReelActual,
+        _instaProductReelActual,
+        _instaStoriesActual,
+        _instaCarouselActual,
+        _instaCampaignActual,
+        _webMnListingActual,
+        _appMnListingActual,
+        _googleListingActual,
+        _waStoriesActual,
+        _waChannelsActual,
+        _waCampaignActual,
+        _appCampaignActual,
+        _appNotificationActual,
+        _googleBlogsActual,
+        _googleCampaignActual,
+        _osmSnapchatActual,
+        _osmPinterestActual,
+        _osmShortsActual,
+        _osmLinkedinActual,
+        _osmXPostActual,
+      };
+    }
   }
 
   @override
@@ -1777,7 +1869,16 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
       ashaSchemes: double.tryParse(_ashaSchemes.text) ?? _m.ashaSchemes,
       ashaGold: double.tryParse(_ashaGold.text) ?? _m.ashaGold,
       topPerformer: _topPerformer,
+      targetOverrides: {..._overrides},
     );
+
+    // A channel target changed here is kept for the month instead of the
+    // sum of daily targets.
+    final before = _m.toJson();
+    final after = updated.toJson();
+    for (final k in MonthlyScorecardModel.dailySyncedTargetKeys) {
+      if (before[k] != after[k]) updated.targetOverrides.add(k);
+    }
 
     widget.onSave(updated);
     Navigator.pop(context);
@@ -1814,6 +1915,39 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                     ),
                   ],
                 ),
+                if (widget.publishedDays > 0)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Channel actuals come from ${widget.publishedDays} published daily scorecard${widget.publishedDays == 1 ? '' : 's'} and are locked. '
+                            'Change a channel target to set it for the month.',
+                            style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFF1E3A8A)),
+                          ),
+                        ),
+                        if (_overrides.isNotEmpty)
+                          TextButton(
+                            key: const Key('monthly_use_daily_targets'),
+                            onPressed: () {
+                              setState(() => _overrides.clear());
+                              // Show the daily totals again; they are re-applied on save.
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                content: Text('Channel targets will follow the daily scorecards again after you save.'),
+                              ));
+                            },
+                            child: const Text('Use daily targets'),
+                          ),
+                      ],
+                    ),
+                  ),
                 TabBar(
                   controller: _tabController,
                   isScrollable: true,
@@ -2399,6 +2533,7 @@ class _EditScorecardSheetState extends State<_EditScorecardSheet> with SingleTic
                       const SizedBox(height: 6),
                       TextField(
                         controller: actualCtrl,
+                        readOnly: _lockedActuals.contains(actualCtrl),
                         keyboardType: TextInputType.number,
                         style: GoogleFonts.outfit(
                           fontSize: 14,

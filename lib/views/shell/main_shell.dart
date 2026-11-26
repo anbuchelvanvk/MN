@@ -6,7 +6,6 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/birthday_celebration_dialog.dart';
 import '../../core/widgets/daily_pending_actions_dialog.dart';
 import '../../providers/ecosystem_provider.dart';
-import '../auth/pillars_popup_dialog.dart';
 import '../dept_head/team_hub_screen.dart';
 import '../employee/employee_profile_screen.dart';
 import '../home/modern_home_screen.dart';
@@ -77,10 +76,6 @@ class _MainShellState extends State<MainShell> {
         eco.setActiveEmpId('MN-CEO01');
       }
       await BirthdayCelebrationDialog.showIfNeeded(context);
-      if (!mounted) return;
-      await PillarsPopupDialog.show(context);
-      if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 250));
       if (!mounted) return;
       await DailyPendingActionsDialog.showIfNeeded(context);
     });

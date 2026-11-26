@@ -138,6 +138,12 @@ class EcosystemProvider extends ChangeNotifier {
     _stepSources = {};
     _waterGlasses = {};
     _sleepMinutes = {};
+    _waterGoalGlasses = defaultWaterGoalGlasses;
+    _sleepGoalMinutes = defaultSleepGoalMinutes;
+    _socialAmountGoal = defaultSocialAmountGoal;
+    _socialAmountPeriod = 'month';
+    _socialCountGoal = defaultSocialCountGoal;
+    _socialCountPeriod = 'month';
     _dailyFoodLogs = [];
     _dailyWorkoutLogs = [];
     _familyActivityLogs = [];
@@ -1338,6 +1344,63 @@ class EcosystemProvider extends ChangeNotifier {
       _socialCauses.where((c) => c.isApproved).toList();
   List<SocialCauseItem> get currentEmployeeSocialCauses =>
       _socialCauses.where((c) => c.empId == _activeEmpId).toList();
+
+  // ---- Social cause goals, set by each person and changeable any time ----
+  // Two goals: an amount (e.g. ₹5,000 a month) and a number of good deeds
+  // (e.g. 1 a day or 20 a month). Only approved deeds count toward them.
+  static const double defaultSocialAmountGoal = 5000;
+  static const int defaultSocialCountGoal = 20;
+  double _socialAmountGoal = defaultSocialAmountGoal;
+  String _socialAmountPeriod = 'month'; // 'day' | 'month'
+  int _socialCountGoal = defaultSocialCountGoal;
+  String _socialCountPeriod = 'month'; // 'day' | 'month'
+
+  double get socialAmountGoal => _socialAmountGoal;
+  String get socialAmountPeriod => _socialAmountPeriod;
+  int get socialCountGoal => _socialCountGoal;
+  String get socialCountPeriod => _socialCountPeriod;
+
+  /// The amount goal for the whole month (a daily goal times the days in it).
+  double socialAmountGoalForMonth(DateTime m) => _socialAmountPeriod == 'day'
+      ? _socialAmountGoal * DateTime(m.year, m.month + 1, 0).day
+      : _socialAmountGoal;
+
+  /// The deeds goal for the whole month (a daily goal times the days in it).
+  int socialCountGoalForMonth(DateTime m) =>
+      _socialCountPeriod == 'day' ? _socialCountGoal * DateTime(m.year, m.month + 1, 0).day : _socialCountGoal;
+
+  /// My approved deeds in [d]'s month (or only on [d] when [dayOnly]).
+  List<SocialCauseItem> myApprovedSocialCauses(DateTime d, {bool dayOnly = false}) => _socialCauses
+      .where((c) =>
+          c.empId == _activeEmpId &&
+          c.isApproved &&
+          c.date.year == d.year &&
+          c.date.month == d.month &&
+          (!dayOnly || c.date.day == d.day))
+      .toList();
+
+  void setSocialGoals({
+    required double amount,
+    required String amountPeriod,
+    required int count,
+    required String countPeriod,
+  }) {
+    _socialAmountGoal = amount.clamp(1, 10000000).toDouble();
+    _socialAmountPeriod = amountPeriod == 'day' ? 'day' : 'month';
+    _socialCountGoal = count.clamp(1, 1000);
+    _socialCountPeriod = countPeriod == 'day' ? 'day' : 'month';
+    notifyListeners();
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'socialGoals',
+      data: {
+        'amount': _socialAmountGoal,
+        'amountPeriod': _socialAmountPeriod,
+        'count': _socialCountGoal,
+        'countPeriod': _socialCountPeriod,
+      },
+    ).catchError((Object e) => debugPrint('Saving social goals failed: $e'));
+  }
 
   // Company Universal Notification Feed (Birthdays, Milestones, Social Deeds, Management Broadcasts, SOP To-Dos)
   List<CompanyNotification> _companyNotifications = [];
@@ -6297,8 +6360,34 @@ class EcosystemProvider extends ChangeNotifier {
   // ---- Water (glasses) and sleep (minutes), typed in each day ----
   Map<String, int> _waterGlasses = {};
   Map<String, int> _sleepMinutes = {};
-  static const int waterGoalGlasses = 8;
-  static const int sleepGoalMinutes = 8 * 60;
+  static const int defaultWaterGoalGlasses = 8;
+  static const int defaultSleepGoalMinutes = 8 * 60;
+  int _waterGoalGlasses = defaultWaterGoalGlasses;
+  int _sleepGoalMinutes = defaultSleepGoalMinutes;
+
+  /// The user's own daily goals (editable on the Health page).
+  int get waterGoalGlasses => _waterGoalGlasses;
+  int get sleepGoalMinutes => _sleepGoalMinutes;
+
+  void setWaterGoalGlasses(int glasses) {
+    _waterGoalGlasses = glasses.clamp(1, 30);
+    notifyListeners();
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'health',
+      data: {'waterGoalGlasses': _waterGoalGlasses},
+    ).catchError((Object e) => debugPrint('Saving water goal failed: $e'));
+  }
+
+  void setSleepGoalMinutes(int minutes) {
+    _sleepGoalMinutes = minutes.clamp(60, 14 * 60);
+    notifyListeners();
+    _firebaseEmployeeService.saveEmployeePillar(
+      empId: _activeEmpId,
+      pillarKey: 'health',
+      data: {'sleepGoalMinutes': _sleepGoalMinutes},
+    ).catchError((Object e) => debugPrint('Saving sleep goal failed: $e'));
+  }
 
   int getWaterForDate(DateTime d) => _waterGlasses[_stepDayKey(d)] ?? 0;
   int getSleepMinutesForDate(DateTime d) => _sleepMinutes[_stepDayKey(d)] ?? 0;
@@ -6344,11 +6433,29 @@ class EcosystemProvider extends ChangeNotifier {
     return (protein: p, carbs: c, fat: f, fibre: fi);
   }
 
-  /// Daily macro goals in grams from the calorie target (20/50/30 split,
-  /// 14 g fibre per 1000 kcal).
+  /// Daily macro goals in grams, worked out from the user's own calorie
+  /// target and body:
+  /// - protein: 1 g per kg of body weight (for BMI above 25 the weight at
+  ///   BMI 25 is used), kept between 15% and 30% of the calories;
+  /// - fat: 27% of the calories;
+  /// - carbs: whatever calories are left;
+  /// - fibre: 14 g per 1000 kcal.
+  /// Without height and weight, protein falls back to 20% of the calories.
   ({double protein, double carbs, double fat, double fibre}) get macroGoals {
-    final kcal = dailyCalorieTarget > 0 ? dailyCalorieTarget : 2000;
-    return (protein: kcal * 0.20 / 4, carbs: kcal * 0.50 / 4, fat: kcal * 0.30 / 9, fibre: kcal * 14 / 1000);
+    final double kcal = dailyCalorieTarget > 0 ? dailyCalorieTarget : 2000.0;
+    double protein = kcal * 0.20 / 4;
+    if (_userWeightKg > 0) {
+      var w = _userWeightKg;
+      if (_userHeightCm > 0) {
+        final m = _userHeightCm / 100;
+        final leanCap = 25 * m * m; // weight at BMI 25
+        if (w > leanCap) w = leanCap;
+      }
+      protein = w.clamp(kcal * 0.15 / 4, kcal * 0.30 / 4).toDouble();
+    }
+    final fat = kcal * 0.27 / 9;
+    final carbs = ((kcal - protein * 4 - fat * 9) / 4).clamp(0, double.infinity).toDouble();
+    return (protein: protein, carbs: carbs, fat: fat, fibre: kcal * 14 / 1000);
   }
 
   /// More than this in one day is flagged as unusual.
@@ -7596,6 +7703,12 @@ class EcosystemProvider extends ChangeNotifier {
           if (h['dailyWater'] is Map) {
             _waterGlasses = (h['dailyWater'] as Map).map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
           }
+          if (h['waterGoalGlasses'] is num) {
+            _waterGoalGlasses = (h['waterGoalGlasses'] as num).toInt().clamp(1, 30);
+          }
+          if (h['sleepGoalMinutes'] is num) {
+            _sleepGoalMinutes = (h['sleepGoalMinutes'] as num).toInt().clamp(60, 14 * 60);
+          }
           if (h['dailySleepMinutes'] is Map) {
             _sleepMinutes = (h['dailySleepMinutes'] as Map).map((k, v) => MapEntry(k.toString(), (v as num).toInt()));
           }
@@ -7604,6 +7717,13 @@ class EcosystemProvider extends ChangeNotifier {
               (k, v) => MapEntry(k.toString(), v.toString()),
             );
           }
+        }
+        if (pillars['socialGoals'] is Map) {
+          final g = Map<String, dynamic>.from(pillars['socialGoals'] as Map);
+          _socialAmountGoal = (g['amount'] as num?)?.toDouble() ?? _socialAmountGoal;
+          _socialAmountPeriod = g['amountPeriod'] == 'day' ? 'day' : 'month';
+          _socialCountGoal = (g['count'] as num?)?.toInt() ?? _socialCountGoal;
+          _socialCountPeriod = g['countPeriod'] == 'day' ? 'day' : 'month';
         }
         if (pillars['meals'] is List) {
           _dailyFoodLogs = (pillars['meals'] as List)
