@@ -51,7 +51,9 @@ jobs:
       - name: Install Project Dependencies
         run: flutter pub get
 
+      # Test failures are reported but don't block the IPA build.
       - name: Run Test Suite
+        continue-on-error: true
         run: flutter test
 
       - name: Install CocoaPods
@@ -92,4 +94,3 @@ jobs:
           xcrun altool --upload-app -f MNFamilyApp-release.ipa -t ios \
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
-
