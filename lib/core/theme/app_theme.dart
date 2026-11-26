@@ -1,7 +1,3 @@
-// cupertino.dart: newer Flutter no longer exposes
-// CupertinoPageTransitionsBuilder through material.dart.
-// ignore: unnecessary_import
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
@@ -257,7 +253,9 @@ class AppThemes {
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          // iOS is left out on purpose: PageTransitionsTheme falls back to the
+          // native iOS slide, and CupertinoPageTransitionsBuilder has moved
+          // between Flutter libraries across versions, which broke CI builds.
         },
       ),
     );
