@@ -253,7 +253,9 @@ class AppThemes {
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          // iOS is left out on purpose: PageTransitionsTheme falls back to the
+          // native iOS slide, and CupertinoPageTransitionsBuilder has moved
+          // between Flutter libraries across versions, which broke CI builds.
         },
       ),
     );
