@@ -2164,7 +2164,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'Start collaborating on jewelry tasks, pillars, or daily work.',
+                          'Start collaborating on jewelry tasks, pillar commitments, or daily work.',
                           style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                         ),
                       ],

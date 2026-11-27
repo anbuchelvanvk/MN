@@ -94,7 +94,7 @@ class _EmployeePortalScreenState extends State<EmployeePortalScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Expanded(child: _navItem(0, Icons.dashboard_outlined, 'Home')),
-              Expanded(child: _navItem(1, Icons.volunteer_activism_outlined, 'Social Cause')),
+              Expanded(child: _navItem(1, Icons.volunteer_activism_outlined, 'Social Service')),
               Expanded(child: _navItem(2, Icons.badge_outlined, 'ID Vault')),
             ],
           ),

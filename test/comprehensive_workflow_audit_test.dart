@@ -329,7 +329,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Department Core Architecture'), findsOneWidget);
-      expect(find.textContaining('5 Operational Pillars'), findsOneWidget);
+      expect(find.textContaining('5 Operational Pillar Commitments'), findsOneWidget);
       expect(find.text('5 Architectures'), findsOneWidget);
       expect(find.text('01 PURPOSE'), findsOneWidget);
       expect(find.text('02 GOALS'), findsOneWidget);

@@ -105,7 +105,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                 ],
               ),
               label: Text(
-                'Approve Pending Social Causes (${eco.pendingSocialCauses.length})',
+                'Approve Pending Social Services (${eco.pendingSocialCauses.length})',
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.bold,
@@ -162,7 +162,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
     return Scaffold(
       backgroundColor: AppColors.burgundyBg,
       appBar: MnAppBar(
-        title: 'Social Cause',
+        title: 'Social Service',
         subtitle: 'Good deeds and community service',
       ),
       body: content,
@@ -313,7 +313,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Your social cause goals', style: kitTitle(18)),
+                Text('Your social service goals', style: kitTitle(18)),
                 const SizedBox(height: 4),
                 Text('Pick what suits you. You can change these any time.', style: kitBody(12.5)),
                 const SizedBox(height: 18),
@@ -532,8 +532,8 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
                                 context: context,
                                 builder: (c) => AlertDialog(
                                   backgroundColor: AppColors.burgundyCard,
-                                  title: const Text('Delete Social Cause?', style: TextStyle(color: AppColors.sandLight, fontSize: 14, fontWeight: FontWeight.bold)),
-                                  content: const Text('Are you sure you want to delete this social cause? It will be removed permanently.', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                  title: const Text('Delete Social Service?', style: TextStyle(color: AppColors.sandLight, fontSize: 14, fontWeight: FontWeight.bold)),
+                                  content: const Text('Are you sure you want to delete this social service? It will be removed permanently.', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(c, false),
@@ -864,7 +864,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
           Icon(Icons.volunteer_activism_outlined, size: 40, color: AppColors.textMuted),
           SizedBox(height: 10),
           Text(
-            'No social causes found in this category',
+            'No social services found in this category',
             style: TextStyle(color: AppColors.sandLight, fontSize: 13, fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 4),
@@ -912,7 +912,7 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Post a Social Cause',
+                'Post a Social Service',
                 style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.sandLight),
               ),
             ],

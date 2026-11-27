@@ -37,7 +37,7 @@ void main() {
       expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
 
       // Previous cramped icons should NOT be cluttering the top bar
-      expect(find.text('MN Family Pillars'), findsNothing);
+      expect(find.text('MN Family Pillar Commitments'), findsNothing);
       expect(find.text('Export Audit Report'), findsNothing);
     });
 
@@ -71,7 +71,7 @@ void main() {
       // Check all options inside the menu sheet
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Refresh App'), findsOneWidget);
-      expect(find.text('MN Family Pillars'), findsOneWidget);
+      expect(find.text('MN Family Pillar Commitments'), findsOneWidget);
       expect(find.text('Export Audit Report'), findsOneWidget);
       expect(find.text('Switch Role'), findsWidgets); // Both top strip and menu
       expect(find.text('Logout'), findsOneWidget);

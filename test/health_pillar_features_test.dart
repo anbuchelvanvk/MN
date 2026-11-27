@@ -5,7 +5,7 @@ import 'package:mn_family_app/providers/ecosystem_provider.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Health Pillar 1 - Calorie Target, Food Catalog, Workouts & Daily Steps Tests', () {
+  group('Health Pillar Commitment 1 - Calorie Target, Food Catalog, Workouts & Daily Steps Tests', () {
     late EcosystemProvider eco;
 
     setUp(() {

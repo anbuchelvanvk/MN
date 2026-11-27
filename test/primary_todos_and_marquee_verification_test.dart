@@ -124,7 +124,7 @@ void main() {
       expect(mithraTasks.any((t) => t.id.startsWith('KONAR-HR')), isFalse);
     });
 
-    test('Work Pillar badge count matches currentEmployeeTasks pending count', () {
+    test('Work Pillar Commitment badge count matches currentEmployeeTasks pending count', () {
       final provider = EcosystemProvider();
       provider.setActiveEmpId('7');
 

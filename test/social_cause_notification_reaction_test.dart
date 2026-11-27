@@ -13,7 +13,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.setMockInitialValues({});
 
-  group('Social Cause Notification & Reaction Tests', () {
+  group('Social Service Notification & Reaction Tests', () {
     test('SocialCauseItem likedEmpIds, isCeoReacted, and totalLikesCount', () {
       final cause = SocialCauseItem(
         id: 'CAUSE-101',
@@ -49,7 +49,7 @@ void main() {
     test('CompanyNotification likedStaffIds and isCeoReacted', () {
       final notif = CompanyNotification(
         id: 'NOTIF-SC-101',
-        title: '❤️ Social Cause: Gokul R',
+        title: '❤️ Social Service: Gokul R',
         content: 'Contributed food donation.',
         type: CompanyNotificationType.socialCause,
         timestamp: DateTime.now(),

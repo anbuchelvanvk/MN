@@ -52,7 +52,7 @@ void main() {
       expect(find.text('Health'), findsOneWidget);
       expect(find.text('Family Time'), findsOneWidget);
       expect(find.text('Work'), findsOneWidget);
-      expect(find.text('Social Cause'), findsOneWidget);
+      expect(find.text('Social Service'), findsOneWidget);
       expect(find.text('78%'), findsNothing);
       expect(find.textContaining('1210 / 1550 Cal'), findsNothing);
       expect(find.text('229 Cal'), findsNothing);
@@ -219,7 +219,7 @@ void main() {
       expect(find.text('OTM'), findsOneWidget);
     });
 
-    testWidgets('Four pillar cards display monthly in big circle and day in small circle', (tester) async {
+    testWidgets('Four pillar commitment cards display monthly in big circle and day in small circle', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -232,7 +232,7 @@ void main() {
       expect(find.text('Health'), findsOneWidget);
       expect(find.text('Family Time'), findsOneWidget);
       expect(find.text('Work'), findsOneWidget);
-      expect(find.text('Social Cause'), findsOneWidget);
+      expect(find.text('Social Service'), findsOneWidget);
 
       // Today rings: no data yet -> honest empty values, short readable labels
       expect(find.text('BMI'), findsOneWidget);
@@ -243,7 +243,7 @@ void main() {
       expect(find.text('0%'), findsWidgets);
 
       // All four cards have exactly the same size
-      final sizes = ['Health', 'Family Time', 'Work', 'Social Cause']
+      final sizes = ['Health', 'Family Time', 'Work', 'Social Service']
           .map((t) => tester.getSize(find.ancestor(
                 of: find.text(t),
                 matching: find.byType(SizedBox),
@@ -283,7 +283,7 @@ void main() {
       expect(find.text('Shoot new reel'), findsOneWidget);
     });
 
-    testWidgets('First Pillar Card (Total Health Performance) is fully driven by live health data', (tester) async {
+    testWidgets('First Pillar Commitment Card (Total Health Performance) is fully driven by live health data', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);

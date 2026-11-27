@@ -78,8 +78,8 @@ class EmployeeSocialCauseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const EmployeeSubpageScaffold(
-      title: 'Social Cause',
-      subtitle: 'Pillar 5 CSR & Community Impact',
+      title: 'Social Service',
+      subtitle: 'Pillar Commitment 5 CSR & Community Impact',
       body: SocialCausePillarScreen(isStandalone: false),
     );
   }

@@ -416,7 +416,7 @@ class _HrEmployeeInspectionScreenState extends State<HrEmployeeInspectionScreen>
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Employee has not reported certificate submission in MN Pillar yet. Once deposited, original records will appear here.',
+                                  'Employee has not reported certificate submission in MN Pillar Commitment yet. Once deposited, original records will appear here.',
                                   style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                                 ),
                               ],

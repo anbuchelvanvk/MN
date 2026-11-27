@@ -148,7 +148,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '4-PILLAR EQUILIBRIUM SCORES',
+                  '4-PILLAR COMMITMENT EQUILIBRIUM SCORES',
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -444,7 +444,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your 4 Pillars Status',
+                  'Your 4 Pillar Commitments Status',
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -453,7 +453,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Combines Pillar 1 (Health), Pillar 2 (Family), Pillar 3 (Profile), and Pillar 4 (Attendance) to show your current status.',
+                  'Combines Pillar Commitment 1 (Health), Pillar Commitment 2 (Family), Pillar Commitment 3 (Profile), and Pillar Commitment 4 (Attendance) to show your current status.',
                   style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     color: AppColors.textSecondary,
@@ -480,7 +480,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
           children: [
             Expanded(
               child: Text(
-                'YOUR 4 PILLARS TODAY',
+                'YOUR 4 PILLAR COMMITMENTS TODAY',
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -720,7 +720,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Pillar Status & Improvement Suggestions:',
+                        'Pillar Commitment Status & Improvement Suggestions:',
                         style: GoogleFonts.outfit(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -944,7 +944,7 @@ class _TierPillarScreenState extends State<TierPillarScreen> with SingleTickerPr
     if (title.contains('Health')) return 'Open Health';
     if (title.contains('Family')) return 'Open Family Time';
     if (title.contains('Profile')) return 'Open Work';
-    return 'Go to Pillar 4 (Attendance)';
+    return 'Go to Pillar Commitment 4 (Attendance)';
   }
 
   void _navigateToPillar(BuildContext context, String title) {

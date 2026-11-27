@@ -312,7 +312,7 @@ class _HrPortalScreenState extends State<HrPortalScreen> {
                         const SizedBox(height: 8),
                         _portalDirectAccessTile(
                           context: context,
-                          label: 'Social Causes',
+                          label: 'Social Services',
                           icon: Icons.volunteer_activism_outlined,
                           badge: eco.pendingSocialCauses.isNotEmpty ? '${eco.pendingSocialCauses.length}' : '',
                           destination: const HrSocialCausesScreen(),

@@ -9,7 +9,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Leadership Employee Activities Inspector Tests', () {
-    testWidgets('Health Pillar shows staff inspector for CEO and HR, but hidden for employee', (tester) async {
+    testWidgets('Health Pillar Commitment shows staff inspector for CEO and HR, but hidden for employee', (tester) async {
       final provider = EcosystemProvider();
 
       // 1. CEO Login: Should see "EMPLOYEE HEALTH ACTIVITIES" gateway button
@@ -71,7 +71,7 @@ void main() {
       expect(find.text('EMPLOYEE HEALTH ACTIVITIES'), findsNothing);
     });
 
-    testWidgets('Family Pillar shows staff inspector for CEO and HR, but hidden for employee', (tester) async {
+    testWidgets('Family Pillar Commitment shows staff inspector for CEO and HR, but hidden for employee', (tester) async {
       final provider = EcosystemProvider();
 
       // 1. CEO Login: Should see "EMPLOYEE FAMILY ACTIVITIES" gateway button

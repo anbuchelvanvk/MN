@@ -77,7 +77,7 @@ const privacyPolicy = LegalDocument(
           '("MN Jewel Park", "we", "us"). We decide how personal information in the app is used, and we are '
           'responsible for it.'),
       LegalPara('The app is a workplace tool. It helps our staff with daily tasks, attendance, team communication '
-          'and four personal well-being "pillars": Health, Family Time, Work and Social Cause.'),
+          'and four personal well-being "pillar commitments": Health, Family Time, Work and Social Service.'),
     ]),
     LegalSection('Who this policy covers', [
       LegalPara('The app is only for people who work with MN Jewel Park: employees, team leads, HR, management, '
@@ -109,12 +109,12 @@ const privacyPolicy = LegalDocument(
         ('Work',
             'Tasks, to-dos, SOP checklists, task reassignments, blocker tickets, daily and monthly scorecards, '
                 'team performance figures, Konar Book entries, media files sent for review.'),
-        ('Health pillar',
+        ('Health pillar commitment',
             'Height, weight, BMI, calorie target, meals and calories, workouts, daily steps, water glasses, '
                 'sleep hours, your water and sleep goals. Steps can also come from Health Connect or Apple Health '
                 'if you allow it.'),
-        ('Family Time pillar', 'Time spent with family or friends, the activity, notes and optional photos.'),
-        ('Social Cause pillar',
+        ('Family Time pillar commitment', 'Time spent with family or friends, the activity, notes and optional photos.'),
+        ('Social Service pillar commitment',
             'Good deeds you post, amount spent, description, photos, approval status, reactions, and your own '
                 'amount and good-deed goals.'),
         ('Chat and announcements',
@@ -132,7 +132,7 @@ const privacyPolicy = LegalDocument(
       LegalPara('The app only asks for a permission when you use the feature that needs it. You can turn any of '
           'them off in your phone settings; the rest of the app keeps working.'),
       LegalBullets([
-        'Camera and photos: to take or pick a profile photo, prescription photo, Family Time or Social Cause '
+        'Camera and photos: to take or pick a profile photo, prescription photo, Family Time or Social Service '
             'photo, or a chat attachment.',
         'Files: to attach documents and to save exported reports (PDF or Excel) when you ask.',
         'Physical activity, Health Connect (Android) or Apple Health (iPhone): to read your step count.',
@@ -146,7 +146,7 @@ const privacyPolicy = LegalDocument(
           '(Android) or Apple Health (iPhone). It never writes to, changes or deletes your health data there, '
           'and it reads nothing else.'),
       LegalBullets([
-        'Step counts are used only to fill in your Health pillar and the step and calorie figures shown to you.',
+        'Step counts are used only to fill in your Health pillar commitment and the step and calorie figures shown to you.',
         'Step data from Health Connect or Apple Health is never used for advertising, never sold, and never '
             'shared outside MN Jewel Park.',
         'You can turn automatic steps off in the app or remove the permission in Health Connect or the iPhone '
@@ -160,9 +160,9 @@ const privacyPolicy = LegalDocument(
         'To run your account, sign you in securely and help you reset a forgotten password through HR.',
         'To manage attendance, leave, permissions, tasks and daily work.',
         'To produce daily and monthly scorecards, team reports and exports for management.',
-        'To show your own progress on the Health, Family Time, Work and Social Cause pillars, and to let your '
+        'To show your own progress on the Health, Family Time, Work and Social Service pillar commitments, and to let your '
             'team lead or management check team well-being where your role allows it.',
-        'To review and approve social causes, media and leave requests.',
+        'To review and approve social services, media and leave requests.',
         'To send you notifications, reminders, announcements, birthday wishes and chat messages.',
         'To keep the app safe, fix problems, and keep backups so data is not lost.',
       ]),
@@ -179,7 +179,7 @@ const privacyPolicy = LegalDocument(
         'The CEO and management can see information across all departments, approve requests, and make '
             'company backups.',
         'Other staff can see your name, photo, role and department, and anything you post in shared spaces: '
-            'group chat, social causes you post, and comments on announcements.',
+            'group chat, social services you post, and comments on announcements.',
         'Personal notes are private to you.',
       ]),
       LegalPara('We may also disclose information when the law requires it, to protect the safety of staff or '
@@ -219,7 +219,7 @@ const privacyPolicy = LegalDocument(
         'We keep your information for as long as you work with MN Jewel Park and your account is active.',
         'When you leave, HR turns off your sign-in. We keep employment, attendance and payroll-related records '
             'for as long as Indian employment, tax and other laws require, then delete them.',
-        'Personal pillar data (Health, Family Time, Social Cause goals) and personal notes are deleted within '
+        'Personal pillar commitment data (Health, Family Time, Social Service goals) and personal notes are deleted within '
             '90 days of your account being closed, unless the law requires us to keep them or you ask us to '
             'delete them sooner.',
         'Backups are overwritten in normal course.',
@@ -230,15 +230,15 @@ const privacyPolicy = LegalDocument(
       LegalBullets([
         'Ask what personal information we hold about you and get a summary of it.',
         'Ask us to correct information that is wrong or out of date. You can edit much of your profile and '
-            'pillar data yourself.',
+            'pillar commitment data yourself.',
         'Ask us to delete information we no longer need, subject to records we must keep by law.',
         'Withdraw consent for optional features, for example by turning off automatic steps, camera or '
             'notification access.',
         'Name another person to act for you if you are unable to.',
         'Raise a complaint with us, and if you are not satisfied, with the Data Protection Board of India.',
       ]),
-      LegalPara('Using the four pillars beyond what your job needs is optional. You may leave Health, Family Time '
-          'or Social Cause entries blank.'),
+      LegalPara('Using the four pillar commitments beyond what your job needs is optional. You may leave Health, Family Time '
+          'or Social Service entries blank.'),
     ]),
     LegalSection('Deleting your account', [
       LegalPara('To delete your MN Family account and its data:'),
@@ -246,7 +246,7 @@ const privacyPolicy = LegalDocument(
         'Speak to HR, or email us at the address in "Contact us" from your registered email, with the subject '
             '"Delete my MN Family account".',
         'We confirm it is you, then turn off your sign-in straight away.',
-        'Within 30 days we delete your profile, pillar data, personal notes, chat messages you sent and photos '
+        'Within 30 days we delete your profile, pillar commitment data, personal notes, chat messages you sent and photos '
             'you uploaded.',
       ], numbered: true),
       LegalPara('We keep only the records the law requires (for example attendance and employment records), for '
@@ -314,7 +314,7 @@ const termsAndConditions = LegalDocument(
     LegalSection('Acceptable use', [
       LegalPara('When using the app, you must not:'),
       LegalBullets([
-        'Enter false attendance, tasks, scorecard numbers, meals, steps, social causes or other records, or mark '
+        'Enter false attendance, tasks, scorecard numbers, meals, steps, social services or other records, or mark '
             'work done that is not done.',
         'Post anything abusive, harassing, discriminatory, sexual, violent or threatening, or anything that '
             'breaks the law.',
@@ -349,17 +349,17 @@ const termsAndConditions = LegalDocument(
             'according to company policy.',
       ]),
     ]),
-    LegalSection('The four pillars', [
-      LegalPara('Health, Family Time, Work and Social Cause are there to encourage a balanced life. Apart from '
-          'work records your job requires, entering personal pillar details is your choice.'),
+    LegalSection('The four pillar commitments', [
+      LegalPara('Health, Family Time, Work and Social Service are there to encourage a balanced life. Apart from '
+          'work records your job requires, entering personal pillar commitment details is your choice.'),
       LegalBullets([
         'Goals you set yourself, such as calories, water, sleep, or social-cause amounts and counts, are '
             'personal targets. You can change them at any time.',
-        'Pillar progress may be shown to your team lead or management, as described in the Privacy Policy.',
+        'Pillar Commitment progress may be shown to your team lead or management, as described in the Privacy Policy.',
       ]),
     ]),
     LegalSection('Health information disclaimer', [
-      LegalNote('The Health pillar is not medical advice. BMI, calorie targets, protein, carbs, fat and fibre '
+      LegalNote('The Health pillar commitment is not medical advice. BMI, calorie targets, protein, carbs, fat and fibre '
           'goals, nutrition estimates and calories burned are general estimates from standard formulas and '
           'typical food values. They may not suit your body or medical condition.'),
       LegalPara('Speak to a doctor or qualified dietitian before changing your diet, exercise or medication, '

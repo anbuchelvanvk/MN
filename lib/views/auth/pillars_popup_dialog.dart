@@ -78,7 +78,7 @@ class PillarsPopupDialog extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'MN FAMILY PILLARS',
+                              'MN FAMILY PILLAR COMMITMENTS',
                               style: GoogleFonts.outfit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -123,7 +123,7 @@ class PillarsPopupDialog extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   Text(
-                    'Select Pillar:',
+                    'Select Pillar Commitment:',
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       color: const Color(0xFF64748B),
@@ -187,7 +187,7 @@ class PillarsPopupDialog extends StatelessWidget {
 
                   _pillarButton(
                     context: context,
-                    title: 'Social Cause',
+                    title: 'Social Service',
                     pillarBadge: 'Good deeds',
                     cadence: 'Occasional',
                     icon: Icons.volunteer_activism,

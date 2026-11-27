@@ -53,7 +53,7 @@ void main() {
       // Verify all Direct Access tiles exist
       expect(find.text('Staff Directory'), findsWidgets);
       expect(find.text('Personal To-Dos'), findsOneWidget);
-      expect(find.text('Social Causes'), findsOneWidget);
+      expect(find.text('Social Services'), findsOneWidget);
       expect(find.text('Staff Tasks'), findsOneWidget);
       expect(find.text('Blocker Tickets'), findsOneWidget);
       expect(find.text('Attendance'), findsWidgets);

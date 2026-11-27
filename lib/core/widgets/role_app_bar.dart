@@ -523,7 +523,7 @@ class RoleAppBar extends StatelessWidget implements PreferredSizeWidget {
                 _menuItemTile(
                   icon: Icons.inventory_2_outlined,
                   iconColor: const Color(0xFFFA8BB0),
-                  title: 'MN Family Pillars',
+                  title: 'MN Family Pillar Commitments',
                   subtitle: 'Health, Family, Profile, Attendance & Social',
                   onTap: () {
                     Navigator.pop(ctx);

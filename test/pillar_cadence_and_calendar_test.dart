@@ -7,7 +7,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.setMockInitialValues({});
 
-  group('Pillar Cadences & Full Calendar Verification Tests', () {
+  group('Pillar Commitment Cadences & Full Calendar Verification Tests', () {
     late EcosystemProvider provider;
 
     setUp(() {
@@ -99,7 +99,7 @@ void main() {
       expect(tuesdayNov10.status.contains('Tuesday Overtime'), isTrue);
     });
 
-    test('Pillar Logs maintain date and time timestamps', () {
+    test('Pillar Commitment Logs maintain date and time timestamps', () {
       // 1. Health Food Log
       provider.addFoodLog(
         foodName: 'Idli & Sambar',
