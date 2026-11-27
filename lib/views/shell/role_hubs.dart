@@ -106,7 +106,7 @@ class _RoleHub extends StatelessWidget {
                 color: const Color(0xFFD97706),
                 title: approvals == 1 ? '1 approval waiting' : '$approvals approvals waiting',
                 subtitle: [
-                  if (eco.pendingSocialCauses.isNotEmpty) '${eco.pendingSocialCauses.length} social causes',
+                  if (eco.pendingSocialCauses.isNotEmpty) '${eco.pendingSocialCauses.length} social services',
                   if (eco.pendingMediaApprovalsCount > 0) '${eco.pendingMediaApprovalsCount} media posts',
                 ].join(' • '),
                 actionLabel: 'Review',
@@ -207,7 +207,7 @@ class CeoHubScreen extends StatelessWidget {
             () => openHubScreen(context, const CeoAttendanceScreen())),
         HubTool(Icons.assignment_rounded, 'Staff Tasks', 'All departments', const Color(0xFFD97706),
             () => openHubScreen(context, const CeoStaffTasksScreen())),
-        HubTool(Icons.volunteer_activism_rounded, 'Social Causes', 'Approve good deeds', const Color(0xFF0F766E),
+        HubTool(Icons.volunteer_activism_rounded, 'Social Services', 'Approve good deeds', const Color(0xFF0F766E),
             () => openHubScreen(context, const CeoSocialCausesScreen()),
             badge: eco.pendingSocialCauses.length),
         HubTool(Icons.video_collection_rounded, 'Media Review', 'Reels & shoots', const Color(0xFF9D174D),
@@ -267,7 +267,7 @@ class HrHubScreen extends StatelessWidget {
         HubTool(Icons.assignment_rounded, 'Staff Tasks', 'Your departments', const Color(0xFFD97706),
             () => openHubScreen(context, const HrStaffTasksScreen())),
         if (eco.hasPerk((p) => p.canApproveSocialCauses))
-          HubTool(Icons.volunteer_activism_rounded, 'Social Causes', 'Approve good deeds', const Color(0xFF0F766E),
+          HubTool(Icons.volunteer_activism_rounded, 'Social Services', 'Approve good deeds', const Color(0xFF0F766E),
               () => openHubScreen(context, const HrSocialCausesScreen()),
               badge: eco.pendingSocialCauses.length),
         if (eco.hasPerk((p) => p.canAuditGrooming))

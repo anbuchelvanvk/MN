@@ -306,7 +306,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Social Cause Approval & Broadcast Hub',
+                      'Social Service Approval & Broadcast Hub',
                       style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.sandLight),
                     ),
                     const SizedBox(height: 2),
@@ -359,7 +359,7 @@ class HrSocialCauseApprovalSection extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: const Text(
-              'No pending social cause submissions awaiting review.',
+              'No pending social service submissions awaiting review.',
               style: TextStyle(fontSize: 11, color: AppColors.textMuted),
             ),
           )

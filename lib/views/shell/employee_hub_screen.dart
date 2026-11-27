@@ -45,7 +45,7 @@ class EmployeeHubScreen extends StatelessWidget {
           () => openHubScreen(context, const HealthPillarScreen())),
       HubTool(Icons.family_restroom_rounded, 'Family Time', 'Log time together', const Color(0xFFBE185D),
           () => openHubScreen(context, const FamilyPillarScreen())),
-      HubTool(Icons.volunteer_activism_rounded, 'Social Cause', '$causes this month', const Color(0xFF0F766E),
+      HubTool(Icons.volunteer_activism_rounded, 'Social Service', '$causes this month', const Color(0xFF0F766E),
           () => openHubScreen(context, const SocialCausePillarScreen())),
       HubTool(Icons.badge_rounded, 'Digital ID', 'Your staff card', const Color(0xFF334155),
           () => openHubScreen(context, const EmployeeDigitalIdScreen())),

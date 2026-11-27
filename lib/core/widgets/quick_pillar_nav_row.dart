@@ -82,7 +82,7 @@ class QuickPillarNavRow extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _PillarItem(
-                    title: 'Social Cause',
+                    title: 'Social Service',
                     icon: Icons.volunteer_activism_rounded,
                     primaryColor: const Color(0xFF059669),
                     bgColor: const Color(0xFFECFDF5),

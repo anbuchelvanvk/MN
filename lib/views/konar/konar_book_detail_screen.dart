@@ -336,7 +336,7 @@ class _KonarBookDetailScreenState extends State<KonarBookDetailScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '5 Operational Pillars: Purpose, Goals, Process, Structure, System',
+                                '5 Operational Pillar Commitments: Purpose, Goals, Process, Structure, System',
                                 style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   color: const Color(0xFF64748B),

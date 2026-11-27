@@ -92,14 +92,14 @@ void main() {
         senderName: 'Praveenkumar M',
         senderRole: 'Team Lead',
         receiverId: 'MN-CEO01',
-        text: 'Sir, today online team achieved all 4 pillars.',
+        text: 'Sir, today online team achieved all 4 pillar commitments.',
         timestamp: DateTime(2026, 11, 18, 14, 0),
         isRead: false,
         readBy: ['MN-TL1002'],
         likedBy: [],
         replyToId: 'MSG-TEST-0',
         replyToSenderName: 'M N Naveenraaj',
-        replyToText: 'Please share the daily pillar status.',
+        replyToText: 'Please share the daily pillar commitment status.',
       );
 
       final json = msg.toJson();
@@ -112,7 +112,7 @@ void main() {
       expect(parsed.isSentBy('MN-TL1002'), isTrue);
       expect(parsed.replyToId, 'MSG-TEST-0');
       expect(parsed.replyToSenderName, 'M N Naveenraaj');
-      expect(parsed.replyToText, 'Please share the daily pillar status.');
+      expect(parsed.replyToText, 'Please share the daily pillar commitment status.');
     });
 
     test('EcosystemProvider chat messaging, unread counts & push notifications', () async {

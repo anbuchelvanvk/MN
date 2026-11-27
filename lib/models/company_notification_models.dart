@@ -156,7 +156,7 @@ class CompanyNotification {
       case CompanyNotificationType.anniversary:
         return 'Special Day Milestone';
       case CompanyNotificationType.socialCause:
-        return 'Social Cause Deed';
+        return 'Social Service Deed';
       case CompanyNotificationType.broadcastNotice:
         return 'Management Broadcast';
       case CompanyNotificationType.todoReminder:

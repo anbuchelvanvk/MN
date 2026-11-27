@@ -218,8 +218,8 @@ class _DataVaultScreenState extends State<DataVaultScreen> {
                 icon: Icons.cloud_download_rounded,
                 color: AppColors.primary,
                 title: 'Download full backup',
-                body: 'Saves everything in the app — social causes, attendance, notifications, chats, tasks, '
-                    'pillar activity and staff details — as one file. Passwords are never included.',
+                body: 'Saves everything in the app — social services, attendance, notifications, chats, tasks, '
+                    'pillar commitment activity and staff details — as one file. Passwords are never included.',
                 button: 'Download backup',
                 onTap: _busy ? null : _download,
                 footnote: _lastBackupAt == null ? null : 'Last backup saved ${_fmtDate(_lastBackupAt!)}',
@@ -242,8 +242,8 @@ class _DataVaultScreenState extends State<DataVaultScreen> {
                 icon: Icons.delete_forever_rounded,
                 color: AppColors.ragRed,
                 title: 'Delete everything',
-                body: 'Permanently deletes social causes, attendance, notifications, chats, tasks, notes, orders, '
-                    'scorecards and pillar activity from Firebase. Staff details, logins, departments and Konar books are kept.',
+                body: 'Permanently deletes social services, attendance, notifications, chats, tasks, notes, orders, '
+                    'scorecards and pillar commitment activity from Firebase. Staff details, logins, departments and Konar books are kept.',
                 button: 'Delete everything…',
                 danger: true,
                 onTap: _busy ? null : _deleteEverything,
@@ -386,7 +386,7 @@ class _DeleteDialogState extends State<_DeleteDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'This permanently removes social causes, attendance, notifications, team chats, tasks, to-dos, notes, '
+              'This permanently removes social services, attendance, notifications, team chats, tasks, to-dos, notes, '
               'orders, scorecards and password requests for everyone. It cannot be undone except from a backup file.',
               style: GoogleFonts.outfit(fontSize: 13.5, height: 1.45, color: AppColors.textSecondary),
             ),
@@ -423,7 +423,7 @@ class _DeleteDialogState extends State<_DeleteDialog> {
               value: _activity,
               onChanged: (v) => setState(() => _activity = v ?? true),
               controlAffinity: ListTileControlAffinity.leading,
-              title: Text('Also clear pillar activity on staff profiles',
+              title: Text('Also clear pillar commitment activity on staff profiles',
                   style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w600)),
               subtitle: Text('Health logs, family time, work documents, grooming',
                   style: GoogleFonts.outfit(fontSize: 12)),
@@ -536,7 +536,7 @@ class _BackupViewerScreenState extends State<BackupViewerScreen> {
                 value: activity,
                 onChanged: (v) => setD(() => activity = v ?? true),
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text('Also restore pillar activity on staff profiles',
+                title: Text('Also restore pillar commitment activity on staff profiles',
                     style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w600)),
               ),
             ],

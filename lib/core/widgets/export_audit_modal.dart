@@ -323,7 +323,7 @@ class _ExportAuditModalState extends State<ExportAuditModal> {
                     ),
                     _buildDatasetOption(
                       type: ExportDatasetType.fivePillars,
-                      title: '5 Family Pillars',
+                      title: '5 Family Pillar Commitments',
                       subtitle: 'Holistic Staff Compliance',
                       icon: Icons.inventory_2_outlined,
                       color: const Color(0xFF10B981),

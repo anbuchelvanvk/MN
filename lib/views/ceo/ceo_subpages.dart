@@ -1630,7 +1630,7 @@ class CeoSocialCausesScreen extends StatelessWidget {
     );
 
     return CeoSubpageScaffold(
-      title: 'Social Causes',
+      title: 'Social Services',
       subtitle: 'Review staff good deeds',
       body: HrSocialCauseApprovalSection(
         reviewerName: ceoEmp.name,
@@ -2760,7 +2760,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
             ),
             const SizedBox(height: 10),
             Text(
-              '• ALL old & current notifications will be permanently deleted from Firebase.\n• ALL social cause feed entries will be cleared.\n\n• STRICTLY PRESERVED: Employee accounts, departments, health metrics (BMI/height/weight/calories), and document vault submissions & safe custody.\n\nEnsure you have downloaded an Excel backup before proceeding.',
+              '• ALL old & current notifications will be permanently deleted from Firebase.\n• ALL social service feed entries will be cleared.\n\n• STRICTLY PRESERVED: Employee accounts, departments, health metrics (BMI/height/weight/calories), and document vault submissions & safe custody.\n\nEnsure you have downloaded an Excel backup before proceeding.',
               style: GoogleFonts.outfit(
                 fontSize: 11.5,
                 color: AppColors.textMuted,
@@ -2881,7 +2881,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                   children: const [
                     _DatasetChip(label: 'Staff Directory'),
                     _DatasetChip(label: 'Attendance Master'),
-                    _DatasetChip(label: 'Social Causes'),
+                    _DatasetChip(label: 'Social Services'),
                     _DatasetChip(label: 'Notifications'),
                     _DatasetChip(label: 'Health Profiles'),
                     _DatasetChip(label: 'Document Vault'),
@@ -3087,7 +3087,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                             ),
                           ),
                           Text(
-                            'Cleans notifications and social causes while preserving users & documents',
+                            'Cleans notifications and social services while preserving users & documents',
                             style: GoogleFonts.outfit(fontSize: 11.5, color: AppColors.textMuted),
                           ),
                         ],
@@ -3127,7 +3127,7 @@ class _CeoDataVaultAndResetScreenState extends State<CeoDataVaultAndResetScreen>
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              'Erased from Firebase: All company and personal notification alerts, social cause posts, and transient logs to keep database performant.',
+                              'Erased from Firebase: All company and personal notification alerts, social service posts, and transient logs to keep database performant.',
                               style: GoogleFonts.outfit(fontSize: 11.5, color: const Color(0xFFF87171), height: 1.3),
                             ),
                           ),

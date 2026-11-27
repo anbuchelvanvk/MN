@@ -121,7 +121,7 @@ void main() {
     });
   });
 
-  group('4 Pillars Corner Badge Count Logic Tests', () {
+  group('4 Pillar Commitments Corner Badge Count Logic Tests', () {
     test('EcosystemProvider computes badge counts accurately', () {
       final eco = EcosystemProvider();
 

@@ -730,8 +730,8 @@ class KonarTaskCatalog {
           TaskItem(
             id: 'KONAR-HR-04',
             empId: empId,
-            title: 'Review Staff Social Cause & Good Deed Submissions for Approval',
-            category: 'Social Cause Review',
+            title: 'Review Staff Social Service & Good Deed Submissions for Approval',
+            category: 'Social Service Review',
             isDefaultSop: true,
             assignedByRole: 'system',
             assignedByName: 'HR SOP',

@@ -59,7 +59,7 @@ void main() {
 
       // 2. Master Ledger and 5 Pillars should NOT be present
       expect(find.text('Master Ledger'), findsNothing);
-      expect(find.text('5 Family Pillars'), findsNothing);
+      expect(find.text('5 Family Pillar Commitments'), findsNothing);
 
       // 3. Team datasets should be available
       expect(find.text('Team Tasks'), findsOneWidget);

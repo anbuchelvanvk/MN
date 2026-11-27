@@ -141,7 +141,7 @@ class ExportAuditService {
         _writeDirectoryCsv(buffer, filteredEmployees);
         break;
       case ExportDatasetType.masterLedger:
-        buffer.writeln('=== SECTION 1: 5 FAMILY PILLARS COMPLIANCE ===');
+        buffer.writeln('=== SECTION 1: 5 FAMILY PILLAR COMMITMENTS COMPLIANCE ===');
         _writeFivePillarsCsv(buffer, eco, filteredEmployees, empIds);
         buffer.writeln('\n=== SECTION 2: BIOMETRIC ATTENDANCE PUNCHES ===');
         _writeAttendanceCsv(buffer, eco, filteredEmployees, range, empIds);
@@ -168,11 +168,11 @@ class ExportAuditService {
       'Employee Name',
       'Role',
       'Department',
-      'Pillar 1: Health & Wellness',
-      'Pillar 2: Family & Harmony',
-      'Pillar 3: Profile & KYC',
-      'Pillar 4: Biometrics',
-      'Pillar 5: Social Causes',
+      'Pillar Commitment 1: Health & Wellness',
+      'Pillar Commitment 2: Family & Harmony',
+      'Pillar Commitment 3: Profile & KYC',
+      'Pillar Commitment 4: Biometrics',
+      'Pillar Commitment 5: Social Services',
       'Holistic Tier Status',
     ].map(formatCsvCell).join(','));
 
@@ -203,7 +203,7 @@ class ExportAuditService {
       // Pillar 5: Social Causes
       final approvedCauses = eco.socialCauses.where((c) => c.empId == emp.id && c.isApproved).length;
       final pendingCauses = eco.socialCauses.where((c) => c.empId == emp.id && c.isPending).length;
-      final p5 = '$approvedCauses Approved, $pendingCauses Pending Social Causes';
+      final p5 = '$approvedCauses Approved, $pendingCauses Pending Social Services';
 
       // Holistic Tier
       final tier = isSelf ? eco.holisticTierName : '${emp.ragStatus.toUpperCase()} Tier';
@@ -534,7 +534,7 @@ class ExportAuditService {
       case ExportDatasetType.masterLedger:
         return 'Master Ledger';
       case ExportDatasetType.fivePillars:
-        return '5 Family Pillars';
+        return '5 Family Pillar Commitments';
       case ExportDatasetType.attendance:
         return 'Biometric Attendance';
       case ExportDatasetType.tasks:

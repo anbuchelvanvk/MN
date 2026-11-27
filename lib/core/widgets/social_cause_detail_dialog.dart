@@ -68,7 +68,7 @@ class SocialCauseDetailDialog extends StatelessWidget {
 
         final employeeName = cause?.employeeName ?? notif?.senderName ?? 'Staff Member';
         final employeeRole = cause?.employeeRole ?? notif?.senderRole ?? 'MN Jewel Park Staff';
-        final causeType = cause?.causeType ?? 'Social Cause Deed';
+        final causeType = cause?.causeType ?? 'Social Service Deed';
         final title = cause?.title.isNotEmpty == true
             ? cause!.title
             : (notif?.title ?? 'Act of Kindness');

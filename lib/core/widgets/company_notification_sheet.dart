@@ -248,7 +248,7 @@ class _CompanyNotificationSheetState extends State<CompanyNotificationSheet> {
                 const SizedBox(width: 6),
                 _filterChip('birthday', 'Celebrations', Icons.cake_outlined),
                 const SizedBox(width: 6),
-                _filterChip('socialCause', 'Social Causes', Icons.volunteer_activism_outlined),
+                _filterChip('socialCause', 'Social Services', Icons.volunteer_activism_outlined),
               ],
             ),
           ),

@@ -2894,7 +2894,7 @@ class EcosystemProvider extends ChangeNotifier {
     if (bmiOk && hasWorkout) {
       lags.add(
         PillarLagItem(
-          pillarTitle: 'Pillar 1: Health & Wellness',
+          pillarTitle: 'Pillar Commitment 1: Health & Wellness',
           status: 'Good (Green)',
           description:
               'BMI is ${currentBmi.toStringAsFixed(1)} (Healthy) and workout logged ($totalWorkoutMinutes mins).',
@@ -2908,12 +2908,12 @@ class EcosystemProvider extends ChangeNotifier {
     } else if (hasMetrics) {
       lags.add(
         PillarLagItem(
-          pillarTitle: 'Pillar 1: Health & Wellness',
+          pillarTitle: 'Pillar Commitment 1: Health & Wellness',
           status: 'Needs Attention (Yellow)',
           description:
               'BMI is ${currentBmi.toStringAsFixed(1)} ($bmiCategory). ${hasWorkout ? "$totalWorkoutMinutes mins workout logged." : "No workout logged today."}',
           improvementAction:
-              'Log daily workout activities and meals in Pillar 1.',
+              'Log daily workout activities and meals in Pillar Commitment 1.',
           isCompromised: true,
           indicatorColor: const Color(0xFFF59E0B),
           icon: Icons.health_and_safety,
@@ -2922,12 +2922,12 @@ class EcosystemProvider extends ChangeNotifier {
     } else {
       lags.add(
         PillarLagItem(
-          pillarTitle: 'Pillar 1: Health & Wellness',
+          pillarTitle: 'Pillar Commitment 1: Health & Wellness',
           status: 'Action Needed (Red)',
           description:
               'Height and Weight need to be added. No workout logged today.',
           improvementAction:
-              'Calibrate height/weight and log activities in Pillar 1.',
+              'Calibrate height/weight and log activities in Pillar Commitment 1.',
           isCompromised: true,
           indicatorColor: const Color(0xFFEF4444),
           icon: Icons.health_and_safety,
@@ -2940,7 +2940,7 @@ class EcosystemProvider extends ChangeNotifier {
     if (famHours > 0) {
       lags.add(
         PillarLagItem(
-          pillarTitle: 'Pillar 2: Family & Friends',
+          pillarTitle: 'Pillar Commitment 2: Family & Friends',
           status: 'Good (Green)',
           description:
               'Spent ${famHours.toStringAsFixed(1)} hours of quality time with family or friends today.',
@@ -2953,12 +2953,12 @@ class EcosystemProvider extends ChangeNotifier {
     } else if (_familyActivityLogs.isNotEmpty) {
       lags.add(
         PillarLagItem(
-          pillarTitle: 'Pillar 2: Family & Friends',
+          pillarTitle: 'Pillar Commitment 2: Family & Friends',
           status: 'On Track (Yellow)',
           description:
               'Family activities recorded this week. No time logged today yet.',
           improvementAction:
-              'Spend 30 minutes having dinner or talking with family in Pillar 2.',
+              'Spend 30 minutes having dinner or talking with family in Pillar Commitment 2.',
           isCompromised: true,
           indicatorColor: const Color(0xFFF59E0B),
           icon: Icons.family_restroom,
@@ -2967,11 +2967,11 @@ class EcosystemProvider extends ChangeNotifier {
     } else {
       lags.add(
         PillarLagItem(
-          pillarTitle: 'Pillar 2: Family & Friends',
+          pillarTitle: 'Pillar Commitment 2: Family & Friends',
           status: 'Not Logged Yet (Yellow)',
           description: 'No time logged with family or friends today.',
           improvementAction:
-              'Spend 30 minutes having dinner or talking with family in Pillar 2.',
+              'Spend 30 minutes having dinner or talking with family in Pillar Commitment 2.',
           isCompromised: true,
           indicatorColor: const Color(0xFFF59E0B),
           icon: Icons.family_restroom,
@@ -2987,12 +2987,12 @@ class EcosystemProvider extends ChangeNotifier {
       if (_originalDocuments.isEmpty) {
         lags.add(
           PillarLagItem(
-            pillarTitle: 'Pillar 3: Document Submission',
+            pillarTitle: 'Pillar Commitment 3: Document Submission',
             status: 'Need to be added (Yellow)',
             description:
                 'No certificates submitted yet to digital vault custody.',
             improvementAction:
-                'Submit original certificates to HR in Pillar 3.',
+                'Submit original certificates to HR in Pillar Commitment 3.',
             isCompromised: true,
             indicatorColor: const Color(0xFFF59E0B),
             icon: Icons.lock_outline,
@@ -3009,7 +3009,7 @@ class EcosystemProvider extends ChangeNotifier {
         if (pendingMandatory.isEmpty) {
           lags.add(
             PillarLagItem(
-              pillarTitle: 'Pillar 3: Document Submission',
+              pillarTitle: 'Pillar Commitment 3: Document Submission',
               status: 'All Submitted (Green)',
               description:
                   'All required original certificates are safely submitted to company vault.',
@@ -3025,14 +3025,14 @@ class EcosystemProvider extends ChangeNotifier {
               .join(', ');
           lags.add(
             PillarLagItem(
-              pillarTitle: 'Pillar 3: Document Submission',
+              pillarTitle: 'Pillar Commitment 3: Document Submission',
               status: pendingMandatory.length == 1
                   ? '1 Document Pending (Yellow)'
                   : 'Documents Missing (Red)',
               description:
                   '${pendingMandatory.length} required original document(s) not yet submitted: $names.',
               improvementAction:
-                  'Submit your pending documents to HR in Pillar 3.',
+                  'Submit your pending documents to HR in Pillar Commitment 3.',
               isCompromised: true,
               indicatorColor: pendingMandatory.length == 1
                   ? const Color(0xFFF59E0B)
@@ -3052,7 +3052,7 @@ class EcosystemProvider extends ChangeNotifier {
         if (groomingPercentage >= 80) {
           lags.add(
             PillarLagItem(
-              pillarTitle: 'Pillar 3: Grooming & Uniform',
+              pillarTitle: 'Pillar Commitment 3: Grooming & Uniform',
               status:
                   'Great (${groomingPercentage.toStringAsFixed(0)}% • $groomingDailyPoints/50 pts)',
               description:
@@ -3066,7 +3066,7 @@ class EcosystemProvider extends ChangeNotifier {
         } else {
           lags.add(
             PillarLagItem(
-              pillarTitle: 'Pillar 3: Grooming & Uniform',
+              pillarTitle: 'Pillar Commitment 3: Grooming & Uniform',
               status:
                   'Needs Improvement (${groomingPercentage.toStringAsFixed(0)}% • $groomingDailyPoints/50 pts)',
               description:
@@ -3084,7 +3084,7 @@ class EcosystemProvider extends ChangeNotifier {
       } else {
         lags.add(
           PillarLagItem(
-            pillarTitle: 'Pillar 3: Grooming & Uniform',
+            pillarTitle: 'Pillar Commitment 3: Grooming & Uniform',
             status: 'Compliant (100% • Standard)',
             description:
                 'In clean corporate uniform and standard presentation. Daily HR check pending.',
@@ -3107,7 +3107,7 @@ class EcosystemProvider extends ChangeNotifier {
       if (!isExceeded) {
         lags.add(
           PillarLagItem(
-            pillarTitle: 'Pillar 3: Permissions & Leaves',
+            pillarTitle: 'Pillar Commitment 3: Permissions & Leaves',
             status: 'On Track (Green)',
             description:
                 '${remHours.toStringAsFixed(1)}h permission left out of 4.0h. Leaves used: ${clUsed.toStringAsFixed(clUsed % 1 == 0 ? 0 : 1)}/1 CL.',
@@ -3120,7 +3120,7 @@ class EcosystemProvider extends ChangeNotifier {
       } else {
         lags.add(
           PillarLagItem(
-            pillarTitle: 'Pillar 3: Permissions & Leaves',
+            pillarTitle: 'Pillar Commitment 3: Permissions & Leaves',
             status: 'Leaves Exceeded (Red)',
             description: hrRow.isPermissionExceeded
                 ? 'Monthly permission time exceeded 4.0 hours (${hrRow.totalPermissionHours.toStringAsFixed(1)}h used).'
@@ -3138,7 +3138,7 @@ class EcosystemProvider extends ChangeNotifier {
           casualLeavesUsed <= _monthlyCasualLeavesLimit) {
         lags.add(
           PillarLagItem(
-            pillarTitle: 'Pillar 3: Permissions & Leaves',
+            pillarTitle: 'Pillar Commitment 3: Permissions & Leaves',
             status: 'On Track (Green)',
             description:
                 '${permissionHoursRemaining.toStringAsFixed(1)}h permission left out of 4.0h. Leaves used: $casualLeavesUsed/1.',
@@ -3154,7 +3154,7 @@ class EcosystemProvider extends ChangeNotifier {
             : 'Used more than 1 Casual Leave ($casualLeavesUsed used, $salaryDeductionDays day salary deduction).';
         lags.add(
           PillarLagItem(
-            pillarTitle: 'Pillar 3: Permissions & Leaves',
+            pillarTitle: 'Pillar Commitment 3: Permissions & Leaves',
             status: 'Leaves Exceeded (Red)',
             description: reason,
             improvementAction:
@@ -3181,7 +3181,7 @@ class EcosystemProvider extends ChangeNotifier {
         if (hrRow.lateCount <= 3 && hrRow.lopDaysUsed == 0) {
           lags.add(
             PillarLagItem(
-              pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
+              pillarTitle: 'Pillar Commitment 4: Attendance (HR Master Ledger)',
               status: 'Good (${attPct.toStringAsFixed(0)}% • Green)',
               description:
                   'HR Ledger (Nov 1–$recorded): ${hrRow.presentDaysCount} days present, ${hrRow.lateCount} lates (within 3 allowed), ${hrRow.clDaysUsed} CL used.',
@@ -3195,7 +3195,7 @@ class EcosystemProvider extends ChangeNotifier {
         } else {
           lags.add(
             PillarLagItem(
-              pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
+              pillarTitle: 'Pillar Commitment 4: Attendance (HR Master Ledger)',
               status:
                   'Needs Attention (${attPct.toStringAsFixed(0)}% • Yellow)',
               description:
@@ -3211,7 +3211,7 @@ class EcosystemProvider extends ChangeNotifier {
       } else {
         lags.add(
           PillarLagItem(
-            pillarTitle: 'Pillar 4: Attendance (HR Master Ledger)',
+            pillarTitle: 'Pillar Commitment 4: Attendance (HR Master Ledger)',
             status: 'Audited by HR (Green)',
             description:
                 'Attendance recorded and uploaded by HR. Contact HR for any spreadsheet adjustments.',
@@ -4432,11 +4432,11 @@ class EcosystemProvider extends ChangeNotifier {
               notifyListeners();
             },
             onError: (err) {
-              debugPrint('Firestore social causes sync listener note: $err');
+              debugPrint('Firestore social services sync listener note: $err');
             },
           );
     } catch (e) {
-      debugPrint('Firestore social causes stream error: $e');
+      debugPrint('Firestore social services stream error: $e');
     }
 
     try {
@@ -10250,10 +10250,10 @@ class EcosystemProvider extends ChangeNotifier {
       0,
       AcceptancePopupNotification(
         id: 'POP-SC-PEND-${newCause.id}',
-        title: '💛 New Social Cause: CEO & HR Approval Required',
+        title: '💛 New Social Service: CEO & HR Approval Required',
         message:
             '${possibleDuplicate ? '⚠️ Possible duplicate — same title posted today. ' : ''}'
-            '${newCause.employeeName} (${newCause.employeeRole}) posted a social cause: "${newCause.title}" (${newCause.causeType}, ₹${newCause.amountSpent.toStringAsFixed(0)}). Awaiting CEO & HR verification.',
+            '${newCause.employeeName} (${newCause.employeeRole}) posted a social service: "${newCause.title}" (${newCause.causeType}, ₹${newCause.amountSpent.toStringAsFixed(0)}). Awaiting CEO & HR verification.',
         requestType: AcceptanceRequestType.socialCausePending,
         employeeId: newCause.empId,
         employeeName: newCause.employeeName,
@@ -10272,7 +10272,7 @@ class EcosystemProvider extends ChangeNotifier {
         activeRole.toLowerCase() == 'hr') {
       PushNotificationService().showNotification(
         id: 'SC-PEND-${newCause.id}',
-        title: '💛 New Social Cause: Approval Required',
+        title: '💛 New Social Service: Approval Required',
         body:
             '${newCause.employeeName} posted "${newCause.title}". Requires CEO & HR verification.',
         payload: 'social_cause_pending',
@@ -10306,7 +10306,7 @@ class EcosystemProvider extends ChangeNotifier {
     required String approverRole,
   }) async {
     if (_isLoggedIn && !hasPerk((p) => p.canApproveSocialCauses)) {
-      _notificationMessage = _perkRefusal((p) => p.canApproveSocialCauses, 'approve social causes');
+      _notificationMessage = _perkRefusal((p) => p.canApproveSocialCauses, 'approve social services');
       notifyListeners();
       return;
     }
@@ -10350,7 +10350,7 @@ class EcosystemProvider extends ChangeNotifier {
       // Notification is broadcast ONLY upon HR / CEO approval
       final notif = CompanyNotification(
         id: 'NOTIF-SC-${old.id}',
-        title: '❤️ Social Cause: ${old.employeeName} (${old.employeeRole})',
+        title: '❤️ Social Service: ${old.employeeName} (${old.employeeRole})',
         content:
             '${old.employeeName} contributed to ${old.causeType} - "${old.title}" (₹${old.amountSpent.toStringAsFixed(0)}). Approved by $approverLabel. Tap to view and send your reaction!',
         type: CompanyNotificationType.socialCause,

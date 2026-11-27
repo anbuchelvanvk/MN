@@ -11,6 +11,7 @@ import '../../core/widgets/mn_app_bar.dart';
 import '../../core/widgets/mn_brand_logo.dart';
 import '../../core/widgets/legal_links.dart';
 import 'home_highlights_card.dart';
+import 'pillar_today_sheet.dart';
 import '../../core/widgets/birthday_crown.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/employee_avatar.dart';
@@ -187,7 +188,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                             children: [
                               _buildHero(context, eco, emp),
                               const SizedBox(height: 22),
-                              _sectionHeader('Your month', trailing: 'Tap a card for details'),
+                              _sectionHeader('Your commitments', trailing: 'Hold a card for today'),
                               const SizedBox(height: 12),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -959,6 +960,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Kcal', '${todayCal.round()}/${targetCal.round()}'),
         ],
         onTap: () => _open(context, const HealthPillarScreen()),
+        onLongPress: () => showPillarTodaySheet(context, PillarKind.health,
+            onOpenFull: () => _open(context, const HealthPillarScreen())),
         tint: const Color(0xFF0E9F6E),
       ),
       _pillarCard(
@@ -975,6 +978,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Friends', '${hrs(monthFriendsHours)}h'),
         ],
         onTap: () => _open(context, const FamilyPillarScreen()),
+        onLongPress: () => showPillarTodaySheet(context, PillarKind.family,
+            onOpenFull: () => _open(context, const FamilyPillarScreen())),
         tint: AppColors.violet,
       ),
       _pillarCard(
@@ -991,10 +996,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Later', '$postponedTasks'),
         ],
         onTap: () => _open(context, const ProfilePillarScreen()),
+        onLongPress: () => showPillarTodaySheet(context, PillarKind.work,
+            onOpenFull: () => _open(context, const ProfilePillarScreen())),
         tint: AppColors.primary,
       ),
       _pillarCard(
-        title: 'Social Cause',
+        title: 'Social Service',
         icon: Icons.volunteer_activism_rounded,
         accent: socialPercentColor,
         percent: socialPercentage,
@@ -1007,6 +1014,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           ('Approved', '$approvedCauses'),
         ],
         onTap: () => _open(context, const SocialCausePillarScreen()),
+        onLongPress: () => showPillarTodaySheet(context, PillarKind.social,
+            onOpenFull: () => _open(context, const SocialCausePillarScreen())),
         tint: const Color(0xFFB7791F),
       ),
     ];
@@ -1053,6 +1062,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     required Color ringColor,
     required List<(String, String)> stats,
     required VoidCallback onTap,
+    VoidCallback? onLongPress,
     Color tint = AppColors.primary,
   }) {
     const ink = AppColors.midnight;
@@ -1064,7 +1074,10 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
+          key: Key('pillar_card_$title'),
           onTap: onTap,
+          // Hold: today's targets and how much is done.
+          onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(24),
           child: Ink(
             decoration: BoxDecoration(
@@ -1125,17 +1138,21 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                               ),
                               const SizedBox(width: 7),
                               Expanded(
-                                child: Text(
+                                // Shrinks to fit instead of cutting off (e.g. "Social Service").
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
                                   title,
                                   maxLines: 1,
                                   softWrap: false,
-                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.outfit(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w800,
                                     color: ink,
                                     height: 1.15,
                                   ),
+                                ),
                                 ),
                               ),
                               const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFFCBB8C4)),
@@ -2000,7 +2017,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   Material(type: MaterialType.transparency, child: ListTile(
                     key: const ValueKey('drawer_pillars'),
                     leading: const Icon(Icons.auto_awesome_mosaic_rounded, color: Color(0xFF881337)),
-                    title: Text('My Pillars', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                    title: Text('My Pillar Commitments', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
                     subtitle: Text('Health, Family, Work, Attendance, Social', style: GoogleFonts.outfit(fontSize: 12)),
                     onTap: () {
                       Navigator.pop(context);

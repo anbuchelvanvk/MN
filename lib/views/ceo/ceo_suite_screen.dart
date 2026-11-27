@@ -416,7 +416,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                       _verticalCeoTabTile(
                         context: context,
                         eco: eco,
-                        label: 'Social Causes',
+                        label: 'Social Services',
                         icon: Icons.volunteer_activism_outlined,
                         badge: eco.pendingSocialCauses.isNotEmpty ? '${eco.pendingSocialCauses.length}' : '',
                         destination: const CeoSocialCausesScreen(),
@@ -2623,7 +2623,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Social Cause & CSR Deeds',
+                            'Social Service & CSR Deeds',
                             style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textDark),
                           ),
                           Text(

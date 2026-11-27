@@ -566,7 +566,7 @@ class _AdminRoleAccessManagementScreenState
                       icon: Icons.apps_rounded,
                     ),
                     _buildPermissionPill(
-                      label: '$pillarCount/7 Pillars',
+                      label: '$pillarCount/7 Pillar Commitments',
                       active: pillarCount > 0,
                       icon: Icons.account_balance_outlined,
                     ),
@@ -747,13 +747,13 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
     'CEO': ('CEO · Administration Department', [
       'Sees and manages every department (always, cannot be removed)',
       'Creates departments, hires HR / Asst. HR, sets everyone\'s access',
-      'Final approval on leave, permissions and social causes',
+      'Final approval on leave, permissions and social services',
       'Data Vault: backup, restore and reset',
     ]),
     'HR': ('HR · Administration Department', [
       'Hiring, relieving and staff records for the departments you tick below',
       'Attendance sheet, grooming audits and password help',
-      'First approval on leave and permissions; social cause review',
+      'First approval on leave and permissions; social service review',
       'Company announcements',
     ]),
     'AHR': ('Asst. HR · Administration Department', [
@@ -1012,7 +1012,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                     _presetChip(
                         'Full Access', _grantFullAccess, color: const Color(0xFF047857), bgColor: const Color(0xFFECFDF5)),
                     _presetChip(
-                        'Pillars Only', _grantPillarsOnly, color: const Color(0xFF1D4ED8), bgColor: const Color(0xFFEFF6FF)),
+                        'Pillar Commitments Only', _grantPillarsOnly, color: const Color(0xFF1D4ED8), bgColor: const Color(0xFFEFF6FF)),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -1271,7 +1271,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '7 CORE PILLARS OF LIFE (7)',
+                      '7 CORE PILLAR COMMITMENTS OF LIFE (7)',
                       style: GoogleFonts.outfit(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -1292,7 +1292,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 const SizedBox(height: 10),
 
                 _buildSwitchTile(
-                  title: 'Pillar 1: Attendance & Shift',
+                  title: 'Pillar Commitment 1: Attendance & Shift',
                   subtitle:
                       'Biometric clock-in, overtime logs, and monthly calendar',
                   value: _perms.canAccessAttendancePillar,
@@ -1303,7 +1303,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 ),
 
                 _buildSwitchTile(
-                  title: 'Pillar 2: Health & Wellness',
+                  title: 'Pillar Commitment 2: Health & Wellness',
                   subtitle:
                       'Daily diet logs, medical leave, and emergency prescriptions',
                   value: _perms.canAccessHealthPillar,
@@ -1314,7 +1314,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 ),
 
                 _buildSwitchTile(
-                  title: 'Pillar 3: Family & Relationships',
+                  title: 'Pillar Commitment 3: Family & Relationships',
                   subtitle:
                       'Family time logging, activity dairy, and time ratio analytics',
                   value: _perms.canAccessFamilyPillar,
@@ -1325,7 +1325,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 ),
 
                 _buildSwitchTile(
-                  title: 'Pillar 4: Profile & Verification',
+                  title: 'Pillar Commitment 4: Profile & Verification',
                   subtitle:
                       'KYC verification, document vault custody, and personal details',
                   value: _perms.canAccessProfilePillar,
@@ -1336,7 +1336,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 ),
 
                 _buildSwitchTile(
-                  title: 'Pillar 5: Social Causes & Giving',
+                  title: 'Pillar Commitment 5: Social Services & Giving',
                   subtitle:
                       'Philanthropy logs, community milestones, and corporate giving',
                   value: _perms.canAccessSocialCausePillar,
@@ -1347,7 +1347,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 ),
 
                 _buildSwitchTile(
-                  title: 'Pillar 6: Tier & Career Milestones',
+                  title: 'Pillar Commitment 6: Tier & Career Milestones',
                   subtitle:
                       'Corporate performance tiers, seniority badges, and evaluations',
                   value: _perms.canAccessTierPillar,
@@ -1358,7 +1358,7 @@ class _AccessEditorSheetState extends State<_AccessEditorSheet> {
                 ),
 
                 _buildSwitchTile(
-                  title: 'Pillar 7: Daily Work & Tasks',
+                  title: 'Pillar Commitment 7: Daily Work & Tasks',
                   subtitle:
                       'Standard operating tasks, milestone completion, and blocker reports',
                   value: _perms.canAccessWorkPillar,

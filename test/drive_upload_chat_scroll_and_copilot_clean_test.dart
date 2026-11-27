@@ -20,7 +20,7 @@ void main() {
       );
     });
 
-    test('2. Family Pillar formatDuration produces clean duration strings without awkward plus signs', () {
+    test('2. Family Pillar Commitment formatDuration produces clean duration strings without awkward plus signs', () {
       expect(formatDuration(0.75), equals('45 mins'));
       expect(formatDuration(1.25), equals('1 hr 15 mins'));
       expect(formatDuration(0.5), equals('30 mins'));

@@ -32,7 +32,7 @@ class RoleGuide {
       return const RoleGuide('CEO', Color(0xFFB45309), Icons.workspace_premium_rounded, [
         'Leads MN Jewel Park and every department',
         'Creates departments and sets everyone\'s role and access',
-        'Final approval on leave, permissions and social causes',
+        'Final approval on leave, permissions and social services',
         'Data Vault: backup, restore and reset',
       ]);
     }
@@ -74,7 +74,7 @@ class RoleGuide {
     }
     return const RoleGuide('Employee', Color(0xFFE11D48), Icons.person_rounded, [
       'Daily tasks and SOPs of their role',
-      'Attendance, grooming and the four pillars',
+      'Attendance, grooming and the four pillar commitments',
     ]);
   }
 }

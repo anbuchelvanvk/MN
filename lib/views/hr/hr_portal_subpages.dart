@@ -1673,7 +1673,7 @@ class HrSocialCausesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HrSubpageScaffold(
-      title: 'Social Causes',
+      title: 'Social Services',
       subtitle: 'Review staff good deeds',
       body: HrSocialCauseApprovalSection(
         reviewerName: '${context.read<EcosystemProvider>().currentEmployee.name} (HR)',
