@@ -9,6 +9,8 @@ import '../../core/services/konar_pdf_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../../core/widgets/mn_brand_logo.dart';
+import '../../core/widgets/legal_links.dart';
+import 'home_highlights_card.dart';
 import '../../core/widgets/birthday_crown.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/employee_avatar.dart';
@@ -46,6 +48,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     with SingleTickerProviderStateMixin {
   String _selectedFilter = 'all'; // 'all', 'pending', 'completed', 'assigned'
   int _todoShowCount = 10;
+  bool _chatDockOpen = false;
 
   late AnimationController _notifAnimController;
   Timer? _notifDismissTimer;
@@ -159,7 +162,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                 color: AppColors.primary,
                 backgroundColor: Colors.white,
                 onRefresh: () => eco.refreshAllData(),
-                child: SingleChildScrollView(
+                child: LayoutBuilder(
+                  builder: (context, viewport) => SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
@@ -167,30 +171,47 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Top of Home: header, the 4 pillar cards and quick actions
-                      // fit on one screen; text here does not grow with the
-                      // phone's large-font setting.
-                      MediaQuery(
-                        data: MediaQuery.of(context).copyWith(
-                          textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.0),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildHero(context, eco, emp),
-                            const SizedBox(height: 12),
-                            _sectionHeader('Your month', trailing: 'Tap a card for details'),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              child: _buildPillarsGrid(context, eco),
-                            ),
-                            const SizedBox(height: 14),
-                            _buildQuickActions(context, eco),
-                          ],
+                      // First screen: only the header and the 4 pillar cards,
+                      // with room to breathe. It is at least one screen tall,
+                      // so everything else starts below the fold. Text here
+                      // does not grow with the phone's large-font setting.
+                      ConstrainedBox(
+                        key: const Key('home_first_screen'),
+                        constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                        child: MediaQuery(
+                          data: MediaQuery.of(context).copyWith(
+                            textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.0),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildHero(context, eco, emp),
+                              const SizedBox(height: 22),
+                              _sectionHeader('Your month', trailing: 'Tap a card for details'),
+                              const SizedBox(height: 12),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: _buildPillarsGrid(context, eco),
+                              ),
+                              const SizedBox(height: 22),
+                              // Special days and the latest notices, one by one (every 10 s)
+                              _sectionHeader('Happening now', trailing: 'Tap to see all'),
+                              const SizedBox(height: 12),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: HomeHighlightsCard(),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+
+                      // Shortcuts
+                      _sectionHeader('Shortcuts'),
+                      const SizedBox(height: 12),
+                      _buildQuickActions(context, eco),
+                      const SizedBox(height: 26),
 
                       // Department Konar Book
                       Padding(
@@ -216,6 +237,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       const SizedBox(height: 24),
                     ],
                   ),
+                ),
                 ),
               ),
             ),
@@ -269,19 +291,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     final bool hasLoggedInUser = emp != null && emp.name.isNotEmpty && emp.name != 'Guest User';
     final String name = hasLoggedInUser ? emp.name : 'Guest';
     final String role = _roleLabel(emp);
-
-    final now = DateTime.now();
-    final steps = eco.getStepsForDate(now);
-    final pendingTasks = eco.currentEmployeeTasks
-        .where((t) => t.status == 'pending' || t.status == 'postponed')
-        .length;
-    final famToday = eco.totalFamilyHoursToday;
-    String fmtSteps(int v) => v.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
-    String fmtHours(double h) =>
-        h == h.roundToDouble() ? '${h.toStringAsFixed(0)}h' : '${h.toStringAsFixed(1)}h';
 
     return Container(
       decoration: const BoxDecoration(
@@ -502,63 +511,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
-
-                // Today strip
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0x14FFFFFF),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0x1FFFFFFF)),
-                  ),
-                  child: IntrinsicHeight(
-                    child: Row(
-                      children: [
-                        _heroStat(Icons.directions_walk_rounded, fmtSteps(steps), 'Steps today'),
-                        const VerticalDivider(color: Color(0x26FFFFFF), width: 1, thickness: 1),
-                        _heroStat(Icons.task_alt_rounded, '$pendingTasks', 'To-dos open'),
-                        const VerticalDivider(color: Color(0x26FFFFFF), width: 1, thickness: 1),
-                        _heroStat(Icons.favorite_rounded, fmtHours(famToday), 'Family today'),
-                      ],
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 10),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _heroStat(IconData icon, String value, String label) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: AppColors.heroAccent),
-          const SizedBox(height: 3),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: GoogleFonts.outfit(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 1),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFFFFD6E5),
             ),
           ),
         ],
@@ -946,10 +900,12 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     final monthSocialCauses = eco.currentEmployeeSocialCauses
         .where((c) => c.date.month == now.month && c.date.year == now.year)
         .toList();
-    final monthSocialAmount =
-        monthSocialCauses.fold(0.0, (sum, c) => sum + c.amountSpent);
-    final socialPercentage = monthSocialAmount > 0
-        ? '${((monthSocialAmount / 5000.0) * 100).clamp(0, 100).round()}%'
+    // Progress toward the person's own monthly amount goal (approved deeds).
+    final monthApprovedAmount =
+        eco.myApprovedSocialCauses(now).fold(0.0, (sum, c) => sum + c.amountSpent);
+    final socialMonthGoal = eco.socialAmountGoalForMonth(now);
+    final socialPercentage = socialMonthGoal > 0
+        ? '${((monthApprovedAmount / socialMonthGoal) * 100).clamp(0, 100).round()}%'
         : '0%';
     final socialPercentColor = const Color(0xFFEF4444);
 
@@ -1000,7 +956,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         ringColor: bmiColor,
         stats: [
           ('Steps', stepsFormatted),
-          ('Calories', '${todayCal.round()} / ${targetCal.round()}'),
+          ('Kcal', '${todayCal.round()}/${targetCal.round()}'),
         ],
         onTap: () => _open(context, const HealthPillarScreen()),
         tint: const Color(0xFF0E9F6E),
@@ -1042,7 +998,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
         icon: Icons.volunteer_activism_rounded,
         accent: socialPercentColor,
         percent: socialPercentage,
-        caption: '${rupees(monthSocialAmount)} of ₹5,000 goal',
+        caption: '${rupees(monthApprovedAmount)} of ${rupees(socialMonthGoal)} goal',
         ringValue: rupees(todaySocialAmount),
         ringLabel: 'Today',
         ringColor: socialPercentColor,
@@ -1064,15 +1020,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
           Row(
             children: [
               Expanded(child: cards[0]),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(child: cards[1]),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(child: cards[2]),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(child: cards[3]),
             ],
           ),
@@ -1103,7 +1059,7 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     const muted = AppColors.textMuted;
     final pct = (int.tryParse(percent.replaceAll('%', '')) ?? 0).clamp(0, 100) / 100.0;
     return SizedBox(
-      height: 158,
+      height: 168,
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -1279,6 +1235,9 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                   if (i > 0)
                                     Container(width: 1, height: 12, margin: const EdgeInsets.symmetric(horizontal: 6), color: tint.withOpacity(0.2)),
                                   Expanded(
+                                    // Width follows text length, so a long stat
+                                    // (Calories 0/1850) is not shrunk to fit half.
+                                    flex: (stats[i].$1.length + stats[i].$2.length + 1).clamp(4, 40),
                                     child: FittedBox(
                                       fit: BoxFit.scaleDown,
                                       alignment: i == 0 ? Alignment.centerLeft : Alignment.centerRight,
@@ -1847,8 +1806,24 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Capsule: [emoji] Type here [attach] - each opens the floating chat
-          Container(
+          // Capsule: [emoji] Type here [attach] [all chats]. Hidden until the
+          // chat bubble is tapped; tapping the bubble again hides it.
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.85, end: 1).animate(anim),
+                alignment: Alignment.centerRight,
+                child: child,
+              ),
+            ),
+            child: !_chatDockOpen
+                ? const SizedBox.shrink(key: ValueKey('chat_capsule_hidden'))
+                : Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Container(
+            key: const ValueKey('chat_capsule'),
             height: 50,
             padding: const EdgeInsets.symmetric(horizontal: 7),
             decoration: BoxDecoration(
@@ -1879,15 +1854,19 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                   ),
                 ),
                 capsuleButton(Icons.attach_file_rounded, 'Attach', () => open(FloatingChatStart.allHandsAttach)),
+                const SizedBox(width: 4),
+                capsuleButton(Icons.forum_rounded, 'All chats', () => open(FloatingChatStart.hub)),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          // Chat bubble: opens the floating chat hub (all conversations)
+                  ),
+          ),
+          // Chat bubble: shows / hides the chat capsule
           Tooltip(
-            message: 'Team chat',
+            message: _chatDockOpen ? 'Hide chat' : 'Team chat',
             child: InkWell(
-              onTap: () => open(FloatingChatStart.hub),
+              key: const Key('home_chat_bubble'),
+              onTap: () => setState(() => _chatDockOpen = !_chatDockOpen),
               borderRadius: BorderRadius.circular(30),
               child: SizedBox(
                 width: 58,
@@ -1899,14 +1878,15 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     CustomPaint(
                       size: const Size(58, 58),
                       painter: _ChatBubbleTailPainter(
-                        color: const Color(0xFFBE185D),
+                        color: const Color(0xFF2563EB),
                         strokeColor: Colors.white,
                         strokeWidth: 2.8,
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 3, right: 3),
-                      child: Icon(Icons.groups_rounded, size: 28, color: Colors.white),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 3, right: 3),
+                      child: Icon(_chatDockOpen ? Icons.close_rounded : Icons.groups_rounded,
+                          size: 28, color: Colors.white),
                     ),
                     if (unread > 0)
                       Positioned(
@@ -2105,6 +2085,18 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                       );
                     },
                   )),
+                  const Divider(height: 24),
+                  for (final page in LegalPage.values)
+                    Material(type: MaterialType.transparency, child: ListTile(
+                      key: ValueKey('drawer_legal_${page.slug}'),
+                      leading: Icon(page.icon, color: const Color(0xFF64748B)),
+                      title: Text(page.title, style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+                      trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Color(0xFF94A3B8)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        page.open(context);
+                      },
+                    )),
                   const Divider(height: 24),
                   Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),

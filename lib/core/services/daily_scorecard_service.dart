@@ -88,61 +88,49 @@ class DailyScorecardService {
     return list;
   }
 
-  /// Fills the monthly scorecard's channel numbers from the published days.
-  /// Actual = sum of done; target = sum of daily targets.
+  /// Fills the monthly scorecard's channel numbers from the published days,
+  /// one day at a time: actual = sum of each day's "done", target = sum of
+  /// each day's target. A target the team lead typed in for the month (see
+  /// [MonthlyScorecardModel.targetOverrides]) is kept as typed. With no
+  /// published day yet, the stored monthly numbers are left as they are.
   static void applyToMonthly(MonthlyScorecardModel mo, List<DailyScorecardModel> days) {
+    if (days.isEmpty) return;
     int done(String c, String i) => days.fold(0, (s, d) => s + (d.item(c, i)?.done ?? 0));
     int target(String c, String i) => days.fold(0, (s, d) => s + (d.item(c, i)?.target ?? 0));
+    final keep = mo.targetOverrides;
 
-    mo.instaContentReelActual = done('instagram', 'contentReel');
-    mo.instaContentReelTarget = target('instagram', 'contentReel');
-    mo.instaProductReelActual = done('instagram', 'productReel');
-    mo.instaProductReelTarget = target('instagram', 'productReel');
-    mo.instaStoriesActual = done('instagram', 'stories');
-    mo.instaStoriesTarget = target('instagram', 'stories');
-    mo.instaCarouselActual = done('instagram', 'carousel');
-    mo.instaCarouselTarget = target('instagram', 'carousel');
-    mo.instaCampaignActual = done('instagram', 'campaign');
-    mo.instaCampaignTarget = target('instagram', 'campaign');
-
-    mo.webMnListingActual = done('listing', 'website');
-    mo.webMnListingTarget = target('listing', 'website');
-    mo.appMnListingActual = done('listing', 'app');
-    mo.appMnListingTarget = target('listing', 'app');
-    mo.googleListingActual = done('listing', 'google');
-    mo.googleListingTarget = target('listing', 'google');
-
-    mo.waStoriesActual = done('whatsapp', 'stories');
-    mo.waStoriesTarget = target('whatsapp', 'stories');
-    mo.waChannelsActual = done('whatsapp', 'channels');
-    mo.waChannelsTarget = target('whatsapp', 'channels');
-    mo.waCampaignActual = done('whatsapp', 'campaign');
-    mo.waCampaignTarget = target('whatsapp', 'campaign');
-
-    mo.appCampaignActual = done('mobileApp', 'campaign');
-    mo.appCampaignTarget = target('mobileApp', 'campaign');
-    mo.appNotificationActual = done('mobileApp', 'notification');
-    mo.appNotificationTarget = target('mobileApp', 'notification');
-
-    mo.googleBlogsActual = done('google', 'blog');
-    mo.googleBlogsTarget = target('google', 'blog');
-    mo.googleCampaignActual = done('google', 'campaign');
-    mo.googleCampaignTarget = target('google', 'campaign');
-
-    mo.osmSnapchatActual = done('otherSocial', 'snapchat');
-    mo.osmSnapchatTarget = target('otherSocial', 'snapchat');
-    mo.osmPinterestActual = done('otherSocial', 'pinterest');
-    mo.osmPinterestTarget = target('otherSocial', 'pinterest');
-    mo.osmShortsActual = done('otherSocial', 'shorts');
-    mo.osmShortsTarget = target('otherSocial', 'shorts');
-    mo.osmLinkedinActual = done('otherSocial', 'linkedin');
-    mo.osmLinkedinTarget = target('otherSocial', 'linkedin');
-    mo.osmXPostActual = done('otherSocial', 'xpost');
-    mo.osmXPostTarget = target('otherSocial', 'xpost');
-
-    if (days.isNotEmpty) {
-      mo.designResponse = days.fold(0, (s, d) => s + d.feedbackResponses);
-      mo.designFeedbackRating = (days.fold(0, (s, d) => s + d.feedbackRating) / days.length).round();
+    void sync(String field, String c, String i, void Function(int) setActual, void Function(int) setTarget) {
+      setActual(done(c, i));
+      if (!keep.contains('${field}Target')) setTarget(target(c, i));
     }
+
+    sync('instaContentReel', 'instagram', 'contentReel', (v) => mo.instaContentReelActual = v, (v) => mo.instaContentReelTarget = v);
+    sync('instaProductReel', 'instagram', 'productReel', (v) => mo.instaProductReelActual = v, (v) => mo.instaProductReelTarget = v);
+    sync('instaStories', 'instagram', 'stories', (v) => mo.instaStoriesActual = v, (v) => mo.instaStoriesTarget = v);
+    sync('instaCarousel', 'instagram', 'carousel', (v) => mo.instaCarouselActual = v, (v) => mo.instaCarouselTarget = v);
+    sync('instaCampaign', 'instagram', 'campaign', (v) => mo.instaCampaignActual = v, (v) => mo.instaCampaignTarget = v);
+
+    sync('webMnListing', 'listing', 'website', (v) => mo.webMnListingActual = v, (v) => mo.webMnListingTarget = v);
+    sync('appMnListing', 'listing', 'app', (v) => mo.appMnListingActual = v, (v) => mo.appMnListingTarget = v);
+    sync('googleListing', 'listing', 'google', (v) => mo.googleListingActual = v, (v) => mo.googleListingTarget = v);
+
+    sync('waStories', 'whatsapp', 'stories', (v) => mo.waStoriesActual = v, (v) => mo.waStoriesTarget = v);
+    sync('waChannels', 'whatsapp', 'channels', (v) => mo.waChannelsActual = v, (v) => mo.waChannelsTarget = v);
+    sync('waCampaign', 'whatsapp', 'campaign', (v) => mo.waCampaignActual = v, (v) => mo.waCampaignTarget = v);
+
+    sync('appCampaign', 'mobileApp', 'campaign', (v) => mo.appCampaignActual = v, (v) => mo.appCampaignTarget = v);
+    sync('appNotification', 'mobileApp', 'notification', (v) => mo.appNotificationActual = v, (v) => mo.appNotificationTarget = v);
+
+    sync('googleBlogs', 'google', 'blog', (v) => mo.googleBlogsActual = v, (v) => mo.googleBlogsTarget = v);
+    sync('googleCampaign', 'google', 'campaign', (v) => mo.googleCampaignActual = v, (v) => mo.googleCampaignTarget = v);
+
+    sync('osmSnapchat', 'otherSocial', 'snapchat', (v) => mo.osmSnapchatActual = v, (v) => mo.osmSnapchatTarget = v);
+    sync('osmPinterest', 'otherSocial', 'pinterest', (v) => mo.osmPinterestActual = v, (v) => mo.osmPinterestTarget = v);
+    sync('osmShorts', 'otherSocial', 'shorts', (v) => mo.osmShortsActual = v, (v) => mo.osmShortsTarget = v);
+    sync('osmLinkedin', 'otherSocial', 'linkedin', (v) => mo.osmLinkedinActual = v, (v) => mo.osmLinkedinTarget = v);
+    sync('osmXPost', 'otherSocial', 'xpost', (v) => mo.osmXPostActual = v, (v) => mo.osmXPostTarget = v);
+
+    mo.designResponse = days.fold(0, (s, d) => s + d.feedbackResponses);
+    mo.designFeedbackRating = (days.fold(0, (s, d) => s + d.feedbackRating) / days.length).round();
   }
 }

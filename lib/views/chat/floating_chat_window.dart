@@ -105,11 +105,19 @@ class FloatingChatWindow {
                             ),
                           ),
                           Expanded(
-                            child: ChangeNotifierProvider<EcosystemProvider>.value(
-                              value: eco,
-                              child: Navigator(
-                                key: navKey,
-                                onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => first),
+                            // The window already sits above the keyboard (padding and
+                            // height above). Without this, the chat screen inside also
+                            // shrank for the keyboard, a second time, leaving no room for
+                            // the message list: messages vanished and sent ones seemed lost.
+                            child: MediaQuery.removeViewInsets(
+                              context: dialogCtx,
+                              removeBottom: true,
+                              child: ChangeNotifierProvider<EcosystemProvider>.value(
+                                value: eco,
+                                child: Navigator(
+                                  key: navKey,
+                                  onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => first),
+                                ),
                               ),
                             ),
                           ),

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MN Family Legal</title>
+  <meta name="description" content="Privacy Policy and Terms & Conditions for the MN Family staff app.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="mn-logo.jpg">
+  <link rel="stylesheet" href="legal.css">
+  <script src="legal.js"></script>
+  <style>
+    .cards { max-width: 1120px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .card { display: block; text-decoration: none; color: var(--body); }
+    .card h2 { margin: 0 0 6px; color: var(--ink); font-size: 21px; }
+    .card p { margin: 0 0 12px; }
+    .card .go { color: var(--brand); font-weight: 700; }
+    .card:hover .section { border-color: var(--brand); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html" aria-label="MN Jewel Park: MN Family legal home">
+        <span class="brand-mark"><img src="mn-logo.jpg" alt="" width="40" height="40"></span>
+        <span class="brand-text">
+          <span class="brand-name">MN Jewel Park</span>
+          <span class="brand-sub">MN Family app</span>
+        </span>
+      </a>
+      <nav class="topnav" aria-label="Legal pages">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Switch theme">☾</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <img class="hero-logo" src="mn-logo.jpg" alt="MN Jewel Park logo" width="88" height="88">
+    <span class="eyebrow">Legal</span>
+    <h1>MN Family app</h1>
+    <p class="lead">The staff app of MN Jewel Park, Vellore. Read how we look after your information and the rules for using the app.</p>
+  </section>
+
+  <div class="cards">
+    <a class="card" href="privacy.html">
+      <div class="section">
+        <h2>Privacy Policy</h2>
+        <p>What we collect, who can see it, health and step data, your rights, and how to delete your account.</p>
+        <span class="go">Read the Privacy Policy →</span>
+      </div>
+    </a>
+    <a class="card" href="terms.html">
+      <div class="section">
+        <h2>Terms &amp; Conditions</h2>
+        <p>Who may use the app, your account, acceptable use, the four pillars, and the health disclaimer.</p>
+        <span class="go">Read the Terms →</span>
+      </div>
+    </a>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-brand"><img src="mn-logo.jpg" alt="MN Jewel Park logo" width="32" height="32"> © <span id="year">2026</span> MN Jewel Park. All rights reserved.</span>
+      <span><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms &amp; Conditions</a></span>
+    </div>
+  </footer>
+</body>
+</html>

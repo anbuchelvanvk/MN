@@ -1,5 +1,6 @@
 import 'forgot_password_screen.dart';
 import '../../core/widgets/mn_brand_logo.dart';
+import '../../core/widgets/legal_links.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -631,6 +632,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 48,
                                 onPressed: _handleLogin,
                               ),
+                        const SizedBox(height: 14),
+                        // Privacy Policy and Terms, readable before signing in.
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            for (final page in LegalPage.values) ...[
+                              if (page != LegalPage.values.first)
+                                Text('·', style: GoogleFonts.outfit(fontSize: 12, color: AppColors.sandPrimary)),
+                              TextButton(
+                                key: ValueKey('login_legal_${page.slug}'),
+                                onPressed: () => page.open(context),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  minimumSize: const Size(0, 32),
+                                ),
+                                child: Text(
+                                  page.title,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.sandPrimary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
                     ),
                   ),

@@ -11,7 +11,6 @@ import '../../models/employee_model.dart';
 import '../../models/hr_attendance_sheet_models.dart';
 import '../../models/profile_pillar_models.dart';
 import '../../providers/ecosystem_provider.dart';
-import '../auth/pillars_popup_dialog.dart';
 import '../employee/employee_profile_screen.dart';
 import '../pillars/attendance_pillar_screen.dart';
 import '../hr/hr_management_widgets.dart';
@@ -93,9 +92,7 @@ class _CeoSuiteScreenState extends State<CeoSuiteScreen> {
       if (mounted) {
         await BirthdayCelebrationDialog.showIfNeeded(context);
         if (mounted) {
-          await PillarsPopupDialog.show(context);
           if (mounted) {
-            await Future.delayed(const Duration(milliseconds: 250));
             if (mounted) {
               await DailyPendingActionsDialog.showIfNeeded(context);
             }

@@ -3,12 +3,21 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/assign_tasks_to_others_modal.dart';
 import '../../core/widgets/employee_avatar.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../../core/widgets/pillar_kit.dart';
 import '../../models/employee_model.dart';
 import '../../models/konar_tasks_catalog.dart';
 import '../../providers/ecosystem_provider.dart';
+import '../ceo/ceo_subpages.dart';
+import '../dept_head/dept_head_subpages.dart';
+import '../hr/hr_employee_inspection_screen.dart';
+import '../hr/hr_management_widgets.dart';
+import '../hr/hr_password_requests_screen.dart';
+import '../hr/hr_portal_subpages.dart';
+import '../orders/online_orders_handler_screen.dart';
+import 'role_hub_widgets.dart';
 
 /// What each kind of role is responsible for, in plain words.
 class RoleGuide {
@@ -195,20 +204,57 @@ class _RoleCardState extends State<_RoleCard> {
         .toSet()
         .toList();
     final p = e.permissions;
-    final perks = <String>[
+    final viewerIsCeo = eco.isCeo || eco.activeRole.toLowerCase() == 'ceo';
+    final me = eco.currentEmployee;
+    // Each access chip opens the page for that job. A chip is only tappable
+    // when the person looking at the card can use that page too.
+    VoidCallback? go(bool Function(RolePermissions) perk, Widget Function() page) =>
+        eco.hasPerk(perk) ? () => openHubScreen(context, page()) : null;
+    final perks = <(String, VoidCallback?)>[
       if (e.isHr || e.isCeo) ...[
-        if (p.canHireStaff || e.isCeo) 'Hire staff',
-        if (p.canRelieveStaff || e.isCeo) 'Relieve staff',
-        if (p.canApproveLeave || e.isCeo) 'Approve leave',
-        if (p.canManageAttendance || e.isCeo) 'Attendance',
-        if (p.canAuditGrooming || e.isCeo) 'Grooming',
-        if (p.canSendAnnouncements || e.isCeo) 'Announcements',
-        if (p.canResetPasswords || e.isCeo) 'Password help',
-        if (p.canApproveSocialCauses || e.isCeo) 'Social causes',
+        if (p.canHireStaff || e.isCeo) ('Hire staff', go((x) => x.canHireStaff, () => const HrStaffDirectoryScreen())),
+        if (p.canRelieveStaff || e.isCeo)
+          ('Relieve staff', go((x) => x.canRelieveStaff, () => const HrStaffDirectoryScreen())),
+        if (p.canApproveLeave || e.isCeo)
+          ('Approve leave',
+              go((x) => x.canApproveLeave, () => viewerIsCeo ? const CeoAttendanceScreen() : const HrAttendanceScreen())),
+        if (p.canManageAttendance || e.isCeo)
+          ('Attendance',
+              go((x) => x.canManageAttendance,
+                  () => viewerIsCeo ? const CeoAttendanceScreen() : const HrAttendanceScreen())),
+        if (p.canAuditGrooming || e.isCeo) ('Grooming', go((x) => x.canAuditGrooming, () => const HrGroomingAuditScreen())),
+        if (p.canSendAnnouncements || e.isCeo)
+          ('Announcements',
+              go(
+                  (x) => x.canSendAnnouncements,
+                  () => HubSectionPage(
+                        title: 'Announcement',
+                        subtitle: 'Send a notice to all staff',
+                        child: HrBroadcastSection(
+                          senderName: viewerIsCeo ? me.name : '${me.name} (HR)',
+                          senderRole: viewerIsCeo ? me.role : 'HR Manager',
+                        ),
+                      ))),
+        if (p.canResetPasswords || e.isCeo)
+          ('Password help', go((x) => x.canResetPasswords, () => const HrPasswordRequestsScreen())),
+        if (p.canApproveSocialCauses || e.isCeo)
+          ('Social causes',
+              go((x) => x.canApproveSocialCauses,
+                  () => viewerIsCeo ? const CeoSocialCausesScreen() : const HrSocialCausesScreen())),
       ],
-      if (p.canAssignTasksToOthers && !e.isHr && !e.isCeo) 'Assign tasks',
-      if (p.canManageOrders && !e.isCeo) 'Online orders',
+      if (p.canAssignTasksToOthers && !e.isHr && !e.isCeo)
+        ('Assign tasks',
+            eco.hasPerk((x) => x.canAssignTasksToOthers) || me.isTeamLead
+                ? () => AssignTasksToOthersModal.show(context)
+                : null),
+      if (p.canManageOrders && !e.isCeo)
+        ('Online orders', go((x) => x.canManageOrders, () => const OnlineOrdersHandlerScreen())),
     ];
+    // "+ N more" / the task heading opens that person's tasks: your own list
+    // for you, the staff inspection page for someone you look after.
+    final VoidCallback openTasks = widget.isMe
+        ? () => openHubScreen(context, const TlMyTasksScreen())
+        : () => openHubScreen(context, HrEmployeeInspectionScreen(employee: e));
     final access = e.isCeo
         ? 'All departments'
         : (e.isHr ? p.departmentAccess.map(Employee.normalizeDept).join(', ') : null);
@@ -250,18 +296,48 @@ class _RoleCardState extends State<_RoleCard> {
             for (final d in guide.duties) _bullet(d, guide.color),
             if (daily.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text('Daily tasks (${daily.length})',
-                  style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+              InkWell(
+                onTap: openTasks,
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text('Daily tasks (${daily.length})',
+                          style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                    ),
+                    Text('Open', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                    const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.primary),
+                  ],
+                ),
+              ),
               const SizedBox(height: 4),
               for (final t in daily.take(8)) _bullet(t, AppColors.textMuted, icon: Icons.task_alt_rounded),
               if (daily.length > 8)
-                Text('+ ${daily.length - 8} more', style: kitBody(12)),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _ActionChip(
+                      key: Key('roles_more_tasks_${e.id}'),
+                      label: '+ ${daily.length - 8} more tasks',
+                      icon: Icons.arrow_forward_rounded,
+                      onTap: openTasks,
+                    ),
+                  ),
+                ),
             ],
             if (perks.isNotEmpty) ...[
               const SizedBox(height: 10),
               Text('Access', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark)),
               const SizedBox(height: 6),
-              Wrap(spacing: 6, runSpacing: 6, children: [for (final x in perks) KitPill(x, const Color(0xFF475569))]),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                for (final x in perks)
+                  _ActionChip(
+                    label: x.$1,
+                    icon: x.$2 == null ? null : Icons.arrow_forward_rounded,
+                    onTap: x.$2,
+                  ),
+              ]),
             ],
             if (access != null && access.isNotEmpty) ...[
               const SizedBox(height: 8),
@@ -284,4 +360,39 @@ class _RoleCardState extends State<_RoleCard> {
           ],
         ),
       );
+}
+
+/// A pill that opens a page when tapped (grey when the viewer cannot open it).
+class _ActionChip extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final VoidCallback? onTap;
+  const _ActionChip({super.key, required this.label, this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    final color = enabled ? AppColors.primary : const Color(0xFF475569);
+    return Material(
+      color: color.withOpacity(enabled ? 0.10 : 0.08),
+      borderRadius: BorderRadius.circular(30),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(30),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label, style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+              if (enabled && icon != null) ...[
+                const SizedBox(width: 4),
+                Icon(icon, size: 14, color: color),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

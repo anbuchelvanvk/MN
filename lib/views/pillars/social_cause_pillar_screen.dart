@@ -11,6 +11,7 @@ import '../../services/image_optimization_service.dart';
 import '../../core/widgets/social_cause_detail_dialog.dart';
 import '../ceo/ceo_subpages.dart';
 import '../../core/widgets/mn_app_bar.dart';
+import '../../core/widgets/pillar_kit.dart';
 
 class SocialCausePillarScreen extends StatefulWidget {
   final bool isStandalone;
@@ -55,18 +56,21 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
           // 1. Summary + post action
           Builder(builder: (context) {
             final now = DateTime.now();
-            final monthApproved = allCauses
-                .where((c) => c.isApproved && c.date.year == now.year && c.date.month == now.month)
-                .fold(0.0, (sum, c) => sum + c.amountSpent);
+            // Your own approved deeds this month, against your own goal.
+            final monthApproved =
+                eco.myApprovedSocialCauses(now).fold(0.0, (sum, c) => sum + c.amountSpent);
+            final monthGoal = eco.socialAmountGoalForMonth(now);
             final pendingCount = allCauses.where((c) => c.isPending).length;
             String rs(double v) => '₹${v.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
             return PillarHeroCard(
               icon: Icons.volunteer_activism_rounded,
               eyebrow: 'This month',
               headline: '${rs(monthApproved)} in good deeds',
-              caption: monthApproved >= 5000 ? 'Monthly goal reached — thank you!' : 'Goal ${rs(5000)} • approved deeds count',
-              progress: monthApproved / 5000,
-              ringLabel: '${(monthApproved / 5000 * 100).clamp(0, 100).round()}%',
+              caption: monthApproved >= monthGoal
+                  ? 'Monthly goal reached — thank you!'
+                  : 'Your goal ${rs(monthGoal)} • approved deeds count',
+              progress: monthGoal > 0 ? monthApproved / monthGoal : 0,
+              ringLabel: '${(monthGoal > 0 ? monthApproved / monthGoal * 100 : 0).clamp(0, 100).round()}%',
               stats: [
                 PillarHeroStat('$approvedCount', 'Approved'),
                 PillarHeroStat('$pendingCount', 'Waiting'),
@@ -76,6 +80,8 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
               onAction: () => _showPostSocialCauseDialog(context, eco),
             );
           }),
+          const SizedBox(height: 12),
+          _buildGoalsCard(context, eco),
           if (eco.isCeo || eco.activeRole == 'ceo' || eco.activeRole == 'hr') ...[
             const SizedBox(height: 10),
             OutlinedButton.icon(
@@ -161,6 +167,215 @@ class _SocialCausePillarScreenState extends State<SocialCausePillarScreen> {
       ),
       body: content,
     );
+  }
+
+  // =========================================================================
+  // YOUR GOALS: an amount goal and a number-of-deeds goal, each per day or
+  // per month, set by the person and changeable any time.
+  // =========================================================================
+  static String _rupees(double v) =>
+      '₹${v.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+
+  Widget _buildGoalsCard(BuildContext context, EcosystemProvider eco) {
+    final now = DateTime.now();
+    final month = eco.myApprovedSocialCauses(now);
+    final today = eco.myApprovedSocialCauses(now, dayOnly: true);
+    final monthAmt = month.fold(0.0, (s, c) => s + c.amountSpent);
+    final todayAmt = today.fold(0.0, (s, c) => s + c.amountSpent);
+    final amountDaily = eco.socialAmountPeriod == 'day';
+    final countDaily = eco.socialCountPeriod == 'day';
+
+    Widget goalRow({
+      required Key key,
+      required IconData icon,
+      required Color color,
+      required String title,
+      required String main,
+      required double progress,
+      String? sub,
+    }) =>
+        Column(
+          key: key,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: color),
+                const SizedBox(width: 8),
+                Expanded(child: Text(title, style: kitTitle(14))),
+                Text('${(progress * 100).clamp(0, 100).round()}%', style: kitTitle(13.5).copyWith(color: color)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(main, style: kitBody(12.5)),
+            const SizedBox(height: 6),
+            KitBar(progress: progress, color: color, height: 7),
+            if (sub != null) ...[
+              const SizedBox(height: 4),
+              Text(sub, style: kitBody(11.5)),
+            ],
+          ],
+        );
+
+    final amountGoal = eco.socialAmountGoal;
+    final countGoal = eco.socialCountGoal;
+    final monthAmtGoal = eco.socialAmountGoalForMonth(now);
+    final monthCountGoal = eco.socialCountGoalForMonth(now);
+
+    return KitCard(
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const KitIcon(Icons.flag_rounded, Color(0xFF0F766E)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Your goals', style: kitTitle(16)),
+                    Text('Set by you · change any time', style: kitBody(12)),
+                  ],
+                ),
+              ),
+              TextButton.icon(
+                key: const Key('social_goals_edit'),
+                onPressed: () => _editSocialGoals(context, eco),
+                icon: const Icon(Icons.edit_rounded, size: 16),
+                label: const Text('Edit'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          goalRow(
+            key: const Key('social_goal_amount'),
+            icon: Icons.currency_rupee_rounded,
+            color: const Color(0xFFB7791F),
+            title: 'Amount: ${_rupees(amountGoal)} ${amountDaily ? 'a day' : 'a month'}',
+            main: amountDaily
+                ? 'Today ${_rupees(todayAmt)} of ${_rupees(amountGoal)}'
+                : 'This month ${_rupees(monthAmt)} of ${_rupees(amountGoal)}',
+            progress: amountDaily
+                ? (amountGoal > 0 ? todayAmt / amountGoal : 0)
+                : (amountGoal > 0 ? monthAmt / amountGoal : 0),
+            sub: amountDaily ? 'This month ${_rupees(monthAmt)} of ${_rupees(monthAmtGoal)}' : null,
+          ),
+          const SizedBox(height: 16),
+          goalRow(
+            key: const Key('social_goal_count'),
+            icon: Icons.volunteer_activism_rounded,
+            color: const Color(0xFF0F766E),
+            title: 'Good deeds: $countGoal ${countDaily ? 'a day' : 'a month'}',
+            main: countDaily
+                ? 'Today ${today.length} of $countGoal'
+                : 'This month ${month.length} of $countGoal',
+            progress: countDaily
+                ? (countGoal > 0 ? today.length / countGoal : 0)
+                : (countGoal > 0 ? month.length / countGoal : 0),
+            sub: countDaily ? 'This month ${month.length} of $monthCountGoal' : null,
+          ),
+          const SizedBox(height: 10),
+          Text('Only approved good deeds count toward your goals.', style: kitBody(11.5)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editSocialGoals(BuildContext context, EcosystemProvider eco) async {
+    final amountCtrl = TextEditingController(text: eco.socialAmountGoal.toStringAsFixed(0));
+    final countCtrl = TextEditingController(text: '${eco.socialCountGoal}');
+    var amountPeriod = eco.socialAmountPeriod;
+    var countPeriod = eco.socialCountPeriod;
+    String? error;
+
+    Widget periodToggle(String value, ValueChanged<String> onChanged, String keyPrefix) => SegmentedButton<String>(
+          segments: [
+            ButtonSegment(value: 'day', label: Text('Per day', key: Key('${keyPrefix}_day'))),
+            ButtonSegment(value: 'month', label: Text('Per month', key: Key('${keyPrefix}_month'))),
+          ],
+          selected: {value},
+          showSelectedIcon: false,
+          onSelectionChanged: (v) => onChanged(v.first),
+        );
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 18, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Your social cause goals', style: kitTitle(18)),
+                const SizedBox(height: 4),
+                Text('Pick what suits you. You can change these any time.', style: kitBody(12.5)),
+                const SizedBox(height: 18),
+                Text('Amount goal', style: kitTitle(14)),
+                const SizedBox(height: 8),
+                TextField(
+                  key: const Key('social_goal_amount_field'),
+                  controller: amountCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(prefixText: '₹ ', hintText: 'e.g. 5000'),
+                ),
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, children: [
+                  for (final v in const [1000, 5000, 7000, 10000])
+                    ActionChip(
+                      label: Text(_rupees(v.toDouble())),
+                      onPressed: () => set(() => amountCtrl.text = '$v'),
+                    ),
+                ]),
+                const SizedBox(height: 8),
+                periodToggle(amountPeriod, (v) => set(() => amountPeriod = v), 'social_amount_period'),
+                const SizedBox(height: 20),
+                Text('Number of good deeds', style: kitTitle(14)),
+                const SizedBox(height: 8),
+                TextField(
+                  key: const Key('social_goal_count_field'),
+                  controller: countCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(hintText: 'e.g. 1 a day or 20 a month', suffixText: 'deeds'),
+                ),
+                const SizedBox(height: 8),
+                periodToggle(countPeriod, (v) => set(() => countPeriod = v), 'social_count_period'),
+                if (error != null) ...[
+                  const SizedBox(height: 10),
+                  Text(error!, style: kitBody(12.5).copyWith(color: const Color(0xFFDC2626))),
+                ],
+                const SizedBox(height: 18),
+                FilledButton(
+                  key: const Key('social_goals_save'),
+                  onPressed: () {
+                    final a = double.tryParse(amountCtrl.text.replaceAll(',', '').trim());
+                    final c = int.tryParse(countCtrl.text.trim());
+                    if (a == null || a <= 0 || c == null || c <= 0) {
+                      set(() => error = 'Enter an amount and a number of deeds above zero.');
+                      return;
+                    }
+                    eco.setSocialGoals(amount: a, amountPeriod: amountPeriod, count: c, countPeriod: countPeriod);
+                    Navigator.pop(ctx, true);
+                  },
+                  child: const Text('Save goals'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    amountCtrl.dispose();
+    countCtrl.dispose();
+    if (saved == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Goals saved.')));
+    }
   }
 
   Widget _filterTab(String key, String label) {

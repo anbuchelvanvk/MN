@@ -1,0 +1,8 @@
+# Copy this file to android/key.properties and fill in your own values.
+# key.properties and the .jks file are git-ignored: never commit them.
+# Keep a backup of both somewhere safe. If the upload key is lost, you
+# have to ask Google Play support to reset it.
+storeFile=upload-keystore.jks
+storePassword=CHANGE_ME
+keyAlias=upload
+keyPassword=CHANGE_ME

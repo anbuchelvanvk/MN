@@ -10,7 +10,6 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/liquid_glass.dart';
 import '../../core/widgets/role_app_bar.dart';
 import '../../providers/ecosystem_provider.dart';
-import '../auth/pillars_popup_dialog.dart';
 import '../employee/employee_profile_screen.dart';
 import '../orders/online_orders_handler_screen.dart';
 import 'dept_head_subpages.dart';
@@ -47,9 +46,7 @@ class _DeptHeadPortalScreenState extends State<DeptHeadPortalScreen> {
         context.read<EcosystemProvider>().setLoggedIn(true);
         await BirthdayCelebrationDialog.showIfNeeded(context);
         if (mounted) {
-          await PillarsPopupDialog.show(context);
           if (mounted) {
-            await Future.delayed(const Duration(milliseconds: 250));
             if (mounted) {
               await DailyPendingActionsDialog.showIfNeeded(context);
             }
