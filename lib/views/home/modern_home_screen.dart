@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/mn_app_bar.dart';
 import '../../core/widgets/mn_brand_logo.dart';
 import '../../core/widgets/legal_links.dart';
+import 'home_highlights_card.dart';
 import '../../core/widgets/birthday_crown.dart';
 import '../../core/widgets/logout_confirm_dialog.dart';
 import '../../core/widgets/employee_avatar.dart';
@@ -192,13 +193,21 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: _buildPillarsGrid(context, eco),
                               ),
+                              const SizedBox(height: 22),
+                              // Special days and the latest notices, one by one (every 10 s)
+                              _sectionHeader('Happening now', trailing: 'Tap to see all'),
+                              const SizedBox(height: 12),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: HomeHighlightsCard(),
+                              ),
                               const SizedBox(height: 24),
                             ],
                           ),
                         ),
                       ),
 
-                      // Shortcuts, below the fold
+                      // Shortcuts
                       _sectionHeader('Shortcuts'),
                       const SizedBox(height: 12),
                       _buildQuickActions(context, eco),
@@ -282,19 +291,6 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
     final bool hasLoggedInUser = emp != null && emp.name.isNotEmpty && emp.name != 'Guest User';
     final String name = hasLoggedInUser ? emp.name : 'Guest';
     final String role = _roleLabel(emp);
-
-    final now = DateTime.now();
-    final steps = eco.getStepsForDate(now);
-    final pendingTasks = eco.currentEmployeeTasks
-        .where((t) => t.status == 'pending' || t.status == 'postponed')
-        .length;
-    final famToday = eco.totalFamilyHoursToday;
-    String fmtSteps(int v) => v.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
-    String fmtHours(double h) =>
-        h == h.roundToDouble() ? '${h.toStringAsFixed(0)}h' : '${h.toStringAsFixed(1)}h';
 
     return Container(
       decoration: const BoxDecoration(
@@ -515,63 +511,8 @@ class _ModernHomeScreenState extends State<ModernHomeScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
-
-                // Today strip
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0x14FFFFFF),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0x1FFFFFFF)),
-                  ),
-                  child: IntrinsicHeight(
-                    child: Row(
-                      children: [
-                        _heroStat(Icons.directions_walk_rounded, fmtSteps(steps), 'Steps today'),
-                        const VerticalDivider(color: Color(0x26FFFFFF), width: 1, thickness: 1),
-                        _heroStat(Icons.task_alt_rounded, '$pendingTasks', 'To-dos open'),
-                        const VerticalDivider(color: Color(0x26FFFFFF), width: 1, thickness: 1),
-                        _heroStat(Icons.favorite_rounded, fmtHours(famToday), 'Family today'),
-                      ],
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 10),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _heroStat(IconData icon, String value, String label) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: AppColors.heroAccent),
-          const SizedBox(height: 3),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: GoogleFonts.outfit(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 1),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFFFFD6E5),
             ),
           ),
         ],

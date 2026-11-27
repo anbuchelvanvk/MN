@@ -9,6 +9,7 @@ import '../../providers/ecosystem_provider.dart';
 import '../ceo/admin_role_access_management_screen.dart';
 import '../ceo/ceo_subpages.dart';
 import '../ceo/ceo_suite_screen.dart';
+import '../ceo/ceo_teams_screen.dart';
 import '../ceo/data_vault_screen.dart';
 import '../hr/hr_employee_inspection_screen.dart';
 import '../hr/hr_management_widgets.dart';
@@ -33,6 +34,9 @@ class _RoleHub extends StatelessWidget {
   final List<HubTool> Function(BuildContext, EcosystemProvider) tools;
   final Widget classicPortal;
 
+  /// Shown above the main actions (the CEO's "Teams" button).
+  final Widget? topAction;
+
   const _RoleHub({
     required this.title,
     required this.subtitle,
@@ -40,6 +44,7 @@ class _RoleHub extends StatelessWidget {
     required this.announcerRole,
     required this.tools,
     required this.classicPortal,
+    this.topAction,
   });
 
   @override
@@ -113,6 +118,10 @@ class _RoleHub extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
+            ],
+            if (topAction != null) ...[
+              topAction!,
+              const SizedBox(height: 12),
             ],
             Row(
               children: [
@@ -190,6 +199,7 @@ class CeoHubScreen extends StatelessWidget {
       announcer: me.name,
       announcerRole: me.role,
       classicPortal: const CeoSuiteScreen(embedded: true),
+      topAction: const _TeamsButton(),
       tools: (context, eco) => [
         HubTool(Icons.badge_rounded, 'Staff Dossiers', '${eco.employees.length} people', AppColors.primary,
             () => openHubScreen(context, const CeoStaffDossiersScreen())),
@@ -275,6 +285,65 @@ class HrHubScreen extends StatelessWidget {
           HubTool(Icons.file_download_rounded, 'HR Report', 'Export audit', const Color(0xFF0F766E),
               () => ExportAuditModal.show(context)),
       ],
+    );
+  }
+}
+
+/// CEO Suite: opens every department's live numbers.
+class _TeamsButton extends StatelessWidget {
+  const _TeamsButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final eco = context.watch<EcosystemProvider>();
+    final tasks = eco.tasks;
+    final done = tasks.where((t) => t.isCompleted).length;
+    final open = eco.blockers.where((b) => b.status != 'resolved').length;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const Key('ceo_teams_button'),
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => openHubScreen(context, const CeoTeamsScreen()),
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+          decoration: BoxDecoration(
+            gradient: AppColors.heroGradient,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: AppColors.softShadow,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.groups_2_rounded, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Teams',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+                    Text(
+                      '${eco.availableDepartments.length} departments • $done/${tasks.length} tasks done • $open open blocker${open == 1 ? '' : 's'}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12.5, color: Color(0xFFFFE4EE)),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

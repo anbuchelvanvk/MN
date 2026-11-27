@@ -4,7 +4,17 @@ import 'package:provider/provider.dart';
 
 import 'package:mn_family_app/core/theme/app_theme.dart';
 import 'package:mn_family_app/providers/ecosystem_provider.dart';
+import 'package:mn_family_app/views/home/home_highlights_card.dart';
 import 'package:mn_family_app/views/home/modern_home_screen.dart';
+
+/// Text in the floating notification pill (the same notice also rolls in
+/// the "Happening now" card, which is left out here).
+Finder pillText(String t) => find.byElementPredicate((e) {
+      final w = e.widget;
+      return w is Text &&
+          (w.data ?? '').contains(t) &&
+          e.findAncestorWidgetOfExactType<HomeHighlightsCard>() == null;
+    });
 
 void main() {
   Widget createTestWidget({EcosystemProvider? eco}) {
@@ -131,7 +141,7 @@ void main() {
       // Case 1: When no notifications exist, floating pill is completely hidden
       await tester.pumpWidget(createTestWidget(eco: eco));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Company Meeting at 10 AM'), findsNothing);
+      expect(pillText('Company Meeting at 10 AM'), findsNothing);
 
       // Case 2: Post a notification, floating pill appears with title
       eco.broadcastUniversalAnnouncement(
@@ -141,10 +151,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      expect(find.textContaining('Company Meeting at 10 AM'), findsOneWidget);
+      expect(pillText('Company Meeting at 10 AM'), findsOneWidget);
 
       // Tapping on the floating notification pill opens the notification sheet
-      await tester.tap(find.textContaining('Company Meeting at 10 AM'));
+      await tester.tap(pillText('Company Meeting at 10 AM'));
       await tester.pumpAndSettle();
     });
 
@@ -164,20 +174,20 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
 
       // Visible during the 5 second float period
-      expect(find.textContaining('Important Gold Rate Notice'), findsOneWidget);
+      expect(pillText('Important Gold Rate Notice'), findsOneWidget);
 
       // Advance past 6 seconds for ease-out dropdown exit
       await tester.pump(const Duration(seconds: 6));
       await tester.pump(const Duration(milliseconds: 600));
 
       // After 6s ease-out dropdown, the pill is hidden
-      expect(find.textContaining('Important Gold Rate Notice'), findsNothing);
+      expect(pillText('Important Gold Rate Notice'), findsNothing);
 
       // Tapping the bell icon re-triggers the floating notification dropdown
       await tester.tap(find.byIcon(Icons.notifications_none_rounded));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
-      expect(find.textContaining('Important Gold Rate Notice'), findsOneWidget);
+      expect(pillText('Important Gold Rate Notice'), findsOneWidget);
     });
 
     testWidgets('Dynamically displays account holder name and designation (CEO, HR, OTM)', (tester) async {
@@ -298,7 +308,6 @@ void main() {
       // Steps and calories come from the real logs
       // Stats sit on one line as "label value".
       expect(find.text('Steps 4,444', findRichText: true), findsOneWidget);
-      expect(find.text('4,444'), findsWidgets);
       expect(find.text('Kcal 1500/2000', findRichText: true), findsOneWidget);
 
       // Tapping the card opens the Health pillar
