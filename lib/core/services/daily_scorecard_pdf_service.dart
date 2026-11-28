@@ -71,7 +71,10 @@ class DailyScorecardPdfService {
       pw.Page(
         pageFormat: PdfPageFormat(width, height, marginAll: 0),
         theme: pw.ThemeData.withFont(base: regular, bold: bold),
-        build: (ctx) => pw.Padding(
+        build: (ctx) => pw.Container(
+          color: PdfColors.white,
+          width: width,
+          height: height,
           padding: const pw.EdgeInsets.fromLTRB(36, 30, 36, 24),
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
