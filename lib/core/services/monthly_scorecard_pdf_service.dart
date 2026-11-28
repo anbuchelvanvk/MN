@@ -139,6 +139,8 @@ class MonthlyScorecardPdfService {
         build: (pw.Context context) {
           return pw.Stack(
             children: [
+              // Solid white page, so shared images are never black/transparent.
+              pw.Positioned.fill(child: pw.Container(color: PdfColors.white)),
               // 1. Template Background with Authentic Icons & Design Layout
               if (bgBytes.isNotEmpty)
                 pw.Positioned.fill(
